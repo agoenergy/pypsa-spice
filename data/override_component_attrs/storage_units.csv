@@ -1,0 +1,7 @@
+attribute,type,unit,default,description,status
+node,string,n/a,n/a,node,Input (optional)
+country,string,n/a,n/a,country,Input (optional)
+inv_cost,float,currency/MW,0,investment cost,Input (optional)
+fom_cost,float,currency/MW,0,fix operational cost,Input (optional)
+r_rating,float,per unit,0,reserve contribution rating,Input (optional)
+pe_factor,float,per unit,0,primary energy conversion factor,Input (optional)

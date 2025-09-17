@@ -1,0 +1,5 @@
+[flake8]
+max-line-length = 88
+extend-ignore = E203, DAR101, DAR201, I001, I005, D101, D103, D105, DAR401, B023, S608, S101, S310, E402, S404
+docstring-convention = numpy
+exclude = data,tests,archive

@@ -1,0 +1,20 @@
+﻿original_names,nice_names,hex_codes
+Bio,Biomass,#408B2E
+Bit,Bituminous coal,#a6572e
+Electricity,Electricity,#f19ac1
+ENS,Energy not served,
+Oil,Oil,#006057
+Gas,Domestic natural gas,#9ABBCA
+Geothermal,Geothermal,#AB2E70
+High_Heat,High Heat,
+Hrdc,Hard coal,#0C0C0C
+Hyd,Hydrogen,#53abe0
+Lig,Lignite,#5E4745
+Lng,LNG,#617394
+Low_Heat,Low Heat,
+Solar,Solar,#FFE000
+Wind,Wind,#1E78C2
+CO2,CO2,#2d86a1
+Waste,Waste,#56378d
+Water,Water,#d2dde4
+Uranium,Uranium,#727272

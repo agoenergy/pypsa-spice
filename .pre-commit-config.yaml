@@ -1,0 +1,67 @@
+default_stages: [pre-commit]
+
+repos:
+  # ============== PRE-COMMIT HOOKS ===============
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-added-large-files
+        exclude: '^(data|docs)/.*'
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+        exclude: '^(data|docs)/.*'
+      - id: fix-encoding-pragma
+        exclude: '^(data|docs)/.*'
+      - id: mixed-line-ending
+        exclude: '^(data|docs)/.*'
+      - id: no-commit-to-branch
+
+  # ==================== BLACK ====================
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black
+      - id: black-jupyter
+
+  # ==================== ISORT ====================
+  - repo: https://github.com/pycqa/isort
+    rev: 6.0.1
+    hooks:
+      - id: isort
+        name: isort (python)
+
+  # =================== FLAKE8 ====================
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.3.0
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          [
+            darglint,
+            flake8-bandit,
+            flake8-bugbear,
+            flake8-builtins,
+            flake8-comprehensions,
+            flake8-docstrings,
+            flake8-eradicate,
+            flake8-isort,
+            flake8-pytest-style,
+          ]
+
+  # ==================== PYLINT ====================
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        args:
+          [
+            "-d duplicate-code",
+            "--disable=fixme,import-error,line-too-long, protected-access",
+            "--fail-under=9.5",
+            "--good-names=i,j,k,ex,Run,_,pk,x,y,df,e,p",
+            "--min-public-methods=0",
+            "--generated-members=snakemake.*",
+          ]

@@ -1,0 +1,62 @@
+﻿original_names,nice_names,hex_codes
+BATS,Lithium battery storage,#00ced1
+BATS_DISCHARGE,Battery - discharging,
+BATS_STORE,Battery - charging,
+BIOT,Biomass power plant,#408B2E
+Bit,Bituminous coal,#a6572e
+CCGT,Combined cycle gas turbine,#617394
+CHP,CHP plants,#A28CAB
+CSP,Concentrated solar,#ffd300
+DAC,Direct air capture,#2d86a1
+EDLH,Dielectric heating technology,#d05094
+EERH,Electric resistance heater,#72afc8
+EHPP,Industry heat pump,#7BC0BB
+EIDT,Induction heat boiler,#f19ac1
+ELTZ,Electrolyser for hydrogen production,#53abe0
+EVCH-PRV,Battery electric vehicle storage (Private),#2581C4
+EVCH-PUB,Battery electric vehicle storage (Public),#64B9E4
+FITR,Fischer Tropsch,#1E83B3
+Gas,Domestic natural gas,#9ABBCA
+GEOT,Geothermal power plant,#AB2E70
+HDAM,Large hydropower with dam,#d2dde4
+HDAM-IMP,Hydropower Import,#C3A5D3
+HHBS,Household Battery storage,#00ced1
+HHBS_DISCHARGE,Household Battery storage - discharging,
+HHBS_STORE,Household Battery storage - charging,
+HPHS,Hydro pumped storage,#8493C2
+HPHS_DISCHARGE,Hydro pumped storage - discharging,#8493C2
+HPHS_STORE,Hydro pumped storage - charging,
+Hrdc,Hard coal,#0C0C0C
+HROR,Hydro run-of-river,#97BAD5
+IND_BOILER,Industry heat boiler,#5C5D6B
+INLHSTOR,Thermal low Heat Storage,#C3A5D3
+INLHSTOR_DISCHARGE,Industrial low temperature heat storage - discharging,
+INLHSTOR_STORE,Industrial low temperature heat storage - charging,
+Lig,Lignite,#5E4745
+Lng,LNG,#617394
+LSLO,Lost load,
+ITCN,Cross-border interconnector,
+METH,Methanation,#48A8AE
+NUCL,Nuclear,#727272
+OCGT,Open cycle gas turbine,#ec6607
+OCHT,Open cycle hydrogen turbine,#95a664
+Oil,FO / Diesel,#006057
+OILT,Oil-fired power plant,#006057
+PEVCH,PEV charger,#2581C4
+PHOT,Solar PV,#FFE000
+powerFlow,Power flow,#5c5d6b
+RTPV,Roof top PV,#ffd300
+stateOfCharge,State of charge,#8393BE
+SubC,Subcritical coal power plant,#423429
+SupC,Supercritical coal power plant,#B69E8C
+SubC_RETRO, Subcritical coal power plant (retrofit),#78675b
+SupC_RETRO, Supercritical coal power plant (retrofit),#d1bba9
+SWHT,Solar hot water heater,#FFE000
+WSTT,Waste power plant,#56378d
+WTOF,Offshore Wind,#0061A4
+WTON,Onshore Wind,#1E78C2
+fossils,Fossil fuels,#80839B
+renewables,Renewables,#98B721
+Import,Imported-Energy,#d05094
+Waste,Waste,#56378d
+Hyd,Hydrogen,#95a664

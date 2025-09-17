@@ -1,0 +1,38 @@
+# General untracked file formats
+*.exe
+*.pyc
+*.nc
+*.zip
+*.dll 
+.snakemake*
+.history
+
+# Untracked folders (and files within)
+/results
+/logs
+/benchmarks
+/mod-data-vn-pdp8/
+/mod-data-th-ltes/
+/mod-data-ph-ltes/
+/mod-data-th-pdp/
+/mod-data-kz-ltes/
+/test/
+/site/
+/envs/.env
+
+# VS code related
+*.vscode
+*.vscode/settings.json
+*.code-workspace
+.vscode/launch.json
+docs/*.vscode/settings.json
+
+# Jetbrains related
+.idea
+
+# Untrack files
+gurobi.log
+config.yaml
+
+# Related to pypsa-spice-vis
+pypsa-spice-vis/setting/initial.yaml

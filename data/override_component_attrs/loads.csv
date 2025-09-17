@@ -1,0 +1,3 @@
+attribute,type,unit,default,description,status
+carrier,string,n/a,n/a,carrier,Input (optional)
+country,string,n/a,n/a,country,Input (optional)

@@ -1,0 +1,178 @@
+# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# coding: utf-8
+
+# to preview the documentation website in local server, run `mkdocs serve --config-file mkdocs.yaml` and get the url in the terminal to paste it in the browser
+
+site_name: "PyPSA-SPICE Model Builder Documentation"
+site_url: https://agora-energiewende.org
+repo_url: https://github.com/agoenergy/pypsa-spice
+theme:
+  language: en
+  name: material
+  font:
+    text: Flexo
+    code: Roboto Mono
+  favicon: assets/favicon/favicon.ico
+  logo: assets/images/logo.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: "white"
+      accent: "blue"
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: "black"
+      accent: "yellow"
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    # << TABLE OF CONTENTS >>
+    # integrate table of contents in the left sidebar
+    - toc.integrate 
+    # scroll the sidebar automatically so that the active anchor is always visible
+    - toc.follow
+
+    # << NAVIGATION >>
+    # expand all sidebar sections by default 
+    - navigation.expand
+    # enable `index.md` to act as a landing page for all folders, making them clickable
+    - navigation.indexes 
+    # add `back-to-top` button on long pages
+    - navigation.top
+    # prefetch pages in the background for faster navigation
+    - navigation.instant.prefetch
+    # show progress bar at the top of the page while loading (if needed)
+    - navigation.instant.progress
+    # add a footer with navigation links (previous/next) below the page content
+    - navigation.footer
+    # automatically update the URL in the address bar with the active anchor
+    - navigation.tracking
+    # include only the visible navigation items in the rendered HTML
+    - navigation.prune
+
+    # << SEARCH >>
+    # display the likeliest completion for the last word (can be accepted with -> key)
+    - search.suggest
+    # highlight all occurrences of the searched item
+    - search.highlight
+
+    # << CONTENT >>
+    # add a `copy` button to all code blocks enabling easy copying of code snippets
+    - content.code.copy
+    # add annotation to the code blocks when needed
+    - content.code.annotate
+
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - 🏠 Home: index.md
+
+  - 📖 User Guide:
+    - Model Builder Methodology: user-guide/model-builder-methodology.md
+    - Power Sector: user-guide/power_sector.md
+    - Industry Sector: user-guide/industry_sector.md
+    - Transport Sector: user-guide/transport_sector.md
+    - Post Analysis: user-guide/post-analysis.md
+    - Troubleshooting: user-guide/troubleshooting.md
+  
+  - 🚀 Getting Started:
+    - Overview: getting-started/overview.md
+    - Installation: getting-started/installation.md
+    - Input Data:
+      - Defining a New Model: getting-started/input-data/new-model.md
+      - Global CSV Template: getting-started/input-data/global_csv_template.md
+      - Regional CSV Template: getting-started/input-data/regional_csv_template.md
+      - Configuration: getting-started/input-data/model-builder-configuration.md
+      - Execution: getting-started/input-data/model-builder-execution.md
+
+  - 📊 Visualisation tool: 
+    - PyPSA-SPICE-Vis: visualisation-tool/pypsa-spice-vis.md
+    - List of charts and sections: visualisation-tool/vis-sections-and-charts.md
+    - Deployment: visualisation-tool/deployment.md
+
+  - 📚 Tutorials and Examples:
+    - Data Sources: tutorials-and-examples/data_sources.md
+    - Training Materials: tutorials-and-examples/training_materials.md
+    - Publication: tutorials-and-examples/publication.md
+
+  - 🤝 Contributing:
+    - Contributing: contributing/contributing.md
+    - Code of Conduct: contributing/code_of_conduct.md
+
+  - 🔗 References:
+    - License: references/citation_and_license.md
+    - Developers: references/developers.md
+
+copyright: Copyright &copy; 2025, PyPSA-SPICE Developers, see References section.
+
+markdown_extensions:
+  - admonition
+  - footnotes
+  - meta
+  - toc:
+      permalink: true
+  - attr_list
+  - md_in_html
+  - pymdownx.tilde
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true      
+  - markdown_katex:
+      no_inline_svg: true
+      insert_fonts_css: true
+
+extra:
+  # link to Agora's social network accounts
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/agoenergy
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/agora-energiewende/
+    - icon: fontawesome/brands/bluesky
+      link: https://bsky.app/profile/agoraew.bsky.social
+    - icon: fontawesome/brands/mastodon
+      link: https://mastodon.energy/@AgoraEW
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/channel/UCRT1mQK3b3xai1TvUlPrxyw
+    - icon: fontawesome/solid/file-pdf
+      link: pypsa-spice-documentation.pdf
+      name: Download documentation as one PDF file
+
+
+  # hide `Made with Material for MkDocs` notice from the site footer section
+  generator: false
+
+extra_css:
+  - "assets/css/custom.css"
+
+extra_javascript:
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+
+plugins:
+  - search
+  - to-pdf:
+      author: Data and Modelling Team at Agora Think Tanks
+      copyright: Copyright © PyPSA-SPICE Developers 2025
+      toc_level: 3
+      cover: true
+      cover_logo: /assets/images/logo.png
+      cover_title: "PyPSA-SPICE Model Builder"
+      cover_subtitle: "Documentation"
+      output_path: ../docs/pypsa-spice-documentation.pdf
+      render_js: false
+      

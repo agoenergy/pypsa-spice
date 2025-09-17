@@ -1,0 +1,32 @@
+name: pypsa-spice
+channels:
+  - conda-forge
+  - bioconda
+  - Gurobi
+dependencies:
+  - black==25.1.0
+  - flake8==7.3.0
+  - glib==2.84.3 
+  - gurobi==12.0.3
+  - ipykernel==6.30.0
+  - isort==6.0.1
+  - mkdocs-material==9.6.16
+  - numpy==1.26.4
+  - pandas==2.3.1
+  - pip==25.2
+  - plotly==6.3.0
+  - pre-commit==4.3.0
+  - progressbar2==4.5.0
+  - pycountry==24.6.1
+  - pylint==3.3.8
+  - pypsa==0.35.2
+  - python==3.12.11
+  - python-dotenv==1.0.1
+  - snakemake-minimal==9.9.0
+  - streamlit==1.47.0
+  - tsam==2.3.9
+  - weasyprint==65.1 
+  - xarray==2025.8.0
+  - yaml==0.2.5
+  - pip:
+      - -r requirements.txt

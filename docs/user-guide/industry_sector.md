@@ -1,0 +1,121 @@
+<!--
+-*- coding: utf-8 -*-
+SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-License-Identifier: GPL-2.0-or-later
+-->
+
+# Industry Sector
+
+## Key Features
+
+Optimisation of industry heat supply at two different temperature levels:
+
+- High-temperature (above 350°C)
+- Low/medium-temperature (350°C or below)
+
+The structure and functionality of components follow the [PyPSA Components](https://pypsa.readthedocs.io/en/latest/user-guide/components.html){:target="_blank"}. The diagram below shows the full set of components involved in energy flows for a single industrial node.
+
+[![PyPSA-SPICE industry sector energy flow](../assets/images/pypsa-spice_schema_industrial_sector.svg){ .img-center width="100%" }](../assets/images/pypsa-spice_schema_industrial_sector.svg){: target="_blank" }
+
+## Heat Generators
+
+The following component is defined as `Generator` in PyPSA.
+
+| Abbreviation  | Full Name                                |
+| ------------- | ---------------------------------------- |
+| `SWHT`        | Solar hot water heater                   |
+
+## Heat Links
+
+All the listed components are defined as `Link` in PyPSA.
+
+| Abbreviation  | Full Name                                |
+| ------------- | ---------------------------------------- |
+| `EERH`        | Electric resistance heater               |
+| `EDLH`        | Dielectric heating technology            |
+| `EHPP`        | Industry heat pump                       |
+| `EIDT`        | Induction heat boiler                    |
+| `FITR`        | Fischer-Tropsch process                  |
+| `IND_BOILER`  | Industry heat boiler                     |
+| `INLHSTOR`    | Low-temperature heat Storage             |
+| `METH`        | Methanation                              |
+
+## Fuel Conversion
+
+All the listed components are defined as `Link` in PyPSA.
+
+| Abbreviation  | Full Name                                |
+| ------------- | ---------------------------------------- |
+| `ELTZ`        | Electrolyser (for hydrogen production)   |
+| `FITR`        | Fischer-Tropsch process                  |
+
+## Direct Air Capture
+
+The following components is defined as `Link` in PyPSA.
+
+| Abbreviation  | Full Name                                |
+| ------------- | ---------------------------------------- |
+| `DAC`         | Direct air capture                       |
+
+## Storage Capacity
+
+The following component is defined as `StorageUnit` in PyPSA.
+
+!!! Tip
+    In PyPSA components, `StorageUnit` is modelled as a storage asset with a fixed energy-to-power ratio defined by `max_hours` of the nominal power (you can also refer to [PyPSA Components - Storage Unit](https://pypsa.readthedocs.io/en/latest/user-guide/components.html#storage-unit){:target="_blank"} for more information).<br><br>
+    To model the storage energy separately from the power capacity, `store` + 2 `links` is a better combination. You can refer to [Storage Energy](power_sector.md#storage-energy) for more information. Technologies defined in the storage energy require storage capacity if the carrier is related to electricity (power).
+
+| Abbreviation  | Full Name                                |
+| ------------- | ---------------------------------------- |
+| `INLHSTOR`    | Low-temperature heat storage             |
+
+## Storage Energy
+
+All the listed components are defined as `Store` in PyPSA.
+
+!!! Tip
+    In PyPSA components, `Store` is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of `store` + 2 `links`. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
+    IIn the industry sector of PyPSA-SPICE model builder, the media `electricity` is replaced by `low temperature heat` in the storage process. Technologies that are defined as storage energy, **they should also be included in [Storage Capacity](power_sector.md#storage-capacity) to describe charging and discharging processes. The links are created automatically , and hence it's not required to add charging and discharging links inside [Heat Links](industry_sector.md#heat-links), [Fuel Conversion](industry_sector.md#fuel-conversion), or [Direct Air Capture](industry_sector.md#direct-air-capture).**<br><br>
+    Detailed information and example can be found in [PyPSA Components - Store](https://pypsa.readthedocs.io/en/latest/user-guide/components.html#store){:target="_blank"} and [Replace StorageUnits with fundamental Links and Stores](https://pypsa.readthedocs.io/en/latest/examples/replace-generator-storage-units-with-store.html){:target="_blank"}.
+
+| Abbreviation  | Full Name                                |
+| ------------- | ---------------------------------------- |
+| `INLHSTOR`    | Low-temperature heat storage             |
+
+## Carriers
+
+| Abbreviation  | Full Name                                                     |
+| ------------- | ------------------------------------------------------------- |
+| `Bio`         | Biomass                                                       |
+| `CO2`         | Carbon dioxide (in the atmosphere)                            |
+| `Co2stor`     | Captured carbon dioxide                                       |
+| `Electricity` | Electricity                                                   |
+| `Gas`         | Domestic natural gas                                                   |
+| `High_Heat`   | High-temperature heat (> 350°C)                               |
+| `Hrdc`        | Anthracite or hard coal                                       |
+| `Hyd`         | Hydrogen                                                      |
+| `Low_Heat`    | Low/Medium-temperature heat (< 350°C)                         |
+| `Oil`         | Oil                                                           |
+
+## Buses
+
+| Abbreviation  | Full Name                               |
+| ------------- | --------------------------------------- |
+| `CO2STORN`    | CO~2~ storage                           |
+| `HVELEC`      | High-voltage electricity                |
+| `HYDN`        | Hydrogen                                |
+| `LVELEC`      | Low-voltage electricity                 |
+| `IND_LH`      | Industrial low-temperature heat         |
+| `IND_HH`      | Industrial high-temperature heat        |
+| `INLHSTORN`   | Industrial low-temperature heat storage |
+
+## Other Components
+
+| Abbreviation | Full Name                                               |
+| ------------ | ------------------------------------------------------- |
+| `co2Price`   | Price of emitting one unit of CO~2~ into the atmosphere |
+| `IND_LOAD`   | Industrial load (both high- and low-temperature heat)   |
+
+## Custom Constraints (Defined in the `config.yaml` File)
+
+- Coming soon...
