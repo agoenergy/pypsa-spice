@@ -1,0 +1,76 @@
+/* 
+-*- coding: utf-8 -*-
+SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+@font-face {
+  font-family: 'Flexo';
+  src:
+    url('../fonts/Flexo-Medium.woff2') format('woff2'),
+    url('../fonts/Flexo-Medium.woff') format('woff'),
+    url('../fonts/Flexo-Medium.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+body {
+  font-family: 'Flexo', Arial, Helvetica, sans-serif;
+}
+
+/* Make sure print uses Flexo everywhere */
+@media print {
+  html, body, .md-typeset {
+    font-family: 'Flexo', Arial, Helvetica, sans-serif !important;
+  }
+}
+
+ /* Custom CSS to resize the Agora Energiewende logo */
+.md-header__title img {
+    height: 100px; /* Adjust this value to change the height */
+    width: auto;  /* Maintain aspect ratio */
+}
+
+/* Adjust the size of different graphs*/
+img[alt="Example_of_build_skeleton"] { 
+    width: 250px; 
+}
+
+img[alt="PyPSA-SPICE_single_node_energy_flow"] { 
+    width: 800px; 
+}
+
+img[alt="PyPSA-SPICE_schema_overview"] { 
+    width: 800px; 
+}
+
+img[alt="PyPSA-SPICE_single_node_energy_flow_power_sector"] { 
+    width: 800px; 
+}
+
+img[alt="PyPSA-SPICE_single_node_energy_flow_industry_sector"] { 
+    width: 900px; 
+}
+
+img[alt="PyPSA-SPICE_single_node_energy_flow_transport_sector"] { 
+    width: 500px; 
+}
+
+img[alt="PyPSA-SPICE_snakemake_workflow_DAG"] { 
+    width: 700px; 
+}
+
+.md-sidebar__inner > nav > ul > li.md-nav__item > .md-nav__link {
+  font-weight: bold;
+  color: #5aa7cd;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.md-nav__title {
+  font-weight: bold;
+  color: #3c6f89;
+  text-shadow: 1px 1px 1px #83c7e9;
+  font-size: 0.85rem;
+}
+
