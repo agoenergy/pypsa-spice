@@ -11,8 +11,6 @@ repos:
       - id: check-merge-conflict
       - id: end-of-file-fixer
         exclude: '^(data|docs)/.*'
-      - id: fix-encoding-pragma
-        exclude: '^(data|docs)/.*'
       - id: mixed-line-ending
         exclude: '^(data|docs)/.*'
       - id: no-commit-to-branch
