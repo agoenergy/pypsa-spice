@@ -1390,7 +1390,7 @@ if __name__ == "__main__":
     CONFIG_FILE = "config.yaml"
 
     # Reading the config file
-    with open(CONFIG_FILE, "r", encoding="utf-8") as file:
+    with open(CONFIG_FILE, encoding="utf-8") as file:
         configurations = yaml.safe_load(file)
 
     # Country names from the configuration file
