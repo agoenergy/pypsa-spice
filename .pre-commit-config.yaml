@@ -51,20 +51,8 @@ repos:
           - "flake8-pytest-style==1.7.2"
           - "flake8-bandit==4.1.1"
 
-  # ==================== PYLINT ====================
-  - repo: local
+  # ====================================== PYLINT ======================================
+  - repo: https://github.com/pycqa/pylint
+    rev: v3.3.8
     hooks:
       - id: pylint
-        name: pylint
-        entry: pylint
-        language: system
-        types: [python]
-        args:
-          [
-            "-d duplicate-code",
-            "--disable=fixme,import-error,line-too-long, protected-access",
-            "--fail-under=9.5",
-            "--good-names=i,j,k,ex,Run,_,pk,x,y,df,e,p",
-            "--min-public-methods=0",
-            "--generated-members=snakemake.*",
-          ]
