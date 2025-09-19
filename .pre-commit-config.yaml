@@ -4,7 +4,7 @@ exclude: ^(data|pypsa-spice-vis)/
 repos:
   # ============== PRE-COMMIT HOOKS ===============
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
         exclude: '^(data|docs)/.*'
@@ -19,7 +19,7 @@ repos:
 
   # ==================== BLACK ====================
   - repo: https://github.com/psf/black
-    rev: 25.1.0
+    rev: 25.9.0
     hooks:
       - id: black
       - id: black-jupyter
