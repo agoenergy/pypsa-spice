@@ -17,7 +17,14 @@ repos:
         exclude: '^(data|docs)/.*'
       - id: no-commit-to-branch
 
-  # ==================== BLACK ====================
+  # ================================== UPGRADE SYNTAX ==================================
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.20.0
+    hooks:
+      - id: pyupgrade
+        args: [--py311-plus]
+
+  # ======================================= BLACK ======================================
   - repo: https://github.com/psf/black
     rev: 25.9.0
     hooks:
