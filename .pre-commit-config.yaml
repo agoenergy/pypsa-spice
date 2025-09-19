@@ -2,7 +2,7 @@ default_stages: [pre-commit]
 exclude: ^(data|pypsa-spice-vis)/
 
 repos:
-  # ============== PRE-COMMIT HOOKS ===============
+  # ================================= PRE-COMMIT HOOKS =================================
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
@@ -31,30 +31,26 @@ repos:
       - id: black
       - id: black-jupyter
 
-  # ==================== ISORT ====================
+  # ======================================= ISORT ======================================
   - repo: https://github.com/pycqa/isort
     rev: 6.0.1
     hooks:
       - id: isort
         name: isort (python)
 
-  # =================== FLAKE8 ====================
+  # ====================================== FLAKE8 ======================================
   - repo: https://github.com/pycqa/flake8
     rev: 7.3.0
     hooks:
       - id: flake8
         additional_dependencies:
-          [
-            darglint,
-            flake8-bandit,
-            flake8-bugbear,
-            flake8-builtins,
-            flake8-comprehensions,
-            flake8-docstrings,
-            flake8-eradicate,
-            flake8-isort,
-            flake8-pytest-style,
-          ]
+          - "flake8-bugbear==24.12.12"
+          - "flake8-builtins==2.5.0"
+          - "flake8-comprehensions==3.14.0"
+          - "flake8-docstrings==1.7.0"
+          - "flake8-eradicate==1.5.0"
+          - "flake8-pytest-style==1.7.2"
+          - "flake8-bandit==4.1.1"
 
   # ==================== PYLINT ====================
   - repo: local
