@@ -1,0 +1,12 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: 📚 Documentation
+    url: https://agoenergy.github.io/pypsa-spice/
+    about: Please check the documentation before opening a new issue.
+  - name: 💬 Discussions
+    url: https://github.com/agoenergy/pypsa-spice/discussions
+    about: For general discussions please use the Discussions page.
+  - name: 🛠 Contribution
+    url: https://agoenergy.github.io/pypsa-spice/contributing/contributing/
+    about: Read this guide before adding issues or opening pull requests.
