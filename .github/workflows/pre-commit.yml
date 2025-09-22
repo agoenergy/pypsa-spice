@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [ main, develop ]
   push:
-    branches: [ main, develop, feature/implement-ci-workflow-for-code-quality-check ]
+    branches: [ main, develop ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
