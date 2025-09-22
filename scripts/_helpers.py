@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -11,7 +10,7 @@ import urllib
 from itertools import cycle
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -359,7 +358,7 @@ def mock_snakemake(
     else:
         root_dir = Path(root_dir).resolve()
 
-    workdir: Optional[Path] = None
+    workdir: Path | None = None
     user_in_script_dir = Path.cwd().resolve() == script_dir
     if user_in_script_dir:
         os.chdir(root_dir)

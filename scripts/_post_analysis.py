@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -2451,7 +2450,7 @@ class OutputTables(Plots):
                 bus_name = "bus1" if c.name == "Link" else "bus"
                 df = c.df
                 ind_supply = df[
-                    ((df[bus_name].str.contains("IND")))
+                    (df[bus_name].str.contains("IND"))
                     & ~(
                         (df.type == "LSLO")
                         | (df.type == "ITCN")
@@ -2526,7 +2525,7 @@ class OutputTables(Plots):
             for c in n.iterate_components(["Link", "Generator", "StorageUnit"]):
                 bus_name = "bus1" if c.name == "Link" else "bus"
                 ind_supply = c.df[
-                    ((c.df[bus_name].str.contains("IND")))
+                    (c.df[bus_name].str.contains("IND"))
                     & ~(
                         (c.df.type == "LSLO")
                         | (c.df.type == "ITCN")

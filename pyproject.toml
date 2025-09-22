@@ -4,3 +4,10 @@ target-version = ['py311']
 
 [tool.isort]
 profile = "black"
+
+[tool.pylint.main]
+fail-under = 9.5
+disable = ["fixme", "import-error", "line-too-long", "protected-access"]
+good-names = ["i", "j", "k", "ex", "Run", "_", "pk", "x", "y", "df", "e", "p"]
+min-public-methods = 0
+generated-members = ["snakemake.*"]
