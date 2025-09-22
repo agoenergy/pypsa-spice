@@ -1,20 +1,21 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report a bug to help us improve
 title: "[BUG]"
 labels: bug
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+**Problem**  
+A clear description of the bug. What went wrong?  
 
-**To Reproduce**
-Steps to reproduce the behavior:
+**Steps to Reproduce**  
+Exact steps to reproduce the issue.  
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+1. Go to '...'
+2. Click on '...'
+3. See error  
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Context**  
+Any other relevant context, examples, logs, or screenshots.
