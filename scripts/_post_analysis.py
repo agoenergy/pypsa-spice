@@ -1389,7 +1389,7 @@ class OutputTables(Plots):
                 # Pre-compute the mask for bus_column contains any of the relevant
                 # substrings
                 is_electric_bus = component.df[bus_column].str.contains(
-                    "HVELEC|LVELEC", regex=True
+                    "HVELEC|LVELEC|BATSN|HPHSN", regex=True
                 )
                 supply_indices = component.df[
                     (component.df.country == country) & is_electric_bus
@@ -1605,6 +1605,95 @@ class OutputTables(Plots):
 
         return final_df
 
+    # Regional Pow generation by year (in TWh)
+    def pow_gen_by_region_yearly(self):
+        final_df = pd.DataFrame()
+        for year in self.network_dict:
+            n = self.network_dict[year]
+            gen_mix = pd.DataFrame()
+            for c in n.iterate_components(["Link", "Generator", "StorageUnit"]):
+                bus_name = "bus1" if c.name == "Link" else "bus"
+                pow_supply = c.df[
+                    (
+                        (c.df[bus_name].str.contains("HVELEC"))
+                        | (c.df[bus_name].str.contains("LVELEC"))
+                    )
+                    & ~(
+                        (c.df.type == "LSLO")
+                        | (c.df.type == "ITCN")
+                        | (c.df.type.str.contains("SUPPLY"))
+                        | (
+                            c.df.type.isin(
+                                ["EVST_PRV", "EVST_PUB", "BATS", "HHBS", "HPHS"]
+                            )
+                        )
+                    )  # removes the non-capacity items
+                ].index
+                if c.name == "Generator":
+                    c_gen = (
+                        c.pnl.p[pow_supply]
+                        .multiply(n.snapshot_weightings.generators, axis=0)
+                        .sum()
+                        .multiply(c.df.sign)
+                        .groupby(
+                            [c.df.country, 
+                             c.df.loc[pow_supply, bus_name].str.split("_", n=2).str[1]]
+                        )  # replace with region
+                        .sum()
+                        .to_frame()
+                    )
+                elif c.name == "StorageUnit":
+                    c_gen = (
+                        c.pnl.p[[x for x in c.pnl.p.columns if x in pow_supply]]
+                        .multiply(n.snapshot_weightings.stores, axis=0)
+                        .sum()
+                        .multiply(c.df.sign)
+                        .groupby(
+                            [c.df.country, 
+                             c.df.loc[pow_supply, bus_name].str.split("_", n=2).str[1]]
+                        )  # replace with region
+                        .sum()
+                        .to_frame()
+                    )
+                else:
+                    c_gen = (
+                        (
+                            -c.pnl.p1[pow_supply]
+                            .multiply(n.snapshot_weightings.generators, axis=0)
+                            .sum()
+                        )
+                        .groupby(
+                            [c.df.country, 
+                             c.df.loc[pow_supply, bus_name].str.split("_", n=2).str[1]]
+                        )  # replace with region
+                        .sum()
+                        .to_frame()
+                    )
+                c_gen.index.set_names(["country", "region"], inplace=True)
+                
+                c_gen.columns = ["value"]
+                gen_mix = pd.concat(
+                    [gen_mix, c_gen], axis=0
+                )  # return gen mix for a single year
+                gen_mix = gen_mix.groupby(
+                   level=["country", "region"]
+                ).sum()  # need to groupby-sum per region
+
+            gen_mix["year"] = year
+            final_df = pd.concat(
+                [final_df, gen_mix], axis=0
+            )  # return gen mix for all years
+        final_df = final_df.fillna(0)
+        final_df.index.name = "region"
+        final_df = scaling_conversion(
+            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            scaling_number=1e6,
+            decimals=2,
+        )
+        final_df = final_df.loc[final_df.value != 0]
+
+        return final_df
+
     def pow_flh_by_type_yearly(self) -> pd.DataFrame:
         """Calculate annual full load hours by country and type.
 
@@ -1712,12 +1801,33 @@ class OutputTables(Plots):
             country_reserve.index = pd.date_range(
                 start=f"{year}-01-01", periods=len(country_reserve), freq=f"{nth_hour}h"
             )
+            country_reserve.index.name = "snapshot"
             country_reserve["country"] = country
             country_reserve = country_reserve.set_index("country", append=True)
             all_countries_reserve = pd.concat(
                 [all_countries_reserve, country_reserve], axis=0
             )
+        all_countries_reserve = all_countries_reserve.stack().reset_index()
+        all_countries_reserve.columns = ["snapshot", "country", "technology", "value"]
         return all_countries_reserve
+
+    def pow_gen_reserve_by_type_hourly(self, year, nth_hour: int):
+        """Calculate hourly power generation and reserve by country and type."""
+        # --- Power generation data ---
+        df1 = self.pow_gen_by_type_hourly(year, nth_hour).reset_index()
+        df1["technology"] = df1["technology"] + "_energy"
+        
+        try:
+            # --- Reserve data ---
+            df2 = self.pow_reserve_by_type_hourly(year, nth_hour)
+            df2 = df2[~df2['technology'].isin(["demand_reserve", "reserve_total", "vre_reserve"])]
+            df2["technology"] = df2["technology"] + "_reserve"
+
+            # --- Concatenated data ---
+            df = pd.concat([df1, df2], axis=0, ignore_index=True)
+            return df.set_index(["snapshot", "country", "technology"]).sort_index()
+        except:
+            return df1
 
     def pow_bats_ep_ratio(self) -> pd.DataFrame:
         """Calculate battery energy to power ratio by country and year.
@@ -2041,7 +2151,7 @@ class OutputTables(Plots):
         for year in self.network_dict:
             n = self.network_dict[year]
             pow_emit = n.links[
-                (n.links.bus2.str.contains("ATMP")) & (n.links.type != "IND_BOILER")
+                (n.links.bus2.str.contains("ATMP")) & (n.links.type != "IND-BOILER")
             ].index
             emission = (
                 (
@@ -2101,7 +2211,7 @@ class OutputTables(Plots):
         if df_all.empty:
             return pd.DataFrame(columns=["year", "value"])  # return an empty dataframe
 
-        df_all = df_all.loc[df_all.value != 0]
+        # df_all = df_all.loc[df_all.value != 0]
         return df_all[["year", "value"]]
 
     def pow_intercap_by_region_yearly(self) -> pd.DataFrame:
@@ -2132,6 +2242,15 @@ class OutputTables(Plots):
             )  # return interconnection cap for all years
         final_df.index.names = ["country", "from", "to"]
         final_df = final_df.fillna(0)
+
+        # Minimal addition: add reversed pairs
+        reversed_df = final_df.reset_index()[["country", "from", "to", "year", "value"]].copy()
+        reversed_df = reversed_df.rename(columns={"from": "to", "to": "from"})
+        final_df = pd.concat([final_df.reset_index(), reversed_df], axis=0)
+
+        # Group again to sum duplicates if any
+        final_df = final_df.groupby(["country", "from", "to", "year"], as_index=False).agg({"value": "sum"})
+
         final_df = scaling_conversion(
             df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e3,
@@ -2273,7 +2392,7 @@ class OutputTables(Plots):
             n = self.network_dict[year]
             ind_emit = n.links[
                 (n.links.bus2.str.contains("ATMP"))
-                & (n.links.type.str.contains("IND_BOILER"))
+                & (n.links.type.str.contains("IND-BOILER"))
             ].index
             emission = (
                 (
@@ -2336,7 +2455,7 @@ class OutputTables(Plots):
             return pd.DataFrame(columns=["year", "value"])
 
         # Filter out zero values and return the dataframe when not empty
-        df_all = df_all.loc[df_all.value != 0]
+        # df_all = df_all.loc[df_all.value != 0]
         return df_all[["year", "value"]]
 
     def ind_gen_by_type_by_carrier_by_heatgroup_yearly(self) -> pd.DataFrame:
@@ -3669,3 +3788,326 @@ class OutputTables(Plots):
 
         final_df = final_df.loc[final_df.value != 0]
         return final_df
+
+
+    ##### TEST/OTHERS ################################
+        # Pow emission by carrier by year (in MTCO2)
+    def all_emi_by_carrier_yearly(self):
+        final_df = pd.DataFrame()
+        for year in self.network_dict:
+            n = self.network_dict[year]
+            all_emit = n.links[
+                (n.links.bus2.str.contains("ATMP"))].index
+            emission = (
+                (
+                    n.links_t.p0[all_emit].multiply(
+                        n.snapshot_weightings.objective, axis=0
+                    )
+                )
+                .multiply(n.links.reindex(all_emit).efficiency2, axis=1)
+                .T.groupby([n.links.country, n.links.carrier])
+                .sum()
+                .T.sum()
+            ).to_frame()
+            emission.columns = ["value"]  # return emission mix for a single year
+            emission["year"] = year
+            final_df = pd.concat(
+                [final_df, emission], axis=0
+            )  # return emission mix for all years
+        final_df.index.name = "carrier"
+        final_df = final_df.fillna(0)
+        final_df = scaling_conversion(
+            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            scaling_number=1e6,
+            decimals=2,
+        )
+        final_df = final_df.loc[final_df.value != 0]
+        return final_df
+
+    # Pow emission by carrier by year (in MTCO2)
+    def all_emi_by_type_yearly(self):
+        final_df = pd.DataFrame()
+        for year in self.network_dict:
+            n = self.network_dict[year]
+            all_emit = n.links[
+                (n.links.bus2.str.contains("ATMP"))].index
+            emission = (
+                (
+                    n.links_t.p0[all_emit].multiply(
+                        n.snapshot_weightings.objective, axis=0
+                    )
+                )
+                .multiply(n.links.reindex(all_emit).efficiency2, axis=1)
+                .T.groupby([n.links.country, n.links.type])
+                .sum()
+                .T.sum()
+            ).to_frame()
+            emission.columns = ["value"]  # return emission mix for a single year
+            emission["year"] = year
+            final_df = pd.concat(
+                [final_df, emission], axis=0
+            )  # return emission mix for all years
+        final_df.index.name = "carrier"
+        final_df = final_df.fillna(0)
+        final_df = scaling_conversion(
+            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            scaling_number=1e6,
+            decimals=2,
+        )
+        final_df = final_df.loc[final_df.value != 0]
+
+        return final_df
+
+    def ene_not_served_warning(self):
+        final_df = pd.DataFrame()
+        for year in self.network_dict:
+            n = self.network_dict[year]
+            lslo = (
+                n.generators_t.p[n.generators[n.generators.carrier == "ENS"].index]
+                .sum()
+                ).to_frame()
+            lslo.columns = ["value"]
+            final_df = pd.concat([final_df, lslo], axis=1)
+            final_df["year"] = year
+
+        final_df.index.names = ["bus"]
+        final_df.index = final_df.index.str.replace("LOSTLOAD - ", "")
+
+        return final_df
+    
+    ############# SANKEY DIAGRAM ########################
+
+    def ene_primary_res_gen_yearly(self):
+        "Total energy generated by RES technology generators in the electricity bus"
+        final_df = pd.DataFrame()
+        
+        for year in self.network_dict:
+            n = self.network_dict[year]
+            res_gen_idx = n.generators[n.generators["bus"].str.contains("HVELEC|LVELEC")].index
+
+            re_generators = (
+                n.generators_t.p[res_gen_idx]
+                .multiply(n.snapshot_weightings.generators, axis=0)
+                .sum()
+                .multiply(n.generators.sign)
+                .groupby([n.generators.country, n.generators.carrier])
+                .sum()
+                .rename("value")
+                .to_frame()
+            )
+
+            re_generators["year"] = year
+            final_df = pd.concat([final_df, re_generators], axis=0)
+
+        final_df = final_df.loc[final_df.value != 0].reset_index()
+        final_df = final_df[final_df.carrier != 'ENS']
+
+        final_df = scaling_conversion(
+            df=final_df.loc[(final_df != 0).all(axis=1), :],
+            scaling_number=1e6,
+            decimals=2,
+        )
+
+        return final_df[['country', 'carrier', 'value', 'year']]
+
+    def ene_primary_fuel_gen_yearly(self):
+        "Total energy generated by fuel supplied generators in the primary bus"
+        final_df = pd.DataFrame()
+        
+        for year in self.network_dict:
+            n = self.network_dict[year]
+            fuel_gen_idx = n.generators[(n.generators.type.str.contains("SUPPLY"))].index
+
+            fuel_supply = (
+                n.generators_t.p[fuel_gen_idx]
+                .multiply(n.snapshot_weightings.generators, axis=0)
+                .sum()
+                .multiply(n.generators.sign)
+                .groupby([n.generators.country, n.generators.carrier])
+                .sum()
+                .rename("value")
+                .to_frame()
+            )
+
+            fuel_supply["year"] = year
+            final_df = pd.concat([final_df, fuel_supply], axis=0)
+
+        final_df = final_df.loc[final_df.value != 0].reset_index()
+
+        final_df = scaling_conversion(
+            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            scaling_number=1e6,
+            decimals=2,
+        )
+        return final_df[['country', 'carrier', 'value', 'year']]
+
+    def ene_total_primary_supply(self, ratio):
+        """Summarize Total Primary Energy Supply (TPES).
+        Fossil and renewable resources are aggregated on the primary side. 
+        Renewable resources are adjusted by a country-specific transformation ratio.
+        """
+
+        # Collect yearly results
+        vre = self.ene_primary_res_gen_yearly()
+        fuel = self.ene_primary_fuel_gen_yearly()
+
+        # Combine RES and fossil/other fuel supply
+        df = pd.concat([vre, fuel], ignore_index=True)
+
+        # Apply transformation ratios (default to 1 if not in ratio dict)
+        df["value"] *= df["carrier"].map(ratio).fillna(1)
+
+        #post-processing
+        df = df.loc[df.value != 0].sort_values('year').reset_index(drop=True)
+        df['source'] = df['carrier'].apply(lambda x: 'Imported' if 'imp' in x else 'Indigenous')
+        df['carrier'] = df["carrier"].str.replace("-imp", "", regex=False)
+        
+        return df[['source', 'carrier', 'value', 'year']]
+
+    def ene_indigenous_sources(self):
+        "Determine total indigenous fuel energy sources per year"
+        df = self.ene_primary_fuel_gen_yearly()
+        df = df[(~df['carrier'].str.contains('-imp')) &
+                 (df['carrier'].isin(['Geothermal', 'Bio']))].reset_index(drop=True)
+        return df
+
+    def ene_imported_sources(self):
+        "Determine total imported fuel energy sources per year"
+        df = self.ene_primary_fuel_gen_yearly()
+        df = df[(df['carrier'].str.contains('-imp'))].reset_index(drop=True)
+        return df
+
+    def ene_total_final_consumption(self):
+        """
+        Calculate total final energy consumption (TFEC) by carrier and sector across all years.
+        
+        """
+        final_df = pd.DataFrame()
+
+        # Mapping dictionaries
+        tfec_map = {
+            'AGRI': 'Agriculture',
+            'RES': 'Residential',
+            'TRAN': 'Transportation',
+            'IND': 'Industries',
+            'SERV': 'Commercial',
+            'NEU': 'Non-Energy Use'
+        }
+        carrier_map = {
+            'BIO': 'Bio',
+            'OIL': 'Oil',
+            'BIT': 'Bit'
+        }
+
+        for year, n in self.network_dict.items():
+            # --- Electricity loads ---
+            elec_load_idx = [
+                x for x in n.loads[n.loads.carrier == 'Electricity'].index
+                if x in n.loads_t.p_set.columns
+            ]
+            df_elec = (n.loads_t.p_set[elec_load_idx]
+                        .multiply(n.snapshot_weightings.generators, axis=0)
+                        .sum()
+                        .reset_index()
+            )
+            df_elec.columns = ['component_name', 'value']
+            df_elec['final_energy'] = df_elec['component_name'].apply(
+                                        lambda x: next((v for k, v in tfec_map.items() if k in x), 'Other')
+            )
+            df_elec['carrier'] = 'Electricity'
+            df_elec = df_elec.groupby(['final_energy', 'carrier'])['value'].sum().reset_index()
+
+            # --- Direct fuel loads (coal, oil, gas, biomass, etc.) ---
+            fuel_load_idx = [
+                x for x in n.loads[~n.loads.carrier.isin(['Electricity', 'Low_Heat', 'High_Heat'])].index
+                if x in n.loads_t.p_set.columns
+            ]
+            df_fuels = (n.loads_t.p_set[fuel_load_idx]
+                         .multiply(n.snapshot_weightings.generators, axis=0)
+                         .sum()
+                         .reset_index()
+            )
+            df_fuels.columns = ['component_name', 'value']
+            df_fuels['final_energy'] = df_fuels['component_name'].apply(
+                                         lambda x: next((v for k, v in tfec_map.items() if k in x), 'Other')
+            )
+            df_fuels['carrier'] = df_fuels['component_name'].apply(
+                                         lambda x: next((v for k, v in carrier_map.items() if k in x), 'Other')
+            )
+            df_fuels = df_fuels.groupby(['final_energy', 'carrier'])['value'].sum().reset_index()
+
+            # --- Industrial process loads (from sector-coupling optimization) ---
+            df_ind = self.ind_gen_by_type_by_carrier_by_heatgroup_yearly()
+            df_ind = df_ind[df_ind['year'] == year].groupby(['carrier'])['value'].sum().reset_index()
+            df_ind['final_energy'] = 'Industries'
+            df_ind['value'] *= 1e6  # Scale value to restore original function units
+
+            # --- Combine all components for the year ---
+            year_df = pd.concat([df_elec, df_fuels, df_ind], axis=0)
+
+            # Aggregate again since industry may contribute electricity twice
+            year_df = year_df.groupby(['final_energy', 'carrier'])['value'].sum().reset_index()
+            year_df['year'] = year
+
+            # Append the yearly data to the final DataFrame
+            final_df = pd.concat([final_df, year_df], axis=0)
+
+        final_df = scaling_conversion(
+            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            scaling_number=1e6,
+            decimals=2,
+        )
+
+        return final_df[['carrier', 'final_energy', 'value', 'year']]
+
+    def ene_sankey_diagram(self, ratio):
+
+        color_map = {
+        "Indigenous": "#F2D7A6",
+        "Imported": "#2C3E50",
+        "Bio": "#8b737f",
+        "Bit": "#163c47",
+        "ENS": "#A9A9A9",
+        "Gas": "#ff7967",
+        "Geothermal": "#c0d88d",
+        "Oil": "#b45340",
+        "Solar": "#ffae63",
+        "Uranium": "#967bb6",
+        "Waste": "#8b737f",
+        "Water": "#1d6897",
+        "Wind": "#42b2b7",
+        "Electricity": "#4682b4",
+        "Agriculture": "#4682b4",
+        "Commercial": "#4682b4",
+        "Industries": "#4682b4",
+        "Non-Energy Use": "#4682b4",
+        "Residential": "#4682b4",
+        "Transportation": "#4682b4",
+        "Hyd": "#5CC9F5",
+        "Low_Heat": "#5CC9F5" 
+        }
+
+        # Generate first-tier links
+        tpes1 = self.ene_total_primary_supply(ratio=ratio)
+        tpes1['color'] = tpes1['carrier'].map(color_map)
+        tpes1.columns = ['source', 'target', 'value', 'year', 'color']
+
+        # Calculate second-tier links
+        tpes2 = self.ene_total_primary_supply(ratio=ratio).groupby(['carrier', 'year'])['value'].sum()
+        tfec = self.ene_total_final_consumption().groupby(['carrier', 'year'])['value'].sum()
+        tform = (tpes2 - tfec.reindex(tpes2.index, fill_value=0)).reset_index()  #removes electricity bus
+        tform['color'] = tform['carrier'].map(color_map)
+        tform.columns = ['source', 'year', 'value', 'color']
+        tform['target'] = 'Electricity'
+        tform = tform[['source', 'target', 'value', 'year', 'color']]
+        
+        # skipped hydrogen blending, for simplicity
+
+        # Generate last-tier links
+        tfec = self.ene_total_final_consumption()
+        tfec['color'] = tfec['carrier'].map(color_map)
+        tfec.columns = ['source', 'target', 'value', 'year', 'color']
+
+        # Combine all tiers and filter for the specified year
+        final_df = pd.concat([tpes1, tform, tfec], axis=0)
+        return final_df.reset_index(drop=True)

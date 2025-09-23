@@ -353,6 +353,9 @@ def re_pow_generation_constraint(
                         "HROR",
                         "HPHS",
                         "BATS",
+                        "BATS-1",
+                        "BATS-2",
+                        "BATS-4",
                         "BIOT",
                         "WSTT",
                     ]

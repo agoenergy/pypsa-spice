@@ -220,7 +220,12 @@ try:
 except FileNotFoundError as e:
     st.write(e)
 
-p_page = st.Page("scripts/power.py", title="Power", icon=":material/bolt:")
+ene_page = st.Page(
+    "scripts/energy.py", title="Energy", icon=':material/captive_portal:'
+)
+p_page = st.Page(
+    "scripts/power.py", title="Power", icon=":material/bolt:"
+)
 i_page = st.Page(
     "scripts/industry.py", title="Industry", icon=":material/construction:"
 )
@@ -233,7 +238,7 @@ e_page = st.Page(
 c_page = st.Page("scripts/costs.py", title="Costs", icon=":material/attach_money:")
 info_page = st.Page("scripts/info.py", title="Info", icon=":material/info:")
 
-pages_list = [p_page, i_page, t_page, e_page, c_page, info_page]
+pages_list = [ene_page, p_page, i_page, t_page, e_page, c_page, info_page]
 if "i" not in st.session_state.sector:
     pages_list.remove(i_page)
 if "t" not in st.session_state.sector:

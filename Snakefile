@@ -11,7 +11,7 @@ if not exists("config.yaml"):
     copyfile("config.default.yaml", "config.yaml")
 
 
-configfile: "config.yaml"
+configfile: "pypsa-spice-data-ph/config_ph.yaml"
 
 
 wildcard_constraints:

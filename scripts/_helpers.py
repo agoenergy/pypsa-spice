@@ -479,7 +479,7 @@ def get_buses(bus_df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         table of buses with assigned carriers
     """
-    bus_df = bus_df[["bus", "carrier", "node", "country"]].set_index("bus")
+    bus_df = bus_df[["bus", "carrier", "node", "country", "x", "y"]].set_index("bus")
     return bus_df
 
 
@@ -621,6 +621,10 @@ def get_plant_availabilities(
             ).T
             result.columns = ["node", "technology"] + [str(i) for i in range(0, 8760)]
             if result.empty:
+                print(
+                    f"{row['type']} in {row['node']} is not in " +
+                    "availability database, assuming p_max_pu = 1 for all hours"
+                )
                 result = avail_df[(avail_df["technology"].isin(["Con10"]))]
 
         if len(result) > 1:
@@ -704,6 +708,10 @@ def get_link_availabilities(
             # give column names to match with other availability dataframes
             result.columns = ["node", "technology"] + [str(i) for i in range(0, 8760)]
             if result.empty:
+                print(
+                    f"{row['type']} in {row['node']} is not in " +
+                    "availability database, assuming p_max_pu = 1 for all hours"
+                )
                 result = avail_df[(avail_df["technology"].isin(["Con10"]))]
 
         if len(result) > 1:
@@ -833,6 +841,10 @@ def get_storage_units_inflows(
         else:
             # Country in row containing "Con00" is "WORLD"; thus we take
             # storage_inflows df instead
+            print(
+                f"{row['type']} in {row['node']} is not in inflow " +
+                "database, assuming inflow = 0 for all hours"
+            )
             result = storage_inflows[storage_inflows.technology == "Con00"].drop(
                 "country", axis=1
             )

@@ -27,7 +27,7 @@ if __name__ == "__main__":
     if snakemake is None:
         from _helpers import mock_snakemake
 
-        snakemake = mock_snakemake("combine_summaries", sector="p-i-t", years=2025)
+        snakemake = mock_snakemake("combine_summaries", sector="p-i-t", years=2030)
 
     sector = snakemake.wildcards.sector
     # Extracting list of all summary folder paths

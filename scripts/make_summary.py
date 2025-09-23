@@ -48,7 +48,7 @@ if __name__ == "__main__":
     if snakemake is None:
         from _helpers import mock_snakemake  # pylint: disable=ungrouped-imports
 
-        snakemake = mock_snakemake("make_summary", sector="p-i-t", years=2025)
+        snakemake = mock_snakemake("make_summary", sector="p-i-t", years=2030)
 
     selected_year = int(snakemake.wildcards.years)
     selected_sector = snakemake.wildcards.sector
@@ -93,7 +93,9 @@ if __name__ == "__main__":
     # Extracting output table of each method
     for method in summary_methods:
         # If hourly in method's name, define year parameter
-        if "hourly" in method:
+        if "ene_total_primary_supply" in method or "ene_sankey_diagram" in method:
+            df = getattr(ot, method)(ratio=snakemake.config['custom_constraints']['PH']['energy_independence']['pe_conv_fraction'])
+        elif "hourly" in method:
             df = getattr(ot, method)(year=selected_year, nth_hour=NTH_HOUR)
         else:
             df = getattr(ot, method)()

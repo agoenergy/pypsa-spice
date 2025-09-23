@@ -1,7 +1,9 @@
-﻿original_names,nice_names,hex_codes
+original_names,nice_names,hex_codes
 BATS,Lithium battery storage,#00ced1
 BATS_DISCHARGE,Battery - discharging,
 BATS_STORE,Battery - charging,
+BATS-2,Lithium battery storage,#00ced1
+BATS-4,Lithium battery storage,#00ced1
 BIOT,Biomass power plant,#408B2E
 Bit,Bituminous coal,#a6572e
 CCGT,Combined cycle gas turbine,#617394
@@ -40,7 +42,7 @@ METH,Methanation,#48A8AE
 NUCL,Nuclear,#727272
 OCGT,Open cycle gas turbine,#ec6607
 OCHT,Open cycle hydrogen turbine,#95a664
-Oil,FO / Diesel,#006057
+Oil,Oil and oil derivatives,#006057
 OILT,Oil-fired power plant,#006057
 PEVCH,PEV charger,#2581C4
 PHOT,Solar PV,#FFE000
@@ -60,3 +62,7 @@ renewables,Renewables,#98B721
 Import,Imported-Energy,#d05094
 Waste,Waste,#56378d
 Hyd,Hydrogen,#95a664
+lslo,Loss of load,#ffd300
+storeDischarge,Discharging profile,#95a664
+charging,Charging profile,#a6572e
+load,Traffic Demand,#408B2E

@@ -230,7 +230,7 @@ def generate_sidebar(toc):
             )
 
 
-def _setup_year_filter(config_plot: Dict, is_dual_scenario: bool) -> str:
+def _setup_year_filter(config_plot: Dict, is_dual_scenario: bool, scenario_tag=None) -> str:
     """Setup the year filter that appears in graphs with hourly data.
 
     Parameters
@@ -259,7 +259,7 @@ def _setup_year_filter(config_plot: Dict, is_dual_scenario: bool) -> str:
         key_prefix = "single"
 
     slider_id = config_plot["slider_id"].format(scenario_text)
-    key = f"{key_prefix}_year_{config_plot['tab_name']}"
+    key = f"{key_prefix}_year_{scenario_tag}_{config_plot['tab_name']}_{config_plot['graph_type']}"
     label = f"{slider_id} Select Year:"
 
     # Pills widget for the year filter
@@ -303,11 +303,13 @@ def _setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None
             scenario_text = st.session_state.sce1
 
         slider_id = config_plot["tab_name"]
+        leg_col = config_plot["leg_col"]
+        graph_type = config_plot["graph_type"]
         if "shared_country" in config_plot:
             country_id = config_plot["shared_country"]
         else:
             country_id = "all"
-        key = f"shared_country_{country_id}_{scenario_tag}_{slider_id}"
+        key = f"shared_country_{country_id}_{scenario_tag}_{slider_id}_{leg_col}_{graph_type}"
         label = f"{slider_id} Select country:"
 
         # Pills widget for the country selection element
@@ -482,8 +484,8 @@ def _setup_date_filter_complete(
         min_value=min_date,
         max_value=max_date,
         value=(
-            dt.datetime(shared_year, selected_month, 1, 0, 0),
-            dt.datetime(shared_year, selected_month, 14, 0, 0),
+            dt.datetime(int(shared_year), int(selected_month), 1, 0, 0),
+            dt.datetime(int(shared_year), int(selected_month), 14, 0, 0),
         ),
         format="DD/MM/YY HH:mm",
         step=dt.timedelta(hours=1),
@@ -674,8 +676,12 @@ def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None
     )
     st.markdown(f"#### {config_plot['name']}")
 
-    yaxis_scales = calculate_yaxis_scales(config_plot.get("graph_type"), config_plot)
-    config_plot["yaxis_scales"] = yaxis_scales
+    if graph_type is not sankey_diagram:
+        yaxis_scales = calculate_yaxis_scales(config_plot.get("graph_type"), config_plot)
+        config_plot["yaxis_scales"] = yaxis_scales
+    else:
+        # Sankey diagram does not use yaxis scales, so we set it to None
+        config_plot["yaxis_scales"] = None
 
     custom_legend_visibility = None
 
@@ -709,7 +715,8 @@ def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None
 
     elif config_plot.get("graph_type") in graphs_with_date_filters:
         # Setup year filter
-        shared_year = _setup_year_filter(config_plot, is_dual_scenario)
+        shared_year = _setup_year_filter(config_plot, is_dual_scenario, 
+                                         scenario_tag=st.session_state.sce1)
         config_plot["shared_year"] = str(shared_year)
 
         df1 = read_result_csv(
@@ -1567,6 +1574,117 @@ def line_with_secondary_y_hourly(sc_name: str, config_g: dict):
         fig, use_container_width=True, key=f"plotly_chart_{sc_name}_{tab_name}"
     )
 
+@st.fragment
+def sankey_diagram(
+    sc_name: str,
+    config_g: dict
+):
+
+    tab_name = config_g['tab_name']
+    years = config_g['years']
+
+    
+    # Read data from file
+    st.text("year:")
+    year = st.radio(
+        "Select Year ({})".format(sc_name) + ":",
+        options=years,
+        horizontal=True,
+        label_visibility="collapsed",
+        key=tab_name + "_" + sc_name + "_year",
+    )
+
+    file_path = os.path.abspath(
+        st.session_state.result_path
+        + "/"
+        + sc_name
+        + "/csvs/"
+        + st.session_state.sector
+        + "/"
+        + str(year)
+        + "/"
+        + tab_name
+        + ".csv"
+    )
+
+    try:
+        df = pd.read_csv(os.path.abspath(file_path))
+        df = df[df['year']==year] 
+    except FileNotFoundError:
+        with st.container(height=450, border=True):
+            st.write(":material/warning: File not found: {}".format(file_path))
+            return None
+
+    # Prepare the unique source and target mapping
+    unique_source_target = list(pd.unique(df[['source', 'target']].values.ravel('K')))
+    mapping_dict = {k: v for v, k in enumerate(unique_source_target)}
+
+    # Map the source and target to unique numbers
+    df['source'] = df['source'].map(mapping_dict)
+    df['target'] = df['target'].map(mapping_dict)
+
+    # Convert the DataFrame to a dictionary for Plotly
+    links_dict = df.to_dict(orient='list')
+
+    # Function to convert HEX color to RGBA with a given opacity
+    def hex_to_rgba(hex_color, opacity=0.9):
+        hex_color = hex_color.lstrip('#')
+        rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+        return f'rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, {opacity})'
+
+    # Apply the opacity change to all link colors
+    link_colors_with_opacity = [hex_to_rgba(color) for color in links_dict.get('color', [])]
+
+    color_map = {
+        "Indigenous": "#F2D7A6",
+        "Imported": "#2C3E50",
+        "Bio": "#8b737f",
+        "Bit": "#163c47",
+        "ENS": "#A9A9A9",
+        "Gas": "#ff7967",
+        "Geothermal": "#c0d88d",
+        "Oil": "#b45340",
+        "Solar": "#ffae63",
+        "Uranium": "#967bb6",
+        "Waste": "#8b737f",
+        "Water": "#1d6897",
+        "Wind": "#42b2b7",
+        "Low_Heat": "#F2D7A6",
+        "Electricity": "#4682b4",
+        "Agriculture": "#4682b4",
+        "Commercial": "#4682b4",
+        "Industries": "#4682b4",
+        "Non-Energy Use": "#4682b4",
+        "Residential": "#4682b4",
+        "Transportation": "#4682b4",
+        "Hyd": "#5CC9F5",
+        "Other": "#FFFFFF",
+        }
+    
+    # Create the Sankey diagram figure
+    fig = go.Figure(data=[go.Sankey(
+        arrangement='snap',
+        valuesuffix = "TWh",
+        node=dict(
+            label=unique_source_target,
+            pad=10,  # Increase padding to reduce overlap
+            thickness=20,
+            color=[color_map[x] for x in unique_source_target],
+            align='justify'
+        ),
+        link=dict(
+            source=links_dict["source"],
+            target=links_dict["target"],
+            value=links_dict["value"],
+            color=link_colors_with_opacity,  # Set the new colors with opacity
+        )
+    )])
+
+    # Update layout settings
+    fig.update_layout(font_size=10, width=800, height=600)
+
+    # Streamlit app
+    st.plotly_chart(fig, use_container_width=True, key=f"sankey_diagram_{sc_name}_{tab_name}")
 
 def _prettify_label(label: str) -> str:
     """
@@ -1960,6 +2078,7 @@ def plot_function(func_name: str = None):
         "simple_line_hourly": simple_line_hourly,
         "filtered_bar_hourly": filtered_bar_hourly,
         "line_with_secondary_y_hourly": line_with_secondary_y_hourly,
+        "sankey_diagram": sankey_diagram,
     }
     func = mapping.get(func_name)
     if func is None:

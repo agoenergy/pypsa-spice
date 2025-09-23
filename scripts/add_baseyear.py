@@ -71,6 +71,8 @@ class AddBaseNetwork:
             name=bus_df.index,
             carrier=bus_df["carrier"],
             country=bus_df["country"],
+            x=bus_df["x"], 
+            y=bus_df["y"]
         )
 
     # ============================= ADDING atmosphere store ============================
@@ -102,8 +104,14 @@ class AddBaseNetwork:
             "Wind",
             "Water",
             "Geothermal",
+            "Low_Heat",
+            "High_Heat",
+            "Bit-imp",
             "Gas-imp",
+            "Oil-imp",
+            "Uranium-imp",
             "ENS",
+            "Ammonia"
         ]
         missing_carriers_df = pd.DataFrame(missing_carriers, columns=["carrier"])
         missing_carriers_df["emission factor"] = 0
@@ -724,7 +732,7 @@ if __name__ == "__main__":
     if snakemake is None:
         from _helpers import mock_snakemake  # pylint: disable=ungrouped-imports
 
-        snakemake = mock_snakemake("add_baseyear", sector="p-i-t", years=2025)
+        snakemake = mock_snakemake("add_baseyear", sector="p-i-t", years=2030)
     # Getting global config params
     configure_logging(snakemake)
     selected_year = int(snakemake.wildcards.years)
