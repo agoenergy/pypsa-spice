@@ -1,7 +1,0 @@
-country,bus,store,type,carrier,standing_loss [%/hour],e_nom_extendable [True/False],e_nom [MWh],max_store_2025,max_store_2030,max_store_2035,max_store_2040,max_store_2045,max_store_2050
-XY,XY_CE_INLHSTORN,XY_CE_INLHSTORN_STOR,INLHSTOR,Low_Heat,0,0,0,0,inf,inf,inf,inf,inf
-XY,XY_NR_INLHSTORN,XY_NR_INLHSTORN_STOR,INLHSTOR,Low_Heat,0,0,0,0,inf,inf,inf,inf,inf
-XY,XY_SO_INLHSTORN,XY_SO_INLHSTORN_STOR,INLHSTOR,Low_Heat,0,0,0,0,inf,inf,inf,inf,inf
-YZ,YZ_CE_INLHSTORN,YZ_CE_INLHSTORN_STOR,INLHSTOR,Low_Heat,0,0,0,0,inf,inf,inf,inf,inf
-YZ,YZ_NR_INLHSTORN,YZ_NR_INLHSTORN_STOR,INLHSTOR,Low_Heat,0,0,0,0,inf,inf,inf,inf,inf
-YZ,YZ_SO_INLHSTORN,YZ_SO_INLHSTORN_STOR,INLHSTOR,Low_Heat,0,0,0,0,inf,inf,inf,inf,inf

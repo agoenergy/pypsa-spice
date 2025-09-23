@@ -1,7 +1,0 @@
-country,link,bus0,bus1,bus2,bus3,type,carrier,p_nom,p_nom_extendable,p_nom_max_2025,p_nom_max_2030,p_nom_max_2035,p_nom_max_2040,p_nom_max_2045,p_nom_max_2050,p_nom_min_2025,p_nom_min_2030,p_nom_min_2035,p_nom_min_2040,p_nom_min_2045,p_nom_min_2050
-XY,DAC_at_XY_CE_HVELEC,XY_ATMP,XY_CO2STORN,XY_CE_HVELEC,,DAC,CO2,0,FALSE,inf,inf,inf,inf,inf,inf,0,0,0,0,0,0
-XY,DAC_at_XY_NR_HVELEC,XY_ATMP,XY_CO2STORN,XY_NR_HVELEC,,DAC,CO2,0,FALSE,inf,inf,inf,inf,inf,inf,0,0,0,0,0,0
-XY,DAC_at_XY_SO_HVELEC,XY_ATMP,XY_CO2STORN,XY_SO_HVELEC,,DAC,CO2,0,FALSE,inf,inf,inf,inf,inf,inf,0,0,0,0,0,0
-YZ,DAC_at_YZ_CE_HVELEC,YZ_ATMP,YZ_CO2STORN,YZ_CE_HVELEC,,DAC,CO2,0,FALSE,inf,inf,inf,inf,inf,inf,0,0,0,0,0,0
-YZ,DAC_at_YZ_NR_HVELEC,YZ_ATMP,YZ_CO2STORN,YZ_NR_HVELEC,,DAC,CO2,0,FALSE,inf,inf,inf,inf,inf,inf,0,0,0,0,0,0
-YZ,DAC_at_YZ_SO_HVELEC,YZ_ATMP,YZ_CO2STORN,YZ_SO_HVELEC,,DAC,CO2,0,FALSE,inf,inf,inf,inf,inf,inf,0,0,0,0,0,0

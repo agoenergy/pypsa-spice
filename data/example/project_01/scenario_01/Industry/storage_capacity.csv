@@ -1,7 +1,0 @@
-country,type,node,carrier,bus,name,p_nom,p_nom_extendable,p_nom_max_2025,p_nom_max_2030,p_nom_max_2035,p_nom_max_2040,p_nom_max_2045,p_nom_max_2050,p_nom_min_2025,p_nom_min_2030,p_nom_min_2035,p_nom_min_2040,p_nom_min_2045,p_nom_min_2050
-XY,INLHSTOR,XY_CE,Low_Heat,XY_CE_IND-LH,XY_CE_IND-LH_INLHSTOR,0,TRUE,inf,inf,inf,inf,inf,inf,0,0,0,0,0,0
-XY,INLHSTOR,XY_NR,Low_Heat,XY_NR_IND-LH,XY_NR_IND-LH_INLHSTOR,0,TRUE,inf,inf,inf,inf,inf,inf,0,0,0,0,0,0
-XY,INLHSTOR,XY_SO,Low_Heat,XY_SO_IND-LH,XY_SO_IND-LH_INLHSTOR,0,TRUE,inf,inf,inf,inf,inf,inf,0,0,0,0,0,0
-YZ,INLHSTOR,YZ_CE,Low_Heat,YZ_CE_IND-LH,YZ_CE_IND-LH_INLHSTOR,0,TRUE,inf,inf,inf,inf,inf,inf,0,0,0,0,0,0
-YZ,INLHSTOR,YZ_NR,Low_Heat,YZ_NR_IND-LH,YZ_NR_IND-LH_INLHSTOR,0,TRUE,inf,inf,inf,inf,inf,inf,0,0,0,0,0,0
-YZ,INLHSTOR,YZ_SO,Low_Heat,YZ_SO_IND-LH,YZ_SO_IND-LH_INLHSTOR,0,TRUE,inf,inf,inf,inf,inf,inf,0,0,0,0,0,0
