@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -20,6 +19,7 @@ import tsam.timeseriesaggregation as tsam
 from _helpers import (
     FilePath,
     configure_logging,
+    filter_selected_countries_and_regions,
     get_buses,
     get_link_availabilities,
     get_plant_availabilities,
@@ -44,7 +44,8 @@ class AddBaseNetwork:
     def __init__(self, network: pypsa.Network, year: int):
         self.network = network
         self.year = year
-        self.country = snakemake.params.country
+        self.country_region = snakemake.params.country_region
+        self.country = list(self.country_region.keys())
         # Getting path for all database files
         self.technologies_dir = snakemake.input.powerplant_type
         self.tech_cost_dir = snakemake.input.powerplant_costs
@@ -65,6 +66,9 @@ class AddBaseNetwork:
             CSV file where all buses can be found
         """
         bus_df = pd.read_csv(bus_dir)
+        bus_df = filter_selected_countries_and_regions(
+            df=bus_df, column="node", country_region=self.country_region, buses_csv=True
+        )
         bus_df = get_buses(bus_df=bus_df)
         self.network.add(
             class_name="Bus",
@@ -119,7 +123,12 @@ class AddBaseNetwork:
     # =========================== ADDING Base interconnector ===========================
     def add_interconnectors(self):
         """Add interconnector capacity to the pyPSA network."""
-        interc = pd.read_csv(snakemake.input.interconnection).set_index("link")
+        interc = pd.read_csv(snakemake.input.interconnection)
+        interc = filter_selected_countries_and_regions(
+            df=interc,
+            column="link",
+            country_region=self.country_region,
+        ).set_index("link")
 
         self.network.add(
             class_name="Link",
@@ -151,6 +160,7 @@ class AddBaseNetwork:
     def add_fuel_supplies(self):
         """Add fuel_supplies to the pyPSA network."""
         hubs_raw = pd.read_csv(snakemake.input.fuel_supplies)
+        hubs_raw = hubs_raw[(hubs_raw["country"].str.contains("|".join(self.country)))]
         hubs_df = hubs_raw[hubs_raw["year"] == self.year]
         hubs_df.index = hubs_df["country"] + "_" + hubs_df["supply_plant"]
         self.network.add(
@@ -169,6 +179,11 @@ class AddBaseNetwork:
         """Add storage_capacity (StorageUnit) assets to PyPSA network."""
         # add StorageUnit (storage_capacity)
         storage_capacity = pd.read_csv(storage_capacity_dir)
+        storage_capacity = filter_selected_countries_and_regions(
+            df=storage_capacity,
+            column="node",
+            country_region=self.country_region,
+        )
         storage_capacity = update_tech_fact_table(
             tech_table=storage_capacity,
             technologies_dir=self.technologies_dir,
@@ -309,6 +324,11 @@ class AddBaseNetwork:
         """Add storage_energy (store+links) assets to PyPSA network."""
         # Add store (storage_energy)
         storage_energy_raw = pd.read_csv(storage_energy_dir).set_index("store")
+        storage_energy_raw = filter_selected_countries_and_regions(
+            df=storage_energy_raw.reset_index(),
+            column="store",
+            country_region=self.country_region,
+        ).set_index("store")
         storage_energy_raw["cyclic"] = storage_energy_raw["type"].apply(
             lambda x: x != "CO2STOR"
         )
@@ -342,7 +362,12 @@ class AddBaseNetwork:
     # =================================== ADDING load ==================================
     def add_load(self, load_dir: FilePath):
         """Add loads of all kind to the PyPSA network."""
-        final_load = get_time_series_demands(load_dir, self.dmd_profile_path, self.year)
+        load_df = filter_selected_countries_and_regions(
+            df=pd.read_csv(load_dir),
+            column="node",
+            country_region=self.country_region,
+        )
+        final_load = get_time_series_demands(load_df, self.dmd_profile_path, self.year)
         final_load.reset_index(["country", "bus", "carrier", "node"], inplace=True)
         self.network.add(
             class_name="Load",
@@ -367,6 +392,11 @@ class AddBaseNetwork:
             CSV file containing plants' data.
         """
         clean_pps = pd.read_csv(plant_dir)
+        clean_pps = filter_selected_countries_and_regions(
+            df=clean_pps,
+            column="node",
+            country_region=self.country_region,
+        )
         clean_pps = update_tech_fact_table(
             tech_table=clean_pps,
             technologies_dir=self.technologies_dir,
@@ -385,7 +415,9 @@ class AddBaseNetwork:
                 carrier=clean_gen["carrier"],
                 p_nom=clean_gen["p_nom"],
                 p_max_pu=get_plant_availabilities(
-                    plant_dir, self.availability_dir, self.technologies_dir
+                    clean_pps.reset_index(),
+                    self.availability_dir,
+                    self.technologies_dir,
                 )
                 .reindex(clean_gen.index)
                 .T.set_index(self.network.snapshots),
@@ -410,6 +442,11 @@ class AddBaseNetwork:
     def add_links(self, links_dir: FilePath):
         """Add power/heat or fuel converter links to the PyPSA network."""
         links_df = pd.read_csv(links_dir)
+        links_df = filter_selected_countries_and_regions(
+            df=links_df,
+            column="link",
+            country_region=self.country_region,
+        )
         links_df = update_tech_fact_table(
             tech_table=links_df,
             technologies_dir=self.technologies_dir,
@@ -441,7 +478,7 @@ class AddBaseNetwork:
             marginal_cost=links_df["marginal_cost"],
             p_nom=links_df["p_nom"],
             p_max_pu=get_link_availabilities(
-                links_dir, self.availability_dir, self.technologies_dir
+                links_df.reset_index(), self.availability_dir, self.technologies_dir
             )
             .reindex(links_df.index)
             .T.set_index(self.network.snapshots),
@@ -461,9 +498,15 @@ class AddBaseNetwork:
     def add_ev_chargers(self):
         """Add PEV chargers to the PyPSA network."""
         ev_links_df = pd.read_csv(snakemake.input.tra_pev_chargers).set_index("link")
-        tech_costs_df = pd.read_csv(snakemake.input.powerplant_costs).set_index(
-            ["powerplant_type", "country"]
-        )
+        tech_costs_df = pd.read_csv(snakemake.input.powerplant_costs)
+        tech_costs_df = tech_costs_df[
+            (tech_costs_df["country"].str.contains("|".join(self.country)))
+        ].set_index(["powerplant_type", "country"])
+        ev_links_df = filter_selected_countries_and_regions(
+            df=ev_links_df.reset_index(),
+            column="link",
+            country_region=self.country_region,
+        ).set_index("link")
         ev_links_df = update_ev_char_parameters(
             tech_df=ev_links_df,
             year=self.year,
@@ -474,7 +517,7 @@ class AddBaseNetwork:
         )
         link_p_max_pu = (
             get_link_availabilities(
-                snakemake.input.tra_pev_chargers,
+                ev_links_df.reset_index(),
                 self.availability_dir,
                 self.technologies_dir,
             )
@@ -506,7 +549,11 @@ class AddBaseNetwork:
     def add_ev_storage(self):
         """Add PEV storages to network."""
         ev_storages = pd.read_csv(snakemake.input.tra_pev_storages).set_index("name")
-
+        ev_storages = filter_selected_countries_and_regions(
+            df=ev_storages,
+            column="node",
+            country_region=self.country_region,
+        )
         ev_storages = update_ev_store_parameters(
             tech_table=ev_storages,
             year=self.year,
@@ -515,7 +562,7 @@ class AddBaseNetwork:
 
         ev_store_e_min_pu = (
             get_store_min_availabilities(
-                store_dir=snakemake.input.tra_pev_storages,
+                ev_storages.reset_index(),
                 avail_dir=self.availability_dir,
             )
             .reindex(ev_storages.index)
@@ -587,7 +634,6 @@ class AddBaseNetwork:
             'nth_hour' or 'clustered' from the config file, by default "nth_hour"
         """
         if (method).lower() == "clustered":
-
             solve_name = (snakemake.params.solve_name).lower()
             num_days = snakemake.params.numDays
             period_length = 24

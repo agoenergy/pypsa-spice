@@ -33,20 +33,18 @@ This config file is used for both creating a new model via `python script/build_
 
 ```yaml title="Base configurations"
 base_configs:
-  countries: ["XY", "YZ"] # (1)!
-  regions: # (2)!
+  regions: # (1)!
     XY: ["NR","CE", "SO"] 
     YZ: ["NR","CE", "SO"] 
-  years: [2025, 2030, 2035, 2040, 2045, 2050] # (3)!
-  sector: ["p-i-t"] # (4)!
-  currency: USD # (5)!
+  years: [2025, 2030, 2035, 2040, 2045, 2050] # (2)!
+  sector: ["p-i-t"] # (3)!
+  currency: USD # (4)!
 ```
 
-1. A list containing **2-letter** country codes according to [ISO 3166](https://www.iso.org/iso-3166-country-codes.html){:target="_blank"}.
-2. List of regions or nodes within each country. This defines the network’s nodal structure.
-3. List of years to be executed in the model builder.
-4. List of sectors to include in model run. The power sector (`p`) needs to be included. Other available options are `p-i`, `p-t`, `p-i-t`, representing industry (`i`), and transport (`t`) sectors coupled with the power sector.
-5. Currency usd in the model. The default setting is USD (also used in example data). Format shall be in all uppercases, [ISO4217](https://www.iso.org/iso-4217-currency-codes.html){:target="_blank"} format.
+1. List of regions or nodes within each country. This defines the network’s nodal structure. The country list contains **2-letter** country codes according to [ISO 3166](https://www.iso.org/iso-3166-country-codes.html){:target="_blank"}.
+2. List of years to be executed in the model builder.
+3. List of sectors to include in model run. The power sector (`p`) needs to be included. Other available options are `p-i`, `p-t`, `p-i-t`, representing industry (`i`), and transport (`t`) sectors coupled with the power sector.
+4. Currency usd in the model. The default setting is USD (also used in example data). Format shall be in all uppercases, [ISO4217](https://www.iso.org/iso-4217-currency-codes.html){:target="_blank"} format.
 
 ## Scenario Settings
 
