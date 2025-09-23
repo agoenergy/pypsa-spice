@@ -53,9 +53,9 @@ def extra_functionality_linopt(network: pypsa.Network, snapshots: pd.Series):
     # pylint: disable=possibly-used-before-assignment
     config = snakemake.config
     year = int(snakemake.wildcards.years)
-    base_year = config["base_configs"]["years"][0]
+    base_year = snakemake.params.years[0]
 
-    for country in config["base_configs"]["countries"]:
+    for country in list(snakemake.params.country_region.keys()):
         country_emission_settings = config["co2_management"][country]
         if country_emission_settings.get("option") == "co2_cap":
             co2_cap_constraint(

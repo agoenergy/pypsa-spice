@@ -72,7 +72,7 @@ rule add_baseyear:
     output:
         network=RDIR + "pre-solve-brownfield/network_{sector}_{years}.nc",
     params:
-        country=config["base_configs"]["countries"],
+        country_region=config["base_configs"]["regions"],
         interest=config["scenario_configs"]["interest"],
         currency=config["base_configs"]["currency"],
         snapshots=config["scenario_configs"]["snapshots"],
@@ -144,7 +144,7 @@ rule add_brownfield:
     output:
         brownfield_network=RDIR + "pre-solve-brownfield/network_{sector}_{years}.nc",
     params:
-        country=config["base_configs"]["countries"],
+        country_region=config["base_configs"]["regions"],
         years=config["base_configs"]["years"],
         interest=config["scenario_configs"]["interest"],
         currency=config["base_configs"]["currency"],
@@ -173,6 +173,7 @@ rule solve_network:
         final_network=RDIR + "post-solve/network_{sector}_{years}.nc",
         pre_solved=RDIR + "pre-solve/network_{sector}_{years}.nc",
     params:
+        country_region=config["base_configs"]["regions"],
         years=config["base_configs"]["years"],
         project_name=config["path_configs"]["project_name"],
         scenario_name=config["path_configs"]["scenario_name"],
