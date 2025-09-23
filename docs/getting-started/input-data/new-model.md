@@ -35,20 +35,18 @@ path_configs: #(1)!
   scenario_name: scenario_01 # (2)!
 
 base_configs:
-  countries: ["XY", "YZ"] # (3)!
   regions: 
-    XY: ["NR","CE", "SO"] # (4)!
+    XY: ["NR","CE", "SO"] # (3)!
     YZ: ["NR","CE", "SO"] 
-  years: [2025, 2030, 2035, 2040, 2045, 2050] # (5)!
-  sector: ["p-i-t"] # (6)!
+  years: [2025, 2030, 2035, 2040, 2045, 2050] # (4)!
+  sector: ["p-i-t"] # (5)!
 ```
 
 1. This section is for configuring directory structure for storing model inputs and results.
 2. A custom name you define for the scenario in your model.
-3. A list containing **2-letter** country codes according to [ISO 3166](https://www.iso.org/iso-3166-country-codes.html){:target="_blank"}.
-4. List of subregions in each country.
-5. Modelled years should be provided as a list.
-6. Options: [`p`, `p-i`, `p-t`, `p-i-t`], representing power (`p`), industry (`i`), and transport (`t`) sectors.
+3. List of regions or nodes within each country. This defines the network’s nodal structure. The country list contains **2-letter** country codes according to [ISO 3166](https://www.iso.org/iso-3166-country-codes.html){:target="_blank"}.
+4. Modelled years should be provided as a list.
+5. Options: [`p`, `p-i`, `p-t`, `p-i-t`], representing power (`p`), industry (`i`), and transport (`t`) sectors.
 
 The final skeleton folder path will follow this structure:: `input_dir`/`countries`/`scenario_name`.
 
