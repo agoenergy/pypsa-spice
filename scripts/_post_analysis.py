@@ -238,7 +238,7 @@ class OutputTables(Plots):
         self.networks = network_list
         self.network_dict = self.get_network_dict()
         self.config = config
-        self.countries = self.config["base_configs"]["countries"]
+        self.countries = list(self.config["base_configs"]["regions"].keys())
 
     def get_network_dict(self) -> dict:
         """Get a dictionary of networks from a list of file paths.

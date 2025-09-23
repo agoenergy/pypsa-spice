@@ -19,10 +19,9 @@ path_configs:
   scenario_name: scenario_01
 
 base_configs:
-  countries: ["XY", "YZ"] # list of countries in ISO2 format
   regions:
-    XY: ["NR","CE", "SO"] # list of subregions
-    YZ: ["NR","CE", "SO"] # list of subregions
+    XY: ["NR","CE", "SO"] # list of countries (keys) and subregions (values in list). Countries in ISO2 format
+    YZ: ["NR","CE", "SO"] # list of countries (keys) and subregions (values in list). Countries in ISO2 format
   years: [2025, 2030, 2035, 2040, 2045, 2050] # list of modelled years
   sector: ["p-i-t"] # options: ["p", "p-i", "p-t", "p-i-t"], representing power (p), industry (i), and transport (t) sectors.
   currency: USD # currency for the model in all uppercases, ISO4217 format
