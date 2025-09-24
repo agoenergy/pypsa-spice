@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -11,7 +10,7 @@ import urllib
 from itertools import cycle
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -359,7 +358,7 @@ def mock_snakemake(
     else:
         root_dir = Path(root_dir).resolve()
 
-    workdir: Optional[Path] = None
+    workdir: Path | None = None
     user_in_script_dir = Path.cwd().resolve() == script_dir
     if user_in_script_dir:
         os.chdir(root_dir)
@@ -484,13 +483,13 @@ def get_buses(bus_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_time_series_demands(
-    load_dir: FilePath, profile_dir: FilePath, year: int
+    load_df: pd.DataFrame, profile_dir: FilePath, year: int
 ) -> pd.DataFrame:
     """Convert total load per buses into timeseries for 8760 h based on profile pattern.
 
     Parameters
     ----------
-    load_dir : FilePath
+    load_df : FilePath
         table of load to convert
     profile_dir : FilePath
         list of profile patterns per bus type
@@ -509,7 +508,6 @@ def get_time_series_demands(
         If load_id has duplicate
     """
     # filter load table to only corresponding load year
-    load_df = pd.read_csv(load_dir)
     profile_df = pd.read_csv(profile_dir)
     load_df = load_df[load_df.year == year]
 
@@ -553,7 +551,7 @@ def get_time_series_demands(
 
 
 def get_plant_availabilities(
-    pp_dir: FilePath, avail_dir: FilePath, arch_dir: FilePath
+    pp_df: pd.DataFrame, avail_dir: FilePath, arch_dir: FilePath
 ) -> pd.DataFrame:
     """Match each generator/storage unit to corresponding availability.
 
@@ -561,8 +559,8 @@ def get_plant_availabilities(
 
     Parameters
     ----------
-    pp_dir : FilePath
-        directory of table of all power plants
+    pp_dir : pd.DataFrame
+        DataFrame of all power plants
     avail_dir : FilePath
         directory to database of availability per location and technology
     arch_dir : FilePath
@@ -582,7 +580,6 @@ def get_plant_availabilities(
     # Looping through each row in pp_df to find technology info and match to
     # corresponding availability
     dfs = []
-    pp_df = pd.read_csv(pp_dir)
     avail_df = pd.read_csv(avail_dir)
     arch_df = pd.read_csv(arch_dir)
     pp_df = pp_df.to_dict("records")
@@ -640,7 +637,7 @@ def get_plant_availabilities(
 
 
 def get_link_availabilities(
-    links_dir: FilePath, avail_dir: FilePath, arch_dir: FilePath
+    link_df: pd.DataFrame, avail_dir: FilePath, arch_dir: FilePath
 ) -> pd.DataFrame:
     """Match each converters to corresponding availability.
 
@@ -648,8 +645,8 @@ def get_link_availabilities(
 
     Parameters
     ----------
-    links_dir : FilePath
-        directory of table of all links
+    link_df : pd.DataFrame
+        DataFrame all links
     avail_dir : FilePath
         directory to database of availability per location and technology
     arch_dir : FilePath
@@ -668,7 +665,6 @@ def get_link_availabilities(
     # Looping through each row in pp_df to find technology info and match to
     # corresponding availability
     dfs = []
-    link_df = pd.read_csv(links_dir)
     avail_df = pd.read_csv(avail_dir)
     arch_df = pd.read_csv(arch_dir)
     link_df = link_df.to_dict("records")
@@ -727,14 +723,14 @@ def get_link_availabilities(
 
 
 def get_store_min_availabilities(
-    store_dir: FilePath, avail_dir: FilePath
+    stores_df: pd.DataFrame, avail_dir: FilePath
 ) -> pd.DataFrame:
     """Match each storage unit to corresponding minimum availability.
 
     Parameters
     ----------
-    store_dir : FilePath
-        table of all storage units
+    stores_df : pd.DataFrame
+        Table of all storage units
     avail_dir : FilePath
         minimum availability database
 
@@ -750,10 +746,9 @@ def get_store_min_availabilities(
         If plant name has duplicate
     """
     dfs = []
-    pp_df = pd.read_csv(store_dir)
     avail_df = pd.read_csv(avail_dir)
-    pp_df = pp_df.to_dict("records")
-    for row in pp_df:
+    stores_df = stores_df.to_dict("records")
+    for row in stores_df:
         # filter country first
         avail_country_df = avail_df[avail_df.country == row["country"]].drop(
             "country", axis=1
@@ -1169,7 +1164,7 @@ def update_ev_char_parameters(
 
         result = result.dropna(axis=1)
         result["p_nom_char"] = row[f"num_ch_{year}"] * result["p_nom_char"]
-        result["name"] = index
+        result["link"] = index
         result["build_year"] = year
 
         if result["class"].values == "Link":
@@ -1187,7 +1182,7 @@ def update_ev_char_parameters(
 
     plant_df = pd.concat(dfs)
     plant_df = plant_df[sorted(plant_df.columns)]
-    plant_df = plant_df.set_index("name")
+    plant_df = plant_df.set_index("link")
     return plant_df
 
 
@@ -1633,6 +1628,63 @@ def add_unit_column(table_name: str, currency: str) -> str:
 
     # Default fallback if no match found
     return "Dimensionless"
+
+
+def filter_selected_countries_and_regions(
+    df: pd.DataFrame, column: str, country_region: dict, buses_csv: bool = False
+) -> pd.DataFrame:
+    """Filter selected regions defined in the config.yaml.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Targeted DataFrame for filtering
+    column: str
+        Targeted column for filtering
+    country_region : dict{str, list[str]}
+        A dictionary with countries regions within those countries to filter by.
+    buses_csv : bool
+        If True, apply filtering algorithms especially for buses.csv.
+
+    Returns
+    -------
+    pd.DataFrame
+        Filtered DataFrame
+    """
+    final_df = pd.DataFrame()
+    for country, region in country_region.items():
+        region_pattern = [country + "_" + x for x in region]
+        # for buses cases
+        if buses_csv:
+            country_node_df = df[
+                (df["country"].str.contains(country))
+                & (~(df[column].str.contains("_")))
+            ]
+            region_df = df[(df[column].str.contains("|".join(region_pattern)))]
+            filter_df = pd.concat([country_node_df, region_df])
+        else:
+            # for interconnector cases
+            columns_to_check = [column, "bus0", "bus1", "CAP[USD/MW]"]
+            if (
+                column == "link"
+                and len([col for col in columns_to_check if col in df.columns]) == 4
+            ):
+                from_df = df[(df["bus0"].str.contains("|".join(region_pattern)))]
+                filter_df = from_df[
+                    (from_df["bus1"].str.contains("|".join(region_pattern)))
+                ]
+            # for storage_energy cases
+            elif column == "store":
+                region_df = df[(df[column].str.contains("|".join(region_pattern)))]
+                extra_df = df[
+                    (df["country"].str.contains(country))
+                    & df[column].str.contains("|".join(["CO2STORN", "HYDN"]))
+                ]
+                filter_df = pd.concat([region_df, extra_df])
+            else:
+                filter_df = df[(df[column].str.contains("|".join(region_pattern)))]
+        final_df = pd.concat([final_df, filter_df])
+    return final_df
 
 
 if __name__ == "__main__":
