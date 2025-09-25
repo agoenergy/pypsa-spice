@@ -185,6 +185,13 @@ def update_decommission_base_assets(
                     c.df.loc[plant, f"{attr}_nom"] = (
                         c.df.loc[plant, f"{attr}_nom"] - decap.loc[plant]
                     )
+        # Ensure nominal 'p' or 'e' never goes below 0.
+        # If this check is not implemented, some solvers such as HiGHS won't be able to
+        # solve the optimization problem due to infeasibility caused by contradictor
+        # constraints (i.e., nominal values are set to be non-negative in a different
+        # constraint, but their values might become negative after decommissioning in
+        # these constraints)
+        c.df[f"{attr}_nom"] = c.df[f"{attr}_nom"].clip(lower=0.0)
 
 
 def update_fuel_data(
@@ -889,7 +896,7 @@ if __name__ == "__main__":
     if snakemake is None:
         from _helpers import mock_snakemake  # pylint: disable=ungrouped-imports
 
-        snakemake = mock_snakemake("add_brownfield", sector="p-i-t", years=2030)
+        snakemake = mock_snakemake("add_brownfield", sector="p-i-t", years=2040)
     configure_logging(snakemake)
     sm_threshold = snakemake.params.remove_threshold
     sm_currency = snakemake.params.currency
