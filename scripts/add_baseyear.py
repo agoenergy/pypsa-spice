@@ -48,7 +48,7 @@ class AddBaseNetwork:
         self.country = list(self.country_region.keys())
         # Getting path for all database files
         self.technologies_dir = snakemake.input.powerplant_type
-        self.tech_cost_dir = snakemake.input.powerplant_costs
+        self.tech_cost_dir = snakemake.input.power_plant_costs
         self.storage_cost_path = snakemake.input.storage_costs
         self.dmd_profile_path = snakemake.input.dmd_profiles
         self.availability_dir = snakemake.input.pp_availability
@@ -67,7 +67,11 @@ class AddBaseNetwork:
         """
         bus_df = pd.read_csv(bus_dir)
         bus_df = filter_selected_countries_and_regions(
-            df=bus_df, column="node", country_region=self.country_region, buses_csv=True
+            df=bus_df,
+            column="node",
+            country_region=self.country_region,
+            currency=str(self.currency).lower(),
+            buses_csv=True,
         )
         bus_df = get_buses(bus_df=bus_df)
         self.network.add(
@@ -128,6 +132,7 @@ class AddBaseNetwork:
             df=interc,
             column="link",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         ).set_index("link")
 
         self.network.add(
@@ -168,7 +173,7 @@ class AddBaseNetwork:
             name=hubs_df.index,
             bus=hubs_df["bus"],
             carrier=hubs_df["carrier"],
-            marginal_cost=hubs_df[f"fuel_cost [{self.currency}/MWh]"],
+            marginal_cost=hubs_df[f"fuel_cost [{str(self.currency).lower()}_mwh"],
             type=hubs_df["carrier"].str.upper() + "_SUPPLY",
             p_nom_extendable=True,
             country=hubs_df["country"],
@@ -183,6 +188,7 @@ class AddBaseNetwork:
             df=storage_capacity,
             column="node",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         )
         storage_capacity = update_tech_fact_table(
             tech_table=storage_capacity,
@@ -328,6 +334,7 @@ class AddBaseNetwork:
             df=storage_energy_raw.reset_index(),
             column="store",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         ).set_index("store")
         storage_energy_raw["cyclic"] = storage_energy_raw["type"].apply(
             lambda x: x != "CO2STOR"
@@ -348,9 +355,9 @@ class AddBaseNetwork:
             carrier=storage_energy["carrier"],
             capital_cost=storage_energy["capital_cost"],
             marginal_cost=storage_energy["marginal_cost"],
-            e_nom=storage_energy["e_nom [MWh]"],
+            e_nom=storage_energy["e_nom"],
             e_nom_extendable=False,
-            standing_loss=storage_energy["standing_loss [%/hour]"],
+            standing_loss=storage_energy["standing_loss"],
             e_cyclic=storage_energy["cyclic"],
             build_year=self.year,
             lifetime=np.inf,
@@ -366,6 +373,7 @@ class AddBaseNetwork:
             df=pd.read_csv(load_dir),
             column="node",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         )
         final_load = get_time_series_demands(load_df, self.dmd_profile_path, self.year)
         final_load.reset_index(["country", "bus", "carrier", "node"], inplace=True)
@@ -396,6 +404,7 @@ class AddBaseNetwork:
             df=clean_pps,
             column="node",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         )
         clean_pps = update_tech_fact_table(
             tech_table=clean_pps,
@@ -446,6 +455,7 @@ class AddBaseNetwork:
             df=links_df,
             column="link",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         )
         links_df = update_tech_fact_table(
             tech_table=links_df,
@@ -498,7 +508,7 @@ class AddBaseNetwork:
     def add_ev_chargers(self):
         """Add PEV chargers to the PyPSA network."""
         ev_links_df = pd.read_csv(snakemake.input.tra_pev_chargers).set_index("link")
-        tech_costs_df = pd.read_csv(snakemake.input.powerplant_costs)
+        tech_costs_df = pd.read_csv(snakemake.input.power_plant_costs)
         tech_costs_df = tech_costs_df[
             (tech_costs_df["country"].str.contains("|".join(self.country)))
         ].set_index(["powerplant_type", "country"])
@@ -506,6 +516,7 @@ class AddBaseNetwork:
             df=ev_links_df.reset_index(),
             column="link",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         ).set_index("link")
         ev_links_df = update_ev_char_parameters(
             tech_df=ev_links_df,
@@ -553,6 +564,7 @@ class AddBaseNetwork:
             df=ev_storages,
             column="node",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         )
         ev_storages = update_ev_store_parameters(
             tech_table=ev_storages,
@@ -753,7 +765,8 @@ class AddBaseNetwork:
                 # attached to ATMP bus (meaning emitting co2)
                 co2price = snakemake.params.co2_management[country]["value"][self.year]
                 print(
-                    f"Adding CO2 Price as {co2price}{self.currency}/tCO2 for {country}"
+                    f"Adding CO2 Price as {co2price}{str(self.currency).lower()}/tCO2 "
+                    f"for {country}"
                 )
                 emit_links = self.network.links[
                     self.network.links.bus2 == f"{country}_ATMP"

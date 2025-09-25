@@ -99,7 +99,7 @@ def extra_functionality_linopt(network: pypsa.Network, snapshots: pd.Series):
             ].set_index("carrier")
             restricted_carriers = country_constraints["production_constraint_fuels"]
             fuel_supply_limits = fuel_supply_limits.loc[
-                restricted_carriers, "max_supply [MWh/year]"
+                restricted_carriers, "max_supply__mwh_year"
             ].to_dict()
             fuel_supply_constraint(
                 network, country=country, supply_limits=fuel_supply_limits

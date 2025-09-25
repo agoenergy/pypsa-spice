@@ -66,7 +66,7 @@ def renewable_potential_constraint(
                     row["name"] + "_" + str(year)
                 )  # construct name of current year asset index
                 avail_potential = row[
-                    "technical potential [MW]"
+                    "technical_potential__mw"
                 ]  # This is the maximum capacity possible per type per carrier
                 if new_asset_index in n.df(c).index:
                     if c == "Link":

@@ -30,14 +30,14 @@ PDIR = config["path_configs"]["input_dir"] + config["path_configs"]["project_nam
 SDIR = PDIR + "/" + config["path_configs"]["scenario_name"]
 GPDIR = config["path_configs"]["input_dir"] + "global_csv_templates"
 
-PP_COSTS = PDIR + "/" + "PowerPlant_costs.csv"
-TECHNOLOGIES = PDIR + "/" + "Technologies.csv"
-STORAGE_COSTS = PDIR + "/" + "Storage_costs.csv"
-EV_PARAMETERS = PDIR + "/" + "EV_Parameters.csv"
-DMD_PROFILES = PDIR + "/" + "Demand_Profile.csv"
-AVAILABILITY = PDIR + "/" + "Availability.csv"
-INFLOWS = PDIR + "/" + "Storage-Inflows.csv"
-RE_TECH_CAP = PDIR + "/" + "Renewables_technical_potential.csv"
+PP_COSTS = PDIR + "/" + "power_plant_costs.csv"
+TECHNOLOGIES = PDIR + "/" + "technologies.csv"
+STORAGE_COSTS = PDIR + "/" + "storage_costs.csv"
+EV_PARAMETERS = PDIR + "/" + "ev_parameters.csv"
+DMD_PROFILES = PDIR + "/" + "demand_profile.csv"
+AVAILABILITY = PDIR + "/" + "availability.csv"
+INFLOWS = PDIR + "/" + "storage_inflows.csv"
+RE_TECH_CAP = PDIR + "/" + "renewables_technical_potential.csv"
 
 
 rule add_baseyear:
@@ -65,7 +65,7 @@ rule add_baseyear:
         dmd_profiles=DMD_PROFILES,
         pp_availability=AVAILABILITY,
         stor_inflows=INFLOWS,
-        powerplant_costs=PP_COSTS,
+        power_plant_costs=PP_COSTS,
         powerplant_type=TECHNOLOGIES,
         storage_costs=STORAGE_COSTS,
         ev_parameters=EV_PARAMETERS,
@@ -137,7 +137,7 @@ rule add_brownfield:
         dmd_profiles=DMD_PROFILES,
         pp_availability=AVAILABILITY,
         stor_inflows=INFLOWS,
-        powerplant_costs=PP_COSTS,
+        power_plant_costs=PP_COSTS,
         powerplant_type=TECHNOLOGIES,
         storage_costs=STORAGE_COSTS,
         ev_parameters=EV_PARAMETERS,

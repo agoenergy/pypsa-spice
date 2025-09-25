@@ -101,8 +101,8 @@ Interconnectors connect different regions by their maximum power transfer capaci
 | `p_min_pu`                 | Minimum availability per snapshot (per unit of `p_nom`)                           |
 | `p_nom`                    | Nominal capacity in the default year [MW]                        |
 | `p_nom_extendable`         | Indicates if capacity can be expanded. Possible values: `TRUE` or `FALSE`    |
-| `CAP`                      | Capital expenditure in USD/MW (currency based on input data)     |
-| `FOM`                      | Fixed annual operation and maintenance cost in USD/MWa (currency based on input data)     |
+| `cap__usd_mw`                      | Capital expenditure in USD/MW (currency based on input data)     |
+| `fom_usd_mwa`                      | Fixed annual operation and maintenance cost in USD/MWa (currency based on input data)     |
 | `marginal_cost`            | Marginal cost of the link in USD/MWh (currency based on input data)      |
 | `p_nom_max_{YEAR}` | Maximum additional capacity allowed for the given year in MW  |
 | `p_nom_min_{YEAR}` | Minimum additional capacity allowed for the given year in MW  |
@@ -118,7 +118,7 @@ This file contains the **total** load per load type which is matched to `profile
 | `bus`          | PyPSA `bus` component. The values can be `{NODE}_HVELEC` or `{NODE}_LVELEC` for power sector, `{NODE}_IND-LH` or `{NODE}_IND-HH` for industry sector, and `{NODE}_TRAN-PRV` or `{NODE}_TRAN-PUB` for transport sector |
 | `profile_type` | Load profile type                         |
 | `name`         | Load name. Format: `{BUS}_{PROFILE_TYPE}`   |
-| `total_load`   | Total annual load in MW                                      |
+| `total_load__mwh`   | Total annual load in MWh                                  |
 | `carrier`      | Energy carrier or resource. First letter capitalized                  |
 | `year`         | Year of the load data                                                          |
 

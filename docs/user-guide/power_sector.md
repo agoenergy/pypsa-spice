@@ -54,7 +54,7 @@ The following component is defined as `StorageUnit` in PyPSA.
 
 Storages can be modelled with two approaches.
 
-1. **Fixed Energy/Power Ratio:** In this case, the energy to power ratio for storage is predefined. You can use multiple storage type with different energy to power ratio. For example, `BATS` with E/P ratio of 4 and `BATS` with E/P ratio of 8 representing different energy to power ratio and the model will optimise the capacity of each of these technology. In this case, PyPSA type `Storage_units` can be used for modelling and defining the energy to power ratio in `Technologies.csv`.
+1. **Fixed Energy/Power Ratio:** In this case, the energy to power ratio for storage is predefined. You can use multiple storage type with different energy to power ratio. For example, `BATS` with E/P ratio of 4 and `BATS` with E/P ratio of 8 representing different energy to power ratio and the model will optimise the capacity of each of these technology. In this case, PyPSA type `Storage_units` can be used for modelling and defining the energy to power ratio in `technologies.csv`.
 2. **Variable Energy/Power Ratio:** If you want the model to optimise the energy/power ratio of storage your have to model it using a combination of `links` + `store` component. This requires separate inputs like costs for capacity and energy component of the storage inputs.
 
 !!! Tip

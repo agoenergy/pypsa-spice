@@ -305,8 +305,8 @@ def create_fuel_supplies(
         temp["bus_type"] = fuel_types * len(countries)
         temp["supply_plant"] = temp["bus_type"].apply(lambda x: f"TGEN_{x}")
         temp["carrier"] = temp["bus_type"].apply(get_carrier)
-        temp["max_supply [MWh/year]"] = "Please fill here"
-        temp[f"fuel_cost [{currency}/MWh]"] = "Please fill here"
+        temp["max_supply__mwh_year"] = "Please fill here"
+        temp[f"fuel_cost__{str(currency).lower()}_mwh"] = "Please fill here"
         temp["year"] = year
         temp["country"] = temp["bus"].apply(lambda x: x.split("_")[0])
         temp = temp.drop("bus_type", axis=1)
@@ -382,9 +382,9 @@ def create_storage_energy(
     # Remove trailing 'N' from bus_type for type (e.g., BATSN -> BATS)
     storage_df["type"] = storage_df["bus_type"].apply(lambda x: x[:-1])
     storage_df["carrier"] = storage_df["bus_type"].apply(get_carrier)
-    storage_df["standing_loss [%/hour]"] = "Please fill here"
-    storage_df["e_nom_extendable [True/False]"] = "Please fill here"
-    storage_df["e_nom [MWh]"] = "Please fill here"
+    storage_df["standing_loss"] = "Please fill here"
+    storage_df["e_nom_extendable"] = "Please fill here"
+    storage_df["e_nom"] = "Please fill here"
     storage_df["country"] = storage_df["bus"].apply(lambda x: x.split("_")[0])
     # Add columns for each year
     for year in years:
@@ -569,14 +569,16 @@ def create_loads(
             x, f"{x}'s profile is not assigned. Please add manually"
         )
     )
-    load_df["total_load"] = "Please fill here"
+    load_df["total_load__mwh"] = "Please fill here"
     temp = pd.DataFrame()
     for year in years:
         load_df["year"] = year
         temp = pd.concat([temp, load_df], axis=0)
     load_df = temp
     load_df["name"] = load_df["bus"] + "_" + load_df["profile_type"]
-    load_df = load_df[["bus", "profile_type", "name", "total_load", "carrier", "year"]]
+    load_df = load_df[
+        ["bus", "profile_type", "name", "total_load__mwh", "carrier", "year"]
+    ]
     load_df = load_df.sort_values(by=["node", "year"])
     load_df.to_csv(file_path)
 
@@ -701,8 +703,8 @@ def create_interconnector(
         [
             "p_nom",
             "p_nom_extendable",
-            f"CAP[{currency}/MW]",
-            f"FOM[{currency}/MWa]",
+            f"cap__{str(currency).lower()}_mw",
+            f"fom__{str(currency).lower()}_mwa",
             "marginal_cost",
         ]
         + [f"p_nom_max_{year}" for year in years]
@@ -1580,7 +1582,7 @@ if __name__ == "__main__":
 
     # ==================================== Transport ===================================
 
-    create_buses(
+    bus_df = create_buses(
         countries=cfg_countries,
         nodes=cfg_nodes,
         bus_types=TRANSPORT_BUS_TYPES,
@@ -1588,7 +1590,7 @@ if __name__ == "__main__":
     )
     create_loads(
         years=cfg_years,
-        bus_df=create_buses(bus_types=TRANSPORT_BUS_TYPES, return_df=True),
+        bus_df=tra_buses_df,
         file_path=path_t_loads,
     )
     create_ev_storages(

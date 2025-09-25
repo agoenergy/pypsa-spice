@@ -93,13 +93,13 @@ This step creates your skeleton folder and files which can be feed with your dat
  ┃       ┣ 📜 pev_chargers.csv
  ┃       ┗ 📜 pev_storages.csv
  ┣ 📂 global_csv_templates
- ┃ ┣ 📜 Technologies.csv
- ┃ ┣ 📜 Availability.csv
- ┃ ┣ 📜 Demand_Profile.csv
- ┃ ┣ 📜 PowerPlant_costs.csv
- ┃ ┣ 📜 Renewables_technical_potential.csv
- ┃ ┣ 📜 Storage-Inflows.csv
- ┃ ┗ 📜 Storage_costs.csv
+ ┃ ┣ 📜 technologies.csv
+ ┃ ┣ 📜 availability.csv
+ ┃ ┣ 📜 demand_profile.csv
+ ┃ ┣ 📜 power_plant_costs.csv
+ ┃ ┣ 📜 renewables_technical_potential.csv
+ ┃ ┣ 📜 storage_inflows.csv
+ ┃ ┗ 📜 storage_costs.csv
  ┗ 📂 override_component_attrs
 ```
 

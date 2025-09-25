@@ -13,7 +13,7 @@ logging:
 
 #####Init settings#####
 path_configs:
-  input_dir: data/example/
+  input_dir: data/
   results_dir: results/
   project_name: project_01
   scenario_name: scenario_01
