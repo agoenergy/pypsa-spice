@@ -1394,7 +1394,7 @@ if __name__ == "__main__":
         configurations = yaml.safe_load(file)
 
     # Country names from the configuration file
-    cfg_countries = configurations["base_configs"]["countries"]
+    cfg_countries = list(configurations["base_configs"]["regions"].keys())
     cfg_nodes = []
     for cfg_country in cfg_countries:
         # List of regions based on the given inputs in the configuration file
