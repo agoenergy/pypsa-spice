@@ -157,11 +157,10 @@ def update_decommission_base_assets(
         country_region=sm_country_region,
     ).set_index("name")
     for col in decap_df.columns:
-        if col in ["country", "name", "class"]:
+        if col in ["country", "class"]:
             decap_df[col] = decap_df[col].astype(str)
         else:
             decap_df[col] = decap_df[col].astype(float).fillna(0)
-
     for c in n.iterate_components(
         [
             "Store",
