@@ -190,7 +190,17 @@ def update_decommission_base_assets(
         # constraints (i.e., nominal values are set to be non-negative in a different
         # constraint, but their values might become negative after decommissioning in
         # these constraints)
-        c.df[f"{attr}_nom"] = c.df[f"{attr}_nom"].clip(lower=0.0)
+        negative_capacities = c.df[f"{attr}_nom"] < 0
+        if negative_capacities.any():
+            affected = c.df.index[negative_capacities].tolist()
+            for asset in affected:
+                negative_capacity = c.df.loc[asset, f"{attr}_nom"]
+                print(
+                    f"[WARNING] Decommissioning set negative capacity to component "
+                    f"'{asset}' (value: {negative_capacity:.2f}), which was clipped to "
+                    "0 to avoid infeasibility. Please correct your input data."
+                )
+            c.df[f"{attr}_nom"] = c.df[f"{attr}_nom"].clip(lower=0.0)
 
 
 def update_fuel_data(
