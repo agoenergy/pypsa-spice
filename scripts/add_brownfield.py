@@ -198,7 +198,8 @@ def update_decommission_base_assets(
                 print(
                     f"[WARNING] Decommissioning set negative capacity to component "
                     f"'{asset}' (value: {negative_capacity:.2f}), which was clipped to "
-                    "0 to avoid infeasibility. Please correct your input data."
+                    "0 to avoid infeasibility. Please correct your input data.",
+                    f"{asset} - {negative_capacity:.2f}",
                 )
             c.df[f"{attr}_nom"] = c.df[f"{attr}_nom"].clip(lower=0.0)
 
