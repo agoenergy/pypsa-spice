@@ -18,7 +18,6 @@ dependencies:
   - pre-commit==4.3.0
   - progressbar2==4.5.0
   - pycountry==24.6.1
-  - pylint==3.3.8
   - pypsa==0.35.2
   - python==3.12.11
   - python-dotenv==1.0.1

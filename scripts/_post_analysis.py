@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
@@ -239,7 +238,7 @@ class OutputTables(Plots):
         self.networks = network_list
         self.network_dict = self.get_network_dict()
         self.config = config
-        self.countries = self.config["base_configs"]["countries"]
+        self.countries = list(self.config["base_configs"]["regions"].keys())
 
     def get_network_dict(self) -> dict:
         """Get a dictionary of networks from a list of file paths.
@@ -1663,7 +1662,9 @@ class OutputTables(Plots):
                     ]
                 ]  # for handling when there is no reserve
             except AttributeError:
-                return pd.DataFrame()
+                return pd.DataFrame(
+                    columns=["snapshot", "country", "technology", "value"]
+                )
             # drop generators without defined reserve variable
             generator_reserve = (
                 generator_reserve.loc[:, (~(generator_reserve == -1).all())]
@@ -1683,6 +1684,25 @@ class OutputTables(Plots):
                 .T
             )
             reserve_time_series = generator_reserve.join(link_reserve)
+
+            country_storage_units = network.storage_units[
+                network.storage_units.country == country
+            ].index
+            storage_units_reserve = network.storage_units_t.r[
+                [
+                    x
+                    for x in network.storage_units_t.r.columns
+                    if x in country_storage_units
+                ]
+            ]
+            storage_units_reserve = (
+                storage_units_reserve.loc[:, ~(storage_units_reserve == -1).all()]
+                .T.groupby([network.storage_units.type])
+                .sum()
+                .T
+            )
+            reserve_time_series = reserve_time_series.join(storage_units_reserve)
+
             for col in reserve_time_series:
                 if reserve_time_series[col].max() <= 1:
                     reserve_time_series = reserve_time_series.drop([col], axis=1)
@@ -1712,11 +1732,14 @@ class OutputTables(Plots):
             country_reserve.index = pd.date_range(
                 start=f"{year}-01-01", periods=len(country_reserve), freq=f"{nth_hour}h"
             )
+            country_reserve.index.name = "snapshot"
             country_reserve["country"] = country
             country_reserve = country_reserve.set_index("country", append=True)
             all_countries_reserve = pd.concat(
                 [all_countries_reserve, country_reserve], axis=0
             )
+        all_countries_reserve = all_countries_reserve.stack().reset_index()
+        all_countries_reserve.columns = ["snapshot", "country", "technology", "value"]
         return all_countries_reserve
 
     def pow_bats_ep_ratio(self) -> pd.DataFrame:
@@ -2451,7 +2474,7 @@ class OutputTables(Plots):
                 bus_name = "bus1" if c.name == "Link" else "bus"
                 df = c.df
                 ind_supply = df[
-                    ((df[bus_name].str.contains("IND")))
+                    (df[bus_name].str.contains("IND"))
                     & ~(
                         (df.type == "LSLO")
                         | (df.type == "ITCN")
@@ -2526,7 +2549,7 @@ class OutputTables(Plots):
             for c in n.iterate_components(["Link", "Generator", "StorageUnit"]):
                 bus_name = "bus1" if c.name == "Link" else "bus"
                 ind_supply = c.df[
-                    ((c.df[bus_name].str.contains("IND")))
+                    (c.df[bus_name].str.contains("IND"))
                     & ~(
                         (c.df.type == "LSLO")
                         | (c.df.type == "ITCN")
