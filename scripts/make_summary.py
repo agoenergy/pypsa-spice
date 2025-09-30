@@ -93,7 +93,7 @@ if __name__ == "__main__":
     for method in summary_methods:
         # If hourly in method's name, define year parameter
         if "ene_total_primary_supply" in method or "ene_sankey_diagram" in method:
-            df = getattr(ot, method)(ratio=snakemake.config['custom_constraints']['PH']['energy_independence']['pe_conv_fraction'])
+            df = getattr(ot, method)(ratio=snakemake.config['base_configs']['pe_conv_fraction'])
         elif "hourly" in method:
             df = getattr(ot, method)(year=selected_year, nth_hour=NTH_HOUR)
         else:

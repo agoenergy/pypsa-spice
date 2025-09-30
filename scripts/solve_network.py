@@ -85,7 +85,7 @@ def extra_functionality_linopt(network: pypsa.Network, snapshots: pd.Series):
             add_energy_independence_constraint(
                 network,
                 ei_frac=energy_independence["ei_fraction"][year],
-                pe_con_frac=energy_independence["pe_conv_fraction"],
+                pe_con_frac=config["base_configs"]["pe_conv_fraction"],
                 country=country,
             )
             constraint_added = True

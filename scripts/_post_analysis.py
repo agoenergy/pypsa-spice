@@ -674,9 +674,7 @@ class OutputTables(Plots):
                 )
 
                 # electricity generators from renewable sources (res)
-                pe_conv_frac = self.config["custom_constraints"][country][
-                    "energy_independence"
-                ]["pe_conv_fraction"]
+                pe_conv_frac = self.config["base_configs"]["pe_conv_fraction"]
                 for res in ["Solar", "Wind", "Geothermal", "Water"]:
                     res_gen_loc = n.generators[
                         (n.generators.carrier == res)
