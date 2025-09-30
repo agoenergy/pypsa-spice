@@ -1751,7 +1751,7 @@ class OutputTables(Plots):
                     ]
                 ]  # for handling when there is no reserve
             except AttributeError:
-                return pd.DataFrame()
+                return pd.DataFrame(columns=["snapshot", "country", "technology", "value"])
             # drop generators without defined reserve variable
             generator_reserve = (
                 generator_reserve.loc[:, (~(generator_reserve == -1).all())]
@@ -1771,6 +1771,21 @@ class OutputTables(Plots):
                 .T
             )
             reserve_time_series = generator_reserve.join(link_reserve)
+
+            country_storage_units = network.storage_units[
+                network.storage_units.country == country
+            ].index
+            storage_units_reserve = network.storage_units_t.r[
+                [x for x in network.storage_units_t.r.columns if x in country_storage_units]
+            ]
+            storage_units_reserve = (
+                storage_units_reserve.loc[:, ~(storage_units_reserve == -1).all()]
+                .T.groupby([network.storage_units.type])
+                .sum()
+                .T
+            )
+            reserve_time_series = reserve_time_series.join(storage_units_reserve)
+
             for col in reserve_time_series:
                 if reserve_time_series[col].max() <= 1:
                     reserve_time_series = reserve_time_series.drop([col], axis=1)
@@ -1812,21 +1827,26 @@ class OutputTables(Plots):
 
     def pow_gen_reserve_by_type_hourly(self, year, nth_hour: int):
         """Calculate hourly power generation and reserve by country and type."""
-        # --- Power generation data ---
-        df1 = self.pow_gen_by_type_hourly(year, nth_hour).reset_index()
-        df1["technology"] = df1["technology"] + "_energy"
-        
-        try:
-            # --- Reserve data ---
-            df2 = self.pow_reserve_by_type_hourly(year, nth_hour)
-            df2 = df2[~df2['technology'].isin(["demand_reserve", "reserve_total", "vre_reserve"])]
-            df2["technology"] = df2["technology"] + "_reserve"
+        if year != 2024:   #reserve does not have value in baseyear
+            # --- Power generation data ---
+            df1 = self.pow_gen_by_type_hourly(year, nth_hour).reset_index()
+            df1["technology_type"] = df1["technology"] + "_energy"
+            df1['type'] = 'energy'
+            try:
+                # --- Reserve data ---
+                df2 = self.pow_reserve_by_type_hourly(year, nth_hour)
+                df2 = df2[~df2['technology'].isin(["demand_reserve", "reserve_total", "vre_reserve"])]
+                df2["technology_type"] = df2["technology"] + "_reserve"
+                df2['type'] = 'reserve'
 
-            # --- Concatenated data ---
-            df = pd.concat([df1, df2], axis=0, ignore_index=True)
-            return df.set_index(["snapshot", "country", "technology"]).sort_index()
-        except:
-            return df1
+                # --- Concatenated data ---
+                df = pd.concat([df1, df2], axis=0, ignore_index=True)
+                return df.set_index(["snapshot", "country", "technology_type", "technology", "type"]).sort_index()
+            except:
+                return df1
+        else:
+            return pd.DataFrame(columns=["snapshot", "country", "technology_type", "technology", "type", "value"])
+
 
     def pow_bats_ep_ratio(self) -> pd.DataFrame:
         """Calculate battery energy to power ratio by country and year.
