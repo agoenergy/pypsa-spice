@@ -108,12 +108,12 @@ energy:
       max: max
     download_id: '{}_ene_not_served_warning'
 
-  e9:
-    name: Sankey Diagram
-    graph_type: sankey_diagram
-    tab_name: ene_sankey_diagram
-    leg_col: source
-    download_id: '{}_ene_sankey_diagram'
+  # e9:
+  #   name: Sankey Diagram
+  #   graph_type: sankey_diagram
+  #   tab_name: ene_sankey_diagram
+  #   leg_col: source
+  #   download_id: '{}_ene_sankey_diagram'
 
 
 power:
@@ -207,16 +207,6 @@ power:
     slider_id: 'Gen: ({}):'
     download_id: '{}_down_pow_gen_by_type_hourly'
 
-  p9:
-    name: Regional hourly generation
-    units: MW
-    graph_type: filtered_bar_hourly
-    tab_name: pow_gen_by_type_region_hourly
-    leg_col: type_and_flow
-    fil_col: region
-    slider_id: "NodalFlow: {}"
-    download_id: '{}_down_gen_by_type_region_hourly'
-
   p10:
     name: Energy demand by carrier
     units: TWh
@@ -276,21 +266,41 @@ power:
   #   secondary_y_lab: ['stateOfCharge']
   #   primary_y_lab: ['powerFlow']
 
-  p16:
+  p16: 
+    name: Hourly power generation and reserves
+    units: MW
+    graph_type: filtered_bar_hourly
+    tab_name: pow_gen_reserve_by_type_hourly
+    leg_col: type
+    fil_col: technology
+    slider_id: "NodalFlow: {}"
+    download_id: '{}_down_pow_gen_reserve_by_type_hourly'
+
+  p17:
     name: Hourly Power Reserve [MW]
     graph_type: simple_line_hourly
     tab_name: pow_reserve_by_type_hourly
-    leg_col: reserves
+    leg_col: technology
     slider_id: 'pow_reserve_by_type_hourly_{}'
     download_id: '{}_pow_reserve_by_type_hourly'
 
-  p17:
-    name: Hourly Power Energy and Reserve [MW]
-    graph_type: simple_bar_hourly
-    tab_name: pow_gen_reserve_by_type_hourly
-    leg_col: technology
-    slider_id: 'pow_gen_reserve_by_type_hourly_{}'
-    download_id: '{}_pow_gen_reserve_by_type_hourly'
+  # p18:
+  #   name: Hourly Power Energy and Reserve [MW]
+  #   graph_type: simple_bar_hourly
+  #   tab_name: pow_gen_reserve_by_type_hourly
+  #   leg_col: technology
+  #   slider_id: 'pow_gen_reserve_by_type_hourly_{}'
+  #   download_id: '{}_pow_gen_reserve_by_type_hourly'
+
+  p9: #largest and hardest to load, put it at the end
+    name: Regional hourly generation
+    units: MW
+    graph_type: filtered_bar_hourly
+    tab_name: pow_gen_by_type_region_hourly
+    leg_col: type_and_flow
+    fil_col: region
+    slider_id: "NodalFlow: {}"
+    download_id: '{}_down_gen_by_type_region_hourly'
 
 industry:
   i1: 
@@ -529,7 +539,7 @@ emissions:
     name: All Emission by type [MtCO2]
     graph_type: simple_bar_yearly
     tab_name: all_emi_by_type_yearly
-    leg_col: carrier
+    leg_col: type
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
       max: max
