@@ -1,15 +1,10 @@
-# -*- coding: utf-8 -*-
 # SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# coding: utf-8
-
-import base64
-import os
-
 import streamlit as st
-
+import os
+import base64
 
 def use_flexo():
     """
@@ -19,7 +14,7 @@ def use_flexo():
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
     font_base_path = os.path.join(base_dir, "design", "fonts", "Flexo-Medium")
-
+    
     for ext in font_extensions:
         font_path = font_base_path + ext
         if os.path.exists(font_path):
@@ -30,14 +25,14 @@ def use_flexo():
                     # here is to convert the font file to base64 data and embed it
                     # directly into the custom CSS
                     font_data = base64.b64encode(f.read()).decode("utf-8")
-
-                # Establish a MIME type to ensure the correct type is used by the browser
+                
+                # Establish a MIME type to ensure the correct type is used by the browser 
                 mime_type = {
                     ".woff2": "font/woff2",
-                    ".woff": "font/woff",
-                    ".ttf": "font/ttf",
+                    ".woff": "font/woff", 
+                    ".ttf": "font/ttf"
                 }[ext]
-
+                
                 st.markdown(
                     f"""
                     <style>
@@ -61,12 +56,11 @@ def use_flexo():
                     }}
                     </style>
                     """,
-                    unsafe_allow_html=True,
+                    unsafe_allow_html=True
                 )
-
+            
             except Exception as e:
                 st.Error(f"Error loading font: {e}")
-
 
 def apply_sidebar_styles():
     """
@@ -90,25 +84,24 @@ def apply_sidebar_styles():
             margin: 0.68em 1.2rem 0.5rem;
         }
         </style>
-        """,
-        unsafe_allow_html=True,
+        """, 
+        unsafe_allow_html=True
     )
-
-
+    
 def apply_sidebar_chart_nav_styles():
-    """
-    Style the Chart navigation part of the sidebar
-    """
-    st.markdown(
         """
+        Style the Chart navigation part of the sidebar
+        """
+        st.markdown(
+             """
             <p style='font-size: 1.2em; font-weight: 600; margin-bottom: -4px;'>
             Chart navigation
             </p>
-            """,
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        """
+            """, 
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            """
             <style>
             .nav-link {
                 display: flex;
@@ -137,11 +130,10 @@ def apply_sidebar_chart_nav_styles():
                 }
             }
             </style>
-            """,
-        unsafe_allow_html=True,
-    )
-
-
+            """, 
+            unsafe_allow_html=True
+        )
+        
 def apply_radio_menu_styles():
     st.markdown(
         """
@@ -152,15 +144,14 @@ def apply_radio_menu_styles():
             justify-content: center;
             gap: 1rem;
         }
-        /* Centre date filter elements (for graphs with date filters) */
-        div[data-testid="stElementContainer"] {
+        /* Centre button group elements */
+        /* This will centre the date and country filters for graphs that have them */ 
+        div.stButtonGroup {
+            width: auto;
             display: flex;
             justify-content: center;
         }
-        div.stButtonGroup {
-            width: auto;
-        }
         </style>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
