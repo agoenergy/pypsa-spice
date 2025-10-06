@@ -1749,7 +1749,9 @@ class OutputTables(Plots):
                     ]
                 ]  # for handling when there is no reserve
             except AttributeError:
-                return pd.DataFrame(columns=["snapshot", "country", "technology", "value"])
+                return pd.DataFrame(
+                    columns=["snapshot", "country", "technology", "value"]
+                )
             # drop generators without defined reserve variable
             generator_reserve = (
                 generator_reserve.loc[:, (~(generator_reserve == -1).all())]
@@ -1774,7 +1776,11 @@ class OutputTables(Plots):
                 network.storage_units.country == country
             ].index
             storage_units_reserve = network.storage_units_t.r[
-                [x for x in network.storage_units_t.r.columns if x in country_storage_units]
+                [
+                    x
+                    for x in network.storage_units_t.r.columns
+                    if x in country_storage_units
+                ]
             ]
             storage_units_reserve = (
                 storage_units_reserve.loc[:, ~(storage_units_reserve == -1).all()]

@@ -2,7 +2,7 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-"""Helper functions for pypsa-agora."""
+"""Helper functions for pypsa-spice."""
 
 import logging
 import os
@@ -1565,6 +1565,7 @@ def generation_type_mapping(x: str) -> str:
         "HDAM",
         "WSTT",
         "OCHT",
+        "HPHS",
     ]:
         return "renewables"
     if x in [
