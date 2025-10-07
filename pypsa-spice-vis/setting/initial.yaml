@@ -1,5 +1,4 @@
-data_folder_path: "../results/" # relative path to results folder
-project: "PH" # initial country setting. eg. "TH"
-sector: "i-t" # initial sector setting: eg. "p"
-sce1: "amb-new mm" # initial scenario 1 setting: "ref"
-sce2: "" # initial scenario 2 setting: "cne"
+input_data_folder: "..\\pypsa-spice-data-ph"
+project: "PH" # initial project setting.
+sce1: "ref" # initial scenario 1 setting.
+sce2: "" # initial scenario 2.

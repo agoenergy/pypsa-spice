@@ -1,38 +1,33 @@
-# -*- coding: utf-8 -*-
 # SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# coding: utf-8
-
-import datetime as dt
 import os
-import re
-from itertools import cycle
-from typing import Callable, Dict, Optional
-
-import pandas as pd
-import plotly.express as px
+import datetime as dt
 import plotly.graph_objects as go
+import plotly.express as px
+import pandas as pd
 import streamlit as st
+from streamlit_js_eval import streamlit_js_eval
+import re
 from plotly.graph_objs._figure import Figure
 from plotly.subplots import make_subplots
-from streamlit_js_eval import streamlit_js_eval
-from styles import apply_radio_menu_styles, apply_sidebar_chart_nav_styles, use_flexo
+from typing import Dict, Optional, Callable
+from itertools import cycle
+from styles import use_flexo, apply_sidebar_chart_nav_styles, apply_radio_menu_styles
 
 use_flexo()
 
 pd.options.mode.chained_assignment = None
 
-
-def _get_mapping_df(tab_name: str) -> pd.DataFrame:
+def _get_mapping_df(tab_name : str) -> pd.DataFrame:
     """Get the names to hex codes mapping df for a given graph.
-
+    
     Parameters
     ----------
     tab_name : str
         Tab name of the graph as per the config file
-
+        
     Returns
     -------
     pd.DataFrame
@@ -64,8 +59,9 @@ def _get_mapping_df(tab_name: str) -> pd.DataFrame:
 
 
 def _get_nice_colour_mapping(
-    tab_name: str, legend_labels: Optional[list[str]] = None
-) -> Dict[str, str]:
+        tab_name : str, 
+        legend_labels: Optional[list[str]] = None
+        ) -> Dict[str, str]:
     """Get the colour mapping dict for a given graph.
 
     Parameters
@@ -83,7 +79,7 @@ def _get_nice_colour_mapping(
     df = _get_mapping_df(tab_name)
 
     default_colours = _get_default_colour_list()
-
+    
     if df is None:
         return {}
 
@@ -97,23 +93,23 @@ def _get_nice_colour_mapping(
     }
 
     # For legends that are not present in the mapping df (either because they were
-    # dropped earlier, or because they don't have an assigned colour), cycle through
+    # dropped earlier, or because they don't have an assigned colour), cycle through 
     # the default colours and assign a hex code
     default_colour_index = 0
     if legend_labels:
         for label in legend_labels:
             if label not in nice_mapping:
-                nice_mapping[label] = default_colours[
-                    default_colour_index % len(default_colours)
-                ]
+                nice_mapping[label] = default_colours[default_colour_index % len(default_colours)]
                 default_colour_index += 1
 
     return nice_mapping
 
-
-def _generate_default_colour_mapping(df: pd.DataFrame, leg_col: str) -> Dict[str, str]:
+def _generate_default_colour_mapping(
+        df : pd.DataFrame, 
+        leg_col : str
+        ) -> Dict[str, str]:
     """Generate a default colour mapping dictionary.
-
+    
     Generate a colour mapping dict for the legend series in a graph using a default
     colour scheme. This function is called for charts that don't use the tech or
     carrier mapping csvs.
@@ -134,11 +130,10 @@ def _generate_default_colour_mapping(df: pd.DataFrame, leg_col: str) -> Dict[str
     prettified_legends = [_prettify_label(label) for label in unique_legends]
 
     default_colours = _get_default_colour_list()
-
+    
     mapping = dict(zip(prettified_legends, cycle(default_colours)))
 
     return mapping
-
 
 def _get_default_colour_list() -> list:
     """Gets the list of default colours to use.
@@ -151,12 +146,17 @@ def _get_default_colour_list() -> list:
     list
         The list of default colours
     """
-    return ["#64B9E4", "#48A8AE", "#AD86B0", "#1E83B3", "#8393BE", "#637596"]
+    return [
+        "#64B9E4", 
+        "#48A8AE",
+        "#AD86B0", 
+        "#1E83B3", 
+        "#8393BE", 
+        "#637596"
+        ]
 
-
-def read_result_csv(
-    sc_name: str, tab_name: str, shared_country: str = None, hourly_year: str = None
-) -> pd.DataFrame:
+def read_result_csv(sc_name: str, tab_name:str, 
+                    shared_country:str=None, hourly_year:str=None) -> pd.DataFrame:
     if hourly_year:
         file_path = os.path.abspath(
             st.session_state.result_path
@@ -187,7 +187,7 @@ def read_result_csv(
         df = pd.read_csv(os.path.abspath(file_path))
     except FileNotFoundError:
         with st.container(height=450, border=True):
-            st.write(":material/warning: File not found: {}".format(file_path))
+            st.write(":material/warning: File dose not exist or is empty: {}".format(file_path))
         return None
     if "country" in df.columns and shared_country != None:
         df = df[df["country"] == shared_country]
@@ -195,9 +195,9 @@ def read_result_csv(
     return df
 
 
-def slugify(text: str):
-    """Helper function to slugify text string.
-
+def slugify(text : str):
+    """Helper function to slugify text string. 
+    
     This is used to generate safe anchor IDs (URL fragments) in the sidebar.
 
     Parameters
@@ -210,9 +210,9 @@ def slugify(text: str):
     str
         The output (slugified) text.
     """
-    text = text.lower()  # Lowercase text
-    text = re.sub(r"[^a-z0-9]+", "-", text)  # Replace special characters with hyphens
-    text = text.strip("-")  # Remove trailing/leading hyphens
+    text = text.lower() # Lowercase text
+    text = re.sub(r'[^a-z0-9]+', '-', text) # Replace special characters with hyphens
+    text = text.strip('-') # Remove trailing/leading hyphens
     return text
 
 
@@ -226,11 +226,10 @@ def generate_sidebar(toc):
             anchor_id = slugify(section)
             st.markdown(
                 f'<a href="#{anchor_id}" class="nav-link">{section}</a>',
-                unsafe_allow_html=True,
+                unsafe_allow_html=True
             )
 
-
-def _setup_year_filter(config_plot: Dict, is_dual_scenario: bool, scenario_tag=None) -> str:
+def _setup_year_filter(config_plot : Dict, is_dual_scenario : bool) -> str:
     """Setup the year filter that appears in graphs with hourly data.
 
     Parameters
@@ -248,20 +247,19 @@ def _setup_year_filter(config_plot: Dict, is_dual_scenario: bool, scenario_tag=N
     """
     # Set widget configuration params based on one or two scenarios
     if is_dual_scenario:
-        years = sorted(
-            list(set(st.session_state.sce1_years + st.session_state.sce2_years))
-        )
+        years = sorted(list(set(st.session_state.sce1_years + 
+                                st.session_state.sce2_years)))
         scenario_text = "both"
         key_prefix = "shared"
     else:
         years = st.session_state.sce1_years
         scenario_text = st.session_state.sce1
         key_prefix = "single"
-
+    
     slider_id = config_plot["slider_id"].format(scenario_text)
-    key = f"{key_prefix}_year_{scenario_tag}_{config_plot['tab_name']}_{config_plot['graph_type']}"
+    key = f"{key_prefix}_year_{config_plot['tab_name']}_{config_plot['graph_type']}"
     label = f"{slider_id} Select Year:"
-
+    
     # Pills widget for the year filter
     pills_widget = lambda: st.pills(
         label,
@@ -270,14 +268,14 @@ def _setup_year_filter(config_plot: Dict, is_dual_scenario: bool, scenario_tag=N
         default=years[0],
         label_visibility="collapsed",
     )
-
+    
     if is_dual_scenario:
         spacer1, filter_col, spacer2 = st.columns([1, 3, 1])
         with filter_col:
             shared_year = pills_widget()
     else:
         shared_year = pills_widget()
-
+    
     return shared_year
 
 
@@ -296,7 +294,9 @@ def _setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None
     if "country" in df.columns:
         # Set widget configuration params based on one or two scenarios
         if is_dual_scenario:
-            country_options = sorted(list(set(df["country"].unique().tolist())))
+            country_options = sorted(list(set(
+                df["country"].unique().tolist()
+            )))
             scenario_text = "both"
         else:
             country_options = df["country"].unique()
@@ -327,11 +327,11 @@ def _setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None
 
 
 def _setup_region_filter(
-    config_plot: Dict,
-    df1: pd.DataFrame,
-    df2: pd.DataFrame = None,
-    is_dual_scenario: bool = False,
-) -> Optional[str]:
+        config_plot : Dict, 
+        df1 : pd.DataFrame, 
+        df2 : pd.DataFrame = None, 
+        is_dual_scenario : bool = False
+        ) -> Optional[str]:
     """Setup the region filter that appears in filtered_bar_hourly graphs.
 
     Parameters
@@ -355,18 +355,19 @@ def _setup_region_filter(
     fil_col = config_plot["fil_col"]
     # Set widget configuration params based on one or two scenarios
     if is_dual_scenario:
-        region_options = sorted(
-            list(set(df1[fil_col].unique().tolist() + df2[fil_col].unique().tolist()))
-        )
+        region_options = sorted(list(set(
+            df1[fil_col].unique().tolist() + 
+            df2[fil_col].unique().tolist()
+        )))
         scenario_text = "both"
     else:
         region_options = df1[fil_col].unique()
         scenario_text = st.session_state.sce1
-
+    
     slider_id = config_plot["slider_id"].format(scenario_text)
     key = f"shared_region_{config_plot['tab_name']}"
     label = f"{slider_id} Select {fil_col}:"
-
+    
     # Pills widget for the region selection element
     shared_region = st.pills(
         label,
@@ -375,18 +376,17 @@ def _setup_region_filter(
         default=region_options[0],
         label_visibility="collapsed",
     )
-
+    
     return shared_region
 
-
 def _setup_month_filter(
-    config_plot: Dict,
-    df1: pd.DataFrame,
-    df2: pd.DataFrame | None = None,
-    is_dual_scenario: bool = False,
-) -> int:
-    """Setup month selection filter.
-
+        config_plot : Dict, 
+        df1 : pd.DataFrame,
+        df2 : pd.DataFrame | None = None, 
+        is_dual_scenario : bool = False
+        ) -> int:
+    """Setup month selection filter. 
+    
     This is called when data is complete (no discontinuous hours).
 
     Parameters
@@ -414,12 +414,12 @@ def _setup_month_filter(
     else:
         months_all = df1["snapshot"].dt.month.unique()
         scenario_text = st.session_state.sce1
-
+    
     slider_id = config_plot["slider_id"].format(scenario_text)
     key = f"shared_month_{config_plot['tab_name']}"
     label = f"{slider_id} Select Month:"
     months_names = {m: _convert_month_to_name(m) for m in months_all}
-
+    
     # Month selection widget
     selected_month = st.segmented_control(
         label,
@@ -434,15 +434,15 @@ def _setup_month_filter(
 
 
 def _setup_date_filter_complete(
-    config_plot: Dict,
-    df1_m: pd.DataFrame,
-    df2_m: pd.DataFrame | None = None,
-    shared_year: str = None,
-    selected_month: str = None,
-    is_dual_scenario: bool = False,
-) -> tuple[dt.datetime, dt.datetime]:
-    """Setup date range slider.
-
+        config_plot : Dict, 
+        df1_m : pd.DataFrame, 
+        df2_m : pd.DataFrame | None = None,
+        shared_year : str =None, 
+        selected_month : str =None, 
+        is_dual_scenario : bool = False
+        ) -> tuple[dt.datetime, dt.datetime]:
+    """Setup date range slider. 
+    
     This is called when data is complete (no discontinuous hours).
 
     Parameters
@@ -459,7 +459,7 @@ def _setup_date_filter_complete(
         The month selected in the month selection filter. Defaults to None.
     is_dual_scenario : bool, optional
         True if sce2 is selected, False otherwise. Defaults to False.
-
+    
     Returns
     -------
     tuple[dt.datetime, dt.datetime]
@@ -474,10 +474,10 @@ def _setup_date_filter_complete(
         min_date = df1_m["snapshot"].min()
         max_date = df1_m["snapshot"].max()
         scenario_text = st.session_state.sce1
-
+    
     slider_id = config_plot["slider_id"].format(scenario_text)
     label = f"{slider_id} Select Date Range:"
-
+    
     # Date range slider widget
     selected_dates = st.slider(
         label=label,
@@ -485,24 +485,24 @@ def _setup_date_filter_complete(
         max_value=max_date,
         value=(
             dt.datetime(int(shared_year), int(selected_month), 1, 0, 0),
-            dt.datetime(int(shared_year), int(selected_month), 14, 0, 0),
-        ),
+            dt.datetime(int(shared_year), int(selected_month), 14, 0, 0)
+            ),
         format="DD/MM/YY HH:mm",
         step=dt.timedelta(hours=1),
         label_visibility="collapsed",
     )
-
+    
     return selected_dates
 
 
 def _setup_date_filter_incomplete(
-    config_plot: Dict,
-    df1_m: pd.DataFrame,
-    df2_m: pd.DataFrame | None = None,
-    is_dual_scenario: bool = False,
-) -> tuple[pd.Timestamp, pd.Timestamp]:
-    """Setup integer range slider.
-
+        config_plot : Dict, 
+        df1_m : pd.DataFrame,
+        df2_m : pd.DataFrame | None = None,
+        is_dual_scenario : bool = False
+        ) -> tuple[pd.Timestamp, pd.Timestamp]:
+    """Setup integer range slider. 
+    
     This is called when there are missing hours in the data.
 
     Parameters
@@ -515,7 +515,7 @@ def _setup_date_filter_incomplete(
         Data for sce2 (only if sce2 is selected). Defaults to None.
     is_dual_scenario : bool, optional
         True if sce2 is selected, False otherwise.
-
+        
     Returns
     -------
     tuple[pd.Timestamp, pd.Timestamp]
@@ -531,11 +531,11 @@ def _setup_date_filter_incomplete(
     else:
         all_timestamps = df1_m["snapshot"].unique()
         scenario_text = st.session_state.sce1
-
+    
     slider_id = config_plot["slider_id"].format(scenario_text)
     label = f"{slider_id} Select Range:"
     num_timestamps = len(all_timestamps)
-
+    
     # Integer slider widget representing hours present in the dataset
     row_range = st.slider(
         label=label,
@@ -545,17 +545,17 @@ def _setup_date_filter_incomplete(
         step=1,
         label_visibility="collapsed",
     )
-
+    
     # Convert selected indices to corresponding timestamps
     selected_dates = (
-        all_timestamps[row_range[0] - 1],
-        all_timestamps[row_range[1] - 1],
+        all_timestamps[row_range[0]-1],
+        all_timestamps[row_range[1]-1]
     )
-
+    
     return selected_dates
 
 
-def _setup_radio_filter(config_plot: Dict, is_dual_scenario: bool) -> Optional[str]:
+def _setup_radio_filter(config_plot : Dict, is_dual_scenario : bool) -> Optional[str]:
     """Setup the radio button filter that appears in bar_with_filter graphs.
 
     Parameters
@@ -572,17 +572,18 @@ def _setup_radio_filter(config_plot: Dict, is_dual_scenario: bool) -> Optional[s
     """
     if config_plot.get("graph_type") != "bar_with_filter":
         return None
-
+        
     df1 = read_result_csv(st.session_state.sce1, config_plot["tab_name"])
-
+    
     if is_dual_scenario:
         df2 = read_result_csv(st.session_state.sce2, config_plot["tab_name"])
         fil_col = config_plot["fil_col"]
-        filter_options = sorted(
-            list(set(df1[fil_col].unique().tolist() + df2[fil_col].unique().tolist()))
-        )
+        filter_options = sorted(list(set(
+            df1[fil_col].unique().tolist() + 
+            df2[fil_col].unique().tolist()
+        )))
         slider_id = config_plot["slider_id"].format("both")
-
+        
         spacer1, filter_col, spacer2 = st.columns([1, 2, 1])
         with filter_col:
             shared_filter = st.radio(
@@ -594,19 +595,19 @@ def _setup_radio_filter(config_plot: Dict, is_dual_scenario: bool) -> Optional[s
             )
     else:
         shared_filter = None
-
+    
     return shared_filter
 
 
 def _setup_hourly_data_filters(
-    df1: pd.DataFrame,
-    df2: pd.DataFrame | None,
-    config_plot: Dict,
-    is_dual_scenario: bool,
-) -> Dict:
-    """Setup relevant filters for graphs with hourly data.
-
-    This will setup month and date selection filters if data is complete, and an
+        df1 : pd.DataFrame,
+        df2 : pd.DataFrame | None,
+        config_plot : Dict, 
+        is_dual_scenario : bool
+        ) -> Dict:
+    """Setup relevant filters for graphs with hourly data. 
+    
+    This will setup month and date selection filters if data is complete, and an 
     integer range filter if data is incomplete. Also adds the region selection filter if
     relevant.
 
@@ -626,7 +627,7 @@ def _setup_hourly_data_filters(
     Dict
         A dictionary containing the selected parameters (year, month, date, and region
         if applicable) from the filters.
-
+        
     """
     shared_year = config_plot.get("shared_year", None)
     shared_region = config_plot.get("shared_region", None)
@@ -634,32 +635,37 @@ def _setup_hourly_data_filters(
         df1 = df1[df1[config_plot["fil_col"]] == shared_region]
         if df2 is not None:
             df2 = df2[df2[config_plot["fil_col"]] == shared_region]
-
+    
     # Check if data is complete (full year)
     is_complete = all(len(df) % 8760 == 0 for df in [df1, df2] if df is not None)
+    is_empty = all(df.empty for df in [df1, df2] if df is not None)
 
-    if is_complete:
-        # Month selection filter
-        selected_month = _setup_month_filter(config_plot, df1, df2, is_dual_scenario)
+    if not is_empty:
+        if is_complete:
+            # Month selection filter
+            selected_month = _setup_month_filter(config_plot, df1, df2, is_dual_scenario)
+            
+            # Filter by month
+            df1_m = _filter_by_month(df1, selected_month)
+            df2_m = _filter_by_month(df2, selected_month) if df2 is not None else None
+            
+            # Date range filter
+            selected_dates = _setup_date_filter_complete(
+                config_plot, df1_m, df2_m, shared_year, selected_month, is_dual_scenario
+            )
+        else:
+            # In the case of incomplete data, do not show the month selector
+            selected_month = None
+            df1_m, df2_m = df1, df2
 
-        # Filter by month
-        df1_m = _filter_by_month(df1, selected_month)
-        df2_m = _filter_by_month(df2, selected_month) if df2 is not None else None
-
-        # Date range filter
-        selected_dates = _setup_date_filter_complete(
-            config_plot, df1_m, df2_m, shared_year, selected_month, is_dual_scenario
-        )
+            # Integer range slider
+            selected_dates = _setup_date_filter_incomplete(
+                config_plot, df1_m, df2_m, is_dual_scenario
+            )
     else:
-        # In the case of incomplete data, do not show the month selector
-        selected_month = None
-        df1_m, df2_m = df1, df2
+        shared_year=selected_month=selected_dates=None
 
-        # Integer range slider
-        selected_dates = _setup_date_filter_incomplete(
-            config_plot, df1_m, df2_m, is_dual_scenario
-        )
-
+    
     return {
         "shared_years": shared_year,
         "shared_months": selected_month,
@@ -687,10 +693,10 @@ def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None
 
     # These are the graph types that have the year+month+date filter
     graphs_with_date_filters = [
-        "simple_bar_hourly",
-        "simple_line_hourly",
-        "line_with_secondary_y_hourly",
-        "filtered_bar_hourly",
+        "simple_bar_hourly", 
+        "simple_line_hourly", 
+        "line_with_secondary_y_hourly", 
+        "filtered_bar_hourly"
     ]
 
     # Track whether sce2 has been selected by the user or not
@@ -706,6 +712,7 @@ def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None
         config_plot, is_dual_scenario, scenario_tag=st.session_state.sce1
     )
 
+
     # Setup filters based on graph type
     if config_plot.get("graph_type") == "bar_with_filter":
         # Two scenarios: plots with radio button filters
@@ -715,25 +722,20 @@ def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None
 
     elif config_plot.get("graph_type") in graphs_with_date_filters:
         # Setup year filter
-        shared_year = _setup_year_filter(config_plot, is_dual_scenario, 
-                                         scenario_tag=st.session_state.sce1)
+        shared_year = _setup_year_filter(config_plot, is_dual_scenario)
         config_plot["shared_year"] = str(shared_year)
-
+        
         df1 = read_result_csv(
-            st.session_state.sce1, config_plot["tab_name"], hourly_year=str(shared_year)
-        )
+            st.session_state.sce1, config_plot["tab_name"], 
+            hourly_year=str(shared_year)
+            )
         df1["snapshot"] = pd.to_datetime(df1["snapshot"])
 
         df2 = [
-            (
-                read_result_csv(
-                    st.session_state.sce2,
-                    config_plot["tab_name"],
-                    hourly_year=str(shared_year),
-                )
-                if is_dual_scenario
-                else None
-            )
+            read_result_csv(
+                    st.session_state.sce2, config_plot["tab_name"], 
+                    hourly_year=str(shared_year)
+            ) if is_dual_scenario else None
         ][0]
 
         # Setup region filter if needed
@@ -749,8 +751,11 @@ def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None
 
         # Setup all hourly data filters
         filter_results = _setup_hourly_data_filters(
-            df1, df2, config_plot, is_dual_scenario
-        )
+            df1,
+            df2,
+            config_plot, 
+            is_dual_scenario
+            )
         config_plot.update(filter_results)
 
     # Render the plots
@@ -759,13 +764,13 @@ def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None
         config_plot["years"] = st.session_state.sce1_years
         st.markdown(f"#### {st.session_state.sce1} ")
         graph_type(sc_name=st.session_state.sce1, config_g=config_plot)
-
+        
         # Display the data download part
         if config_plot.get("graph_type") in graphs_with_date_filters:
             display_data_download_button(st.session_state.sce1, config_plot)
         else:
             display_data_table(st.session_state.sce1, config_plot)
-
+            
     else:
         # Display the graphs for each of the two scenarios
         col1, col2, col3 = st.columns([6, 1, 6])
@@ -780,7 +785,7 @@ def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None
 
         # Display the data download part
         col1, col2, col3 = st.columns([6, 1, 6])
-
+        
         if config_plot.get("graph_type") in graphs_with_date_filters:
             with col1:
                 display_data_download_button(st.session_state.sce1, config_plot)
@@ -804,10 +809,9 @@ def create_download_csv_button(csv_data, download_id):
         mime="text/csv",
     )
 
-
 def display_data_download_button(sc_name: str, config_g: Dict[str, str]):
     """Generate and display the CSV download button for a graph.
-
+    
     Parameters
     ----------
     sc_name : str
@@ -819,22 +823,27 @@ def display_data_download_button(sc_name: str, config_g: Dict[str, str]):
     download_id = config_g["download_id"].format(sc_name)
     graph_type = config_g["graph_type"]
 
-    df_m, start_date, end_date, _ = _get_filtered_data(sc_name, config_g)
-
-    df_sel = _filter_between_dates(df_m, start_date=start_date, end_date=end_date)
-
-    csv_data = (
-        df_sel.to_csv().encode("utf-8")
-        if graph_type == "filtered_bar_hourly"
-        else df_sel[["snapshot", leg_col, "value"]].to_csv().encode("utf-8")
+    df = read_result_csv(
+        sc_name, config_g["tab_name"], hourly_year=str(config_g["shared_years"]), 
+        shared_country=config_g["shared_country"]
     )
+    
+    if df is not None and not df.empty:
+        df_m, start_date, end_date, _ = _get_filtered_data(df, config_g)
 
-    create_download_csv_button(csv_data, download_id)
+        df_sel = _filter_between_dates(df_m, start_date=start_date, end_date=end_date)
+
+        csv_data = (df_sel.to_csv().encode("utf-8") 
+            if graph_type == "filtered_bar_hourly" 
+            else df_sel[["snapshot", leg_col, "value"]].to_csv().encode("utf-8")
+        )
+
+        create_download_csv_button(csv_data, download_id)
 
 
 def display_data_table(sc_name: str, config_g: Dict[str, str]):
     """Generate and display the data table and CSV download button for a graph.
-
+    
     Parameters
     ----------
     sc_name : str
@@ -852,45 +861,44 @@ def display_data_table(sc_name: str, config_g: Dict[str, str]):
     # Add additional columns that may be present (for dfs that have additional columns
     # for filtering)
     additional_group_cols = [
-        col
-        for col in df.columns
+        col for col in df.columns
         if col not in base_group_cols.union({"value"}) and df[col].dtype == "object"
     ]
 
     group_cols = ["year", leg_col] + additional_group_cols
 
     df_grouped = df.groupby(group_cols, as_index=False)["value"].sum(min_count=1)
-
+    
     with st.expander(f":material/database: Data ({sc_name}):", expanded=False):
         # For bar_with_filter graphs with from/to columns, make sure 'from' is the first
         # column in the pivoted table
         pivot_index = (
-            [leg_col] + additional_group_cols
-            if leg_col == "from"
+            [leg_col] + additional_group_cols 
+            if leg_col == "from" 
             else additional_group_cols + [leg_col]
         )
         df_pivot = pd.pivot_table(
-            df_grouped,
-            values="value",
-            columns="year",
+            df_grouped, 
+            values="value", 
+            columns="year", 
             index=pivot_index,
         )
-        df_pivot = df_pivot.loc[~(df_pivot == 0).all(axis=1)]  # Drop all-0 rows
+        df_pivot = df_pivot.loc[~(df_pivot == 0).all(axis=1)] # Drop all-0 rows
         # Add column names for index columns
         # Note that this only adds them to the downloaded csv, not the displayed table
         # in the UI, as st.table does not support displaying index level names
         df_pivot.index.names = pivot_index
         styled_df = df_pivot.style.apply(_highlight_diff, axis=None).format("{:.2f}")
         st.table(styled_df)
-
+        
         csv_data = df_pivot.to_csv().encode("utf-8")
 
         create_download_csv_button(csv_data, download_id)
 
 
-def _clean_df_for_plotting(leg_col: str, df: pd.DataFrame):
+def _clean_df_for_plotting(leg_col: str, df: pd.DataFrame) :
     """Clean the data used to plot the graph.
-
+    
     1. Filter out rows from the raw data df where all values of that legend series are
     zero or NaN, in order to make them not appear in the graph.
     2. Convert all values <e-06 to 0.0
@@ -917,9 +925,7 @@ def _clean_df_for_plotting(leg_col: str, df: pd.DataFrame):
     )
 
     # Identify legends where all values are 0 across the row
-    all_legends_to_remove = df_pivoted[
-        (df_pivoted.isna() | (df_pivoted == 0)).all(axis=1)
-    ].index
+    all_legends_to_remove = df_pivoted[(df_pivoted.isna() | (df_pivoted == 0)).all(axis=1)].index
 
     # Exclude legends where all values are 0 from the original df
     df_filtered = df[~df[leg_col].isin(all_legends_to_remove)]
@@ -927,7 +933,6 @@ def _clean_df_for_plotting(leg_col: str, df: pd.DataFrame):
     df_filtered = _handle_small_values(df_filtered)
 
     return df_filtered
-
 
 def _handle_small_values(df: pd.DataFrame) -> pd.DataFrame:
     """Converts <1e-6 values in the "value" column to 0.0.
@@ -946,11 +951,10 @@ def _handle_small_values(df: pd.DataFrame) -> pd.DataFrame:
         df.loc[df["value"].abs() < 1e-6, "value"] = 0.0
     return df
 
-
 def _highlight_diff(data):
     """Highlight differences between adjacent cells in a dataframe.
-
-    Green/red arrows are shown for an increase/decrease in values. Colours are scaled
+    
+    Green/red arrows are shown for an increase/decrease in values. Colours are scaled 
     relative to the first column's value in each row.
 
     Parameters
@@ -958,51 +962,43 @@ def _highlight_diff(data):
     data : pd.DataFrame
         The dataframe containing values to be styled.
     """
-    styled = pd.DataFrame("", index=data.index, columns=data.columns)
-    numeric_data = data.apply(pd.to_numeric, errors="coerce")
-
+    styled = pd.DataFrame('', index=data.index, columns=data.columns)
+    numeric_data = data.apply(pd.to_numeric, errors='coerce')
+    
     # Base padding in all cells to push numbers slightly to the left in order to create
     # space to accommodate arrows
     for idx in range(len(numeric_data)):
         for col in range(len(numeric_data.columns)):
-            styled.iloc[
-                idx, col
-            ] = """
+            styled.iloc[idx, col] = '''
                 padding-right: 20px;
                 text-align: right;
-            """
+            '''
 
     for idx in range(len(numeric_data)):
         row_data = numeric_data.iloc[idx]
-        base_value = row_data.iloc[0]  # Get the first column's value as reference
+        base_value = row_data.iloc[0] # Get the first column's value as reference
 
         # Use a small value if base value is 0 to avoid division by zero error
         safe_base_value = 0.01 if base_value == 0 else base_value
-
+        
         for col in range(1, len(numeric_data.columns)):
 
             current_value = row_data.iloc[col]
 
-            # If the current value is equal to the base value, skip calculating the
+            # If the current value is equal to the base value, skip calculating the 
             # percentage change since there is no difference to visualise
-            if (
-                pd.isna(base_value)
-                or pd.isna(current_value)
-                or base_value == current_value
-            ):
+            if pd.isna(base_value) or pd.isna(current_value) or base_value == current_value:
                 continue
-
+        
             # Calculate percentage change of the current value from the base value
             pct_change = (current_value - base_value) / abs(safe_base_value)
-
+            
             # Calculate colour intensity based on change, ranges from 20% to 100%
             intensity = min(abs(pct_change), 1.0) * 0.8 + 0.2
 
             if pct_change > 0:
                 # Up arrow from two triangles
-                styled.iloc[
-                    idx, col
-                ] = f"""
+                styled.iloc[idx, col] = f'''
                     background-color: rgba(100, 100, 100, 0.15);
                     position: relative;
                     padding-right: 20px;
@@ -1014,12 +1010,10 @@ def _highlight_diff(data):
                         right 8px top 2px,
                         right 2px top 2px;
                     background-repeat: no-repeat;
-                """
+                '''
             elif pct_change < 0:
                 # Down arrow from two triangles
-                styled.iloc[
-                    idx, col
-                ] = f"""
+                styled.iloc[idx, col] = f'''
                     background-color: rgba(100, 100, 100, 0.15);
                     position: relative;
                     padding-right: 20px;
@@ -1031,8 +1025,8 @@ def _highlight_diff(data):
                         right 8px top 2px,
                         right 2px top 2px;
                     background-repeat: no-repeat;
-                """
-
+                '''
+    
     return styled
 
 
@@ -1050,19 +1044,20 @@ def simple_bar_yearly(sc_name: str, config_g: Dict[str, str]) -> Optional[None]:
 
     mapping_df = _get_mapping_df(tab_name)
 
+
     df_grouped = df.groupby(["year", leg_col], as_index=False)["value"].sum()
     df_grouped["nice_names"] = df_grouped[leg_col].map(
         lambda x: (
-            mapping_df.loc[x, "nice_names"]
-            if (mapping_df is not None and x in mapping_df.index)
+            mapping_df.loc[x, "nice_names"] 
+            if (mapping_df is not None and x in mapping_df.index) 
             else _prettify_label(x)
         )
     )
 
     unique_legends = df_grouped["nice_names"].unique().tolist()
     colour_mapping = (
-        _get_nice_colour_mapping(tab_name, unique_legends)
-        if mapping_df is not None
+        _get_nice_colour_mapping(tab_name, unique_legends) 
+        if mapping_df is not None 
         else _generate_default_colour_mapping(df, leg_col)
     )
 
@@ -1070,14 +1065,14 @@ def simple_bar_yearly(sc_name: str, config_g: Dict[str, str]) -> Optional[None]:
     df2_grouped = None
     if config_g.get("shared_country") is not None and st.session_state.sce2:
         df1_grouped, df2_grouped = _get_yearly_dfs(
-            config_g,
-            lambda df: df.groupby(["year", leg_col], as_index=False)["value"].sum(),
-        )
+            config_g, 
+            lambda df: df.groupby(["year", leg_col], as_index=False)["value"].sum()
+            )
 
     y_range = _calculate_min_max_y_scale(df1_grouped, df2_grouped, "year")
     min_y = y_range["min"]
     max_y = y_range["max"]
-
+    
     # Generate and display the chart
     try:
         fig = px.bar(
@@ -1091,9 +1086,7 @@ def simple_bar_yearly(sc_name: str, config_g: Dict[str, str]) -> Optional[None]:
 
         # Add stacked bar total and update layout
         fig = _add_stackedbar_total(fig, df_grouped)
-        fig = _update_layout(
-            fig, df_grouped, {"max_scale": max_y, "min_scale": min_y}, config_g
-        )
+        fig = _update_layout(fig, df_grouped, {"max_scale": max_y, "min_scale": min_y}, config_g)
 
         # Display the chart with a unique key
         st.plotly_chart(
@@ -1117,25 +1110,27 @@ def simple_line_yearly(sc_name: str, config_g):
     tab_name = config_g["tab_name"]
     leg_col = config_g["leg_col"]
     download_id = config_g["download_id"].format(sc_name)
-
-    df = read_result_csv(sc_name, tab_name, shared_country=config_g["shared_country"])
-
+    
+    df = read_result_csv(
+        sc_name, tab_name, shared_country=config_g["shared_country"]
+    )  
+    
     df = _clean_df_for_plotting(leg_col, df)
 
     mapping_df = _get_mapping_df(tab_name)
 
     df["nice_names"] = df[leg_col].map(
         lambda x: (
-            mapping_df.loc[x, "nice_names"]
-            if (mapping_df is not None and x in mapping_df.index)
+            mapping_df.loc[x, "nice_names"] 
+            if (mapping_df is not None and x in mapping_df.index) 
             else _prettify_label(x)
         )
     )
 
     unique_legends = df["nice_names"].unique().tolist()
     colour_mapping = (
-        _get_nice_colour_mapping(tab_name, unique_legends)
-        if mapping_df is not None
+        _get_nice_colour_mapping(tab_name, unique_legends) 
+        if mapping_df is not None 
         else _generate_default_colour_mapping(df, leg_col)
     )
 
@@ -1149,13 +1144,15 @@ def simple_line_yearly(sc_name: str, config_g):
     max_y = y_range["max"]
 
     fig = px.line(
-        df, x="year", y="value", color="nice_names", color_discrete_map=colour_mapping
-    )
-
+        df, x="year", 
+        y="value", 
+        color="nice_names", 
+        color_discrete_map=colour_mapping
+        )
+    
     fig = _update_layout(fig, df, {"max_scale": max_y, "min_scale": min_y}, config_g)
-    st.plotly_chart(
-        fig, use_container_width=True, key=f"plotly_chart_{sc_name}_{tab_name}"
-    )
+    st.plotly_chart(fig, use_container_width=True,
+                    key=f"plotly_chart_{sc_name}_{tab_name}")
 
 
 @st.fragment
@@ -1165,7 +1162,9 @@ def bar_with_filter(sc_name: str, config_g: dict):
     slider_id = config_g["slider_id"].format(sc_name)
     download_id = config_g["download_id"].format(sc_name)
     tab_name = config_g["tab_name"]
-    df = read_result_csv(sc_name, tab_name, shared_country=config_g["shared_country"])
+    df = read_result_csv(
+        sc_name, tab_name, shared_country=config_g["shared_country"]
+    )
 
     mapping_df = _get_mapping_df(tab_name)
 
@@ -1181,20 +1180,20 @@ def bar_with_filter(sc_name: str, config_g: dict):
             horizontal=True,
             label_visibility="collapsed",
         )
-
+    
     df_reg = df.loc[df[fil_col] == filter]
     df_reg["nice_names"] = df_reg[leg_col].map(
         lambda x: (
-            mapping_df.loc[x, "nice_names"]
-            if (mapping_df is not None and x in mapping_df.index)
+            mapping_df.loc[x, "nice_names"] 
+            if (mapping_df is not None and x in mapping_df.index) 
             else _prettify_label(x)
         )
     )
 
     unique_legends = df_reg["nice_names"].unique().tolist()
     colour_mapping = (
-        _get_nice_colour_mapping(tab_name, unique_legends)
-        if mapping_df is not None
+        _get_nice_colour_mapping(tab_name, unique_legends) 
+        if mapping_df is not None 
         else _generate_default_colour_mapping(df, leg_col)
     )
 
@@ -1204,8 +1203,9 @@ def bar_with_filter(sc_name: str, config_g: dict):
     df2_reg = None
     if config_g.get("shared_filter") is not None and st.session_state.sce2:
         df1_reg, df2_reg = _get_yearly_dfs(
-            config_g, lambda df: df.loc[df[fil_col] == filter]
-        )
+            config_g, 
+            lambda df: df.loc[df[fil_col] == filter]
+            )
 
     y_range = _calculate_min_max_y_scale(df1_reg, df2_reg, "year")
     min_y = y_range["min"]
@@ -1218,17 +1218,13 @@ def bar_with_filter(sc_name: str, config_g: dict):
         x="year",
         y="value",
         color="nice_names",
-        barmode="stack",
         color_discrete_map=colour_mapping,
     )
 
     fig = _add_stackedbar_total(fig, df_reg)
-    fig = _update_layout(
-        fig, df_reg, {"max_scale": max_y, "min_scale": min_y}, config_g
-    )
-    st.plotly_chart(
-        fig, use_container_width=True, key=f"plotly_chart_{sc_name}_{tab_name}"
-    )
+    fig = _update_layout(fig, df_reg, {"max_scale": max_y, "min_scale": min_y}, config_g)
+    st.plotly_chart(fig, use_container_width=True,
+                    key=f"plotly_chart_{sc_name}_{tab_name}")
 
 
 @st.fragment
@@ -1243,22 +1239,24 @@ def area_share_yearly(sc_name: str, config_g):
     leg_col = config_g["leg_col"]
     tab_name = config_g["tab_name"]
 
-    df = read_result_csv(sc_name, tab_name, shared_country=config_g["shared_country"])
+    df = read_result_csv(
+        sc_name, tab_name, shared_country=config_g["shared_country"]
+        )
     df = _clean_df_for_plotting(leg_col, df)
 
     mapping_df = _get_mapping_df(tab_name)
 
     df["nice_names"] = df[leg_col].map(
         lambda x: (
-            mapping_df.loc[x, "nice_names"]
-            if (mapping_df is not None and x in mapping_df.index)
+            mapping_df.loc[x, "nice_names"] 
+            if (mapping_df is not None and x in mapping_df.index) 
             else _prettify_label(x)
         )
     )
     unique_legends = df["nice_names"].unique().tolist()
     colour_mapping = (
-        _get_nice_colour_mapping(tab_name, unique_legends)
-        if mapping_df is not None
+        _get_nice_colour_mapping(tab_name, unique_legends) 
+        if mapping_df is not None 
         else _generate_default_colour_mapping(df, leg_col)
     )
 
@@ -1270,11 +1268,10 @@ def area_share_yearly(sc_name: str, config_g):
         color="nice_names",
         color_discrete_map=colour_mapping,
     )
-
+    
     fig = _update_layout(fig, df, None, config_g)
-    st.plotly_chart(
-        fig, use_container_width=True, key=f"plotly_chart_{sc_name}_{tab_name}"
-    )
+    st.plotly_chart(fig, use_container_width=True,
+                    key=f"plotly_chart_{sc_name}_{tab_name}")
 
 
 @st.fragment
@@ -1283,58 +1280,64 @@ def simple_bar_hourly(sc_name: str, config_g: Dict[str, str]) -> Optional[None]:
     tab_name = config_g["tab_name"]
     leg_col = config_g["leg_col"]
     download_id = config_g["download_id"].format(sc_name)
-    df_m, start_date, end_date, is_complete = _get_filtered_data(sc_name, config_g)
 
-    # Validate date range
-    if start_date > end_date:
-        st.error("Error: End date must be greater than or equal to start date.")
-        return
+    df = read_result_csv(
+        sc_name, config_g["tab_name"], hourly_year=str(config_g["shared_years"]), 
+        shared_country=config_g["shared_country"]
+    )
+    
+    if df is not None and not df.empty:
+        df_m, start_date, end_date, is_complete = _get_filtered_data(df, config_g)
+        
+        # Validate date range
+        if start_date > end_date:
+            st.error("Error: End date must be greater than or equal to start date.")
+            return
+        
+        mapping_df = _get_mapping_df(tab_name)
 
-    mapping_df = _get_mapping_df(tab_name)
-
-    # Filter data by date range
-    df_sel = _filter_between_dates(df_m, start_date=start_date, end_date=end_date)
-    df_sel["nice_names"] = df_sel[leg_col].map(
-        lambda x: (
-            mapping_df.loc[x, "nice_names"]
-            if (mapping_df is not None and x in mapping_df.index)
-            else _prettify_label(x)
+        # Filter data by date range
+        df_sel = _filter_between_dates(df_m, start_date=start_date, end_date=end_date)
+        df_sel["nice_names"] = df_sel[leg_col].map(
+            lambda x: (
+                mapping_df.loc[x, "nice_names"] 
+                if (mapping_df is not None and x in mapping_df.index) 
+                else _prettify_label(x)
+            )
         )
-    )
-    unique_legends = df_sel["nice_names"].unique().tolist()
-    colour_mapping = (
-        _get_nice_colour_mapping(tab_name, unique_legends)
-        if mapping_df is not None
-        else _generate_default_colour_mapping(df_sel, leg_col)
-    )
+        unique_legends = df_sel["nice_names"].unique().tolist()
+        colour_mapping = (
+            _get_nice_colour_mapping(tab_name, unique_legends) 
+            if mapping_df is not None 
+            else _generate_default_colour_mapping(df_sel, leg_col)
+        )
 
-    df_sel = _handle_small_values(df_sel)
+        df_sel = _handle_small_values(df_sel)
+        
+        fig = px.bar(
+            df_sel,
+            x="snapshot",
+            y="value",
+            color="nice_names",
+            color_discrete_map=colour_mapping,
+        )
 
-    fig = px.bar(
-        df_sel,
-        x="snapshot",
-        y="value",
-        color="nice_names",
-        barmode="stack",
-        color_discrete_map=colour_mapping,
-    )
+        fig = _update_hourly_plot_x_axis(fig, df_sel, start_date, end_date, is_complete)
 
-    fig = _update_hourly_plot_x_axis(fig, df_sel, start_date, end_date, is_complete)
+        if st.session_state.sce2 and st.session_state.sce2 != "":
+            df1_sel, df2_sel = _get_hourly_filtered_dfs(config_g)
+            y_range = _calculate_min_max_y_scale(df1_sel, df2_sel, "snapshot")
+        else:
+            y_range = _calculate_min_max_y_scale(df_sel, None, "snapshot")
 
-    if st.session_state.sce2 and st.session_state.sce2 != "":
-        df1_sel, df2_sel = _get_hourly_filtered_dfs(config_g)
-        y_range = _calculate_min_max_y_scale(df1_sel, df2_sel, "snapshot")
-    else:
-        y_range = _calculate_min_max_y_scale(df_sel, None, "snapshot")
-
-    fig = _update_layout(
-        fig,
-        df_sel,
-        {"max_scale": y_range["max"], "min_scale": y_range["min"]},
-        config_g,
-    )
-    # Display the chart with a unique key
-    st.plotly_chart(fig, use_container_width=True, key=f"plotly_chart_{download_id}")
+        fig = _update_layout(
+            fig, 
+            df_sel, 
+            {"max_scale": y_range["max"], "min_scale": y_range["min"]}, 
+            config_g
+            )
+        # Display the chart with a unique key
+        st.plotly_chart(fig, use_container_width=True, key=f"plotly_chart_{download_id}")
 
 
 @st.fragment
@@ -1350,58 +1353,63 @@ def simple_line_hourly(sc_name: str, config_g: dict):
     leg_col = config_g["leg_col"]
     download_id = config_g["download_id"].format(sc_name)
 
-    df_m, start_date, end_date, is_complete = _get_filtered_data(sc_name, config_g)
-
-    mapping_df = _get_mapping_df(tab_name)
-
-    if start_date <= end_date:
-        pass
-    else:
-        st.error("Error: End date must be greater than or equal to start date.")
-        return
-
-    df_sel = _filter_between_dates(df_m, start_date=start_date, end_date=end_date)
-    df_sel["nice_names"] = df_sel[leg_col].map(
-        lambda x: (
-            mapping_df.loc[x, "nice_names"]
-            if (mapping_df is not None and x in mapping_df.index)
-            else _prettify_label(x)
+    df = read_result_csv(
+        sc_name, config_g["tab_name"], hourly_year=str(config_g["shared_years"]), 
+        shared_country=config_g["shared_country"]
         )
-    )
-    unique_legends = df_sel["nice_names"].unique().tolist()
-    colour_mapping = (
-        _get_nice_colour_mapping(tab_name, unique_legends)
-        if mapping_df is not None
-        else _generate_default_colour_mapping(df_sel, leg_col)
-    )
+    
+    if df is not None and not df.empty:
+        df_m, start_date, end_date, is_complete = _get_filtered_data(df, config_g)
 
-    df_sel = _handle_small_values(df_sel)
+        mapping_df = _get_mapping_df(tab_name)
 
-    fig = px.line(
-        df_sel,
-        x="snapshot",
-        y="value",
-        color="nice_names",
-        color_discrete_map=colour_mapping,
-    )
+        if start_date <= end_date:
+            pass
+        else:
+            st.error("Error: End date must be greater than or equal to start date.")
+            return
 
-    fig = _update_hourly_plot_x_axis(fig, df_sel, start_date, end_date, is_complete)
+        df_sel = _filter_between_dates(df_m, start_date=start_date, end_date=end_date)
+        df_sel["nice_names"] = df_sel[leg_col].map(
+            lambda x: (
+                mapping_df.loc[x, "nice_names"] 
+                if (mapping_df is not None and x in mapping_df.index) 
+                else _prettify_label(x)
+            )
+        )
+        unique_legends = df_sel["nice_names"].unique().tolist()
+        colour_mapping = (
+            _get_nice_colour_mapping(tab_name, unique_legends) 
+            if mapping_df is not None 
+            else _generate_default_colour_mapping(df_sel, leg_col)
+        )
 
-    if st.session_state.sce2 and st.session_state.sce2 != "":
-        df1_sel, df2_sel = _get_hourly_filtered_dfs(config_g)
-        y_range = _calculate_min_max_y_scale(df1_sel, df2_sel, None)
-    else:
-        y_range = _calculate_min_max_y_scale(df_sel, None, None)
+        df_sel = _handle_small_values(df_sel)
 
-    fig = _update_layout(
-        fig,
-        df_sel,
-        {"max_scale": y_range["max"], "min_scale": y_range["min"]},
-        config_g,
-    )
-    st.plotly_chart(
-        fig, use_container_width=True, key=f"plotly_chart_{sc_name}_{tab_name}"
-    )
+        fig = px.line(
+            df_sel, 
+            x="snapshot", 
+            y="value", 
+            color="nice_names", 
+            color_discrete_map=colour_mapping,
+        )
+
+        fig = _update_hourly_plot_x_axis(fig, df_sel, start_date, end_date, is_complete)
+
+        if st.session_state.sce2 and st.session_state.sce2 != "":
+            df1_sel, df2_sel = _get_hourly_filtered_dfs(config_g)
+            y_range = _calculate_min_max_y_scale(df1_sel, df2_sel, None)
+        else:
+            y_range = _calculate_min_max_y_scale(df_sel, None, None)
+        
+        fig = _update_layout(
+            fig, 
+            df_sel, 
+            {"max_scale": y_range["max"], "min_scale": y_range["min"]}, 
+            config_g
+            )
+        st.plotly_chart(fig, use_container_width=True,
+                        key=f"plotly_chart_{sc_name}_{tab_name}")
 
 
 @st.fragment
@@ -1416,60 +1424,72 @@ def filtered_bar_hourly(sc_name: str, config_g: dict):
     tab_name = config_g["tab_name"]
     leg_col = config_g["leg_col"]
     fil_col = config_g["fil_col"]
-    download_id = config_g["download_id"].format(sc_name)
 
-    df_m, start_date, end_date, is_complete = _get_filtered_data(sc_name, config_g)
-
-    mapping_df = _get_mapping_df(tab_name)
-
-    if start_date <= end_date:
-        pass
-    else:
-        st.error("Error: End date must be greater than or equal to start date.")
-        return
-
-    df_sel = _filter_between_dates(df_m, start_date=start_date, end_date=end_date)
-    df_sel["nice_names"] = df_sel[leg_col].map(
-        lambda x: (
-            mapping_df.loc[x, "nice_names"]
-            if (mapping_df is not None and x in mapping_df.index)
-            else _prettify_label(x)
+    df = read_result_csv(
+        sc_name, config_g["tab_name"], hourly_year=str(config_g["shared_years"]), 
+        shared_country=config_g["shared_country"]
         )
-    )
+    
+    if df is not None and not df.empty:
+        df_m, start_date, end_date, is_complete = _get_filtered_data(df, config_g)
 
-    df_sel = _handle_small_values(df_sel)
+        mapping_df = _get_mapping_df(tab_name)
 
-    unique_legends = df_sel["nice_names"].unique().tolist()
-    colour_mapping = (
-        _get_nice_colour_mapping(tab_name, unique_legends)
-        if mapping_df is not None
-        else _generate_default_colour_mapping(df_sel, leg_col)
-    )
+        if start_date <= end_date:
+            pass
+        else:
+            st.error("Error: End date must be greater than or equal to start date.")
+            return
+        
+        df_sel = _filter_between_dates(df_m, start_date=start_date, end_date=end_date)
+        df_sel["nice_names"] = df_sel[leg_col].map(
+            lambda x: (
+                mapping_df.loc[x, "nice_names"] 
+                if (mapping_df is not None and x in mapping_df.index) 
+                else _prettify_label(x)
+            )
+        )
 
-    fig = px.bar(
-        df_sel[df_sel["value"] != 0],
-        x="snapshot",
-        y="value",
-        color="nice_names",
-        color_discrete_map=colour_mapping,
-    )
+        df_sel = _handle_small_values(df_sel)
+        
+        unique_legends = df_sel["nice_names"].unique().tolist()
+        colour_mapping = (
+            _get_nice_colour_mapping(tab_name, unique_legends) 
+            if mapping_df is not None 
+            else _generate_default_colour_mapping(df_sel, leg_col)
+        )
 
-    fig = _update_hourly_plot_x_axis(fig, df_sel, start_date, end_date, is_complete)
+        fig = px.bar(
+            df_sel[df_sel["value"] != 0],
+            x="snapshot",
+            y="value",
+            color="nice_names",
+            color_discrete_map=colour_mapping,
+        )
+        
+        fig = _update_hourly_plot_x_axis(fig, df_sel, start_date, end_date, is_complete)
 
-    if st.session_state.sce2 and st.session_state.sce2 != "":
-        df1_sel, df2_sel = _get_hourly_filtered_dfs(config_g)
-        y_range = _calculate_min_max_y_scale(df1_sel, df2_sel, "snapshot")
-    else:
-        y_range = _calculate_min_max_y_scale(df_sel, None, "snapshot")
+        if st.session_state.sce2 and st.session_state.sce2 != "":
+            df1_sel, df2_sel = _get_hourly_filtered_dfs(config_g)
+            y_range = _calculate_min_max_y_scale(df1_sel, df2_sel, "snapshot")
+        else:
+            y_range = _calculate_min_max_y_scale(df_sel, None, "snapshot")
 
-    fig = _update_layout(
-        fig,
-        df_sel,
-        {"max_scale": y_range["max"], "min_scale": y_range["min"]},
-        config_g,
-    )
+        fig = _update_layout(
+            fig, 
+            df_sel, 
+            {"max_scale": y_range["max"], "min_scale": y_range["min"]}, 
+            config_g
+            )
 
-    if fil_col in df_sel.columns:
+        if fil_col in df_sel.columns:
+            df_line = df_sel.groupby(["snapshot", fil_col])["value"].sum().reset_index()
+            line_chart_trace = px.line(df_line, x="snapshot", y="value")
+            line_chart_trace.update_traces(line=dict(color="blue", width=3))
+
+            for trace in line_chart_trace.data:
+                fig.add_trace(trace)
+
         df_line = df_sel.groupby(["snapshot", fil_col])["value"].sum().reset_index()
         line_chart_trace = px.line(df_line, x="snapshot", y="value")
         line_chart_trace.update_traces(line=dict(color="blue", width=3))
@@ -1477,17 +1497,9 @@ def filtered_bar_hourly(sc_name: str, config_g: dict):
         for trace in line_chart_trace.data:
             fig.add_trace(trace)
 
-    df_line = df_sel.groupby(["snapshot", fil_col])["value"].sum().reset_index()
-    line_chart_trace = px.line(df_line, x="snapshot", y="value")
-    line_chart_trace.update_traces(line=dict(color="blue", width=3))
-
-    for trace in line_chart_trace.data:
-        fig.add_trace(trace)
-
-    st.plotly_chart(
-        fig, use_container_width=True, key=f"plotly_chart_{sc_name}_{tab_name}"
-    )
-
+        st.plotly_chart(fig, use_container_width=True,
+                        key=f"plotly_chart_{sc_name}_{tab_name}")
+    
 
 @st.fragment
 def line_with_secondary_y_hourly(sc_name: str, config_g: dict):
@@ -1503,76 +1515,82 @@ def line_with_secondary_y_hourly(sc_name: str, config_g: dict):
     primary_y_lab = config_g["primary_y_lab"]
     secondary_y_lab = config_g["secondary_y_lab"]
 
-    df_m, start_date, end_date, is_complete = _get_filtered_data(sc_name, config_g)
 
-    mapping_df = _get_mapping_df(tab_name)
-    colour_mapping = (
-        _get_nice_colour_mapping(tab_name)
-        if mapping_df is not None
-        else _generate_default_colour_mapping(df_m, leg_col)
-    )
-
-    if start_date <= end_date:
-        pass
-    else:
-        st.error("Error: End date must be greater than or equal to start date.")
-        return
-
-    df_sel = _filter_between_dates(df_m, start_date=start_date, end_date=end_date)
-
-    # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    for prim_y in primary_y_lab:
-        nice_name = (
-            mapping_df.loc[prim_y, "nice_names"]
-            if (mapping_df is not None and prim_y in mapping_df.index)
-            else _prettify_label(prim_y)
+    df = read_result_csv(
+        sc_name, config_g["tab_name"], hourly_year=str(config_g["shared_years"]), 
+        shared_country=config_g["shared_country"]
         )
-        fig.add_trace(
-            go.Line(
-                y=df_sel[df_sel[leg_col] == prim_y]["value"],
-                x=df_sel["snapshot"],
-                name=nice_name,
-                line=dict(color=colour_mapping.get(nice_name, "#a0a0a0")),
-            ),
-            secondary_y=False,
+    
+    if df is not None and not df.empty:
+        df_m, start_date, end_date, is_complete = _get_filtered_data(df, config_g)
+
+        mapping_df = _get_mapping_df(tab_name)
+        colour_mapping = (
+            _get_nice_colour_mapping(tab_name) 
+            if mapping_df is not None 
+            else _generate_default_colour_mapping(df_m, leg_col)
         )
 
-    for secd_y in secondary_y_lab:
-        nice_name = (
-            mapping_df.loc[secd_y, "nice_names"]
-            if (mapping_df is not None and secd_y in mapping_df.index)
-            else _prettify_label(secd_y)
-        )
-        fig.add_trace(
-            go.Line(
-                y=df_sel[df_sel[leg_col] == secd_y]["value"],
-                x=df_sel["snapshot"],
-                name=nice_name,
-                line=dict(color=colour_mapping.get(nice_name, "#a0a0a0")),
-            ),
-            secondary_y=True,
-        )
+        if start_date <= end_date:
+            pass
+        else:
+            st.error("Error: End date must be greater than or equal to start date.")
+            return
 
-    fig = _update_hourly_plot_x_axis(fig, df_sel, start_date, end_date, is_complete)
+        df_sel = _filter_between_dates(df_m, start_date=start_date, end_date=end_date)
+        
+        # Create figure with secondary y-axis
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        for prim_y in primary_y_lab:
+            nice_name = (
+                mapping_df.loc[prim_y, "nice_names"] 
+                if (mapping_df is not None and prim_y in mapping_df.index) 
+                else _prettify_label(prim_y)
+            )
+            fig.add_trace(
+                go.Line(
+                    y=df_sel[df_sel[leg_col] == prim_y]["value"],
+                    x=df_sel["snapshot"],
+                    name=nice_name,
+                    line=dict(color=colour_mapping.get(nice_name, "#a0a0a0"))
+                ),
+                secondary_y=False,
+            )
 
-    if st.session_state.sce2 and st.session_state.sce2 != "":
-        df1_sel, df2_sel = _get_hourly_filtered_dfs(config_g)
-        y_range = _calculate_min_max_y_scale(df1_sel, df2_sel, None)
-    else:
-        y_range = _calculate_min_max_y_scale(df_sel, None, None)
+        for secd_y in secondary_y_lab:
+            nice_name = (
+                mapping_df.loc[secd_y, "nice_names"] 
+                if (mapping_df is not None and secd_y in mapping_df.index) 
+                else _prettify_label(secd_y)
+            )
+            fig.add_trace(
+                go.Line(
+                    y=df_sel[df_sel[leg_col] == secd_y]["value"],
+                    x=df_sel["snapshot"],
+                    name=nice_name,
+                    line=dict(color=colour_mapping.get(nice_name, "#a0a0a0"))
+                ),
+                secondary_y=True,
+            )
 
-    fig = _update_layout(
-        fig,
-        df_sel,
-        {"max_scale": y_range["max"], "min_scale": y_range["min"]},
-        config_g,
-    )
-    fig.update_yaxes(title_text=_handle_y_axis_list(primary_y_lab), secondary_y=False)
-    fig.update_yaxes(title_text=_handle_y_axis_list(secondary_y_lab), secondary_y=True)
-    st.plotly_chart(
-        fig, use_container_width=True, key=f"plotly_chart_{sc_name}_{tab_name}"
-    )
+        fig = _update_hourly_plot_x_axis(fig, df_sel, start_date, end_date, is_complete)
+
+        if st.session_state.sce2 and st.session_state.sce2 != "":
+            df1_sel, df2_sel = _get_hourly_filtered_dfs(config_g) 
+            y_range = _calculate_min_max_y_scale(df1_sel, df2_sel, None)
+        else:
+            y_range = _calculate_min_max_y_scale(df_sel, None, None)
+
+        fig = _update_layout(
+            fig, 
+            df_sel, 
+            {"max_scale": y_range["max"], "min_scale": y_range["min"]}, 
+            config_g
+            )
+        fig.update_yaxes(title_text=_handle_y_axis_list(primary_y_lab), secondary_y=False)
+        fig.update_yaxes(title_text=_handle_y_axis_list(secondary_y_lab), secondary_y=True)
+        st.plotly_chart(fig, use_container_width=True,
+                        key=f"plotly_chart_{sc_name}_{tab_name}")
 
 @st.fragment
 def sankey_diagram(
@@ -1690,12 +1708,12 @@ def _prettify_label(label: str) -> str:
     """
     Converts snake_case or camelCase string into readable text version for legends and
     filters.
-
+    
     Parameters
     ----------
     label : str
         The input string to format.
-
+    
     Returns
     -------
     str
@@ -1716,12 +1734,11 @@ def _prettify_label(label: str) -> str:
             return " ".join(label.split("_"))
 
     # Handle camelCase labels
-    elif re.search(r"[a-z][A-Z]", label):
-        spaced = re.sub(r"([a-z])([A-Z])", r"\1 \2", label)
+    elif re.search(r'[a-z][A-Z]', label):
+        spaced = re.sub(r'([a-z])([A-Z])', r'\1 \2', label)
         return spaced.capitalize()
 
     return label
-
 
 def _handle_y_axis_list(title_list: list[str]) -> str:
     """Convert a list of y-axis labels into a single, prettified string.
@@ -1740,11 +1757,11 @@ def _handle_y_axis_list(title_list: list[str]) -> str:
         _description_
     """
     prettified_list = [
-        re.sub(r"([a-z])([A-Z])", r"\1 \2", label).capitalize() for label in title_list
-    ]
+        re.sub(r'([a-z])([A-Z])', r'\1 \2', label).capitalize() 
+        for label in title_list
+        ]
     y_axis_title = ", ".join(prettified_list)
     return y_axis_title
-
 
 def _filter_by_month(df: pd.DataFrame, month: int):
     """Filter input dataframe by month."""
@@ -1787,7 +1804,9 @@ def _filter_between_dates(
     return filtered_df
 
 
-def _get_filtered_data(sc_name: str, config_g: Dict[str, str]):
+def _get_filtered_data(
+        df: pd.DataFrame, config_g: Dict[str, str]
+):
     """Get the filtered data, start date, and end date for graphs with date filters.
     Relevant graphs are:
     - simple_bar_hourly
@@ -1796,13 +1815,13 @@ def _get_filtered_data(sc_name: str, config_g: Dict[str, str]):
     - filtered_bar_hourly
 
     Args:
-        sc_name (str): Name of the scenario
+        df (DataFrame): DataFrame of the scenario
         config_g (Dict[str, str]): Configuration dictionary that may contain:
             - 'shared_years': int, shared year for both scenarios
             - 'shared_months': int, shared month for both scenarios
-            - 'shared_dates': tuple of datetime objects, shared date range for both
+            - 'shared_dates': tuple of datetime objects, shared date range for both 
             scenarios
-
+        
     Returns:
         df_m: The data filtered by the selected month
         start_date: The start date selected by the user
@@ -1810,16 +1829,8 @@ def _get_filtered_data(sc_name: str, config_g: Dict[str, str]):
         is_complete (bool): Whether all hours of the year are present
 
     """
-    year = config_g["shared_years"]
     month = config_g["shared_months"]
-    start_date, end_date = config_g["shared_dates"]
-
-    df = read_result_csv(
-        sc_name,
-        config_g["tab_name"],
-        hourly_year=str(year),
-        shared_country=config_g["shared_country"],
-    )
+    start_date, end_date = config_g["shared_dates"] 
 
     # Check if data is complete (no discontinuous hours)
     is_complete = len(df) % 8760 == 0
@@ -1830,17 +1841,15 @@ def _get_filtered_data(sc_name: str, config_g: Dict[str, str]):
     if "shared_region" in config_g and "fil_col" in config_g:
         fil_col = config_g["fil_col"]
         df = df[df[fil_col] == config_g["shared_region"]]
-
+    
     # Only filter by month if month selector exists
     df_m = _filter_by_month(df=df, month=month) if month is not None else df
 
     return df_m, start_date, end_date, is_complete
 
-
 def _convert_month_to_name(month_num: int) -> str:
     """Helper function to convert a month number to the abbreviated month name."""
     return dt.datetime.strptime(str(month_num), "%m").strftime("%b")
-
 
 def _add_stackedbar_total(fig: Figure, df: pd.DataFrame) -> Figure:
     """Add total values on top of each stacked bar in a Plotly bar chart."""
@@ -1864,13 +1873,15 @@ def _add_stackedbar_total(fig: Figure, df: pd.DataFrame) -> Figure:
 
     return fig
 
-
 def _update_layout(
-    fig: Figure, df: pd.DataFrame, yaxis_scales: dict = None, config_g: dict = None
-) -> Figure:
-    """Update the layout of a Plotly figure to improve readability and aesthetics.
-
-    This applies consistent styling (set in layout_dict) and y axis scaling across all
+        fig: Figure, 
+        df: pd.DataFrame, 
+        yaxis_scales:dict=None,
+        config_g:dict=None
+        ) -> Figure:
+    """Update the layout of a Plotly figure to improve readability and aesthetics. 
+    
+    This applies consistent styling (set in layout_dict) and y axis scaling across all 
     graphs.
 
     Parameters
@@ -1880,7 +1891,7 @@ def _update_layout(
     df : pd.DataFrame
         DataFrame containing the data to plot
     yaxis_scales : dict, optional
-        Dictionary containing y-axis scale settings with keys 'min_scale' and
+        Dictionary containing y-axis scale settings with keys 'min_scale' and 
             'max_scale', by default None
     config_g : dict, optional
         Configuration dictionary that may contain:
@@ -1901,12 +1912,12 @@ def _update_layout(
     legend_y_anchor = "bottom"
     margin_b = 0
     # In narrow widths (but before graphs have stacked), in two scenario cases adjust
-    # the legend orientation and position: horizontal and below the graph
+    # the legend orientation and position: horizontal and below the graph 
     if (
-        st.session_state.sce2 != ""
-        and st.session_state.window_width < 1130
+        st.session_state.sce2 != "" 
+        and st.session_state.window_width < 1130 
         and st.session_state.window_width > 608
-    ):
+        ):
         legend_orientation = "h"
         legend_x_pos = 0.2
         legend_y_pos = -0.4
@@ -1932,11 +1943,11 @@ def _update_layout(
         "showlegend": True,
         "font": dict(family="Flexo, sans-serif", size=15),
         "legend": dict(
-            orientation=legend_orientation,
+            orientation=legend_orientation, 
             y=legend_y_pos,
             x=legend_x_pos,
-            xanchor=legend_x_anchor,
-            yanchor=legend_y_anchor,
+            xanchor = legend_x_anchor,
+            yanchor = legend_y_anchor,
             title_text=config_g["leg_col"].capitalize(),
             title_font_size=16,
         ),
@@ -1957,17 +1968,13 @@ def _update_layout(
                 xshift=-15,
                 yshift=20,
                 showarrow=False,
-                font=dict(size=15),
+                font=dict(size=15)
             )
-        ],
+        ]
     }
 
     # For the yearly bar charts, adjust the space between bars
-    if config_g["graph_type"] in [
-        "simple_bar_yearly",
-        "simple_bar_yearly_2",
-        "bar_with_filter",
-    ]:
+    if config_g["graph_type"] in ["simple_bar_yearly", "simple_bar_yearly_2", "bar_with_filter"]:
         fig.update_layout(bargap=0.4)
 
     if yaxis_scales is not None:
@@ -1975,26 +1982,26 @@ def _update_layout(
 
     if "year" in df.columns:
         years_with_data = df["year"].unique()
-        layout_dict["xaxis"].update(
-            dict(tickvals=list(years_with_data), tickmode="array")
-        )
+        layout_dict["xaxis"].update(dict(
+            tickvals=list(years_with_data),
+            tickmode="array"
+        ))
 
     fig.update_layout(**layout_dict)
 
     return fig
 
-
 def _update_hourly_plot_x_axis(
-    fig: Figure,
-    df_sel: pd.DataFrame,
-    start_date: dt.datetime,
-    end_date: dt.datetime,
-    is_complete: bool,
-) -> Figure:
+        fig: Figure, 
+        df_sel: pd.DataFrame, 
+        start_date: dt.datetime, 
+        end_date: dt.datetime,
+        is_complete: bool
+        ) -> Figure:
     """Set the x axis values for hourly graphs.
 
-    The values are set based on a) whether data is complete (no discontinuous hours)
-    and b) the number of selected hours - for fewer than 36 hours, all hours are shown,
+    The values are set based on a) whether data is complete (no discontinuous hours) 
+    and b) the number of selected hours - for fewer than 36 hours, all hours are shown, 
     otherwise ~10 ticks are shown.
 
     Parameters
@@ -2019,11 +2026,7 @@ def _update_hourly_plot_x_axis(
         time_diff = end_date - start_date
         # Set x axis ticks based on no. of hours selected - for fewer than 24 hours,
         # show all hours, otherwise show ~10 ticks
-        tick_spacing = (
-            1
-            if time_diff <= dt.timedelta(hours=24)
-            else max(2, round(time_diff.total_seconds() / 3600 / 10))
-        )
+        tick_spacing = 1 if time_diff <= dt.timedelta(hours=24) else max(2, round(time_diff.total_seconds() / 3600 / 10))
         fig.update_xaxes(
             type="date",
             tickformat="%d/%m %H:%M",
@@ -2036,26 +2039,24 @@ def _update_hourly_plot_x_axis(
         num_points = len(unique_snapshots)
 
         max_num_points = (
-            16
+            16 
             if (
-                st.session_state.window_width < 1130
-                and st.session_state.window_width > 608
+                st.session_state.window_width < 1130 
+                and st.session_state.window_width > 608 
                 and st.session_state.sce2 != ""
             )
-            else 24
+        else 24
         )
         # Set x axis ticks based on no. of hours selected - for fewer than 24 hours,
         # show increment of 1, otherwise show ~10 evenly spaced ticks
         if num_points <= max_num_points:
             tick_positions = unique_snapshots
-            tick_labels = [str(i + 1) for i in range(num_points)]
+            tick_labels = [str(i+1) for i in range(num_points)]
         else:
             step = max(1, num_points // 10)
             tick_positions = unique_snapshots[::step]
-            tick_labels = ["1"] + [
-                str(i) for i in range(step + 1, num_points + 1, step)
-            ]
-
+            tick_labels = ["1"] + [str(i) for i in range(step + 1, num_points + 1, step)]
+        
         fig.update_xaxes(
             tickmode="array",
             ticktext=tick_labels,
@@ -2063,11 +2064,11 @@ def _update_hourly_plot_x_axis(
             tickangle=0,
             tickfont=dict(size=13),
         )
-
+    
     return fig
 
 
-def plot_function(func_name: str = None):
+def plot_function(func_name:str=None):
     mapping = {
         "simple_bar_yearly": simple_bar_yearly,
         "simple_bar_yearly_2": simple_bar_yearly,
@@ -2086,9 +2087,8 @@ def plot_function(func_name: str = None):
     return func
 
 
-def _grouping_data(
-    sc_name: str, tab_name: str, years: list = None, hourly: bool = False
-) -> pd.DataFrame:
+def _grouping_data(sc_name:str, tab_name:str, years:list=None, hourly:bool=False
+                          )-> pd.DataFrame:
     """Helper function to read and concatenate data for hourly scenarios
 
     Parameters
@@ -2107,22 +2107,19 @@ def _grouping_data(
     """
     if hourly and years:
         df_combined = pd.concat(
-            [
-                read_result_csv(
-                    sc_name=sc_name, tab_name=tab_name, hourly_year=str(year)
-                )
-                for year in years
-            ],
-            ignore_index=True,
+            [read_result_csv(
+                sc_name=sc_name, tab_name=tab_name, hourly_year=str(year)
+            ) for year in years],
+            ignore_index=True
         )
     else:
         df_combined = read_result_csv(sc_name=sc_name, tab_name=tab_name)
     return df_combined
 
-
 def _get_yearly_dfs(
-    config_g: Dict, fn: Optional[Callable[[pd.DataFrame], pd.DataFrame]] = None
-) -> tuple[pd.DataFrame, pd.DataFrame]:
+        config_g: Dict,
+        fn: Optional[Callable[[pd.DataFrame], pd.DataFrame]] = None
+        ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Get the yearly dfs for two scenarios, and optionally process (before min/max y
     calculation takes place).
 
@@ -2150,8 +2147,7 @@ def _get_yearly_dfs(
 
     return dfs
 
-
-def _get_hourly_filtered_dfs(config_g: Dict) -> tuple[pd.DataFrame, pd.DataFrame]:
+def _get_hourly_filtered_dfs(config_g : Dict) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Get the filtered hourly dataframes for two scenarios
 
     Parameters
@@ -2166,20 +2162,27 @@ def _get_hourly_filtered_dfs(config_g: Dict) -> tuple[pd.DataFrame, pd.DataFrame
     """
     df_sels = []
     for i, scenario in enumerate([st.session_state.sce1, st.session_state.sce2]):
-        df_m, s_date, e_date, _ = _get_filtered_data(scenario, config_g)
-        if i == 0:
-            start_date, end_date = s_date, e_date
-        df_sel = _filter_between_dates(df_m, start_date=start_date, end_date=end_date)
-        df_sel = _handle_small_values(df_sel)
-        df_sels.append(df_sel)
+        df = read_result_csv(
+            scenario, config_g["tab_name"], hourly_year=str(config_g["shared_years"]), 
+            shared_country=config_g["shared_country"]
+            )
+        
+        if df is not None and not df.empty:
+            df_m, s_date, e_date, _ = _get_filtered_data(df, config_g)
+            if i == 0:
+                start_date, end_date = s_date, e_date
+            df_sel = _filter_between_dates(df_m, start_date=start_date, end_date=end_date)
+            df_sel = _handle_small_values(df_sel)
+            df_sels.append(df_sel)
 
     return df_sels
 
-
 def _calculate_min_max_y_scale(
-    df: pd.DataFrame, df2: pd.DataFrame, group_col: str = None
-) -> dict:
-    """Calculate manimum and maximum values to use on the y axis.
+        df: pd.DataFrame, 
+        df2: pd.DataFrame, 
+        group_col: str = None
+        ) -> dict:
+    """Calculate manimum and maximum values to use on the y axis. 
 
     Parameters
     ----------
@@ -2199,7 +2202,6 @@ def _calculate_min_max_y_scale(
         - "max" : float
             Maximum value for the y-axis, scaled by 1.2
     """
-
     def compute_min_max(data: pd.DataFrame) -> tuple[float, float]:
         if group_col and group_col in data.columns:
 
@@ -2213,13 +2215,14 @@ def _calculate_min_max_y_scale(
         else:
             max_val = data["value"].max()
             min_val = data["value"].min()
-
+        
         return min_val, max_val
+
 
     if df is None or (isinstance(df, pd.DataFrame) and df.empty):
         return {"min": 0, "max": 0}
-
-    scaling_factor = 1.2  # Scaling factor to add headroom to the y-axis
+    
+    scaling_factor = 1.2 # Scaling factor to add headroom to the y-axis
 
     min_val, max_val = compute_min_max(df)
 
@@ -2234,8 +2237,7 @@ def _calculate_min_max_y_scale(
 
     return {"min": min_val_scaled, "max": max_val_scaled}
 
-
-def _generate_min_max_scales(df: pd.DataFrame, config_g: dict) -> tuple:
+def _generate_min_max_scales(df:pd.DataFrame, config_g:dict)-> tuple:
     """Generate minimum and maximum values.
 
     Parameters
@@ -2252,7 +2254,7 @@ def _generate_min_max_scales(df: pd.DataFrame, config_g: dict) -> tuple:
     """
     if df is None or (isinstance(df, pd.DataFrame) and df.empty):
         return 0, 0
-
+    
     groupby_list = []
     if config_g.get("fil_col"):
         groupby_list.append(config_g["fil_col"])
@@ -2263,7 +2265,7 @@ def _generate_min_max_scales(df: pd.DataFrame, config_g: dict) -> tuple:
         max_scale = df.groupby(groupby_list)["value"].sum().max()
         min_sum = df.groupby(groupby_list)["value"].sum().min()
         min_scale = [0 if min_sum >= 0 else min_sum][0]
-        return max_scale * 1.2, min_scale * 1.2
+        return max_scale*1.2, min_scale*1.2
 
     if "yearly" in config_g["graph_type"]:
         groupby_list.append("year")
@@ -2275,19 +2277,19 @@ def _generate_min_max_scales(df: pd.DataFrame, config_g: dict) -> tuple:
             # since the chart is unstacked
             max_scale = df.groupby(groupby_list)["value"].max().max() * 1.2
         else:
-            max_scale = df.groupby(groupby_list)["value"].sum().max() * 1.2
+            max_scale = df.groupby(groupby_list)["value"].sum().max()*1.2
     else:
         max_scale = config_g["yaxis_scale"]["max"]
-
+        
     if "min" in str(config_g["yaxis_scale"]["min"]):
-        min_scale = df.groupby(groupby_list)["value"].sum().min() * 1.2
+        min_scale = df.groupby(groupby_list)["value"].sum().min()*1.2
     else:
         min_scale = config_g["yaxis_scale"]["min"]
 
     return max_scale, min_scale
 
 
-def calculate_yaxis_scales(func_name: str, config_g: dict) -> dict:
+def calculate_yaxis_scales(func_name:str, config_g:dict)->dict:
     """Calculate the maximum and minimum scales of the y-axis.
 
     Parameters
@@ -2305,12 +2307,12 @@ def calculate_yaxis_scales(func_name: str, config_g: dict) -> dict:
     if func_name is None:
         st.write(f"Function not mapped: {func_name}")
         return 0
-
+    
     df_sc1 = _grouping_data(
         sc_name=st.session_state.sce1,
         tab_name=config_g.get("tab_name"),
         years=st.session_state.get("sce1_years"),
-        hourly="hourly" in func_name,
+        hourly="hourly" in func_name
     )
 
     max_scale, min_scale = _generate_min_max_scales(df_sc1, config_g)
@@ -2320,12 +2322,15 @@ def calculate_yaxis_scales(func_name: str, config_g: dict) -> dict:
             sc_name=st.session_state.sce2,
             tab_name=config_g.get("tab_name"),
             years=st.session_state.get("sce2_years"),
-            hourly="hourly" in func_name,
+            hourly="hourly" in func_name
         )
         max_scale_sc2, min_scale_sc2 = _generate_min_max_scales(df_sc2, config_g)
 
         # Update global max and min scales
         max_scale = max(max_scale, max_scale_sc2)
         min_scale = min(min_scale, min_scale_sc2)
-
-    return {"max_scale": max_scale, "min_scale": min_scale}
+    
+    return {
+        "max_scale": max_scale, 
+        "min_scale": min_scale
+    }

@@ -1,14 +1,10 @@
-# -*- coding: utf-8 -*-
 # SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# coding: utf-8
-
-import os
-
-import pandas as pd
 import streamlit as st
+import os
+import pandas as pd
 
 st.title("PyPSA-SPICE technological nomenclature")
 st.divider()
