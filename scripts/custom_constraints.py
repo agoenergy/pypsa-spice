@@ -345,22 +345,24 @@ def re_pow_generation_constraint(
                         "CSP",
                         "RTPV",
                         "GEOT",
+                        "GEOT-Retro",
                         "GEOX",
                         "WTON",
                         "WTOF",
                         "HDAM",
                         "HROR",
-                        "HPHS",
-                        "BATS",
-                        "BATS-1",
-                        "BATS-2",
-                        "BATS-4",
+                        # "HPHS",
+                        # "BATS",
+                        # "BATS-1",
+                        # "BATS-2",
+                        # "BATS-4",
                         "BIOT",
+                        "BIOT-Retro",
                         "WSTT",
                     ]
                 )
             )
-            & (df[bus_name].str.contains("HVELEC"))
+            & (df[bus_name].str.contains("ELEC"))
         ].index
         if not res_gen.empty:
             # Get var and weights
