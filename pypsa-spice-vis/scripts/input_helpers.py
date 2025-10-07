@@ -1,7 +1,3 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
-
-# SPDX-License-Identifier: GPL-2.0-or-later
-
 import os
 import streamlit as st
 import pandas as pd
@@ -246,7 +242,7 @@ class InputUiHandler:
             ),
             "load": CsvDictConfig(
                 identifier="load",
-                filter_col="profile_type",
+                filter_col="name",
                 title="Load",
                 filter_fn=self._filter_df_generic,
                 empty_df_fn=self._empty_df_message_generic,
@@ -460,8 +456,7 @@ class InputUiHandler:
                     no_data_msg = f"No carrier found for {selected_types} in links data"
             else:
                 no_data_msg = f"No fuel costs for technologies: {', '.join(selected_types)}"
-        elif csv_dict_key == "interconnector":
-            filtered_df = input_df[~input_df["bus1"].str.contains("LVELEC")]
+
         else:
             # Apply the default filtering for all other csvs
             filtered_df = csv_config.filter_fn(input_df, filter_col, selected_types)
@@ -564,6 +559,8 @@ class InputUiHandler:
             st.write(f"### {csv_config.title}")
 
             path_to_display = os.path.normpath(input_csv_path)
+            if csv_dict_key == "availability" and filtered_df.empty:
+                path_to_display = path_to_display.replace("Availability", "Technologies")
 
             st.markdown(f"<small><i>{path_to_display}</i></small>", unsafe_allow_html=True)
 
