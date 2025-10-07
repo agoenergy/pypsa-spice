@@ -1212,7 +1212,6 @@ def bar_with_filter(sc_name: str, config_g: dict):
         x="year",
         y="value",
         color="nice_names",
-        barmode="stack",
         color_discrete_map=colour_mapping,
     )
 
@@ -1314,7 +1313,6 @@ def simple_bar_hourly(sc_name: str, config_g: Dict[str, str]) -> Optional[None]:
             x="snapshot",
             y="value",
             color="nice_names",
-            barmode="stack",
             color_discrete_map=colour_mapping,
         )
 
