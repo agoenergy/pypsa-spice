@@ -899,7 +899,8 @@ class OutputTables(Plots):
         pd.DataFrame
             A DataFrame with multi-index (country, technology, year) and column (value)
         """
-        final_df = self.pow_gen_by_type_yearly().reset_index()
+        final_df = self.pow_gen_by_type_yearly()
+        final_df = final_df[final_df['value']>=0].reset_index()
         # import and use functions from _helpers.py
         # for easier adjustment in the long run
         final_df["carrier"] = final_df["technology"].map(generation_type_mapping)

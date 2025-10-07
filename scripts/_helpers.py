@@ -1554,7 +1554,9 @@ def generation_type_mapping(x: str) -> str:
     """
     if x in [
         "BIOT",
+        "BIOT-Retro",
         "GEOT",
+        "GEOT-Retro",
         "HROR",
         "PHOT",
         "CSP",
@@ -1570,16 +1572,22 @@ def generation_type_mapping(x: str) -> str:
         return "renewables"
     if x in [
         "CCGT",
+        "CCGT-Retro",
         "OCGT",
+        "OCGT-Retro",
         "OILT",
+        "OILT-Retro",
         "SubC",
         "SupC",
-        "NUCL",
-        "SupC_RETRO",
-        "SubC_RETRO",
+        "SupC-Retro",
+        "SubC-Retro",
     ]:
         return "fossils"
-
+    if x in [
+        "NUCL",
+        "NSMR",
+    ]:
+        return "nuclear"
     return "not defined"
 
 

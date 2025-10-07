@@ -5,8 +5,10 @@ BATS_STORE,Battery - charging,
 BATS-2,Lithium battery storage,#00ced1
 BATS-4,Lithium battery storage,#00ced1
 BIOT,Biomass power plant,#408B2E
+BIOT-Retro,Biomass power plant (Retrofit),#408B2E
 Bit,Bituminous coal,#a6572e
 CCGT,Combined cycle gas turbine,#617394
+CCGT-Retro,Combined cycle gas turbine (retrofit),#617394
 CHP,CHP plants,#A28CAB
 CSP,Concentrated solar,#ffd300
 DAC,Direct air capture,#2d86a1
@@ -20,6 +22,7 @@ EVCH-PUB,Battery electric vehicle storage (Public),#64B9E4
 FITR,Fischer Tropsch,#1E83B3
 Gas,Domestic natural gas,#9ABBCA
 GEOT,Geothermal power plant,#AB2E70
+GEOT-Retro,Geothermal power plant (Retrofit),#AB2E70
 HDAM,Large hydropower with dam,#d2dde4
 HDAM-IMP,Hydropower Import,#C3A5D3
 HHBS,Household Battery storage,#00ced1
@@ -41,9 +44,11 @@ ITCN,Cross-border interconnector,
 METH,Methanation,#48A8AE
 NUCL,Nuclear,#727272
 OCGT,Open cycle gas turbine,#ec6607
+OCGT-Retro,Open cycle gas turbine(retrofit),#ec6607
 OCHT,Open cycle hydrogen turbine,#95a664
 Oil,Oil and oil derivatives,#006057
 OILT,Oil-fired power plant,#006057
+OILT-Retro,Oil-fired power plant (Retrofit),#006057
 PEVCH,PEV charger,#2581C4
 PHOT,Solar PV,#FFE000
 powerFlow,Power flow,#5c5d6b
@@ -51,8 +56,8 @@ RTPV,Roof top PV,#ffd300
 stateOfCharge,State of charge,#8393BE
 SubC,Subcritical coal power plant,#423429
 SupC,Supercritical coal power plant,#B69E8C
-SubC_RETRO, Subcritical coal power plant (retrofit),#78675b
-SupC_RETRO, Supercritical coal power plant (retrofit),#d1bba9
+SubC-Retro, Subcritical coal power plant (retrofit),#78675b
+SupC-Retro, Supercritical coal power plant (retrofit),#d1bba9
 SWHT,Solar hot water heater,#FFE000
 WSTT,Waste power plant,#56378d
 WTOF,Offshore Wind,#0061A4
