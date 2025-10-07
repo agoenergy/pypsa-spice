@@ -285,7 +285,7 @@ class OutputTables(Plots):
                 [final_df, demand], axis=0
             )  # return demand for all year
         final_df.index.names = ["country", "carrier"]
-        final_df = scaling_conversion(df=final_df, scaling_number=1e6, decimals=1)
+        final_df = scaling_conversion(input_df=final_df, scaling_number=1e6, decimals=1)
 
         return final_df
 
@@ -325,7 +325,7 @@ class OutputTables(Plots):
                 [final_df, capex_val], axis=0
             )  # return cost mix for a all years
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -380,7 +380,7 @@ class OutputTables(Plots):
                 [final_df, capex_val], axis=0
             )  # return cost mix for a all years
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -435,7 +435,7 @@ class OutputTables(Plots):
                 [final_df, opex_val], axis=0
             )  # return cost mix for a all years
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -800,7 +800,7 @@ class OutputTables(Plots):
             ~final_df.index.get_level_values("technology").isin(["ITCN", "LSLO"])
         ]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e3,
             decimals=2,
         )
@@ -883,7 +883,7 @@ class OutputTables(Plots):
             )
         ]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -985,7 +985,7 @@ class OutputTables(Plots):
             ~final_df.index.get_level_values("technology").isin(["LSLO"])
         ]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -1045,7 +1045,7 @@ class OutputTables(Plots):
             ~final_df.index.get_level_values("technology").isin(["LSLO"])
         ]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -1142,7 +1142,7 @@ class OutputTables(Plots):
             ~final_df.index.get_level_values("technology").isin(["LSLO"])
         ]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -1192,7 +1192,7 @@ class OutputTables(Plots):
         final_df.index.names = ["country", "technology"]
         final_df = final_df.fillna(0)
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -1596,7 +1596,7 @@ class OutputTables(Plots):
             )  # return cap mix for all years
         final_df = final_df.fillna(0)
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e3,
             decimals=2,
         )
@@ -2085,7 +2085,7 @@ class OutputTables(Plots):
         final_df.index.names = ["country", "carrier"]
         final_df = final_df.fillna(0)
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -2156,7 +2156,7 @@ class OutputTables(Plots):
         final_df.index.names = ["country", "from", "to"]
         final_df = final_df.fillna(0)
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e3,
             decimals=2,
         )
@@ -2273,7 +2273,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "region", "technology"]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e3,
             decimals=2,
         )
@@ -2317,7 +2317,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "carrier"]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -2448,7 +2448,7 @@ class OutputTables(Plots):
             )
         ]  # remove store and discharge, since we only consider generation
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=4,
         )
@@ -2522,7 +2522,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "carrier", "region", "heat_type"]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e3,
             decimals=2,
         )
@@ -2630,7 +2630,7 @@ class OutputTables(Plots):
             )  # return gen mix for all years
         final_df = final_df.fillna(0)
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -2698,7 +2698,7 @@ class OutputTables(Plots):
             ~final_df.index.get_level_values("technology").str.contains("ITCN|LSLO")
         ]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e3,
             decimals=2,
         )
@@ -2875,7 +2875,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "technology", "carrier"]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -2933,7 +2933,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "technology", "carrier"]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -3036,7 +3036,7 @@ class OutputTables(Plots):
         final_df.index.names = ["country", "technology", "carrier"]
 
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -3246,7 +3246,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "technology"]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )

@@ -436,13 +436,13 @@ def mock_snakemake(
 
 
 def scaling_conversion(
-    df: pd.DataFrame, scaling_number: int, decimals: int
+    input_df: pd.DataFrame, scaling_number: int, decimals: int
 ) -> pd.DataFrame:
     """Change scale of value column in a DataFrame and return the DataFrame.
 
     Parameters
     ----------
-    df : pd.DataFrame
+    input_df : pd.DataFrame
         Input DataFrame.
     scaling_number : int
         Scaling number used for conversion.
@@ -454,15 +454,15 @@ def scaling_conversion(
     pd.DataFrame
         Output DataFrame after scaling conversion.
     """
-    df = df.reset_index()
-    df = df.loc[:, ~df.columns.duplicated(keep="last")]
-    col_list = df.columns.to_list()
+    input_df = input_df.reset_index()
+    input_df = input_df.loc[:, ~input_df.columns.duplicated(keep="last")]
+    col_list = input_df.columns.to_list()
     col_list.remove("value")
-    df = df.set_index(col_list)
-    df = (df / scaling_number).round(decimals)
-    df = df.reset_index()
+    input_df = input_df.set_index(col_list)
+    input_df = (input_df / scaling_number).round(decimals)
+    input_df = input_df.reset_index()
 
-    return df.set_index(df.columns[0])
+    return input_df.set_index(input_df.columns[0])
 
 
 def get_buses(bus_df: pd.DataFrame) -> pd.DataFrame:
@@ -492,14 +492,14 @@ def get_time_series_demands(
     load_df : FilePath
         table of load to convert
     profile_dir : FilePath
-        list of profile patterns per bus type
+        directory to database of profile patterns per bus type
     year : int
         load year to convert
 
     Returns
     -------
     pd.DataFrame
-        table of load per buses converted into time series for 8760 hour based on
+        DataFrame of load per buses converted into time series for 8760 hour based on
         profile pattern
 
     Raises
@@ -559,7 +559,7 @@ def get_plant_availabilities(
 
     Parameters
     ----------
-    pp_dir : pd.DataFrame
+    pp_df : pd.DataFrame
         DataFrame of all power plants
     avail_dir : FilePath
         directory to database of availability per location and technology
@@ -569,8 +569,8 @@ def get_plant_availabilities(
     Returns
     -------
     pd.DataFrame
-        table of all generators and storage units with assigned timeseries availability
-        for 8760 snapshots
+        DataFrame of all generators and storage units with assigned timeseries
+        availability for 8760 snapshots
 
     Raises
     ------
@@ -642,7 +642,7 @@ def get_link_availabilities(
     Parameters
     ----------
     link_df : pd.DataFrame
-        DataFrame all links
+        DataFrame of all links
     avail_dir : FilePath
         directory to database of availability per location and technology
     arch_dir : FilePath
@@ -651,7 +651,7 @@ def get_link_availabilities(
     Returns
     -------
     pd.DataFrame
-        table of all links with assigned time-series availability for 8760 snapshots
+        DataFrame of all links with assigned time-series availability for 8760 snapshots
 
     Raises
     ------
@@ -722,14 +722,14 @@ def get_store_min_availabilities(
     Parameters
     ----------
     stores_df : pd.DataFrame
-        Table of all storage units
+        DataFrame of all Store components
     avail_dir : FilePath
-        minimum availability database
+        directory to database of availability per location and technology
 
     Returns
     -------
     pd.DataFrame
-        table of all storage units with assigned timeseries minimum availability
+        DataFrame of all Store components with assigned timeseries minimum availability
         for 8760 snapshots
 
     Raises
@@ -781,25 +781,16 @@ def get_storage_units_inflows(
 
     Parameters
     ----------
-    storage_capacity_dir : FilePath
-        table of all storage units
+    storage_capacity : pd.DataFrame
+        DataFrame of all storage units
     inflows_path : FilePath
         inflow database
-    technologies_dir : FilePath
-        technology database
-    tech_cost_dir : FilePath
-        technology cost database
-    year : FilePath
-        year of model run
-    interest : FilePath
-        interest rate
-    currency : FilePath
-        currency of model run
 
     Returns
     -------
     pd.DataFrame
-        table of all storage units with assigned time-series inflow for 8760 snapshots
+        DataFrame of all storage units with assigned time-series inflows
+        for 8760 snapshots
     """
     dfs = []
     storage_inflows = pd.read_csv(inflows_path)
@@ -850,7 +841,7 @@ def get_capital_cost(
     Parameters
     ----------
     plant_type : list[str]
-        type of plant to calculate cost
+        list of plant types to calculate cost
     tech_costs : pd.DataFrame
         database of plant's costs
     interest : float
@@ -894,9 +885,9 @@ def update_tech_fact_table(
     tech_table : pd.DataFrame
         plants or links table
     technologies_dir : FilePath
-        technology table from database
+        directory to database of technological params per technology
     tech_costs_dir : FilePath
-        cost table from database
+        directory to database of cost params per technology
     year : int
         year of model run
     interest : float
@@ -907,7 +898,7 @@ def update_tech_fact_table(
     Returns
     -------
     pd.DataFrame
-        Cleaned plant/link table with fact columns added
+        Cleaned plant/link DataFrame with fact columns added
     """
     technology_df = pd.read_csv(technologies_dir)
     tech_costs = pd.read_csv(tech_costs_dir, index_col=["powerplant_type", "country"])
@@ -1103,7 +1094,28 @@ def update_ev_char_parameters(
     interest_rate: float,
     currency: str,
 ) -> pd.DataFrame:
-    """Update ev storage and link parameters parameters."""
+    """Update ev storage and link parameters parameters.
+
+    Parameters
+    ----------
+    tech_table : pd.DataFrame
+        table of EV storage to update
+    year : int
+        year of model run
+    ev_param_dir : FilePath
+        directory of EV parameter database
+    cost_df : pd.DataFrame
+        DataFrame of cost parameters
+    interest_rate : float
+        Discount rate (as a decimal, e.g., 0.07 for 7%).
+    currency : str
+        Currency in all uppercase, , ISO4217 format
+
+    Returns
+    -------
+    pd.DataFrame
+        Cleaned EV charger DataFrame with parameters updated
+    """
     ev_param_df = pd.read_csv(ev_param_dir)
     cost_df_single_year = cost_df[cost_df.year == year]
     dfs = []
@@ -1224,25 +1236,25 @@ def update_ev_store_parameters(
 
 
 def get_link_min_availabilities(
-    link_df_dir: FilePath, avail_df_dir: FilePath
+    link_df_dir: FilePath, avail_dir: FilePath
 ) -> pd.DataFrame:
     """Match each links to corresponding maximum reverse flow based on technology.
 
     Parameters
     ----------
     link_df_dir : FilePath
-        table of link to match
+        directory to a table of link to match
     avail_df_dir : FilePath
-        database of availability per location and technology
+        directory to database of availability per location and technology
 
     Returns
     -------
     pd.DataFrame
-        table of links with assigned time-series maximum reverse flow availability for
-        8760 snapshots
+        DataFrame of links with assigned time-series maximum reverse flow availability
+        for 8760 snapshots
     """
     link_df = pd.read_csv(link_df_dir)
-    avail_df = pd.read_csv(avail_df_dir)
+    avail_df = pd.read_csv(avail_dir)
     dfs = []
     link_df = link_df.to_dict("records")
     for row in link_df:
