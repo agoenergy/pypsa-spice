@@ -16,7 +16,8 @@ path_configs:
   input_dir: data/example/
   results_dir: results/
   project_name: project_01
-  scenario_name: scenario_01
+  input_scenario_name: scenario_01
+  output_scenario_name: scenario_01_tag1
 
 base_configs:
   regions:
