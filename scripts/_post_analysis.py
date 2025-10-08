@@ -1832,25 +1832,25 @@ class OutputTables(Plots):
 
     def pow_gen_reserve_by_type_hourly(self, year, nth_hour: int):
         """Calculate hourly power generation and reserve by country and type."""
-        if year != 2024:   #reserve does not have value in baseyear
-            # --- Power generation data ---
-            df1 = self.pow_gen_by_type_hourly(year, nth_hour).reset_index()
-            df1["technology_type"] = df1["technology"] + "_energy"
-            df1['type'] = 'energy'
-            try:
-                # --- Reserve data ---
-                df2 = self.pow_reserve_by_type_hourly(year, nth_hour)
-                df2 = df2[~df2['technology'].isin(["demand_reserve", "reserve_total", "vre_reserve"])]
-                df2["technology_type"] = df2["technology"] + "_reserve"
-                df2['type'] = 'reserve'
+        # if year != 2024:   #reserve does not have value in baseyear
+        # --- Power generation data ---
+        df1 = self.pow_gen_by_type_hourly(year, nth_hour).reset_index()
+        df1["technology_type"] = df1["technology"] + "_energy"
+        df1['type'] = 'energy'
+        try:
+            # --- Reserve data ---
+            df2 = self.pow_reserve_by_type_hourly(year, nth_hour)
+            df2 = df2[~df2['technology'].isin(["demand_reserve", "reserve_total", "vre_reserve"])]
+            df2["technology_type"] = df2["technology"] + "_reserve"
+            df2['type'] = 'reserve'
 
-                # --- Concatenated data ---
-                df = pd.concat([df1, df2], axis=0, ignore_index=True)
-                return df.set_index(["snapshot", "country", "technology_type", "technology", "type"]).sort_index()
-            except:
-                return df1
-        else:
-            return pd.DataFrame(columns=["snapshot", "country", "technology_type", "technology", "type", "value"])
+            # --- Concatenated data ---
+            df = pd.concat([df1, df2], axis=0, ignore_index=True)
+            return df.set_index(["snapshot", "country", "technology_type", "technology", "type"]).sort_index()
+        except:
+            return df1
+        # else:
+        #     return pd.DataFrame(columns=["snapshot", "country", "technology_type", "technology", "type", "value"])
 
 
     def pow_bats_ep_ratio(self) -> pd.DataFrame:

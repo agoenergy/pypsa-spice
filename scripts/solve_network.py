@@ -108,22 +108,22 @@ def extra_functionality_linopt(network: pypsa.Network, snapshots: pd.Series):
 
         # Reserve margin constraint
         if country_constraints.get("reserve_margin", False):
-            if year > base_year:
-                reserve_params = country_constraints["reserve_margin"]
-                add_reserve_margin(
-                    network,
-                    EP_LOAD=reserve_params["epsilon_load"],
-                    EP_VRE=reserve_params["epsilon_vre"],
-                    CONT=reserve_params["contingency"],
-                    method=reserve_params["method"],
-                    country=country,
-                )
-                constraint_added = True
-            elif year == base_year:
-                print(
-                    "Reserve margin constraint is not added in the first year of the "
-                    "simulation"
-                )
+            # if year > base_year:
+            reserve_params = country_constraints["reserve_margin"]
+            add_reserve_margin(
+                network,
+                EP_LOAD=reserve_params["epsilon_load"],
+                EP_VRE=reserve_params["epsilon_vre"],
+                CONT=reserve_params["contingency"],
+                method=reserve_params["method"],
+                country=country,
+            )
+            constraint_added = True
+            # elif year == base_year:
+            #     print(
+            #         "Reserve margin constraint is not added in the first year of the "
+            #         "simulation"
+            #     )
 
         # Renewable generation constraint
         if country_constraints.get("res_generation", False) and year > base_year:
