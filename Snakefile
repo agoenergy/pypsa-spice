@@ -23,11 +23,11 @@ RDIR = (
     config["path_configs"]["results_dir"]
     + config["path_configs"]["project_name"]
     + "/"
-    + config["path_configs"]["scenario_name"]
+    + config["path_configs"]["output_scenario_name"]
     + "/"
 )
 PDIR = config["path_configs"]["input_dir"] + config["path_configs"]["project_name"]
-SDIR = PDIR + "/" + config["path_configs"]["scenario_name"]
+SDIR = PDIR + "/" + config["path_configs"]["input_scenario_name"]
 GPDIR = config["path_configs"]["input_dir"] + "global_csv_templates"
 
 PP_COSTS = PDIR + "/" + "power_plant_costs.csv"
@@ -175,8 +175,6 @@ rule solve_network:
     params:
         country_region=config["base_configs"]["regions"],
         years=config["base_configs"]["years"],
-        project_name=config["path_configs"]["project_name"],
-        scenario_name=config["path_configs"]["scenario_name"],
         resolution=config["scenario_configs"]["resolution"],
         currency=config["base_configs"]["currency"]
     threads: config["solving"]["solver"].get("threads", 1)
@@ -201,7 +199,7 @@ rule make_summary:
     params:
         results_dir=config["path_configs"]["results_dir"],
         project_name=config["path_configs"]["project_name"],
-        scenario_name=config["path_configs"]["scenario_name"],
+        scenario_name=config["path_configs"]["output_scenario_name"],
         resolution=config["scenario_configs"]["resolution"],
         currency=config["base_configs"]["currency"]
     script:

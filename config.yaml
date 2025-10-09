@@ -13,18 +13,19 @@ logging:
 
 #####Init settings#####
 path_configs:
-  input_dir: data/
+  input_dir: data/example/
   results_dir: results/
   project_name: project_01
   input_scenario_name: scenario_01
   output_scenario_name: scenario_01_tag1
 
 base_configs:
+  # countries: ["XY", "YZ"] # list of countries in ISO2 format
   regions:
     XY: ["NR","CE", "SO"] # list of countries (keys) and subregions (values in list). Countries in ISO2 format
     YZ: ["NR","CE", "SO"] # list of countries (keys) and subregions (values in list). Countries in ISO2 format
-  years: [2025, 2030, 2035, 2040, 2045, 2050] # list of modelled years
   sector: ["p-i-t"] # options: ["p", "p-i", "p-t", "p-i-t"], representing power (p), industry (i), and transport (t) sectors.
+  years: [2025, 2030, 2035, 2040, 2045, 2050] # list of modelled years
   currency: USD # currency for the model in all uppercases, ISO4217 format
 
 

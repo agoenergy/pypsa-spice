@@ -1396,7 +1396,7 @@ if __name__ == "__main__":
         configurations = yaml.safe_load(file)
 
     # Country names from the configuration file
-    cfg_countries = list(configurations["base_configs"]["regions"].keys())
+    cfg_countries = configurations["base_configs"]["regions"].keys()
     cfg_nodes = []
     for cfg_country in cfg_countries:
         # List of regions based on the given inputs in the configuration file
@@ -1411,7 +1411,7 @@ if __name__ == "__main__":
         configurations["path_configs"]["input_dir"]
         + configurations["path_configs"]["project_name"]
         + "/"
-        + configurations["path_configs"]["scenario_name"]
+        + configurations["path_configs"]["input_scenario_name"]
     )
 
     cfg_currency = configurations["base_configs"]["currency"]
@@ -1590,7 +1590,12 @@ if __name__ == "__main__":
     )
     create_loads(
         years=cfg_years,
-        bus_df=tra_buses_df,
+        bus_df=create_buses(
+            countries=cfg_countries,
+            nodes=cfg_nodes,
+            bus_types=TRANSPORT_BUS_TYPES,
+            return_df=True,
+        ),
         file_path=path_t_loads,
     )
     create_ev_storages(

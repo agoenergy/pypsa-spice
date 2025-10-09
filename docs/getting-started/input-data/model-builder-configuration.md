@@ -16,15 +16,18 @@ path_configs:
   input_dir: data/example/ #(1)!
   results_dir: results/ # (2)!
   project_name: project_01 #(3)!
-  scenario_name: scenario_01 # (4)!
+  input_scenario_name: scenario_01 # (4)!
+  output_scenario_name: scenario_01_tag1 # (5)!
 ```
 
-1. Directory containing all scenario data. Inside this folder, subfolders for `project_name` and `scenario_name` will be created.
+1. Directory containing all scenario data. Inside this folder, subfolders for `project_name` and `input_scenario_name` will be created.
 2. Directory where output network files, CSVs and graphs are saved.
-3. Directory for project-related data, including the `scenario_name` folder.
+3. Directory for project-related data, including the `input_scenario_name` folder.
 4. Directory for storing scenario input CSVs.
+5. Directory for storing scenario output CSVs.
 
-The path for the skeleton folder follows the pattern: `input_dir`/`project_name`/`scenario_name`.
+The path for the skeleton folder follows the pattern: `input_dir`/`project_name`/`input_scenario_name`.
+The path for the output folder follows the pattern: `input_dir`/`project_name`/`output_scenario_name`.
 
 This config file is used for both creating a new model via `python script/build_skeleton.py` (see the section on [defining a new model](new-model.md)) and used for running different instances of the model.
 

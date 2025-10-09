@@ -159,13 +159,12 @@ def update_decommission_base_assets(
         column="name",
         country_region=sm_country_region,
         currency=str(currency).lower(),
-    )
+    ).set_index("name")
     for col in decap_df.columns:
-        if col in ["country", "name", "class"]:
+        if col in ["country", "class"]:
             decap_df[col] = decap_df[col].astype(str)
         else:
             decap_df[col] = decap_df[col].astype(float).fillna(0)
-
     for c in n.iterate_components(
         [
             "Store",
@@ -189,6 +188,24 @@ def update_decommission_base_assets(
                     c.df.loc[plant, f"{attr}_nom"] = (
                         c.df.loc[plant, f"{attr}_nom"] - decap.loc[plant]
                     )
+        # Ensure nominal 'p' or 'e' never goes below 0.
+        # If this check is not implemented, some solvers such as HiGHS won't be able to
+        # solve the optimization problem due to infeasibility caused by contradictor
+        # constraints (i.e., nominal values are set to be non-negative in a different
+        # constraint, but their values might become negative after decommissioning in
+        # these constraints)
+        negative_capacities = c.df[f"{attr}_nom"] < 0
+        if negative_capacities.any():
+            affected = c.df.index[negative_capacities].tolist()
+            for asset in affected:
+                negative_capacity = c.df.loc[asset, f"{attr}_nom"]
+                print(
+                    f"[WARNING] Decommissioning set negative capacity to component "
+                    f"'{asset}' (value: {negative_capacity:.2f}), which was clipped to "
+                    "0 to avoid infeasibility. Please correct your input data.",
+                    f"{asset} - {negative_capacity:.2f}",
+                )
+            c.df[f"{attr}_nom"] = c.df[f"{attr}_nom"].clip(lower=0.0)
 
 
 def update_fuel_data(

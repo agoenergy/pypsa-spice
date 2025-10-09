@@ -32,7 +32,3 @@ docs/*.vscode/settings.json
 
 # Untrack files
 gurobi.log
-config.yaml
-
-# Related to pypsa-spice-vis
-pypsa-spice-vis/setting/initial.yaml

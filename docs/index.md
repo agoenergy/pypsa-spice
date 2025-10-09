@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
-# PyPSA-SPICE: Python-based Sector-Coupled Optimisation for Pathways Exploration
+# PyPSA-SPICE: PyPSA-based Scenario Planning and Integrated Capacity Expansion
 
 <!-- badges-begin -->
 [![License][license badge]][license]{:target="_blank"}

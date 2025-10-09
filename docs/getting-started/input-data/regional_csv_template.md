@@ -59,8 +59,8 @@ This file defines the buses to be used in the model. All components need to be c
 
 `Decommission_capacity.csv` contains the installed capacity of power plants scheduled for decommissioning.
 
-- For **Generators**, the `name` column must match the `name` column in `input_dir/project_name/scenario_name/Power/power_generators.csv`.
-- For **Links**, the `name` column must match the `link` column in `input_dir/project_name/scenario_name/Power/power_links.csv`
+- For **Generators**, the `name` column must match the `name` column in `input_dir/project_name/input_scenario_name/Power/power_generators.csv`.
+- For **Links**, the `name` column must match the `link` column in `input_dir/project_name/input_scenario_name/Power/power_links.csv`
 
 
 | Parameter   | definition                                                |

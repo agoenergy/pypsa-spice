@@ -27,8 +27,8 @@ sce2: "opt" #(3)!
 ```
 
 1. Mandatory input project name. This name is the same as `project_name` from `pypsa-spice/config.yaml`.
-2. Mandatory input name of the first scenario ( the name is usually `ref` from the `scenario_name` in `pypsa-spice/config.yaml`).
-3. Optional input name of the first scenario ( the name is usually other scenarios from the `scenario_name`  in `pypsa-spice/config.yaml`).
+2. Mandatory input name of the first scenario ( the name is usually `ref` from the `output_scenario_name` in `pypsa-spice/config.yaml`).
+3. Optional input name of the first scenario ( the name is usually other scenarios from the `output_scenario_name`  in `pypsa-spice/config.yaml`).
 
 ### Run streamlit app
 
