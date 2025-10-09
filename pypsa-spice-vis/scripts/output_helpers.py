@@ -535,7 +535,8 @@ def _setup_date_filter_incomplete(
     slider_id = config_plot["slider_id"].format(scenario_text)
     label = f"{slider_id} Select Range:"
     num_timestamps = len(all_timestamps)
-    
+    key = f"date_{config_plot['tab_name']}"
+
     # Integer slider widget representing hours present in the dataset
     row_range = st.slider(
         label=label,
@@ -544,6 +545,7 @@ def _setup_date_filter_incomplete(
         value=(1, min(20, num_timestamps)),
         step=1,
         label_visibility="collapsed",
+        key=key
     )
     
     # Convert selected indices to corresponding timestamps
