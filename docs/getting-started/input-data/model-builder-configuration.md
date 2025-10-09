@@ -13,7 +13,7 @@ This section provides a detailed explanation of the key variables that can be co
 
 ```yaml title="Path configurations"
 path_configs: 
-  input_dir: data/example/ #(1)!
+  input_dir: pypsa-spice-data/ #(1)!
   results_dir: results/ # (2)!
   project_name: project_01 #(3)!
   input_scenario_name: scenario_01 # (4)!

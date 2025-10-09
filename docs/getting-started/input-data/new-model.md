@@ -29,7 +29,7 @@ In the first part (named **Init settings**), following parameters should be defi
 
 ```yaml title="Init settings in the config.yaml file"
 path_configs: #(1)!
-  input_dir: data/example/
+  input_dir: pypsa-spice-data/
   results_dir: results/ 
   project_name: project_01
   input_scenario_name: scenario_01 # (2)!
