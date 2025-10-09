@@ -32,4 +32,3 @@ docs/*.vscode/settings.json
 
 # Untrack files
 gurobi.log
-config.yaml
