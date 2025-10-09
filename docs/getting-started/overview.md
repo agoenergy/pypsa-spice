@@ -19,7 +19,7 @@ The diagram below outlines the process for preparing and entering input data, ru
 <!-- markdownlint-disable MD033 -->
 
 !!! info
-    If you are considering using this model builder, please reach out to us at [Email_to_be_added](mailto:Email_to_be_added){:target="_blank"}. We would be happy to help you get started.
+    If you are considering using this model builder, please reach out to us at [edm-training@agora-thinktanks.org](mailto:edm-training@agora-thinktanks.org){:target="_blank"}. We would be happy to help you get started.
     If you encounter a bug, please create a [new issue](https://github.com/agoenergy/pypsa-spice/issues){:target="_blank"}. For new ideas or feature requests, you can start a conversation in the [discussions](https://github.com/agoenergy/pypsa-spice/discussions){:target="_blank"} section of the repository.
 
 **[1. Build skeleton:](../getting-started/input-data/new-model.md)** This is the initial step where you define the scope and resolution of the model and run a script to generate empty data files. At this stage, it is important to specify the regions must be included in the model

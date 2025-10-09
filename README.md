@@ -24,7 +24,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 [status badge]: https://img.shields.io/badge/under%20construction-ffae00
 <!-- badges-end -->
 > [!TIP]
-> If you are considering using this model builder, please reach out to us at [Email_to_be_added](mailto:Email_to_be_added). We would be happy to help you get started.
+> If you are considering using this model builder, please reach out to us at [edm-training@agora-thinktanks.org](mailto:edm-training@agora-thinktanks.org). We would be happy to help you get started.
 > If you encounter a bug, please create a [new issue](https://github.com/agoenergy/pypsa-spice/issues). For new ideas or feature requests, you can start a conversation in the [discussions](https://github.com/agoenergy/pypsa-spice/discussions) section of the repository.
 
 PyPSA-SPICE is an open-source model builder for assessing national mid/long-term energy scenarios using a least-cost, multi-sectoral optimization approach based on the [PyPSA](https://pypsa.org/) framework. It can be used to build models that represent one or more countries across multiple interconnected nodes linked by electricity transmission, and within each region, it models the integration of power, heat, and transport sectors. The model focuses on the power sector, which is represented with a high level of detail.
