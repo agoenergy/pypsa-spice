@@ -173,7 +173,7 @@ class AddBaseNetwork:
             name=hubs_df.index,
             bus=hubs_df["bus"],
             carrier=hubs_df["carrier"],
-            marginal_cost=hubs_df[f"fuel_cost [{str(self.currency).lower()}_mwh"],
+            marginal_cost=hubs_df[f"fuel_cost__{str(self.currency).lower()}_mwh"],
             type=hubs_df["carrier"].str.upper() + "_SUPPLY",
             p_nom_extendable=True,
             country=hubs_df["country"],
