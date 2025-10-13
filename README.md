@@ -42,15 +42,19 @@ The model workflow has been designed to be more accessible compared to other PyP
 
 ## Quick Installation
 
-In order to install the application, _git_ , _conda_ and _mamba_ (Anaconda or miniconda) should be installed.  
+In order to install the application, first make sure you have _git_, _conda_ and optionally _mamba_ installed.
+
+Then, clone the source code from GitHub onto your local machine and navigate into the `pypsa-spice` directory. Finally, use the provided `environment.yaml` file to create the _conda_ environment.
 
 ```bash
 git clone https://github.com/agoenergy/pypsa-spice.git
 cd pypsa-spice
-mamba env create -f envs/environment.yaml
+conda env create -f envs/environment.yaml
 ```
 
-For a faster installation, you can use _mamba_ instead of _conda_ when creating the environment. For installation of _mamba_, please refer to the [installation Guide](docs/getting-started/installation.md#install-python-dependencies)
+> **Note:** _mamba_ is a faster replacement for _conda_, but its installation is not mandatory. You can use _conda_ instead if you prefer. For installation of _mamba_, please refer to the [installation Guide](docs/getting-started/installation.md#install-python-dependencies)
+
+Once _mamba_ is installed, you can also create the environment more quickly using:
 
 ```bash
 mamba env create -f envs/environment.yaml
