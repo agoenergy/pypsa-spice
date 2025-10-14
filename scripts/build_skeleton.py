@@ -1388,6 +1388,29 @@ def create_folders(save_path: FilePath):
         os.makedirs(os.path.join(save_path, sector), exist_ok=True)
 
 
+def check_and_create_global_template_csv(
+    save_path: FilePath, global_template_path: FilePath
+):
+    """Compare or clone each global template csv in the targeted folder.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    global_template_path : FilePath (str or path object)
+        Root directory of global csv templates.
+    """
+    for filename in os.listdir(global_template_path):
+        if filename.endswith(".csv"):
+            target_path = os.path.join(output_project_folder_path, filename)
+
+            if not os.path.exists(target_path):
+                shutil.copy2(os.path.join(global_template_path, filename), save_path)
+                print(
+                    f"Clone {filename} copied from global_csv_templates to {save_path}"
+                )
+
+
 if __name__ == "__main__":
     CONFIG_FILE = "config.yaml"
 
@@ -1406,10 +1429,26 @@ if __name__ == "__main__":
         cfg_nodes += cfg_country_node_list
     # List of years
     cfg_years = configurations["base_configs"]["years"]
-    # Skeleton input folder path
-    output_path = (
+    global_csv_templates_path = (
+        configurations["path_configs"]["input_dir"] + "global_csv_templates"
+    )
+
+    # Skeleton input porject folder path
+    output_project_folder_path = (
         configurations["path_configs"]["input_dir"]
         + configurations["path_configs"]["project_name"]
+    )
+
+    # create_skeleton_inputs
+    create_folders(save_path=output_project_folder_path)
+    check_and_create_global_template_csv(
+        save_path=output_project_folder_path,
+        global_template_path=global_csv_templates_path,
+    )
+
+    # Skeleton input scneario folder path
+    output_path = (
+        output_project_folder_path
         + "/"
         + configurations["path_configs"]["input_scenario_name"]
     )
