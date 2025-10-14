@@ -40,6 +40,11 @@ INFLOWS = PDIR + "/" + "storage_inflows.csv"
 RE_TECH_CAP = PDIR + "/" + "renewables_technical_potential.csv"
 
 
+rule build_skeleton:
+    script:
+        "scripts/build_skeleton.py"
+
+
 rule add_baseyear:
     input:
         fuel_supplies=SDIR + "/Power/fuel_supplies.csv",

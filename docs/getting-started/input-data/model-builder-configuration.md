@@ -29,7 +29,7 @@ path_configs:
 The path for the skeleton folder follows the pattern: `input_dir`/`project_name`/`input_scenario_name`.
 The path for the output folder follows the pattern: `input_dir`/`project_name`/`output_scenario_name`.
 
-This config file is used for both creating a new model via `python script/build_skeleton.py` (see the section on [defining a new model](new-model.md)) and used for running different instances of the model.
+This config file is used for both creating a new model via `snakemake -c1 build_skeleton` (see the section on [defining a new model](new-model.md)) and used for running different instances of the model.
 
 !!! Tip
     Make sure your snakemake file points to correct config file. To run different scenarios, you just need to change the snakemake file to the corresponding scenario config file.

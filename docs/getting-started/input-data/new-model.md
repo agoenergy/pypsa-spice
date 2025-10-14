@@ -11,7 +11,7 @@ This section explains how to set up a new model for a particular country/region 
 Steps of setting up a new model:
 
 1. Set up the configuration file (`config.yaml`).
-2. Run `python script/build_skeleton.py` to create a folder structure and template CSV files for your input data.
+2. Run `snakemake -c1 build_skeleton` to create a folder structure and template CSV files for your input data.
 3. Fill in the skeleton CSVs with the required data manually or using available resources.
 
 An example structure created by ``build_skeleton`` is displayed below. The following sections will use this example to explain the settings.
@@ -59,7 +59,7 @@ By setting different ``input_scenario_name`` and country or regional settings in
 After modifying the configuration file, run the following command in your terminal.
 
 ```bash title="Generating the skeleton folder"
-python script/build_skeleton.py
+snakemake -c1 build_skeleton
 ```
 
 This step creates your skeleton folder and files which can be feed with your data.
