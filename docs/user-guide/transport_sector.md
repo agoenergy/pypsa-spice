@@ -11,7 +11,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 - Optimal charging of electric vehicles (EVs), taking into account availability and charging constraints.
 - Supply of fuels for transport.
 
-The structure and function of each component follow the definitions from the [PyPSA components](https://pypsa.readthedocs.io/en/latest/user-guide/components.html){:target="_blank"}. The diagram below illustrates the components and energy flows at a single node in the transport sector.
+The structure and function of each component follow the definitions from the [PyPSA components](https://docs.pypsa.org/latest/user-guide/design/){:target="_blank"}. The diagram below illustrates the components and energy flows at a single node in the transport sector.
 
 [![PyPSA-SPICE transport sector energy flow](../assets/images/pypsa-spice_schema_transport_sector.svg){ .img-center width="60%" }](../assets/images/pypsa-spice_schema_transport_sector.svg){: target="_blank" }
 
@@ -34,7 +34,7 @@ All the listed components are defined as `Store` in PyPSA.
 !!! Tip
     In PyPSA components, `Store` is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of `store` + 2 `links`. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
     In the transport sector of PyPSA-SPICE model builder, technologies that are defined as storage energy, their links of charging and discharging links are defined in [Electric Vehicle Chargers](transport_sector.md#electric-vehicle-chargers).<br><br>
-    Detailed information and example can be found in [PyPSA Components - Store](https://pypsa.readthedocs.io/en/latest/user-guide/components.html#store){:target="_blank"} and [Replace StorageUnits with fundamental Links and Stores](https://pypsa.readthedocs.io/en/latest/examples/replace-generator-storage-units-with-store.html){:target="_blank"}.
+    Detailed information and example can be found in [PyPSA Components - Store](https://docs.pypsa.org/latest/user-guide/components/stores/){:target="_blank"} and [Replace StorageUnits with fundamental Links and Stores](https://docs.pypsa.org/latest/examples/replace-generator-storage-units-with-store/){:target="_blank"}.
 
 | Abbreviation  | Full Name                          |
 | ------------- | ---------------------------------- |

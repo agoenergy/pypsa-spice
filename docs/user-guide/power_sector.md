@@ -12,7 +12,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 - **Myopic** (Year-by-year) optimisation. Each year is optimised independently, without assuming knowledge of future developments.
 - **Brownfield** modelling approach. The model builds on existing infrastructure, meaning capacity from previous years is retained and carried forward.
 
-PyPSA-SPICE follows the component definitions from [PyPSA Components](https://pypsa.readthedocs.io/en/latest/user-guide/components.html){:target="_blank"}. The diagram below illustrates all components involved in energy flows at a single node in the power sector.
+PyPSA-SPICE follows the component definitions from [PyPSA Components](https://docs.pypsa.org/latest/user-guide/design/){:target="_blank"}. The diagram below illustrates all components involved in energy flows at a single node in the power sector.
 
 [![PyPSA-SPICE power sector energy flow](../assets/images/pypsa-spice_schema_power_sector.svg){ .img-center width="100%" }](../assets/images/pypsa-spice_schema_power_sector.svg){: target="_blank" }
 
@@ -58,7 +58,7 @@ Storages can be modelled with two approaches.
 2. **Variable Energy/Power Ratio:** If you want the model to optimise the energy/power ratio of storage your have to model it using a combination of `links` + `store` component. This requires separate inputs like costs for capacity and energy component of the storage inputs.
 
 !!! Tip
-    In PyPSA components, `StorageUnit` is modelled as a storage asset with a fixed energy-to-power ratio defined by `max_hours` of the nominal power (you can also refer to [PyPSA Components - Storage Unit](https://pypsa.readthedocs.io/en/latest/user-guide/components.html#storage-unit){:target="_blank"} for more information). Thus, in PyPSA-SPICE model builder, hydro dam `HDAM` is defined as a `StorageUnit` and it is given in storage capcaity only to represent nominal power-related params. <br><br>
+    In PyPSA components, `StorageUnit` is modelled as a storage asset with a fixed energy-to-power ratio defined by `max_hours` of the nominal power (you can also refer to [PyPSA Components - Storage Unit](https://docs.pypsa.org/latest/user-guide/components/storage-units/){:target="_blank"} for more information). Thus, in PyPSA-SPICE model builder, hydro dam `HDAM` is defined as a `StorageUnit` and it is given in storage capcaity only to represent nominal power-related params. <br><br>
     To model the storage energy separately from the power capacity, `store` + 2 `links` is a better combination. You can refer to [Storage Energy](power_sector.md#storage-energy) for more information. Technologies defined in the storage energy require storage capacity if the carrier is related to electricity (power).
 
 | Abbreviation  | Full Name                                |
@@ -75,7 +75,7 @@ All the listed components are defined as `Store` in PyPSA.
 !!! Tip
     In PyPSA components, `Store` is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of `store` + 2 `links`. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
     In PyPSA-SPICE model builder, technologies that are defined as storage energy, **they should also be included in [Storage Capacity](power_sector.md#storage-capacity) to describe charging and discharging processes. The links are created automatically , and hence it's not required to add charging and discharging links inside [Power Links](power_sector.md#power-links).**<br><br>
-    Detailed information and example can be found in [PyPSA Components - Store](https://pypsa.readthedocs.io/en/latest/user-guide/components.html#store){:target="_blank"} and [Replace StorageUnits with fundamental Links and Stores](https://pypsa.readthedocs.io/en/latest/examples/replace-generator-storage-units-with-store.html){:target="_blank"}.
+    Detailed information and example can be found in [PyPSA Components - Store](https://docs.pypsa.org/latest/user-guide/components/stores/){:target="_blank"} and [Replace StorageUnits with fundamental Links and Stores](https://docs.pypsa.org/latest/examples/replace-generator-storage-units-with-store/){:target="_blank"}.
 
 | Abbreviation  | Full Name                                |
 | ------------- | ---------------------------------------- |
