@@ -192,6 +192,8 @@ def read_result_csv(sc_name: str, tab_name:str,
     if "country" in df.columns and shared_country != None:
         df = df[df["country"] == shared_country]
 
+    df = df.fillna(0)
+
     return df
 
 
@@ -877,7 +879,7 @@ def display_data_table(sc_name: str, config_g: Dict[str, str]):
             columns="year", 
             index=pivot_index,
         )
-        df_pivot = df_pivot.loc[~(df_pivot == 0).all(axis=1)] # Drop all-0 rows
+        df_pivot = df_pivot.loc[~(df_pivot == 0).all(axis=1)].fillna(0) # Drop all-0 rows
         # Add column names for index columns
         # Note that this only adds them to the downloaded csv, not the displayed table
         # in the UI, as st.table does not support displaying index level names
