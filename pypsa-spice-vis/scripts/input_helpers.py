@@ -242,7 +242,7 @@ class InputUiHandler:
             ),
             "load": CsvDictConfig(
                 identifier="load",
-                filter_col="name",
+                filter_col="profile_type",
                 title="Load",
                 filter_fn=self._filter_df_generic,
                 empty_df_fn=self._empty_df_message_generic,
@@ -739,7 +739,7 @@ class InputUiHandler:
 
             if node_demand_toggle:
                 nodes = df.loc[df["country"] == selected_country, "node"].unique()
-                # # Node filter within the vis tab, only for Availability
+                # # Node filter within the vis tab
                 selected_demand_node = st.pills(
                     "Select a node",
                     options=nodes,
@@ -761,10 +761,30 @@ class InputUiHandler:
 
         elif csv_identifier == "load":
             filtered_df = df[df["country"] == selected_country]
+            
+            node_load_toggle = st.toggle("Include node filter in the load", value=False)
 
-            x, y = "year", "total_load"
-            leg_col = "profile_type"
-            labels = {"total_load": "Total Load (MW)", "year": "Year"}
+            if node_load_toggle:
+                nodes = df.loc[df["country"] == selected_country, "node"].unique()
+                # # Node filter within the vis tab
+                selected_load_node = st.pills(
+                    "Select a node",
+                    options=nodes,
+                    default=nodes[0], # First node in the list as default
+                    selection_mode="single",
+                    key="node_select_key_avail"
+                )
+                filtered_df = filtered_df[
+                    (filtered_df["country"] == selected_country) &
+                    (filtered_df["node"] == selected_load_node)
+                ]
+                leg_col = "profile_type"
+            else:
+                filtered_df = filtered_df[(filtered_df["country"] == selected_country)]
+                leg_col = "node"
+
+            x, y = "year", "total_load__mwh"
+            labels = {"total_load__mwh": "Total Load (MW)", "year": "Year"}
 
         elif csv_identifier == "costs":
             filtered_df = df[df["country"] == selected_country]
