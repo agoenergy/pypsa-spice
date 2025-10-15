@@ -62,14 +62,14 @@ class dfWidgetsHandler:
             "potentials": ["renewables_technical_potential.csv"],
             "storage_cost": ["storage_costs.csv"],
             "storage_inflows": ["storage_inflows.csv"],
-            "decomission": ["Power", "decomission_capacity.csv"],
-            "fuel_costs": ["Power", "fuel_supplies.csv"],
-            "interconnector": ["Power", "interconnector.csv"],
-            "load": ["Power", "loads.csv"],
-            "generator": ["Power", "power_generators.csv"],
-            "links": ["Power", "power_links.csv"],
-            "storageunit": ["Power", "storage_capacity.csv"],
-            "store": ["Power", "storage_energy.csv"],
+            "decomission": ["power", "decomission_capacity.csv"],
+            "fuel_costs": ["power", "fuel_supplies.csv"],
+            "interconnector": ["power", "interconnector.csv"],
+            "load": ["power", "loads.csv"],
+            "generator": ["power", "power_generators.csv"],
+            "links": ["power", "power_links.csv"],
+            "storageunit": ["power", "storage_capacity.csv"],
+            "store": ["power", "storage_energy.csv"],
         }
         
     def load_all_dfs(self) -> dict:

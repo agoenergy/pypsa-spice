@@ -11,7 +11,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
  ┗ 📂 example
     ┗ 📂 project_01
      ┗ 📂 scenario_01
-       ┣ 📂 Power
+       ┣ 📂 power
        ┃ ┣ 📜 buses.csv
        ┃ ┣ 📜 decommission_capacity.csv
        ┃ ┣ 📜 fuel_suppliers.csv
@@ -21,7 +21,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
        ┃ ┣ 📜 power_links.csv
        ┃ ┣ 📜 storage_capacity.csv
        ┃ ┗ 📜 storage_energy.csv
-       ┣ 📂 Industry
+       ┣ 📂 industry
        ┃ ┣ 📜 buses.csv
        ┃ ┣ 📜 decommission_capacity.csv
        ┃ ┣ 📜 direct_air_capture.csv
@@ -31,7 +31,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
        ┃ ┣ 📜 loads.csv
        ┃ ┣ 📜 storage_capacity.csv
        ┃ ┗ 📜 storage_energy.csv
-       ┗ 📂 Transport
+       ┗ 📂 transport
          ┣ 📜 buses.csv
          ┣ 📜 loads.csv
          ┣ 📜 pev_chargers.csv

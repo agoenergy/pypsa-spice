@@ -79,7 +79,7 @@ This step creates your skeleton folder and files which can be feed with your dat
  ┃     ┃ ┣ 📜 loads.csv
  ┃     ┃ ┣ 📜 storage_capacity.csv
  ┃     ┃ ┗ 📜 storage_energy.csv
- ┃     ┣ 📂 Power
+ ┃     ┣ 📂 power
  ┃     ┃ ┣ 📜 buses.csv
  ┃     ┃ ┣ 📜 decommission_capacity.csv
  ┃     ┃ ┣ 📜 fuel_suppliers.csv
@@ -89,7 +89,7 @@ This step creates your skeleton folder and files which can be feed with your dat
  ┃     ┃ ┣ 📜 storage_capacity.csv
  ┃     ┃ ┣ 📜 power_links.csv
  ┃     ┃ ┗ 📜 storage_energy.csv
- ┃     ┗ 📂 Transport
+ ┃     ┗ 📂 transport
  ┃       ┣ 📜 buses.csv
  ┃       ┣ 📜 loads.csv
  ┃       ┣ 📜 pev_chargers.csv

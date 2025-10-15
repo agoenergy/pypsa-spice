@@ -334,7 +334,7 @@ def create_storage_energy(
 ) -> pd.DataFrame:
     """Create a template DataFrame for storage energy assets in the specified sector.
 
-    For the given sector ("Power" or "Industry"), this function generates a table of
+    For the given sector ("power" or "industry"), this function generates a table of
     storage assets (buses), with columns for storage type, carrier, standing loss,
     extendability, nominal energy, and placeholders for maximum storage per year.
     The resulting DataFrame is saved in the provided file_path.
@@ -349,7 +349,7 @@ def create_storage_energy(
     year_list : list
         List of years (e.g., [2020, 2030, 2040, 2050])
     sector : str
-        Sector for which to create storage energy ("Power" or "Industry").
+        Sector for which to create storage energy ("power" or "industry").
     file_path : FilePath (str or path object)
         Path to save the CSV.
 
@@ -361,10 +361,10 @@ def create_storage_energy(
     Raises
     ------
     ValueError
-        If sector is not "Power" or "Industry".
+        If sector is not "power" or "industry".
     """
     # Determine storage buses by sector
-    if sector.capitalize() == "Power":
+    if sector.capitalize() == "power":
         # Global storage buses (country-level, e.g., hydrogen, CO2 storage)
         country_storage_buses = []
         for country in countries:
@@ -378,11 +378,11 @@ def create_storage_energy(
             for node, bus_type in itertools.product(nodes, ["BATSN", "HHBSN", "HPHSN"])
         ]
         all_storage_buses = country_storage_buses + node_storage_buses
-    elif sector.capitalize() == "Industry":
+    elif sector.capitalize() == "industry":
         # Only low-heat industry storage (node-level)
         all_storage_buses = [f"{node}_INLHSTORN" for node in nodes]
     else:
-        raise ValueError("Sector must be 'Power' or 'Industry'.")
+        raise ValueError("Sector must be 'power' or 'industry'.")
 
     # Build DataFrame
     storage_df = pd.DataFrame()
@@ -424,7 +424,7 @@ def create_storage_capacity(
     - Battery (BATS) and pumped hydro (HPHS) storage on high-voltage electricity buses
     - Household battery storage (HHBS) on low-voltage electricity buses
 
-    For the "Industry" sector, this includes:
+    For the "industry" sector, this includes:
     - Low-heat industry storage (INLHSTOR) on low-heat industry buses
 
     Parameters
@@ -434,7 +434,7 @@ def create_storage_capacity(
     year_list : list
         List of years (e.g., [2020, 2030, 2040, 2050])
     sector : str
-        Either "Power" or "Industry".
+        Either "power" or "industry".
     file_path : FilePath (str or path object)
         Path to save the resulting CSV file.
     elec_buses : pd.DataFrame
@@ -450,12 +450,12 @@ def create_storage_capacity(
     Raises
     ------
     ValueError
-        If sector is not "Power" or "Industry".
+        If sector is not "power" or "industry".
     """
     # Combine all buses for lookup
     all_buses = pd.concat([elec_buses, ind_buses], axis=0)
 
-    if sector.capitalize() == "Power":
+    if sector.capitalize() == "power":
         # Get high-voltage and low-voltage electricity buses
         hv_buses = all_buses[all_buses.bus_type.str.contains("HVELEC")]["bus"].to_list()
         lv_buses = all_buses[all_buses.bus_type.str.contains("LVELEC")]["bus"].to_list()
@@ -501,7 +501,7 @@ def create_storage_capacity(
             ["type", "node", "carrier", "bus"]
         ]
 
-    elif sector.capitalize() == "Industry":
+    elif sector.capitalize() == "industry":
         # Low-heat industry storage (INLHSTOR) on low-heat industry buses
         lh_buses = all_buses[all_buses.bus_type.str.contains("IND-LH")]["bus"].to_list()
         storage_capacity_df = pd.DataFrame(
@@ -514,7 +514,7 @@ def create_storage_capacity(
         )[["type", "node", "carrier", "bus"]]
 
     else:
-        raise ValueError("Sector must be 'Power' or 'Industry'.")
+        raise ValueError("Sector must be 'power' or 'industry'.")
 
     # Add name and country columns
     storage_capacity_df["name"] = (
@@ -1014,7 +1014,7 @@ def create_fuel_conversion_links(
     elec_buses : pd.DataFrame
         Electricity sector buses.
     ind_buses : pd.DataFrame
-        Industry sector buses.
+        industry sector buses.
 
     Returns
     -------
@@ -1642,7 +1642,7 @@ def create_folders(save_path: FilePath, sector_folder: bool = False):
     os.makedirs(save_path, exist_ok=True)
     # Create subfolders for each sector
     if sector_folder:
-        for sector in ["Power", "Industry", "Transport"]:
+        for sector in ["power", "industry", "transport"]:
             os.makedirs(os.path.join(save_path, sector), exist_ok=True)
 
 
@@ -1761,30 +1761,30 @@ if __name__ == "__main__":
     create_folders(save_path=output_path, sector_folder=True)
 
     # output paths for regional templates csvs
-    path_p_buses = output_path + "/Power/buses.csv"
-    path_p_fuel_supplies = output_path + "/Power/fuel_supplies.csv"
-    path_p_storage_energy = output_path + "/Power/storage_energy.csv"
-    path_p_loads = output_path + "/Power/loads.csv"
-    path_p_generators = output_path + "/Power/power_generators.csv"
-    path_p_storage_capacity = output_path + "/Power/storage_capacity.csv"
-    path_p_interconnector = output_path + "/Power/interconnector.csv"
-    path_p_links = output_path + "/Power/power_links.csv"
-    path_p_decom_capacity = output_path + "/Power/decomission_capacity.csv"
+    path_p_buses = output_path + "/power/buses.csv"
+    path_p_fuel_supplies = output_path + "/power/fuel_supplies.csv"
+    path_p_storage_energy = output_path + "/power/storage_energy.csv"
+    path_p_loads = output_path + "/power/loads.csv"
+    path_p_generators = output_path + "/power/power_generators.csv"
+    path_p_storage_capacity = output_path + "/power/storage_capacity.csv"
+    path_p_interconnector = output_path + "/power/interconnector.csv"
+    path_p_links = output_path + "/power/power_links.csv"
+    path_p_decom_capacity = output_path + "/power/decomission_capacity.csv"
 
-    path_i_buses = output_path + "/Industry/buses.csv"
-    path_i_storage_energy = output_path + "/Industry/storage_energy.csv"
-    path_i_loads = output_path + "/Industry/loads.csv"
-    path_i_heat_generators = output_path + "/Industry/heat_generators.csv"
-    path_i_storage_capacity = output_path + "/Industry/storage_capacity.csv"
-    path_i_heat_links = output_path + "/Industry/heat_links.csv"
-    path_i_fuel_conversion = output_path + "/Industry/fuel_conversion.csv"
-    path_i_dac = output_path + "/Industry/direct_air_capture.csv"
-    path_i_decom_capacity = output_path + "/Industry/decomission_capacity.csv"
+    path_i_buses = output_path + "/industry/buses.csv"
+    path_i_storage_energy = output_path + "/industry/storage_energy.csv"
+    path_i_loads = output_path + "/industry/loads.csv"
+    path_i_heat_generators = output_path + "/industry/heat_generators.csv"
+    path_i_storage_capacity = output_path + "/industry/storage_capacity.csv"
+    path_i_heat_links = output_path + "/industry/heat_links.csv"
+    path_i_fuel_conversion = output_path + "/industry/fuel_conversion.csv"
+    path_i_dac = output_path + "/industry/direct_air_capture.csv"
+    path_i_decom_capacity = output_path + "/industry/decomission_capacity.csv"
 
-    path_t_buses = output_path + "/Transport/buses.csv"
-    path_t_loads = output_path + "/Transport/loads.csv"
-    path_t_pev_storages = output_path + "/Transport/pev_storages.csv"
-    path_t_pev_chargers = output_path + "/Transport/pev_chargers.csv"
+    path_t_buses = output_path + "/transport/buses.csv"
+    path_t_loads = output_path + "/transport/loads.csv"
+    path_t_pev_storages = output_path + "/transport/pev_storages.csv"
+    path_t_pev_chargers = output_path + "/transport/pev_chargers.csv"
 
     # Creating regional template CSVs and save to defined output paths
     # ====================================== Power =====================================
@@ -1870,13 +1870,13 @@ if __name__ == "__main__":
         countries=cfg_countries,
         nodes=cfg_nodes,
         years=cfg_years,
-        sector="Industry",
+        sector="industry",
         file_path=path_i_storage_energy,
     )
     create_storage_capacity(
         nodes=cfg_nodes,
         years=cfg_years,
-        sector="Industry",
+        sector="industry",
         file_path=path_i_storage_capacity,
         elec_buses=elec_buses_df,
         ind_buses=ind_buses_df,
