@@ -276,11 +276,11 @@ def main(getters):
 
     ## Interconnectors
     input_ui_handler.set_up_single_tab_widget(
-        "interconnector",
-        dfs["intercon_df"],
-        ["ITCN"], 
-        csvs_dict["interconnector"].path,
-        [base_country], 
+        csv_dict_key="interconnector",
+        input_df=dfs["intercon_df"],
+        selected_types=["ITCN"], 
+        input_csv_path=csvs_dict["interconnector"].path,
+        selected_countries=[base_country], 
     )
     
 

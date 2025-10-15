@@ -235,7 +235,7 @@ class InputUiHandler:
             ),
             "interconnector": CsvDictConfig(
                 identifier="interconnector",
-                filter_col="link",
+                filter_col="type",
                 title="Interconnector",
                 filter_fn=self._filter_df_generic,
                 empty_df_fn=self._empty_df_message_generic,
