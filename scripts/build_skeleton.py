@@ -1531,10 +1531,10 @@ def update_technical_potentials(
         country_potentials_df["country"] = country_potentials_df["node"].apply(
             lambda x: x.split("_")[0]
         )
-        country_potentials_df["technology"] = node_tech_list
+        country_potentials_df["type"] = node_tech_list
         country_potentials_df["bus"] = country_potentials_df["node"] + "_HVELEC"
         country_potentials_df["name"] = (
-            country_potentials_df["bus"] + "_" + country_potentials_df["technology"]
+            country_potentials_df["bus"] + "_" + country_potentials_df["type"]
         )
         potentials_df = pd.concat([potentials_df, country_potentials_df], axis=0)
 

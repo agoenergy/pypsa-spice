@@ -55,13 +55,13 @@ class dfWidgetsHandler:
 
         # Path parts to all the csvs
         self.csv_files_path_parts = {
-            "technologies": ["Technologies.csv"],           
-            "availability": ["Availability.csv"],     
-            "demand": ["Demand_Profile.csv"],
-            "pp_costs": ["PowerPlant_costs.csv"],       
-            "potentials": ["Renewables_technical_potential.csv"],
-            "storage_cost": ["Storage_costs.csv"],
-            "storage_inflows": ["Storage-Inflows.csv"],
+            "technologies": ["technologies.csv"],           
+            "availability": ["availability.csv"],     
+            "demand": ["demand_profile.csv"],
+            "pp_costs": ["power_plant_costs.csv"],       
+            "potentials": ["renewables_technical_potential.csv"],
+            "storage_cost": ["storage_costs.csv"],
+            "storage_inflows": ["storage_inflows.csv"],
             "decomission": ["Power", "decomission_capacity.csv"],
             "fuel_costs": ["Power", "fuel_supplies.csv"],
             "interconnector": ["Power", "interconnector.csv"],
@@ -182,7 +182,7 @@ class InputUiHandler:
                 title="Availability",
                 filter_fn=self._filter_df_generic,
                 empty_df_fn=self._empty_df_message_generic,
-                empty_df_kwargs={"msg": "Taking Availability from Availability.csv"},
+                empty_df_kwargs={"msg": "Taking availability from availability.csv"},
             ),
             "demand": CsvDictConfig(
                 identifier="demand",
@@ -190,7 +190,7 @@ class InputUiHandler:
                 title="Demand Profiles",
                 filter_fn=self._filter_df_generic,
                 empty_df_fn=self._empty_df_message_generic,
-                empty_df_kwargs={"msg": "Taking Demand from Demand_Profile.csv"},
+                empty_df_kwargs={"msg": "Taking demand from demand_profile.csv"},
             ),
             "pp_costs": CsvDictConfig(
                 identifier="costs",
@@ -216,7 +216,7 @@ class InputUiHandler:
                 title="Storage Inflows",
                 filter_fn=self._filter_df_generic,
                 empty_df_fn=self._empty_df_message_generic,
-                empty_df_kwargs={"msg": "Taking Demand from Demand_Profile.csv"},
+                empty_df_kwargs={"msg": "Taking demand from demand_profile.csv"},
             ),
             "decomission": CsvDictConfig(
                 identifier="decomission",
@@ -531,7 +531,7 @@ class InputUiHandler:
         selected_countries : list, optional
             Country(s) selected by the user in the global country select widget. 
         secondary_df : pd.DataFrame, optional
-            Additional df if needed (e.g., Availability may need Technologies.csv).
+            Additional df if needed (e.g., Availability may need technologies.csv).
         """
         csv_config = self.csvs_dict[csv_dict_key]
 
@@ -769,9 +769,9 @@ class InputUiHandler:
         elif csv_identifier == "costs":
             filtered_df = df[df["country"] == selected_country]
 
-            x, y = "year", "CAP[USD/MW]"
+            x, y = "year", "cap__usd_mw"
             leg_col = "powerplant_type"
-            labels = {"CAP[USD/MW]": "Capital Cost (USD/MW)", "year": "Year"}
+            labels = {"cap__usd_mw": "Capital Cost (USD/MW)", "year": "Year"}
         else:
             raise ValueError(f"Unknown csv_identifier: {csv_identifier}")
 
