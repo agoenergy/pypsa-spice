@@ -1369,7 +1369,7 @@ def create_decom_csv(years: list, file_path: FilePath) -> pd.DataFrame:
     return decom_df
 
 
-def create_folders(save_path: FilePath):
+def create_folders(save_path: FilePath, sector_folder: bool = False):
     """Create the main output directory and subdirectories for each sector.
 
     If the directory already exists, it will be deleted and recreated.
@@ -1378,14 +1378,17 @@ def create_folders(save_path: FilePath):
     ----------
     save_path : FilePath (str or path object)
         Root directory to create.
+    sector_folder : bool, optional
+        Whether to create subfolders for each sector. Default is False.
     """
     # Remove existing directory if present, then create a fresh one
     if os.path.exists(save_path):
         shutil.rmtree(save_path)
     os.makedirs(save_path, exist_ok=True)
     # Create subfolders for each sector
-    for sector in ["Power", "Industry", "Transport"]:
-        os.makedirs(os.path.join(save_path, sector), exist_ok=True)
+    if sector_folder:
+        for sector in ["Power", "Industry", "Transport"]:
+            os.makedirs(os.path.join(save_path, sector), exist_ok=True)
 
 
 def check_and_create_global_template_csv(
@@ -1406,9 +1409,6 @@ def check_and_create_global_template_csv(
 
             if not os.path.exists(target_path):
                 shutil.copy2(os.path.join(global_template_path, filename), save_path)
-                print(
-                    f"Clone {filename} copied from global_csv_templates to {save_path}"
-                )
 
 
 if __name__ == "__main__":
@@ -1452,11 +1452,11 @@ if __name__ == "__main__":
         + "/"
         + configurations["path_configs"]["input_scenario_name"]
     )
-
+    print(output_path)
     cfg_currency = configurations["base_configs"]["currency"]
 
     # create_skeleton_inputs
-    create_folders(save_path=output_path)
+    create_folders(save_path=output_path, sector_folder=True)
 
     # output paths
     path_p_buses = output_path + "/Power/buses.csv"
