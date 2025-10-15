@@ -216,7 +216,7 @@ class InputUiHandler:
                 title="Storage Inflows",
                 filter_fn=self._filter_df_generic,
                 empty_df_fn=self._empty_df_message_generic,
-                empty_df_kwargs={"msg": "Taking demand from demand_profile.csv"},
+                empty_df_kwargs={"msg": "Taking inflows from storage_inflows.csv"},
             ),
             "decomission": CsvDictConfig(
                 identifier="decomission",
