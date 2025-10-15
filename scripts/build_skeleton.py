@@ -60,6 +60,16 @@ INDUSTRY_STORAGE_TECHNOLOGIES = ["INLHSTOR"]
 TRANSPORT_BUS_TYPES = ["TRAN-PUB", "TRAN-PRV"]
 TRANSPORT_TECHNOLOGIES = ["EVST-PUB", "EVST-PRV"]
 
+# Demand profile types mapping
+PROFILE_MAPPING = {
+    "HVELEC": "HV_LOAD",
+    "LVELEC": "LV_LOAD",
+    "IND-LH": "IND_LOAD",
+    "IND-HH": "IND_LOAD",
+    "TRAN-PUB": "HPV_LOAD",
+    "TRAN-PRV": "LPV_LOAD",
+}
+
 
 def get_carrier(bus_type: str) -> str:
     """Map a bus type to its corresponding energy carrier.
@@ -551,21 +561,13 @@ def create_loads(
     pd.DataFrame
         DataFrame of loads.
     """
-    profile_map = {
-        "HVELEC": "HV_LOAD",
-        "LVELEC": "LV_LOAD",
-        "IND-LH": "IND_LOAD",
-        "IND-HH": "IND_LOAD",
-        "TRAN-PUB": "HPV_LOAD",
-        "TRAN-PRV": "LPV_LOAD",
-    }
     load_df = bus_df[
         bus_df["bus_type"].isin(
             ["HVELEC", "LVELEC", "IND-LH", "IND-HH", "TRAN-PUB", "TRAN-PRV"]
         )
     ].copy()
     load_df["profile_type"] = load_df["bus_type"].apply(
-        lambda x: profile_map.get(
+        lambda x: PROFILE_MAPPING.get(
             x, f"{x}'s profile is not assigned. Please add manually"
         )
     )
@@ -1369,6 +1371,259 @@ def create_decom_csv(years: list, file_path: FilePath) -> pd.DataFrame:
     return decom_df
 
 
+def update_ev_param(
+    save_path: FilePath,
+    countries: list,
+):
+    """Add countries into the ev_parameters csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    countries : list
+        List of country names
+    """
+    ev_param = pd.read_csv(save_path)
+    final_ev_df = pd.DataFrame()
+    for country in countries:
+        country_ev_df = ev_param.copy()
+        country_ev_df["country"] = [country] * len(ev_param)
+        final_ev_df = pd.concat([final_ev_df, country_ev_df], axis=0)
+
+    final_ev_df.to_csv(save_path, index=False)
+
+
+def update_availability(
+    save_path: FilePath,
+    countries: list,
+    nodes: list,
+):
+    """Add countries and nodes into the availability csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    countries : list
+        List of country names
+    nodes : list
+        List of node names with this format: "country_region"
+    """
+    availability_df = pd.read_csv(save_path)
+
+    for country in countries:
+        node_tech_list = [
+            "EVST-PRV",
+            "EVST-PUB",
+            "EVCH-PUB",
+            "EVCH-PRV",
+        ]
+        country_availability_df = pd.DataFrame(columns=availability_df.columns)
+        country_availability_df["country"] = [country] * len(node_tech_list)
+        country_availability_df["node"] = [country] * len(node_tech_list)
+        country_availability_df["technology"] = node_tech_list
+        availability_df = pd.concat([country_availability_df, availability_df], axis=0)
+
+    for node in nodes:
+        node_tech_list = ["PHOT", "WTON", "RTPV", "WTOF", "CSP", "SWHT", "HROR"]
+        country_availability_df = pd.DataFrame(columns=availability_df.columns)
+        country_availability_df["node"] = [node] * len(node_tech_list)
+        country_availability_df["country"] = country_availability_df["node"].apply(
+            lambda x: x.split("_")[0]
+        )
+        country_availability_df["technology"] = node_tech_list
+        availability_df = pd.concat([country_availability_df, availability_df], axis=0)
+
+    availability_df = availability_df.fillna("Please fill here")
+    availability_df.to_csv(save_path, index=False)
+
+
+def update_demand_profiles(
+    save_path: FilePath,
+    countries: list,
+    nodes: list,
+):
+    """Add countries and nodes into the demand_profile csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    countries : list
+        List of country names
+    nodes : list
+        List of node names with this format: "country_region"
+    """
+    demand_df = pd.read_csv(save_path)
+    final_demand_df = pd.DataFrame()
+    for country in countries:
+        profile_list = ["IND_LOAD", "HPV_LOAD", "LPV_LOAD"]
+        country_demand_df = demand_df.copy()
+        country_demand_df["country"] = [country] * len(profile_list)
+        country_demand_df["node"] = [country] * len(profile_list)
+        country_demand_df["profile_type"] = profile_list
+        final_demand_df = pd.concat([final_demand_df, country_demand_df], axis=0)
+
+    for node in nodes:
+        profile_list = ["HV_LOAD", "LV_LOAD"]
+        node_demand_df = demand_df.copy()
+        node_demand_df["node"] = [node] * len(profile_list)
+        node_demand_df["country"] = node_demand_df["node"].apply(
+            lambda x: x.split("_")[0]
+        )
+        node_demand_df["profile_type"] = profile_list
+        final_demand_df = pd.concat([final_demand_df, node_demand_df], axis=0)
+
+    final_demand_df = final_demand_df.fillna("Please fill here")
+    final_demand_df.to_csv(save_path, index=False)
+
+
+def update_power_plant_costs(save_path: FilePath, countries: list, currency: str):
+    """Add countries into the power_plant_costs csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    countries : list
+        List of country names
+    currency : str
+        Currency for costs (e.g., "EUR", "USD").
+    """
+    power_plant_df = pd.read_csv(save_path)
+    final_power_plant_df = pd.DataFrame()
+    currency = str(currency).lower()
+    for country in countries:
+        country_power_plant_df = power_plant_df.copy()
+        country_power_plant_df["country"] = country
+        country_power_plant_df[f"cap__{currency}_mw"] = "Please fill here"
+        country_power_plant_df[f"fom__{currency}_mwa"] = "Please fill here"
+        country_power_plant_df[f"vom__{currency}_mwh"] = "Please fill here"
+        country_power_plant_df["life__years"] = "Please fill here"
+        final_power_plant_df = pd.concat(
+            [final_power_plant_df, country_power_plant_df], axis=0
+        )
+
+    final_power_plant_df.to_csv(save_path, index=False)
+
+
+def update_technical_potentials(
+    save_path: FilePath,
+    nodes: list,
+):
+    """Add nodes into the renewables_technical_potential csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    nodes : list
+        List of node names with this format: "country_region"
+    """
+    potentials_df = pd.read_csv(save_path)
+
+    for node in nodes:
+        node_tech_list = ["PHOT", "WTON", "RTPV", "WTOF", "HROR"]
+        country_potentials_df = pd.DataFrame(columns=potentials_df.columns)
+        country_potentials_df["class"] = ["Generator"] * len(node_tech_list)
+        country_potentials_df["node"] = [node] * len(node_tech_list)
+        country_potentials_df["country"] = country_potentials_df["node"].apply(
+            lambda x: x.split("_")[0]
+        )
+        country_potentials_df["technology"] = node_tech_list
+        country_potentials_df["bus"] = country_potentials_df["node"] + "_HVELEC"
+        country_potentials_df["name"] = (
+            country_potentials_df["bus"] + "_" + country_potentials_df["technology"]
+        )
+        potentials_df = pd.concat([potentials_df, country_potentials_df], axis=0)
+
+    potentials_df = potentials_df.fillna("Please fill here")
+    potentials_df.to_csv(save_path, index=False)
+
+
+def update_storage_costs(save_path: FilePath, countries: list, currency: str):
+    """Add countries into the storage_costs csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    countries : list
+        List of country names
+    currency : str
+        Currency for costs (e.g., "EUR", "USD").
+    """
+    storage_cost_df = pd.read_csv(save_path)
+    final_storage_cost_df = pd.DataFrame()
+    currency = str(currency).lower()
+    for country in countries:
+        country_storage_cost_df = storage_cost_df.copy()
+        country_storage_cost_df["country"] = country
+        country_storage_cost_df[f"cap__{currency}_mwh"] = "Please fill here"
+        country_storage_cost_df[f"fom__{currency}_mwh"] = "Please fill here"
+        country_storage_cost_df[f"vom__{currency}_mwh"] = "Please fill here"
+        country_storage_cost_df["life__years"] = "Please fill here"
+        final_storage_cost_df = pd.concat(
+            [final_storage_cost_df, country_storage_cost_df], axis=0
+        )
+
+    final_storage_cost_df.to_csv(save_path, index=False)
+
+
+def update_storage_inflows(
+    save_path: FilePath,
+    nodes: list,
+):
+    """Add countries and nodes into the storage_inflows csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    nodes : list
+        List of node names with this format: "country_region"
+    """
+    inflows_df = pd.read_csv(save_path)
+
+    for node in nodes:
+        country_inflows_df = pd.DataFrame(columns=inflows_df.columns)
+        country_inflows_df["node"] = [node]
+        country_inflows_df["country"] = country_inflows_df["node"].apply(
+            lambda x: x.split("_")[0]
+        )
+        country_inflows_df["technology"] = ["HDAM"]
+        inflows_df = pd.concat([inflows_df, country_inflows_df], axis=0)
+
+    inflows_df = inflows_df.fillna("Please fill here")
+    inflows_df.to_csv(save_path, index=False)
+
+
+def update_technologies(
+    save_path: FilePath,
+    countries: list,
+):
+    """Add countries into the technologies csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    countries : list
+        List of country names
+    """
+    technologies = pd.read_csv(save_path)
+    final_technologies = pd.DataFrame()
+    for country in countries:
+        country_technologies = technologies.copy()
+        country_technologies["country"] = country
+        final_technologies = pd.concat(
+            [final_technologies, country_technologies], axis=0
+        )
+
+    final_technologies.to_csv(save_path, index=False)
+
+
 def create_folders(save_path: FilePath, sector_folder: bool = False):
     """Create the main output directory and subdirectories for each sector.
 
@@ -1446,19 +1701,66 @@ if __name__ == "__main__":
         global_template_path=global_csv_templates_path,
     )
 
-    # Skeleton input scneario folder path
+    # Skeleton input scenario folder path
     output_path = (
         output_project_folder_path
         + "/"
         + configurations["path_configs"]["input_scenario_name"]
     )
-    print(output_path)
     cfg_currency = configurations["base_configs"]["currency"]
+
+    # output paths for global templates csvs
+    path_availability = output_project_folder_path + "/availability.csv"
+    path_demand_profiles = output_project_folder_path + "/demand_profile.csv"
+    path_ev_params = output_project_folder_path + "/ev_parameters.csv"
+    path_power_plant_cost = output_project_folder_path + "/power_plant_costs.csv"
+    path_potentials = output_project_folder_path + "/renewables_technical_potential.csv"
+    path_storage_costs = output_project_folder_path + "/storage_costs.csv"
+    path_storage_inflows = output_project_folder_path + "/storage_inflows.csv"
+    path_technologies = output_project_folder_path + "/technologies.csv"
+
+    # Creating global template CSVs and save to defined output paths
+    update_availability(
+        save_path=path_availability,
+        countries=cfg_countries,
+        nodes=cfg_nodes,
+    )
+    update_demand_profiles(
+        save_path=path_demand_profiles,
+        countries=cfg_countries,
+        nodes=cfg_nodes,
+    )
+    update_ev_param(
+        save_path=path_ev_params,
+        countries=cfg_countries,
+    )
+    update_power_plant_costs(
+        save_path=path_power_plant_cost,
+        countries=cfg_countries,
+        currency=cfg_currency,
+    )
+    update_technical_potentials(
+        save_path=path_potentials,
+        nodes=cfg_nodes,
+    )
+    update_storage_costs(
+        save_path=path_storage_costs,
+        countries=cfg_countries,
+        currency=cfg_currency,
+    )
+    update_storage_inflows(
+        save_path=path_storage_inflows,
+        nodes=cfg_nodes,
+    )
+    update_technologies(
+        save_path=path_technologies,
+        countries=cfg_countries,
+    )
 
     # create_skeleton_inputs
     create_folders(save_path=output_path, sector_folder=True)
 
-    # output paths
+    # output paths for regional templates csvs
     path_p_buses = output_path + "/Power/buses.csv"
     path_p_fuel_supplies = output_path + "/Power/fuel_supplies.csv"
     path_p_storage_energy = output_path + "/Power/storage_energy.csv"
@@ -1484,7 +1786,7 @@ if __name__ == "__main__":
     path_t_pev_storages = output_path + "/Transport/pev_storages.csv"
     path_t_pev_chargers = output_path + "/Transport/pev_chargers.csv"
 
-    # Creating template CSVs and save to defined output paths
+    # Creating regional template CSVs and save to defined output paths
     # ====================================== Power =====================================
     elec_buses_df = create_buses(
         countries=cfg_countries,
