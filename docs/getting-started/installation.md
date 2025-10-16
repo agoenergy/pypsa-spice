@@ -88,7 +88,7 @@ On Windows, new versions of ``ipopt`` have caused problems. Consider downgrading
 
 PyPSA-SPICE requires several configuration options to be defined in a `config.yaml` file located in the root directory of the project. An example file, `config.default.yaml`, is provided in the repository as a reference.
 
-Before running PyPSA-SPICE for the first time, create your own ``config.yaml`` by copying the example file:
+Before running PyPSA-SPICE for the first time, create your own ``config.yaml`` inside your data folder (e.g. `data/pypsa-spice-data`) by copying the example file:
 
 ```bash title="Creating the config.yaml file"
 cp config.default.yaml config.yaml
@@ -98,7 +98,7 @@ Users are encouraged to regularly compare their own ``config.yaml`` with ``confi
 
 ## Quick Execution of the Model Builder using Template Data
 
-To have a first glance of how the model builder works, template data in `/root/data/global_csv_templates` folder can be used. After completing the installation, run the entire workflow with the following command:
+To have a first glance of how the model builder works, template data in [pypsa-spice-data](https://github.com/agoenergy/pypsa-spice/tree/main/data/pypsa-spice-data) folder can be used. After completing the installation, run the entire workflow with the following command:
 
 ```bash title="Running the entire workflow using this single command"
 snakemake -j1 -c4 solve_all_networks # (1)!

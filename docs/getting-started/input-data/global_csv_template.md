@@ -10,14 +10,16 @@ Global csvs contain parameters that are typically kept constant accross scenario
 
 ```text title="Structure of the global CSV template files"
 📦 data
- ┗ 📂 global_csv_templates
-   ┣ 📜 technologies.csv
-   ┣ 📜 availability.csv
-   ┣ 📜 demand_profile.csv
-   ┣ 📜 power_plant_costs.csv
-   ┣ 📜 renewables_technical_potential.csv
-   ┣ 📜 storage_costs.csv
-   ┗ 📜 storage_inflows.csv
+ ┗ 📂 pypsa-spice-data
+    ┗ 📂 project_01
+       ┣ 📂 scenario_01
+       ┣ 📜 technologies.csv
+       ┣ 📜 availability.csv
+       ┣ 📜 demand_profile.csv
+       ┣ 📜 power_plant_costs.csv
+       ┣ 📜 renewables_technical_potential.csv
+       ┣ 📜 storage_costs.csv
+       ┗ 📜 storage_inflows.csv
 ```
 
 !!! Tip

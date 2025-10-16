@@ -8,34 +8,34 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 ```text title="Structure of the regional CSV template files"
 📦 data
- ┗ 📂 example
+ ┗ 📂 pypsa-spice-data
     ┗ 📂 project_01
-     ┗ 📂 scenario_01
-       ┣ 📂 power
-       ┃ ┣ 📜 buses.csv
-       ┃ ┣ 📜 decommission_capacity.csv
-       ┃ ┣ 📜 fuel_suppliers.csv
-       ┃ ┣ 📜 interconnector.csv
-       ┃ ┣ 📜 loads.csv
-       ┃ ┣ 📜 power_generators.csv
-       ┃ ┣ 📜 power_links.csv
-       ┃ ┣ 📜 storage_capacity.csv
-       ┃ ┗ 📜 storage_energy.csv
-       ┣ 📂 industry
-       ┃ ┣ 📜 buses.csv
-       ┃ ┣ 📜 decommission_capacity.csv
-       ┃ ┣ 📜 direct_air_capture.csv
-       ┃ ┣ 📜 fuel_conversion.csv
-       ┃ ┣ 📜 heat_generators.csv
-       ┃ ┣ 📜 heat_links.csv
-       ┃ ┣ 📜 loads.csv
-       ┃ ┣ 📜 storage_capacity.csv
-       ┃ ┗ 📜 storage_energy.csv
-       ┗ 📂 transport
-         ┣ 📜 buses.csv
-         ┣ 📜 loads.csv
-         ┣ 📜 pev_chargers.csv
-         ┗ 📜 pev_storages.csv
+       ┗ 📂 scenario_01
+          ┣ 📂 industry
+          ┃ ┣ 📜 buses.csv
+          ┃ ┣ 📜 decommission_capacity.csv
+          ┃ ┣ 📜 direct_air_capture.csv
+          ┃ ┣ 📜 fuel_conversion.csv
+          ┃ ┣ 📜 heat_generators.csv
+          ┃ ┣ 📜 heat_links.csv
+          ┃ ┣ 📜 loads.csv
+          ┃ ┣ 📜 storage_capacity.csv
+          ┃ ┗ 📜 storage_energy.csv
+          ┣ 📂 power
+          ┃ ┣ 📜 buses.csv
+          ┃ ┣ 📜 decommission_capacity.csv
+          ┃ ┣ 📜 fuel_suppliers.csv
+          ┃ ┣ 📜 interconnector.csv
+          ┃ ┣ 📜 loads.csv
+          ┃ ┣ 📜 power_generators.csv
+          ┃ ┣ 📜 storage_capacity.csv
+          ┃ ┣ 📜 power_links.csv
+          ┃ ┗ 📜 storage_energy.csv
+          ┗ 📂 transport
+             ┣ 📜 buses.csv
+             ┣ 📜 loads.csv
+             ┣ 📜 pev_chargers.csv
+             ┗ 📜 pev_storages.csv
 ```
 
 !!! Tip

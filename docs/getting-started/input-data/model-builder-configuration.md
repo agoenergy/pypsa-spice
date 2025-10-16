@@ -6,14 +6,14 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 # Input Data: Model Builder Configuration
 
-You can configure several settings for running PyPSA-SPICE in `config.yaml` file located in the root directory of the project. We suggest to make one config file per scenario you are running.
+You can configure several settings for running PyPSA-SPICE in `config.yaml` file. This file shall be saved in your data folder (e.g. `data/pypsa-spice-data`) We suggest to make one config file per scenario you are running.
 This section provides a detailed explanation of the key variables that can be configured to run different scenarios.
 
 ## Init Settings
 
 ```yaml title="Path configurations"
 path_configs: 
-  input_dir: pypsa-spice-data/ #(1)!
+  input_dir: data/pypsa-spice-data/ #(1)!
   results_dir: results/ # (2)!
   project_name: project_01 #(3)!
   input_scenario_name: scenario_01 # (4)!
@@ -228,8 +228,8 @@ Solving the optimisation model builder requires a good solver to boost the perfo
 ```yaml title="Solver configurations"
 solving:
   solver:
-    name: cbc #(1)!
-    options: cbc-default #(2)!
+    name: highs #(1)!
+    options: highs-default #(2)!
   oetc: # (3)!
     activate: false
     name: test-agora-job

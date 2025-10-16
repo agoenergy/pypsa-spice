@@ -65,7 +65,7 @@ mamba env create -f envs/environment.yaml
 
 ## Execution of the Model Builder using Template Data
 
-To have a first glance of how the model builder works, template data in [global_csv_templates](https://github.com/agoenergy/pypsa-spice/tree/main/data/global_csv_templates) folder can be used. After completing the installation, the following command can be executed to run the whole workflow at once. The command will use 1 core (`-j1`) and 1 thread (`-c4`) to execute. For more information, please refer to the [snakemake documentation](https://snakemake.readthedocs.io/en/stable/executing/cli.html) to adjust the cores and threads to use.
+To have a first glance of how the model builder works, template data in [pypsa-spice-data](https://github.com/agoenergy/pypsa-spice/tree/main/data/pypsa-spice-data) folder can be used. After completing the installation, the following command can be executed to run the whole workflow at once. The command will use 1 core (`-j1`) and 1 thread (`-c4`) to execute. For more information, please refer to the [snakemake documentation](https://snakemake.readthedocs.io/en/stable/executing/cli.html) to adjust the cores and threads to use.
 
 ```bash
 snakemake -j1 -c4 solve_all_networks
