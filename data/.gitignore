@@ -8,4 +8,3 @@
 # Exception (you can also add other files or folders that you want to track)
 !.gitignore
 !/pypsa-spice-data/
-!/pypsa-spice-data/**
