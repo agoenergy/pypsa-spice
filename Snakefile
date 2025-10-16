@@ -21,7 +21,6 @@ RDIR = (
 )
 PDIR = config["path_configs"]["input_dir"] + config["path_configs"]["project_name"]
 SDIR = PDIR + "/" + config["path_configs"]["input_scenario_name"]
-GPDIR = config["path_configs"]["input_dir"] + "global_csv_templates"
 
 PP_COSTS = PDIR + "/" + "power_plant_costs.csv"
 TECHNOLOGIES = PDIR + "/" + "technologies.csv"
