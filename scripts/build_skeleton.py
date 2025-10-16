@@ -14,11 +14,14 @@ import os
 import shutil
 import warnings
 from itertools import combinations
+from typing import Any
 
 import numpy as np
 import pandas as pd
-import yaml
-from _helpers import FilePath
+from _helpers import (
+    FilePath,
+    configure_logging,
+)
 from pandas.errors import SettingWithCopyWarning
 
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
@@ -364,7 +367,7 @@ def create_storage_energy(
         If sector is not "power" or "industry".
     """
     # Determine storage buses by sector
-    if sector.capitalize() == "power":
+    if sector.lower() == "power":
         # Global storage buses (country-level, e.g., hydrogen, CO2 storage)
         country_storage_buses = []
         for country in countries:
@@ -378,7 +381,7 @@ def create_storage_energy(
             for node, bus_type in itertools.product(nodes, ["BATSN", "HHBSN", "HPHSN"])
         ]
         all_storage_buses = country_storage_buses + node_storage_buses
-    elif sector.capitalize() == "industry":
+    elif sector.lower() == "industry":
         # Only low-heat industry storage (node-level)
         all_storage_buses = [f"{node}_INLHSTORN" for node in nodes]
     else:
@@ -455,7 +458,7 @@ def create_storage_capacity(
     # Combine all buses for lookup
     all_buses = pd.concat([elec_buses, ind_buses], axis=0)
 
-    if sector.capitalize() == "power":
+    if sector.lower() == "power":
         # Get high-voltage and low-voltage electricity buses
         hv_buses = all_buses[all_buses.bus_type.str.contains("HVELEC")]["bus"].to_list()
         lv_buses = all_buses[all_buses.bus_type.str.contains("LVELEC")]["bus"].to_list()
@@ -501,7 +504,7 @@ def create_storage_capacity(
             ["type", "node", "carrier", "bus"]
         ]
 
-    elif sector.capitalize() == "industry":
+    elif sector.lower() == "industry":
         # Low-heat industry storage (INLHSTOR) on low-heat industry buses
         lh_buses = all_buses[all_buses.bus_type.str.contains("IND-LH")]["bus"].to_list()
         storage_capacity_df = pd.DataFrame(
@@ -1667,11 +1670,14 @@ def check_and_create_global_template_csv(
 
 
 if __name__ == "__main__":
-    CONFIG_FILE = "config.yaml"
+    snakemake: Any = globals().get("snakemake")
+    if snakemake is None:
+        from _helpers import mock_snakemake  # pylint: disable=ungrouped-imports
 
-    # Reading the config file
-    with open(CONFIG_FILE, encoding="utf-8") as file:
-        configurations = yaml.safe_load(file)
+        snakemake = mock_snakemake("build_skeleton")
+    # Getting global config params
+    configure_logging(snakemake)
+    configurations = snakemake.params.config
 
     # Country names from the configuration file
     cfg_countries = configurations["base_configs"]["regions"].keys()
@@ -1684,9 +1690,7 @@ if __name__ == "__main__":
         cfg_nodes += cfg_country_node_list
     # List of years
     cfg_years = configurations["base_configs"]["years"]
-    global_csv_templates_path = (
-        configurations["path_configs"]["input_dir"] + "global_csv_templates"
-    )
+    global_csv_templates_path = "data/pypsa-spice-data/global_csv_templates"
 
     # Skeleton input porject folder path
     output_project_folder_path = (

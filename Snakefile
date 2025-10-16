@@ -5,12 +5,7 @@
 from os.path import normpath, exists
 from shutil import copyfile, move
 
-if not exists("config.yaml"):
-    copyfile("config.default.yaml", "config.yaml")
-
-
 configfile: "data/pypsa-spice-data/config.yaml"
-
 
 wildcard_constraints:
     sector=r"(p|p-i|p-t|p-i-t)",
@@ -39,6 +34,8 @@ RE_TECH_CAP = PDIR + "/" + "renewables_technical_potential.csv"
 
 
 rule build_skeleton:
+    params:
+        config=config,
     script:
         "scripts/build_skeleton.py"
 
