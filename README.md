@@ -24,8 +24,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 [status badge]: https://img.shields.io/badge/under%20construction-ffae00
 <!-- badges-end -->
 
-> [!TIP]
-> This open-source project is led by [Agora Energiewende](https://www.agora-energiewende.org/), with support from [CASE for Southeast Asia](https://caseforsea.org/) and the [International Network of Energy Transition Think Tanks (INETTT)](https://www.inettt.org/).
+This open-source project is led by [Agora Energiewende](https://www.agora-energiewende.org/), with support from [CASE for Southeast Asia](https://caseforsea.org/) and the [International Network of Energy Transition Think Tanks (INETTT)](https://www.inettt.org/).
 
 > [!TIP]
 > If you are considering using this model builder, please reach out to us at [edm-training@agora-thinktanks.org](mailto:edm-training@agora-thinktanks.org). We would be happy to help you get started.

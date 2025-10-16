@@ -10,7 +10,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 Please use the citation below:
 
 ```text
-Agora Think Tanks (2025): PyPSA-SPICE: PyPSA-based Sector-Coupled Optimisation for Pathways Exploration
+Agora Think Tanks (2025): PyPSA-SPICE: PyPSA-based Scenario Planning and Integrated Capacity Expansion
 ```
 
 ## License

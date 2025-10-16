@@ -151,7 +151,6 @@ extra:
       link: pypsa-spice-documentation.pdf
       name: Download documentation as one PDF file
 
-
   # hide `Made with Material for MkDocs` notice from the site footer section
   generator: false
 
@@ -165,7 +164,7 @@ plugins:
   - search
   - to-pdf:
       author: Data and Modelling Team at Agora Think Tanks
-      copyright: Copyright © PyPSA-SPICE Developers 2025
+      copyright: Copyright © PyPSA-SPICE Developers
       toc_level: 3
       cover: true
       cover_logo: /assets/images/logo.png
@@ -173,4 +172,3 @@ plugins:
       cover_subtitle: "Documentation"
       output_path: ../docs/pypsa-spice-documentation.pdf
       render_js: false
-      
