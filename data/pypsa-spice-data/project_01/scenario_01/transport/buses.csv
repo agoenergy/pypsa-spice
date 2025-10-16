@@ -1,0 +1,13 @@
+country,node,bus,carrier
+XY,XY_CE,XY_CE_TRAN-PUB,Electricity
+XY,XY_NR,XY_NR_TRAN-PUB,Electricity
+XY,XY_SO,XY_SO_TRAN-PUB,Electricity
+XY,XY_CE,XY_CE_TRAN-PRV,Electricity
+XY,XY_NR,XY_NR_TRAN-PRV,Electricity
+XY,XY_SO,XY_SO_TRAN-PRV,Electricity
+YZ,YZ_CE,YZ_CE_TRAN-PUB,Electricity
+YZ,YZ_NR,YZ_NR_TRAN-PUB,Electricity
+YZ,YZ_SO,YZ_SO_TRAN-PUB,Electricity
+YZ,YZ_CE,YZ_CE_TRAN-PRV,Electricity
+YZ,YZ_NR,YZ_NR_TRAN-PRV,Electricity
+YZ,YZ_SO,YZ_SO_TRAN-PRV,Electricity

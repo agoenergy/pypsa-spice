@@ -2,7 +2,7 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-input_data_folder: "../pypsa-spice-data"
+input_data_folder: "../data/pypsa-spice-data"
 project: "project_01" # initial project setting.
 sce1: "scenario_01" # initial scenario 1 setting.
 sce2: "" # initial scenario 2.

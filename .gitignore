@@ -36,6 +36,3 @@ docs/*.vscode/settings.json
 
 # Untrack files
 gurobi.log
-
-
-pypsa-spice-data/

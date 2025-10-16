@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,7 +13,7 @@ logging:
 
 #####Init settings#####
 path_configs:
-  input_dir: pypsa-spice-data/
+  input_dir: data/pypsa-spice-data/
   results_dir: results/
   project_name: project_01
   input_scenario_name: scenario_01

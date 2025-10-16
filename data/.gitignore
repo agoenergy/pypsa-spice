@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# Untracked all files
+* 
+
+# Exception (you can also add other files or folders that you want to track)
+!.gitignore
+!/pypsa-spice-data/
+!/pypsa-spice-data/**
