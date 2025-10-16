@@ -108,8 +108,7 @@ This step creates your skeleton folder and files which can be feed with your dat
 **Note:** The ``override_component_attrs`` folder supports multi-output for PyPSA components. These files are used internally and don’t need to be edited.
 
 !!! Tip
-    You will only need to run `build_skeleton` ones while setting up the model. After this initial run you *should* turn of `build_skeleton` in `config.yaml`. Otherwise, the `build_skeleton` will overwrite your data from in the input files and create new empty files.
-    Once you have created a skeleton for one of the scenarios, you can simply copy this folder to create additional scenarios. We recommend to do this after you have filled the data for the first scenario.  
+    Once you’ve created a skeleton data folder for one scenario, you can simply duplicate it to set up additional scenarios. However, we recommend doing this only after you’ve completed filling in the data for the first one.  
 
 ## Step 3: Fill in the Skeleton CSVs
 
