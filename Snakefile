@@ -1,8 +1,6 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# coding: utf-8
 
 from os.path import normpath, exists
 from shutil import copyfile, move

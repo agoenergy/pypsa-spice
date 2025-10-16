@@ -1,6 +1,6 @@
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
@@ -23,6 +23,10 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 [status badge]: https://img.shields.io/badge/under%20construction-ffae00
 <!-- badges-end -->
+
+> [!TIP]
+> This open-source project is led by [Agora Energiewende](https://www.agora-energiewende.org/), with support from [CASE for Southeast Asia](https://caseforsea.org/) and the [International Network of Energy Transition Think Tanks (INETTT)](https://www.inettt.org/).
+
 > [!TIP]
 > If you are considering using this model builder, please reach out to us at [edm-training@agora-thinktanks.org](mailto:edm-training@agora-thinktanks.org). We would be happy to help you get started.
 > If you encounter a bug, please create a [new issue](https://github.com/agoenergy/pypsa-spice/issues). For new ideas or feature requests, you can start a conversation in the [discussions](https://github.com/agoenergy/pypsa-spice/discussions) section of the repository.
@@ -91,15 +95,11 @@ or make pull requests on GitHub.
 
 ## License
 
-Copyright &copy; 2020-2025 [PyPSA-SPICE Developers](docs/references/developers.md)
+Copyright &copy; [PyPSA-SPICE Developers](docs/references/developers.md)
 
-PyPSA-SPICE is licensed under the open-source [GNU General Public License v2.0 or later](LICENSE)
+PyPSA-SPICE is licensed under the open source [GNU General Public License v2.0 or later](LICENSE)
 with the following information:
 
-*This program is free software: you can redistribute it and/or modify it under the terms
-of the GNU General Public License as published by the Free Software Foundation; either
-version 2 of the License, or (at your option) any later version.
+The documentation is licensed under [CC-BY-4.0](LICENSES/CC-BY-4.0.txt).
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the [GNU General Public License v2.0 or later](LICENSE) for more details.*
+The repository uses [REUSE](https://reuse.software/) to expose the licenses of its files.

@@ -1,8 +1,6 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# coding: utf-8
 
 # to preview the documentation website in local server, run `mkdocs serve --config-file mkdocs.yaml` and get the url in the terminal to paste it in the browser
 
@@ -112,7 +110,7 @@ nav:
     - License: references/citation_and_license.md
     - Developers: references/developers.md
 
-copyright: Copyright &copy; 2025, PyPSA-SPICE Developers, see References section.
+copyright: Copyright &copy; 2025, PyPSA-SPICE Developers, see References section. | CC-BY-4.0
 
 markdown_extensions:
   - admonition

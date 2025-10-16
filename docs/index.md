@@ -1,6 +1,6 @@
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
@@ -11,7 +11,6 @@ SPDX-License-Identifier: GPL-2.0-or-later
 [![PyPSA version][PyPSA version badge]][PyPSA version]{:target="_blank"}
 [![Snakemake][Snakemake badge]][Snakemake]{:target="_blank"}
 [![Code style][Code style badge]][Code style]{:target="_blank"}
-![Status][status badge]{:target="_blank"}
 
 [license badge]: https://eddelbuettel.github.io/badges/GPL2+.svg
 [license]: https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
@@ -25,8 +24,10 @@ SPDX-License-Identifier: GPL-2.0-or-later
 [Code style badge]: https://img.shields.io/badge/code%20style-black-000000.svg
 [Code style]: https://github.com/ambv/black
 
-[status badge]: https://img.shields.io/badge/under%20construction-ffae00
 <!-- badges-end -->
+
+!!! info
+    This open-source project is led by [Agora Energiewende](https://www.agora-energiewende.org/), with support from [CASE for Southeast Asia](https://caseforsea.org/) and the [International Network of Energy Transition Think Tanks (INETTT)](https://www.inettt.org/).
 
 !!! info
     If you are considering using this model builder, please reach out to us at [edm-training@agora-thinktanks.org](mailto:edm-training@agora-thinktanks.org){:target="_blank"}. We would be happy to help you get started.
@@ -83,15 +84,11 @@ If you have ideas, suggestions, or encounter any issues, feel free to open an is
 
 ## License
 
-Copyright &copy; 2020-2025 [PyPSA-SPICE Developers](references/developers.md)
+Copyright &copy; [PyPSA-SPICE Developers](docs/references/developers.md)
 
-PyPSA-SPICE is licensed under the open source [GNU General Public License v2.0 or later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html){:target="_blank"}
+PyPSA-SPICE is licensed under the open source [GNU General Public License v2.0 or later](LICENSE)
 with the following information:
 
-*This program is free software: you can redistribute it and/or modify it under the terms
-of the GNU General Public License as published by the Free Software Foundation; either
-version 2 of the License, or (at your option) any later version.
+The documentation is licensed under [CC-BY-4.0](LICENSES/CC-BY-4.0.txt).
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-See the [GNU General Public License v2.0 or later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html){:target="_blank"} for more details.*
+The repository uses [REUSE](https://reuse.software/) to expose the licenses of its files.
