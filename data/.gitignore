@@ -9,3 +9,5 @@
 # You can list additional files or folders here that you want Git to track.
 !.gitignore
 !/pypsa-spice-data/
+!/global_input_template/
+!/global_input_template/*

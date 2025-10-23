@@ -15,11 +15,6 @@
 /results
 /logs
 /benchmarks
-/mod-data-vn-pdp8/
-/mod-data-th-ltes/
-/mod-data-ph-ltes/
-/mod-data-th-pdp/
-/mod-data-kz-ltes/
 /test/
 /site/
 /envs/.env

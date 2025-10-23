@@ -1690,7 +1690,7 @@ if __name__ == "__main__":
         cfg_nodes += cfg_country_node_list
     # List of years
     cfg_years = configurations["base_configs"]["years"]
-    global_csv_skeletons_path = "data/pypsa-spice-data/global_csv_skeletons"
+    global_csv_skeletons_path = "data/global_input_template"
 
     # Skeleton input porject folder path
     output_project_folder_path = (
