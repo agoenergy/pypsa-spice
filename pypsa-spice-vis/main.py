@@ -57,7 +57,7 @@ with st.sidebar:
 
     # Set result_path in session state (note this includes the project dir)
     st.session_state.result_path = os.path.join(
-        init_conf["data_folder_path"], st.session_state.project
+        init_conf["data_folder_path"]
     )
 
     # Set sce1 name in session state
