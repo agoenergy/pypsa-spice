@@ -12,7 +12,6 @@
 .history
 
 # Untracked folders (and files within)
-/results
 /logs
 /benchmarks
 /test/

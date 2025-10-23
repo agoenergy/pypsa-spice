@@ -53,8 +53,9 @@ class AddBaseNetwork:
         self.dmd_profile_path = snakemake.input.dmd_profiles
         self.availability_dir = snakemake.input.pp_availability
         self.inflows_path = snakemake.input.stor_inflows
-        self.interest = snakemake.params.interest
         self.currency = snakemake.params.currency
+        self.scenario_configs = snakemake.params.scenario_configs
+        self.interest = self.scenario_configs["scenario_configs"]["interest"]
 
     # ================================== ADDING buses ==================================
     def add_buses(self, bus_dir: FilePath):
@@ -646,8 +647,8 @@ class AddBaseNetwork:
             'nth_hour' or 'clustered' from the config file, by default "nth_hour"
         """
         if (method).lower() == "clustered":
-            solve_name = (snakemake.params.solve_name).lower()
-            num_days = snakemake.params.numDays
+            solve_name = (self.scenario_configs["solving"]["solver"]["name"]).lower()
+            num_days = self.scenario_configs["resolution"]["number_of_days"]
             period_length = 24
             # Get all time-dependent data
             dfs = [
@@ -745,7 +746,9 @@ class AddBaseNetwork:
                         else:
                             pnl[k] = df.groupby(aggregation_map).mean()
         else:
-            stepsize = snakemake.params.stepsize
+            stepsize = self.scenario_configs["scenario_configs"]["resolution"][
+                "stepsize"
+            ]
             if stepsize > 1:
                 print(f"Aggregating the network at every {stepsize}th hour")
             elec_load = (
@@ -759,11 +762,13 @@ class AddBaseNetwork:
     def add_co2_option(self):
         """Add CO2 management options."""
         for country in self.country:
-            co2_option = snakemake.params.co2_management[country]["option"]
+            co2_option = self.scenario_configs["co2_management"][country]["option"]
             if co2_option == "co2_price":
                 # assign co2 price to marginal cost of all links with bus 2
                 # attached to ATMP bus (meaning emitting co2)
-                co2price = snakemake.params.co2_management[country]["value"][self.year]
+                co2price = self.scenario_configs["co2_management"][country]["value"][
+                    self.year
+                ]
                 print(
                     f"Adding CO2 Price as {co2price}{str(self.currency).lower()}/tCO2 "
                     f"for {country}"
@@ -798,7 +803,7 @@ if __name__ == "__main__":
     # Establishing network
     n = pypsa.Network(name=f"network_{snakemake.wildcards.sector}_{selected_year}")
 
-    snapshots = snakemake.params.snapshots
+    snapshots = snakemake.params.scenario_configs["scenario_configs"]["snapshots"]
     resolution = pd.date_range(
         start=snapshots["start"],
         end=snapshots["end"],
@@ -839,7 +844,13 @@ if __name__ == "__main__":
     c.add_load_shedding()
     # c.add_noisy_cost() # noqa: E800
     c.remove_abundant_components()
-    c.add_temporal_aggregation(method=snakemake.params.method)
+    c.add_temporal_aggregation(
+        method=(
+            snakemake.params.scenario_configs["scenario_configs"]["resolution"][
+                "method"
+            ]
+        )
+    )
     c.add_co2_option()
     c.add_network_carriers()
     c.network.export_to_netcdf(snakemake.output[0])

@@ -87,14 +87,17 @@ def add_brownfield(n: pypsa.Network, year: int, threshold: float):
             # subtract co2 price from marginal cost of previous year fossil links
             if (
                 c.name == "Link"
-                and snakemake.params.co2_management[country]["option"] == "co2_price"
+                and snakemake.params.scenario_configs["co2_management"][country][
+                    "option"
+                ]
+                == "co2_price"
             ):
                 years = snakemake.params.years
                 i = years.index(year)
                 year_previous = years[i - 1]
-                co2_price_previous = snakemake.params.co2_management[country]["value"][
-                    year_previous
-                ]
+                co2_price_previous = snakemake.params.scenario_configs[
+                    "co2_management"
+                ][country]["value"][year_previous]
                 emit_links = c.df[c.df.bus2 == f"{country}_ATMP"].index
                 c.df.loc[emit_links, "marginal_cost"] = c.df.loc[
                     emit_links, "marginal_cost"
@@ -333,8 +336,9 @@ class AddFutureAssets:
         self.dmd_profile_path = snakemake.input.dmd_profiles
         self.availability_dir = snakemake.input.pp_availability
         self.inflows_path = snakemake.input.stor_inflows
-        self.interest = snakemake.params.interest
         self.currency = snakemake.params.currency
+        self.scenario_configs = snakemake.params.scenario_configs
+        self.interest = self.scenario_configs["scenario_configs"]["interest"]
 
     # ========================== ADDING future interconnectors =========================
 
@@ -895,11 +899,13 @@ class AddFutureAssets:
     def add_co2_option(self):
         """Add CO2 management options."""
         for country in self.country:
-            co2_option = snakemake.params.co2_management[country]["option"]
+            co2_option = self.scenario_configs["co2_management"][country]["option"]
             if co2_option == "co2_price":
                 # assign co2 price to marginal cost of all links with bus 2
                 # attached to ATMP bus (meaning emitting co2)
-                co2price = snakemake.params.co2_management[country]["value"][self.year]
+                co2price = self.scenario_configs["co2_management"][country]["value"][
+                    self.year
+                ]
                 print(
                     f"Adding CO2 Price as {co2price}{self.currency}/tCO2 for {country}"
                 )
@@ -920,7 +926,9 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake("add_brownfield", sector="p-i-t", years=2030)
     configure_logging(snakemake)
-    sm_threshold = snakemake.params.remove_threshold
+    sm_threshold = snakemake.params.scenario_configs["scenario_configs"][
+        "remove_threshold"
+    ]
     sm_currency = snakemake.params.currency
     sm_year = int(snakemake.wildcards.years)
     sm_country_region = snakemake.params.country_region

@@ -51,20 +51,19 @@ if __name__ == "__main__":
 
     selected_year = int(snakemake.wildcards.years)
     selected_sector = snakemake.wildcards.sector
-    output_dir = (
-        snakemake.params.results_dir
-        + snakemake.params.project_name
-        + "/"
-        + snakemake.params.scenario_name
-        + "/"
-    )
 
     save_output_folder = create_folder(
-        year=selected_year, sector=selected_sector, results_dir=output_dir
+        year=selected_year,
+        sector=selected_sector,
+        results_dir=snakemake.params.results_dir,
     )
     network_list = []
     network_list.append(snakemake.input.network)
-    ot = OutputTables(network_list=network_list, config=snakemake.config)
+    ot = OutputTables(
+        network_list=network_list,
+        config=snakemake.config,
+        scenario_configs=snakemake.params.scenario_configs,
+    )
     # Get all non-default callable methods of output table class
     method_list = [
         func
@@ -84,8 +83,9 @@ if __name__ == "__main__":
     if "t" not in snakemake.wildcards.sector:
         summary_methods = [func for func in summary_methods if "tran_" not in func]
 
-    if snakemake.params.resolution["method"] == "nth_hour":
-        NTH_HOUR = snakemake.params.resolution["stepsize"]
+    resolution = snakemake.params.scenario_configs["scenario_configs"]["resolution"]
+    if resolution["method"] == "nth_hour":
+        NTH_HOUR = resolution["stepsize"]
     else:  # clustered method
         NTH_HOUR = 1
 

@@ -4,29 +4,13 @@
 
 # coding: utf-8
 
+# Scenario configuration includes scenario settings, model constraints, and solver settings.
+
 version: 0.1.0
 
 logging:
   level: INFO
   format: "%(levelname)s:%(name)s:%(message)s"
-
-
-#####Init settings#####
-path_configs:
-  input_dir: data/pypsa-spice-data/
-  results_dir: results/
-  project_name: project_01
-  input_scenario_name: scenario_01
-  output_scenario_name: scenario_01_tag1
-
-base_configs:
-  regions:
-    XY: ["NR","CE", "SO"] # list of countries (keys) and subregions (values in list). Countries in ISO2 format
-    YZ: ["NR","CE", "SO"] # list of countries (keys) and subregions (values in list). Countries in ISO2 format
-  years: [2025, 2030, 2035, 2040, 2045, 2050] # list of modelled years
-  sector: ["p-i-t"] # options: ["p", "p-i", "p-t", "p-i-t"], representing power (p), industry (i), and transport (t) sectors.
-  currency: USD # currency for the model in all uppercases, ISO4217 format
-
 
 #####Scenario settings#####
 scenario_configs:

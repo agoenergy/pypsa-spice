@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# coding: utf-8
+
+# Base configuration includes paths and general settings which are not relevant to the scenario settings or model constraints.
+
+version: 0.1.0
+
+logging:
+  level: INFO
+  format: "%(levelname)s:%(name)s:%(message)s"
+
+#####Init settings#####
+path_configs:
+  data_folder_name: mod-data-CentralAsia-ltes
+  project_name: LTES_CentralAsia
+  input_scenario_name: ref_local
+  output_scenario_name: ref_local_new_test1
+
+base_configs:
+  countries: ["KZ"] # list of countries in ISO2 format
+  regions: 
+    KZ: ["NR", "SO", "WS"]
+  years: [2025, 2030, 2035] # list of modelled years
+  sector: ["p"] # options: ["p", "p-i", "p-t", "p-i-t"], representing power (p), industry (i), and transport (t) sectors.
+  currency: USD # currency for the model in all uppercases, ISO4217 format

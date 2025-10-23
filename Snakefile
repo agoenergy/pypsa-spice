@@ -4,32 +4,32 @@
 
 from os.path import normpath, exists
 from shutil import copyfile, move
+import glob
+import yaml
 
-configfile: "data/pypsa-spice-data/config.yaml"
+configfile: "base_config.yaml"
 
 wildcard_constraints:
     sector=r"(p|p-i|p-t|p-i-t)",
     years=r"\d{4}",
 
-
-RDIR = (
-    config["path_configs"]["results_dir"]
-    + config["path_configs"]["project_name"]
-    + "/"
-    + config["path_configs"]["output_scenario_name"]
-    + "/"
+PDIR = (
+    "data/" + 
+    config["path_configs"]["data_folder_name"] + 
+    "/" + 
+    config["path_configs"]["project_name"]
 )
-PDIR = config["path_configs"]["input_dir"] + config["path_configs"]["project_name"]
-SDIR = PDIR + "/" + config["path_configs"]["input_scenario_name"]
+SDIR = PDIR + "/input/" + config["path_configs"]["input_scenario_name"]
+RDIR = PDIR + "/results/" + config["path_configs"]["output_scenario_name"]
 
-PP_COSTS = PDIR + "/" + "power_plant_costs.csv"
-TECHNOLOGIES = PDIR + "/" + "technologies.csv"
-STORAGE_COSTS = PDIR + "/" + "storage_costs.csv"
-EV_PARAMETERS = PDIR + "/" + "ev_parameters.csv"
-DMD_PROFILES = PDIR + "/" + "demand_profile.csv"
-AVAILABILITY = PDIR + "/" + "availability.csv"
-INFLOWS = PDIR + "/" + "storage_inflows.csv"
-RE_TECH_CAP = PDIR + "/" + "renewables_technical_potential.csv"
+PP_COSTS = PDIR + "/input/global_input/power_plant_costs.csv"
+TECHNOLOGIES = PDIR + "/input/global_input/technologies.csv"
+STORAGE_COSTS = PDIR + "/input/global_input/storage_costs.csv"
+EV_PARAMETERS = PDIR + "/input/global_input/ev_parameters.csv"
+DMD_PROFILES = PDIR + "/input/global_input/demand_profile.csv"
+AVAILABILITY = PDIR + "/input/global_input/availability.csv"
+INFLOWS = PDIR + "/input/global_input/storage_inflows.csv"
+RE_TECH_CAP = PDIR + "/input/global_input/renewables_technical_potential.csv"
 
 
 rule build_skeleton:
@@ -37,6 +37,23 @@ rule build_skeleton:
         config=config,
     script:
         "scripts/build_skeleton.py"
+
+
+def open_scenario_config():
+    yaml_files = glob.glob(f"{SDIR}/*.yaml")
+    if len(yaml_files) == 0:
+        raise ValueError(
+            f"WARNING: At least one yaml file is required in {SDIR} folder to " 
+            + "represent the setting of the corresponding scenario."
+        )
+    elif len(yaml_files) > 1:
+        raise ValueError(
+            f"WARNING: Only one yaml file should be presented in {SDIR} folder to " 
+            + "represent the setting of the corresponding scenario."
+        )
+    else:
+        with open(yaml_files[0], "r") as f:
+            return yaml.safe_load(f)
 
 
 rule add_baseyear:
@@ -69,17 +86,11 @@ rule add_baseyear:
         storage_costs=STORAGE_COSTS,
         ev_parameters=EV_PARAMETERS,
     output:
-        network=RDIR + "pre-solve-brownfield/network_{sector}_{years}.nc",
+        network=RDIR + "/pre-solve-brownfield/network_{sector}_{years}.nc",
     params:
+        scenario_configs=open_scenario_config(),
         country_region=config["base_configs"]["regions"],
-        interest=config["scenario_configs"]["interest"],
         currency=config["base_configs"]["currency"],
-        snapshots=config["scenario_configs"]["snapshots"],
-        method=config["scenario_configs"]["resolution"]["method"],
-        numDays=config["scenario_configs"]["resolution"]["number_of_days"],
-        stepsize=config["scenario_configs"]["resolution"]["stepsize"],
-        solve_name=config["solving"]["solver"]["name"],
-        co2_management=config["co2_management"]
     wildcard_constraints:
         years=config["base_configs"]["years"][0],  #only applies to baseyear
     log:
@@ -97,14 +108,14 @@ def solved_previous_year(wildcards):
     years = config["base_configs"]["years"]
     i = years.index(int(wildcards.years))
     years_p = str(years[i - 1])
-    return RDIR + "post-solve/network_{sector}_" + years_p + ".nc"
+    return RDIR + "/post-solve/network_{sector}_" + years_p + ".nc"
 
 
 def previous_year_outputs(wildcards):
     years = config["base_configs"]["years"]
     i = years.index(int(wildcards.years))
     years_p = str(years[i - 1])
-    return RDIR + "csvs/{sector}/" + years_p + "/summary.txt"
+    return RDIR + "/csvs/{sector}/" + years_p + "/summary.txt"
 
 
 rule add_brownfield:
@@ -141,14 +152,12 @@ rule add_brownfield:
         storage_costs=STORAGE_COSTS,
         ev_parameters=EV_PARAMETERS,
     output:
-        brownfield_network=RDIR + "pre-solve-brownfield/network_{sector}_{years}.nc",
+        brownfield_network=RDIR + "/pre-solve-brownfield/network_{sector}_{years}.nc",
     params:
+        scenario_configs=open_scenario_config(),
         country_region=config["base_configs"]["regions"],
         years=config["base_configs"]["years"],
-        interest=config["scenario_configs"]["interest"],
         currency=config["base_configs"]["currency"],
-        remove_threshold=config["scenario_configs"]["remove_threshold"],
-        co2_management=config["co2_management"],
     log:
         "logs/add_brownfield_{sector}_{years}.log",
     benchmark:
@@ -167,16 +176,16 @@ rule solve_network:
     input:
         re_technical_potential=RE_TECH_CAP,
         fuel_limits= SDIR + "/power/fuel_supplies.csv",
-        network=RDIR + "pre-solve-brownfield/network_{sector}_{years}.nc",
+        network=RDIR + "/pre-solve-brownfield/network_{sector}_{years}.nc",
     output:
-        final_network=RDIR + "post-solve/network_{sector}_{years}.nc",
-        pre_solved=RDIR + "pre-solve/network_{sector}_{years}.nc",
+        final_network=RDIR + "/post-solve/network_{sector}_{years}.nc",
+        pre_solved=RDIR + "/pre-solve/network_{sector}_{years}.nc",
     params:
+        scenario_configs=open_scenario_config(),
         country_region=config["base_configs"]["regions"],
         years=config["base_configs"]["years"],
-        resolution=config["scenario_configs"]["resolution"],
         currency=config["base_configs"]["currency"]
-    threads: config["solving"]["solver"].get("threads", 1)
+    threads: open_scenario_config()["solving"]["solver"].get("threads", 1)
     script:
         "scripts/solve_network.py"
 
@@ -184,7 +193,7 @@ rule solve_network:
 rule solve_all_networks:
     input:
         expand(
-            RDIR + "csvs/{sector}/all_years/combined_summary.txt",
+            RDIR + "/csvs/{sector}/all_years/combined_summary.txt",
             **config["base_configs"],
         ),
     default_target: True
@@ -192,14 +201,14 @@ rule solve_all_networks:
 
 rule make_summary:
     input:
-        network=RDIR + "post-solve/network_{sector}_{years}.nc",
+        network=RDIR + "/post-solve/network_{sector}_{years}.nc",
     output:
-        summary=RDIR + "csvs/{sector}/{years}/summary.txt",
+        summary=RDIR + "/csvs/{sector}/{years}/summary.txt",
     params:
-        results_dir=config["path_configs"]["results_dir"],
+        scenario_configs=open_scenario_config(),
+        results_dir=RDIR,
         project_name=config["path_configs"]["project_name"],
         scenario_name=config["path_configs"]["output_scenario_name"],
-        resolution=config["scenario_configs"]["resolution"],
         currency=config["base_configs"]["currency"]
     script:
         "scripts/make_summary.py"
@@ -207,10 +216,10 @@ rule make_summary:
 rule combine_summaries:
     input:
         networks=expand(
-            RDIR + "post-solve/network_{sector}_{years}.nc", **config["base_configs"]
+            RDIR + "/post-solve/network_{sector}_{years}.nc", **config["base_configs"]
         ),
-        summary=expand(RDIR + "csvs/{sector}/{years}/summary.txt", **config["base_configs"]),
+        summary=expand(RDIR + "/csvs/{sector}/{years}/summary.txt", **config["base_configs"]),
     output:
-        combined_summaries=RDIR + "csvs/{sector}/all_years/combined_summary.txt",
+        combined_summaries=RDIR + "/csvs/{sector}/all_years/combined_summary.txt",
     script:
         "scripts/combine_summaries.py"
