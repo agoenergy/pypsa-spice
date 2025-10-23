@@ -21,15 +21,35 @@ class Getters:
     self.entry_dir = os.path.dirname(os.path.abspath(sys.modules['__main__'].__file__))
 
     # Rel path to initial config file - modify as necessary if DEPLOY is true
-    self.config_path = "setting/initial.yaml"
+    self.config_path = "../base_config.yaml"
 
     with open(os.path.join(self.entry_dir, self.config_path), "r") as file:
       self.init_conf = yaml.safe_load(file)
 
     if "vis" in str(self.working_dir):
-      self.init_conf["data_folder_path"] = "../results/"
+      data_path = "../data/"
     else:
-      self.init_conf["data_folder_path"] = "results/"
+      data_path = "data/"
+
+    self.init_conf["project_folder_path"] = (
+      data_path + 
+      self.init_conf["path_configs"]["data_folder_name"] + 
+      "/"
+    )
+
+    self.init_conf["input_data_folder_path"] = (
+      self.init_conf["project_folder_path"] + 
+      "/" + 
+      self.init_conf["path_configs"]["project_name"] + 
+      "/input/" 
+    )
+
+    self.init_conf["data_folder_path"] = (
+      self.init_conf["project_folder_path"] + 
+      "/" + 
+      self.init_conf["path_configs"]["project_name"] + 
+      "/results/" 
+    )
 
   def get_project_folder_list(self, folder_path : str) -> list[str]:
     """Get a list of project subfolders in a given folder.
@@ -56,14 +76,15 @@ class Getters:
     project_folders = [f for f in project_folders if not f.startswith('.')]
 
     # Make default project the first option in the list if present
-    if self.init_conf["project"] in project_folders:
-      project_folders.remove(self.init_conf["project"])
-      project_folders.insert(0, self.init_conf["project"])
+    if self.init_conf["path_configs"]["project_name"] in project_folders:
+      project_folders.remove(self.init_conf["path_configs"]["project_name"])
+      project_folders.insert(0, self.init_conf["path_configs"]["project_name"])
 
     return project_folders
   
-  def get_scenario_list(self, project_dir: str) -> list[str]:
-    """Get the list of scenarios from a given project within the results/ folder.
+
+  def get_input_scenario_list(self) -> list[str]:
+    """Get the list of input scenarios from a given project within the input/ folder.
 
     Parameters
     ----------
@@ -75,24 +96,54 @@ class Getters:
     list[str]
       The list of scenarios for this project.
     """
-    results_path = self.init_conf["data_folder_path"]
-    project_path = os.path.join(results_path, project_dir)
+    data_folder_path = self.init_conf["input_data_folder_path"]
 
-    if not os.path.exists(project_path):
-      raise FileNotFoundError(f"folder not found: {project_path}")
+    if not os.path.exists(data_folder_path):
+      raise FileNotFoundError(f"folder not found: {data_folder_path}")
     
-    scenario_list = [scenario for scenario in os.listdir(project_path)
-                      if scenario not in [".DS_Store"]
+    scenario_list = [scenario for scenario in os.listdir(data_folder_path)
+                      if scenario not in [".DS_Store"] and scenario != "global_input"
                     ]
     
     # Make default scenario the first option in the list if present
-    for sce in (self.init_conf["sce1"], self.init_conf["sce2"]):
+    for sce in (self.init_conf["path_configs"]["input_scenario_name"], ""):
       if sce in scenario_list:
           scenario_list.insert(0, scenario_list.pop(scenario_list.index(sce)))
 
     return scenario_list
   
-  def get_sector_list(self, project_dir: str, scenario: str) -> list[str]:
+
+  def get_output_scenario_list(self) -> list[str]:
+    """Get the list of output scenarios from a given project within the results/ folder.
+
+    Parameters
+    ----------
+    project_dir : str
+      Name of the project folder to look within for the scenarios.
+    
+    Returns
+    -------
+    list[str]
+      The list of scenarios for this project.
+    """
+    data_folder_path = self.init_conf["data_folder_path"]
+
+    if not os.path.exists(data_folder_path):
+      raise FileNotFoundError(f"folder not found: {data_folder_path}")
+    
+    scenario_list = [scenario for scenario in os.listdir(data_folder_path)
+                      if scenario not in [".DS_Store"]
+                    ]
+    
+    # Make default scenario the first option in the list if present
+    for sce in (self.init_conf["path_configs"]["output_scenario_name"], ""):
+      if sce in scenario_list:
+          scenario_list.insert(0, scenario_list.pop(scenario_list.index(sce)))
+
+    return scenario_list
+  
+
+  def get_sector_list(self, scenario: str) -> list[str]:
     """Get the list of sectors from the scenario/ folder in a given project.
 
     Parameters
@@ -108,7 +159,7 @@ class Getters:
       The list of sectors for this scenario.
     """
     results_path = self.init_conf["data_folder_path"]
-    csv_folder_path = os.path.join(results_path, project_dir, scenario, "csvs")
+    csv_folder_path = os.path.join(results_path, scenario, "csvs")
     
     if not os.path.exists(csv_folder_path):
       raise FileNotFoundError(f"folder not found: {csv_folder_path}")
@@ -120,7 +171,8 @@ class Getters:
     
     return sector_list
   
-  def get_year_list(self, project_path: str, scenario: str, sector: str) -> list[str]:
+
+  def get_year_list(self, scenario: str, sector: str) -> list[str]:
     """Get the list of years from the scenario/sector/ folder in a given project.
 
     Parameters
@@ -137,7 +189,8 @@ class Getters:
     list[str]
       The list of years for this sector.
     """
-    sector_folder_path = os.path.join(project_path, scenario, "csvs", sector)
+    results_path = self.init_conf["data_folder_path"]
+    sector_folder_path = os.path.join(results_path, scenario, "csvs", sector)
 
     if not os.path.exists(sector_folder_path):
       raise FileNotFoundError(f"folder not found: {sector_folder_path}")

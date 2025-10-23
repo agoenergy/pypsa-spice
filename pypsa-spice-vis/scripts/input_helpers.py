@@ -21,10 +21,8 @@ class dfWidgetsHandler:
     def __init__(self):
         self.getters = Getters()
         self.input_ui_handler = InputUiHandler()
-
         self.csvs_dict = self.input_ui_handler.csvs_dict
         self.input_folder_path = st.session_state["input_data_folder_path"]
-        
         project_folders = self.getters.get_project_folder_list(
             self.input_folder_path
         )
@@ -35,18 +33,25 @@ class dfWidgetsHandler:
 
         self.base_input_path = os.path.join(
             self.input_folder_path, 
-            self.input_data_project
+            self.input_data_project,
+            "input",
         )
 
+        self.global_input_path = os.path.join(
+            self.base_input_path,
+            "global_input",
+        )
         sub_folder = (
             st.session_state["scenario"]
             if "scenario" in st.session_state
-            else self.getters.get_project_folder_list(self.base_input_path)[0]
+            else self.getters.init_conf["path_configs"]["input_scenario_name"]
         )
 
-        # Params for scenario-dependent files
-        self.scenario_input_path = os.path.join(self.base_input_path, sub_folder)
-
+        self.scenario_input_path = os.path.join(
+            self.base_input_path, 
+            sub_folder
+        )
+        
         self.scenario_input_file_keys = [
             "decomission", 
             "fuel_costs",
@@ -90,7 +95,7 @@ class dfWidgetsHandler:
                 base_folder = (
                     self.scenario_input_path
                     if key in self.scenario_input_file_keys
-                    else self.base_input_path
+                    else self.global_input_path
                 )
                 self.csvs_dict[key].path = os.path.join(base_folder, *parts)
 
@@ -143,6 +148,7 @@ class dfWidgetsHandler:
             self.csvs_dict[key].path = os.path.join(
                 self.input_folder_path,
                 self.input_data_project,
+                "input",
                 selected_scenario,
                 *parts,
             )

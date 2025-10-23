@@ -27,7 +27,7 @@ st.session_state.current_dir = current_dir
 init_conf = getters.init_conf
 
 # Initialize input_data_folder_path in session state
-st.session_state.input_data_folder_path = os.path.join(current_dir, init_conf["input_data_folder"])
+st.session_state.input_data_folder_path = init_conf["project_folder_path"]
 
 # st.logo(
 #     os.path.join(st.session_state.current_dir, "design/pypsa-spice-long.png"),
@@ -51,7 +51,7 @@ with st.sidebar:
     # Set project in session state
     st.session_state.project = st.sidebar.selectbox(
         ":material/globe: Project :",
-        options=getters.get_project_folder_list(init_conf["data_folder_path"]),
+        options=getters.get_project_folder_list(init_conf["project_folder_path"]),
         index=0,
     )
 
@@ -63,12 +63,12 @@ with st.sidebar:
     # Set sce1 name in session state
     st.session_state.sce1 = st.sidebar.selectbox(
         ":material/looks_one: Scenario 1:", 
-        options=getters.get_scenario_list(st.session_state.project),
+        options=getters.get_output_scenario_list(),
         index=0
     )
     
     # Set sce2 name in session state
-    sc_list = getters.get_scenario_list(st.session_state.project)
+    sc_list = getters.get_output_scenario_list()
     if len(sc_list) == 1:
         st.session_state.sce2 = ""
     else:
@@ -85,7 +85,6 @@ with st.sidebar:
     st.session_state.sector = st.sidebar.selectbox(
         ":material/crossword: Sector:", #init_conf["sector"]
         options=getters.get_sector_list(
-            st.session_state.project, 
             st.session_state.sce1
         ),
         index=0
@@ -98,13 +97,11 @@ with st.sidebar:
 # Set year in session state
 try:
     st.session_state.sce1_years = getters.get_year_list(
-        st.session_state.result_path,
         st.session_state.sce1, 
         st.session_state.sector
     )
     if st.session_state.sce2:
         st.session_state.sce2_years = getters.get_year_list(
-            st.session_state.result_path,
             st.session_state.sce2,
             st.session_state.sector
         )
