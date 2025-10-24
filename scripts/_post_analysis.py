@@ -390,6 +390,7 @@ class OutputTables(Plots):
         )
         final_df = final_df.loc[final_df.value != 0]
         final_df = final_df.reset_index().rename(columns={"type": "technology"})
+        final_df["country"] = final_df["country"].str[:2]
         final_df = (
             final_df.groupby(["country", "technology", "carrier", "year"])
             .sum()
@@ -445,6 +446,7 @@ class OutputTables(Plots):
         )
         final_df = final_df.loc[final_df.value != 0]
         final_df = final_df.reset_index().rename(columns={"type": "technology"})
+        final_df["country"] = final_df["country"].str[:2]
         final_df = (
             final_df.groupby(["country", "technology", "carrier", "year"])
             .sum()
@@ -990,7 +992,8 @@ class OutputTables(Plots):
         final_df.index.names = ["country", "technology"]
         final_df = final_df.loc[
             ~final_df.index.get_level_values("technology").isin(["LSLO"])
-        ]
+        ].reset_index()
+        final_df["country"] = final_df["country"].str[:2]
         final_df = scaling_conversion(
             input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
