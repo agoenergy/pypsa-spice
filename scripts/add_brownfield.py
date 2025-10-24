@@ -35,6 +35,7 @@ from _helpers import (
     get_storage_units_inflows,
     get_store_min_availabilities,
     get_time_series_demands,
+    open_scenario_config,
     update_ev_char_parameters,
     update_ev_store_parameters,
     update_storage_costs,
@@ -46,7 +47,9 @@ idx = pd.IndexSlice
 logger = logging.getLogger(__name__)
 
 
-def add_brownfield(n: pypsa.Network, year: int, threshold: float):
+def add_brownfield(
+    n: pypsa.Network, year: int, threshold: float, scenario_configs: dict
+):
     """Import the solved network from previous year and update brownfield capacities.
 
     Parameters
@@ -57,6 +60,8 @@ def add_brownfield(n: pypsa.Network, year: int, threshold: float):
         Current model year
     threshold : float
         Capacity threshold below which assets are removed to avoid numerical issues
+    scenario_configs : dict
+        Scenario configurations from the config file
     """
     # remove all loads
     n.remove("Load", n.loads.index)
@@ -87,17 +92,14 @@ def add_brownfield(n: pypsa.Network, year: int, threshold: float):
             # subtract co2 price from marginal cost of previous year fossil links
             if (
                 c.name == "Link"
-                and snakemake.params.scenario_configs["co2_management"][country][
-                    "option"
-                ]
-                == "co2_price"
+                and scenario_configs["co2_management"][country]["option"] == "co2_price"
             ):
                 years = snakemake.params.years
                 i = years.index(year)
                 year_previous = years[i - 1]
-                co2_price_previous = snakemake.params.scenario_configs[
-                    "co2_management"
-                ][country]["value"][year_previous]
+                co2_price_previous = scenario_configs["co2_management"][country][
+                    "value"
+                ][year_previous]
                 emit_links = c.df[c.df.bus2 == f"{country}_ATMP"].index
                 c.df.loc[emit_links, "marginal_cost"] = c.df.loc[
                     emit_links, "marginal_cost"
@@ -312,7 +314,9 @@ def update_brownfield_snapshots(
 class AddFutureAssets:
     """Add future assets to the brownfield network for the current year."""
 
-    def __init__(self, network: pypsa.Network, year: int, red_hours: list):
+    def __init__(
+        self, network: pypsa.Network, year: int, red_hours: list, scenario_configs: dict
+    ):
         """Initialize the AddFutureAssets class.
 
         Parameters
@@ -323,6 +327,8 @@ class AddFutureAssets:
             Current model year
         red_hours : list
             List of reduced hours from previous year network
+        scenario_configs : dict
+            Scenario configurations from the config file
         """
         self.network = network
         self.year = year
@@ -337,7 +343,7 @@ class AddFutureAssets:
         self.availability_dir = snakemake.input.pp_availability
         self.inflows_path = snakemake.input.stor_inflows
         self.currency = snakemake.params.currency
-        self.scenario_configs = snakemake.params.scenario_configs
+        self.scenario_configs = scenario_configs
         self.interest = self.scenario_configs["scenario_configs"]["interest"]
 
     # ========================== ADDING future interconnectors =========================
@@ -926,9 +932,15 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake("add_brownfield", sector="p-i-t", years=2030)
     configure_logging(snakemake)
-    sm_threshold = snakemake.params.scenario_configs["scenario_configs"][
-        "remove_threshold"
-    ]
+    scenario_configs = open_scenario_config(
+        "data/"
+        + snakemake.config["path_configs"]["data_folder_name"]
+        + "/"
+        + snakemake.config["path_configs"]["project_name"]
+        + "/input/"
+        + snakemake.config["path_configs"]["input_scenario_name"]
+    )
+    sm_threshold = scenario_configs["scenario_configs"]["remove_threshold"]
     sm_currency = snakemake.params.currency
     sm_year = int(snakemake.wildcards.years)
     sm_country_region = snakemake.params.country_region
@@ -945,7 +957,7 @@ if __name__ == "__main__":
     )
     sm_n.name = f"network_{snakemake.wildcards.sector}_{sm_year}"
     sm_red_hours, sm_weights = get_previous_year_red_hours(sm_n)
-    add_brownfield(sm_n, sm_year, sm_threshold)
+    add_brownfield(sm_n, sm_year, sm_threshold, scenario_configs)
     update_decommission_base_assets(
         sm_n,
         sm_year,
@@ -958,7 +970,12 @@ if __name__ == "__main__":
         sm_n, snakemake.input.fuel_supplies, sm_year, sm_currency, sm_country_region
     )
     # Executing each add functions
-    sm_c = AddFutureAssets(network=sm_n, year=sm_year, red_hours=sm_red_hours)
+    sm_c = AddFutureAssets(
+        network=sm_n,
+        year=sm_year,
+        red_hours=sm_red_hours,
+        scenario_configs=scenario_configs,
+    )
     sm_c.add_interconnectors()
     sm_c.add_storage_capacity(
         storage_capacity_dir=snakemake.input.elec_storage_capacity

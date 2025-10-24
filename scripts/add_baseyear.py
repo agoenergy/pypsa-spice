@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 import pypsa
 import tsam.timeseriesaggregation as tsam
+import yaml
 from _helpers import (
     FilePath,
     configure_logging,
@@ -41,7 +42,7 @@ logger = logging.getLogger(__name__)
 class AddBaseNetwork:
     """Add base year assets to pypsa network."""
 
-    def __init__(self, network: pypsa.Network, year: int):
+    def __init__(self, network: pypsa.Network, year: int, scenario_configs: dict):
         self.network = network
         self.year = year
         self.country_region = snakemake.params.country_region
@@ -54,7 +55,7 @@ class AddBaseNetwork:
         self.availability_dir = snakemake.input.pp_availability
         self.inflows_path = snakemake.input.stor_inflows
         self.currency = snakemake.params.currency
-        self.scenario_configs = snakemake.params.scenario_configs
+        self.scenario_configs = scenario_configs
         self.interest = self.scenario_configs["scenario_configs"]["interest"]
 
     # ================================== ADDING buses ==================================
@@ -802,8 +803,12 @@ if __name__ == "__main__":
         )
     # Establishing network
     n = pypsa.Network(name=f"network_{snakemake.wildcards.sector}_{selected_year}")
+    scenario_configs_path = snakemake.input.scenario_configs_path
 
-    snapshots = snakemake.params.scenario_configs["scenario_configs"]["snapshots"]
+    with open(scenario_configs_path) as f:
+        scenario_configs = yaml.safe_load(f)
+
+    snapshots = scenario_configs["scenario_configs"]["snapshots"]
     resolution = pd.date_range(
         start=snapshots["start"],
         end=snapshots["end"],
@@ -812,7 +817,7 @@ if __name__ == "__main__":
     )
     n.set_snapshots(resolution)
     # executing each add functions
-    c = AddBaseNetwork(network=n, year=selected_year)
+    c = AddBaseNetwork(network=n, year=selected_year, scenario_configs=scenario_configs)
     c.add_buses(bus_dir=snakemake.input.elec_buses)
     c.add_atmosphere()
     c.add_interconnectors()
@@ -845,11 +850,7 @@ if __name__ == "__main__":
     # c.add_noisy_cost() # noqa: E800
     c.remove_abundant_components()
     c.add_temporal_aggregation(
-        method=(
-            snakemake.params.scenario_configs["scenario_configs"]["resolution"][
-                "method"
-            ]
-        )
+        method=(scenario_configs["scenario_configs"]["resolution"]["method"])
     )
     c.add_co2_option()
     c.add_network_carriers()

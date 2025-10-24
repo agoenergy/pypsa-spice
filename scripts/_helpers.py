@@ -4,6 +4,7 @@
 
 """Helper functions for pypsa-spice."""
 
+import glob
 import logging
 import os
 import urllib
@@ -16,6 +17,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import snakemake as sm
+import yaml
 from progressbar import ProgressBar
 from snakemake.api import Workflow
 from snakemake.common import SNAKEFILE_CHOICES
@@ -1692,6 +1694,24 @@ def filter_selected_countries_and_regions(
                 filter_df = df[(df[column].str.contains("|".join(region_pattern)))]
         final_df = pd.concat([final_df, filter_df])
     return final_df
+
+
+def open_scenario_config(path: str) -> dict:
+    """Open and read scenario configuration from a YAML file.
+
+    Parameters
+    ----------
+    path : str
+        path to scenario_config.yaml
+
+    Returns
+    -------
+    dict
+        dictionary of scenario configuration
+    """
+    yaml_files = glob.glob(f"{path}/*.yaml")
+    with open(yaml_files[0]) as f:
+        return yaml.safe_load(f)
 
 
 if __name__ == "__main__":
