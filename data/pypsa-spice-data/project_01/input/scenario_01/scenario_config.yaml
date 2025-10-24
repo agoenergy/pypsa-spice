@@ -103,8 +103,8 @@ custom_constraints:
 #####Solver settings#####
 solving:
   solver:
-    name: gurobi
-    options: gurobi-default
+    name: highs
+    options: highs-default
   oetc:
     activate: false
     name: test-agora-job

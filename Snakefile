@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from os.path import normpath, exists
-from shutil import copyfile, move
 import glob
 import yaml
 
@@ -42,9 +41,19 @@ rule build_skeleton:
 def open_scenario_config():
     yaml_files = glob.glob(f"{SDIR}/*.yaml")
     if len(yaml_files) == 0:
+        # Check if directory exists
+        if not os.path.exists(SDIR):
+            raise ValueError(
+                f"WARNING: The scenario folder does not exist: {SDIR}. " +
+                "Please check the path_configs in base_config.yaml or use " +
+                "the build_skeleton rule to create the folder structure."
+            )
+        
+        # List what files are actually there
+        all_files = os.listdir(SDIR) if os.path.exists(SDIR) else []
         raise ValueError(
-            f"WARNING: At least one yaml file is required in {SDIR} folder to " 
-            + "represent the setting of the corresponding scenario."
+            f"WARNING: At least one yaml file is required in {SDIR} folder to " +
+            "represent the setting of the corresponding scenario."
         )
     elif len(yaml_files) > 1:
         raise ValueError(
@@ -88,7 +97,7 @@ rule add_baseyear:
     output:
         network=RDIR + "/pre-solve-brownfield/network_{sector}_{years}.nc",
     params:
-        scenario_configs=open_scenario_config(),
+        scenario_configs=lambda wildcards: open_scenario_config(),
         country_region=config["base_configs"]["regions"],
         currency=config["base_configs"]["currency"],
     wildcard_constraints:
@@ -154,7 +163,7 @@ rule add_brownfield:
     output:
         brownfield_network=RDIR + "/pre-solve-brownfield/network_{sector}_{years}.nc",
     params:
-        scenario_configs=open_scenario_config(),
+        scenario_configs=lambda wildcards: open_scenario_config(),
         country_region=config["base_configs"]["regions"],
         years=config["base_configs"]["years"],
         currency=config["base_configs"]["currency"],
@@ -181,11 +190,10 @@ rule solve_network:
         final_network=RDIR + "/post-solve/network_{sector}_{years}.nc",
         pre_solved=RDIR + "/pre-solve/network_{sector}_{years}.nc",
     params:
-        scenario_configs=open_scenario_config(),
+        scenario_configs=lambda wildcards: open_scenario_config(),
         country_region=config["base_configs"]["regions"],
         years=config["base_configs"]["years"],
         currency=config["base_configs"]["currency"]
-    threads: open_scenario_config()["solving"]["solver"].get("threads", 1)
     script:
         "scripts/solve_network.py"
 
@@ -205,7 +213,7 @@ rule make_summary:
     output:
         summary=RDIR + "/csvs/{sector}/{years}/summary.txt",
     params:
-        scenario_configs=open_scenario_config(),
+        scenario_configs=lambda wildcards: open_scenario_config(),
         results_dir=RDIR,
         project_name=config["path_configs"]["project_name"],
         scenario_name=config["path_configs"]["output_scenario_name"],

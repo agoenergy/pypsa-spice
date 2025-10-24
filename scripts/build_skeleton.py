@@ -9,6 +9,7 @@ It creates templates for buses, generators, storage, loads, interconnectors,
 and converter links for power, industry and transport sectors.
 """
 
+import glob
 import itertools
 import os
 import shutil
@@ -1639,14 +1640,17 @@ def create_folders(save_path: FilePath, sector_folder: bool = False):
     sector_folder : bool, optional
         Whether to create subfolders for each sector. Default is False.
     """
-    # Remove existing directory if present, then create a fresh one
-    if os.path.exists(save_path):
-        shutil.rmtree(save_path)
-    os.makedirs(save_path, exist_ok=True)
     # Create subfolders for each sector
     if sector_folder:
         for sector in ["power", "industry", "transport"]:
             os.makedirs(os.path.join(save_path, sector), exist_ok=True)
+    else:  # general input folder structure
+        # Remove existing directory if present, then create a fresh one
+        if os.path.exists(save_path):
+            shutil.rmtree(save_path)
+        os.makedirs(save_path, exist_ok=True)
+        os.makedirs(os.path.join(save_path, "input"), exist_ok=True)
+        os.makedirs(os.path.join(save_path, "input", "global_input"), exist_ok=True)
 
 
 def check_and_create_global_template_csv(
@@ -1663,10 +1667,10 @@ def check_and_create_global_template_csv(
     """
     for filename in os.listdir(global_template_path):
         if filename.endswith(".csv"):
-            target_path = os.path.join(output_project_folder_path, filename)
-
+            source_path = os.path.join(global_template_path, filename)
+            target_path = os.path.join(save_path, filename)
             if not os.path.exists(target_path):
-                shutil.copy2(os.path.join(global_template_path, filename), save_path)
+                shutil.copy2(source_path, target_path)
 
 
 if __name__ == "__main__":
@@ -1692,38 +1696,41 @@ if __name__ == "__main__":
     cfg_years = configurations["base_configs"]["years"]
     global_csv_skeletons_path = "data/global_input_template"
 
-    # Skeleton input porject folder path
-    output_project_folder_path = (
-        configurations["path_configs"]["input_dir"]
+    # Skeleton porject folder path
+    project_folder_path = (
+        "data/"
+        + configurations["path_configs"]["data_folder_name"]
+        + "/"
         + configurations["path_configs"]["project_name"]
     )
 
     # create_skeleton_inputs
-    create_folders(save_path=output_project_folder_path)
+    global_input_path = project_folder_path + "/input/global_input/"
+    create_folders(save_path=project_folder_path)
     check_and_create_global_template_csv(
-        save_path=output_project_folder_path,
+        save_path=global_input_path,
         global_template_path=global_csv_skeletons_path,
     )
 
     # Skeleton input scenario folder path
-    output_path = (
-        output_project_folder_path
-        + "/"
+    input_scenario_folder_path = (
+        project_folder_path
+        + "/input/"
         + configurations["path_configs"]["input_scenario_name"]
     )
     cfg_currency = configurations["base_configs"]["currency"]
 
     # output paths for global templates csvs
-    path_availability = output_project_folder_path + "/availability.csv"
-    path_demand_profiles = output_project_folder_path + "/demand_profile.csv"
-    path_ev_params = output_project_folder_path + "/ev_parameters.csv"
-    path_power_plant_cost = output_project_folder_path + "/power_plant_costs.csv"
-    path_potentials = output_project_folder_path + "/renewables_technical_potential.csv"
-    path_storage_costs = output_project_folder_path + "/storage_costs.csv"
-    path_storage_inflows = output_project_folder_path + "/storage_inflows.csv"
-    path_technologies = output_project_folder_path + "/technologies.csv"
+    path_availability = global_input_path + "/availability.csv"
+    path_demand_profiles = global_input_path + "/demand_profile.csv"
+    path_ev_params = global_input_path + "/ev_parameters.csv"
+    path_power_plant_cost = global_input_path + "/power_plant_costs.csv"
+    path_potentials = global_input_path + "/renewables_technical_potential.csv"
+    path_storage_costs = global_input_path + "/storage_costs.csv"
+    path_storage_inflows = global_input_path + "/storage_inflows.csv"
+    path_technologies = global_input_path + "/technologies.csv"
 
-    # Creating global template CSVs and save to defined output paths
+    # # Creating global template CSVs and save to defined output paths
     update_availability(
         save_path=path_availability,
         countries=cfg_countries,
@@ -1762,33 +1769,51 @@ if __name__ == "__main__":
     )
 
     # create_skeleton_inputs
-    create_folders(save_path=output_path, sector_folder=True)
+    create_folders(save_path=input_scenario_folder_path, sector_folder=True)
+
+    # create a scenario_config.yaml template file
+    yaml_files = glob.glob(f"{input_scenario_folder_path}/*.yaml")
+    if len(yaml_files) == 0:
+        shutil.copyfile(
+            "data/scenario_config_template/scenario_config.default.yaml",
+            f"{input_scenario_folder_path}/scenario_config.yaml",
+        )
 
     # output paths for regional templates csvs
-    path_p_buses = output_path + "/power/buses.csv"
-    path_p_fuel_supplies = output_path + "/power/fuel_supplies.csv"
-    path_p_storage_energy = output_path + "/power/storage_energy.csv"
-    path_p_loads = output_path + "/power/loads.csv"
-    path_p_generators = output_path + "/power/power_generators.csv"
-    path_p_storage_capacity = output_path + "/power/storage_capacity.csv"
-    path_p_interconnector = output_path + "/power/interconnector.csv"
-    path_p_links = output_path + "/power/power_links.csv"
-    path_p_decom_capacity = output_path + "/power/decomission_capacity.csv"
+    path_p_buses = input_scenario_folder_path + "/power/buses.csv"
+    path_p_fuel_supplies = input_scenario_folder_path + "/power/fuel_supplies.csv"
+    path_p_storage_energy = input_scenario_folder_path + "/power/storage_energy.csv"
+    path_p_loads = input_scenario_folder_path + "/power/loads.csv"
+    path_p_generators = input_scenario_folder_path + "/power/power_generators.csv"
+    path_p_storage_capacity = input_scenario_folder_path + "/power/storage_capacity.csv"
+    path_p_interconnector = input_scenario_folder_path + "/power/interconnector.csv"
+    path_p_links = input_scenario_folder_path + "/power/power_links.csv"
+    path_p_decom_capacity = (
+        input_scenario_folder_path + "/power/decomission_capacity.csv"
+    )
 
-    path_i_buses = output_path + "/industry/buses.csv"
-    path_i_storage_energy = output_path + "/industry/storage_energy.csv"
-    path_i_loads = output_path + "/industry/loads.csv"
-    path_i_heat_generators = output_path + "/industry/heat_generators.csv"
-    path_i_storage_capacity = output_path + "/industry/storage_capacity.csv"
-    path_i_heat_links = output_path + "/industry/heat_links.csv"
-    path_i_fuel_conversion = output_path + "/industry/fuel_conversion.csv"
-    path_i_dac = output_path + "/industry/direct_air_capture.csv"
-    path_i_decom_capacity = output_path + "/industry/decomission_capacity.csv"
+    path_i_buses = input_scenario_folder_path + "/industry/buses.csv"
+    path_i_storage_energy = input_scenario_folder_path + "/industry/storage_energy.csv"
+    path_i_loads = input_scenario_folder_path + "/industry/loads.csv"
+    path_i_heat_generators = (
+        input_scenario_folder_path + "/industry/heat_generators.csv"
+    )
+    path_i_storage_capacity = (
+        input_scenario_folder_path + "/industry/storage_capacity.csv"
+    )
+    path_i_heat_links = input_scenario_folder_path + "/industry/heat_links.csv"
+    path_i_fuel_conversion = (
+        input_scenario_folder_path + "/industry/fuel_conversion.csv"
+    )
+    path_i_dac = input_scenario_folder_path + "/industry/direct_air_capture.csv"
+    path_i_decom_capacity = (
+        input_scenario_folder_path + "/industry/decomission_capacity.csv"
+    )
 
-    path_t_buses = output_path + "/transport/buses.csv"
-    path_t_loads = output_path + "/transport/loads.csv"
-    path_t_pev_storages = output_path + "/transport/pev_storages.csv"
-    path_t_pev_chargers = output_path + "/transport/pev_chargers.csv"
+    path_t_buses = input_scenario_folder_path + "/transport/buses.csv"
+    path_t_loads = input_scenario_folder_path + "/transport/loads.csv"
+    path_t_pev_storages = input_scenario_folder_path + "/transport/pev_storages.csv"
+    path_t_pev_chargers = input_scenario_folder_path + "/transport/pev_chargers.csv"
 
     # Creating regional template CSVs and save to defined output paths
     # ====================================== Power =====================================
