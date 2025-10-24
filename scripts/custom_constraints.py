@@ -333,43 +333,44 @@ def re_pow_generation_constraint(
     lhs = 0
     for c in ["Generator", "StorageUnit", "Link"]:
         df = n.df(c)
-        p_gen = "p" if c != "StorageUnit" else "p_dispatch"
-        bus_name = "bus1" if c == "Link" else "bus"
-        res_gen = df[
-            (df.country == country)
-            & (
-                df.type.isin(
-                    [
-                        "PHOT",
-                        "FLOT",
-                        "CSP",
-                        "RTPV",
-                        "GEOT",
-                        "GEOX",
-                        "WTON",
-                        "WTOF",
-                        "HDAM",
-                        "HROR",
-                        "HPHS",
-                        "BATS",
-                        "BIOT",
-                        "WSTT",
-                    ]
+        if not df.empty:
+            p_gen = "p" if c != "StorageUnit" else "p_dispatch"
+            bus_name = "bus1" if c == "Link" else "bus"
+            res_gen = df[
+                (df.country == country)
+                & (
+                    df.type.isin(
+                        [
+                            "PHOT",
+                            "FLOT",
+                            "CSP",
+                            "RTPV",
+                            "GEOT",
+                            "GEOX",
+                            "WTON",
+                            "WTOF",
+                            "HDAM",
+                            "HROR",
+                            "HPHS",
+                            "BATS",
+                            "BIOT",
+                            "WSTT",
+                        ]
+                    )
                 )
-            )
-            & (df[bus_name].str.contains("HVELEC"))
-        ].index
-        if not res_gen.empty:
-            # Get var and weights
-            gen_var = get_var(n, c, p_gen).loc[:, res_gen]
-            weight_gen = xr.DataArray(
-                expand_series(n.snapshot_weightings.objective, df.index)
-            )
-            if c == "Link":
-                eff = xr.DataArray(df.loc[res_gen, "efficiency"])
-                lhs += (weight_gen * gen_var.mul(eff)).sum().sum()
-            else:
-                lhs += (weight_gen * gen_var).sum().sum()
+                & (df[bus_name].str.contains("HVELEC"))
+            ].index
+            if not res_gen.empty:
+                # Get var and weights
+                gen_var = get_var(n, c, p_gen).loc[:, res_gen]
+                weight_gen = xr.DataArray(
+                    expand_series(n.snapshot_weightings.objective, df.index)
+                )
+                if c == "Link":
+                    eff = xr.DataArray(df.loc[res_gen, "efficiency"])
+                    lhs += (weight_gen * gen_var.mul(eff)).sum().sum()
+                else:
+                    lhs += (weight_gen * gen_var).sum().sum()
     # RHS (Right Hand Side): targeted renewable generation share
     rhs = res_generation_share * (
         n.loads_t.p_set.multiply(n.snapshot_weightings.objective, axis=0)
