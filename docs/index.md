@@ -85,7 +85,7 @@ If you have ideas, suggestions, or encounter any issues, feel free to open an is
 
 ## Supported by
 
-[![CASE](assets/images/CASE.png)](https://caseforsea.org/) [![INETTT](assets/images/INETTT.svg)](https://www.inettt.org/)
+[![CASE](assets/images/CASE.png)](https://caseforsea.org/) [![INETTT](assets/images/INETTT.png)](https://www.inettt.org/)
 
 ## License
 
