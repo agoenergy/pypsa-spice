@@ -1369,7 +1369,7 @@ def create_decom_csv(years: list, file_path: FilePath) -> pd.DataFrame:
     """
     # Only include years after the first year for decommissioning columns
     year_columns = [year for year in years if year != years[0]]
-    columns = ["name", "class"] + year_columns
+    columns = ["country", "name", "class"] + year_columns
     decom_df = pd.DataFrame(columns=columns)
     decom_df.to_csv(file_path, index=False)
     return decom_df
