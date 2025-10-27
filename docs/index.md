@@ -26,10 +26,8 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 <!-- badges-end -->
 
-This open-source project is led by [Agora Energiewende](https://www.agora-energiewende.org/), with support from [CASE for Southeast Asia](https://caseforsea.org/) and the [International Network of Energy Transition Think Tanks (INETTT)](https://www.inettt.org/).
-
 !!! info
-    If you are considering using this model builder, please reach out to us at [edm-training@agora-thinktanks.org](mailto:edm-training@agora-thinktanks.org){:target="_blank"}. We would be happy to help you get started.
+    If you are considering using this model builder, please reach out to us at [modelling@agora-thinktanks.org](mailto:modelling@agora-thinktanks.org){:target="_blank"}. We would be happy to help you get started.
     If you encounter a bug, please create a [new issue](https://github.com/agoenergy/pypsa-spice/issues){:target="_blank"}. For new ideas or feature requests, you can start a conversation in the [discussions](https://github.com/agoenergy/pypsa-spice/discussions){:target="_blank"} section of the repository.
 
 PyPSA-SPICE is an open-source model builder for assessing national mid/long-term energy scenarios using a least-cost, multi-sectoral optimization approach based on the [PyPSA](https://pypsa.org/){:target="_blank"} framework. It can be used to build models that represent one or more countries across multiple interconnected nodes linked by electricity transmission, and within each region, it models the integration of power, heat, and transport sectors. The model focuses on the power sector, which is represented with a high level of detail.
@@ -81,13 +79,21 @@ Please use the citation below:
 We welcome contributions from anyone interested in improving this project. Please take a moment to review our [Contributing Guide](contributing/contributing.md) and [Code of Conduct](contributing/code_of_conduct.md).
 If you have ideas, suggestions, or encounter any issues, feel free to open an issue or submit a pull request on GitHub.
 
+## Maintained by
+
+[![AgoraEW](assets/images/Agora_EW.png)](https://www.agora-energiewende.org/)
+
+## Supported by
+
+[![CASE](assets/images/CASE.png)](https://caseforsea.org/) [![INETTT](assets/images/INETTT.svg)](https://www.inettt.org/)
+
 ## License
 
-Copyright &copy; [PyPSA-SPICE Developers](docs/references/developers.md)
+Copyright &copy; [PyPSA-SPICE Developers](references/developers.md)
 
-PyPSA-SPICE is licensed under the open source [GNU General Public License v2.0 or later](LICENSE)
+PyPSA-SPICE is licensed under the open source [GNU General Public License v2.0 or later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 with the following information:
 
-The documentation is licensed under [CC-BY-4.0](LICENSES/CC-BY-4.0.txt).
+The documentation is licensed under [CC-BY-4.0](https://interoperable-europe.ec.europa.eu/licence/creative-commons-attribution-40-international-cc-40).
 
 The repository uses [REUSE](https://reuse.software/) to expose the licenses of its files.

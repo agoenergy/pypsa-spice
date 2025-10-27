@@ -146,4 +146,4 @@ All the listed components are defined as `Store` in PyPSA.
 - Must run constraint of thermal generators
 - Capacity factor constraint
 
-You can refer to [Model Builder Constraints](../getting-started/input-data/model-builder-configuration.md#custom-constraints) for more information.
+You can refer to [Model Builder Constraints](../getting-started/input-data/model-builder-configuration.md) for more information.

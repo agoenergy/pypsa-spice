@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-@font-face {
+ @font-face {
   font-family: 'Flexo';
   src:
     url('../fonts/Flexo-Medium.woff2') format('woff2'),
@@ -29,6 +29,15 @@ body {
 .md-header__title img {
     height: 100px; /* Adjust this value to change the height */
     width: auto;  /* Maintain aspect ratio */
+}
+
+img[alt="AgoraEW"], 
+img[alt="CASE"], 
+img[alt="INETTT"] { 
+  width: 150px; 
+  margin-right: 30px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* Adjust the size of different graphs*/
