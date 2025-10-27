@@ -35,7 +35,7 @@ from custom_constraints import (
     thermal_must_run_constraint,
 )
 from dotenv import load_dotenv
-from linopy.oetc import OetcCredentials, OetcHandler, OetcSettings
+from linopy.remote.oetc import OetcCredentials, OetcHandler, OetcSettings
 
 logger = logging.getLogger(__name__)
 
