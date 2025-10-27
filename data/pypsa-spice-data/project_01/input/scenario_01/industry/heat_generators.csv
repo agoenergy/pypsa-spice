@@ -1,0 +1,7 @@
+country,node,type,carrier,bus,name,p_nom,p_nom_extendable,p_nom_max_2025,p_nom_max_2030,p_nom_max_2035,p_nom_max_2040,p_nom_max_2045,p_nom_max_2050,p_nom_min_2025,p_nom_min_2030,p_nom_min_2035,p_nom_min_2040,p_nom_min_2045,p_nom_min_2050
+XY,XY_CE,SWHT,Solar,XY_CE_IND-LH,XY_CE_IND-LH_SWHT,0,TRUE,0.00E+00,inf,inf,inf,inf,inf,0,0,0,0,0,0
+XY,XY_NR,SWHT,Solar,XY_NR_IND-LH,XY_NR_IND-LH_SWHT,0,TRUE,0.00E+00,inf,inf,inf,inf,inf,0,0,0,0,0,0
+XY,XY_SO,SWHT,Solar,XY_SO_IND-LH,XY_SO_IND-LH_SWHT,0,TRUE,0.00E+00,inf,inf,inf,inf,inf,0,0,0,0,0,0
+YZ,YZ_CE,SWHT,Solar,YZ_CE_IND-LH,YZ_CE_IND-LH_SWHT,0,TRUE,0.00E+00,inf,inf,inf,inf,inf,0,0,0,0,0,0
+YZ,YZ_NR,SWHT,Solar,YZ_NR_IND-LH,YZ_NR_IND-LH_SWHT,0,TRUE,0.00E+00,inf,inf,inf,inf,inf,0,0,0,0,0,0
+YZ,YZ_SO,SWHT,Solar,YZ_SO_IND-LH,YZ_SO_IND-LH_SWHT,0,TRUE,0.00E+00,inf,inf,inf,inf,inf,0,0,0,0,0,0
