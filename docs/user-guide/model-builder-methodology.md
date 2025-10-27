@@ -1,6 +1,6 @@
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
@@ -12,7 +12,7 @@ The diagram below illustrates the energy flows within a single node:
 
 [![PyPSA-SPICE overview schema](../assets/images/pypsa-spice_schema_overview.svg){ .img-center width="100%" }](../assets/images/pypsa-spice_schema_overview.svg){: target="_blank" }
 
-Each component in this model follows the definitions from [PyPSA components](https://pypsa.readthedocs.io/en/latest/user-guide/components.html){:target="_blank"} and the system is structured into three main sectors:
+Each component in this model follows the definitions from [PyPSA components](https://docs.pypsa.org/latest/user-guide/design/){:target="_blank"} and the system is structured into three main sectors:
 
 - [Power sector](power_sector.md)
 - [Industry sector](industry_sector.md)

@@ -1,2 +1,5 @@
-# Auto detect text files and perform LF normalization
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 * text=auto

@@ -1,6 +1,6 @@
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
@@ -9,7 +9,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 PyPSA has a vibrant and welcoming community of modellers. Here are some resources which can help you understand the methodology, knowledge and structure of PyPSA related models:
 
 - [PyPSA introduction from TU Berlin](https://fneum.github.io/data-science-for-esm/intro.html){:target="_blank"}
-- [PyPSA documentation](https://pypsa.readthedocs.io/en/latest/){:target="_blank"}
+- [PyPSA documentation](https://docs.pypsa.org/latest/){:target="_blank"}
 - [PyPSA-meets-Earth discord channel](https://discord.com/channels/911692131440148490/911692132056727574){:target="_blank"}
 - [PyPSA-Eur documentation](https://pypsa-eur.readthedocs.io/en/latest/){:target="_blank"}
 

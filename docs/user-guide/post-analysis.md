@@ -1,6 +1,6 @@
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
@@ -12,9 +12,9 @@ The following NetCDF files, CSVs, and charts are generated automatically after t
 
 [NetCDF (Network Common Data Form)](https://en.wikipedia.org/wiki/NetCDF){:target="_blank"} is a data format for efficiently storing multi-dimensional arrays. By default, the PyPSA-SPICE model creates:
 
-- **Pre-solve networks** in the `results/pre-solve` directory.
-- **Pre-solve-brownfield networks** in the `results/pre-solve-brownfield` directory.
-- **Post networks** in the `results/post-solve` directory.
+- **Pre-solve networks** in the `results/pre-solve` directory in the `project_name` folder.
+- **Pre-solve-brownfield networks** in the `results/pre-solve-brownfield` directory in the `project_name` folder.
+- **Post networks** in the `results/post-solve` directory in the `project_name` folder.
 
 These `*.nc` files allow users to examine the model’s structure, inputs, and results before and after optimisation.
 

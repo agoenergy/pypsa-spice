@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -32,7 +32,6 @@ def main(getters):
         ]:
         all_countries.update(getters.get_country_list(df))
 
-    scenario_options = getters.get_project_folder_list(df_widgets_handler.base_input_path)
 
 ########################## Demand Side #################################################
 ########################## Render the UI part ##########################################
@@ -56,7 +55,7 @@ def main(getters):
             st.info("No countries found")
             
     with col12:
-        scenario_options = getters.get_project_folder_list(df_widgets_handler.base_input_path)
+        scenario_options = getters.get_input_scenario_list()
 
         # Use the first scenario as default if no scenario is set
         if "scenario" not in st.session_state:

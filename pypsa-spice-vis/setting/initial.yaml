@@ -1,5 +1,0 @@
-input_data_folder: "../data/example"
-project: "project_01" # initial project setting.
-sce1: "scenario_01" # initial scenario 1 setting.
-sce2: "" # initial scenario 2.
-

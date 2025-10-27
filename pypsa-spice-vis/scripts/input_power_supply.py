@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -31,9 +31,6 @@ def main(getters):
         ]:
         all_countries.update(getters.get_country_list(df))
 
-    scenario_options = getters.get_project_folder_list(df_widgets_handler.base_input_path)
-
-
 ########################## Supply Side #################################################
 ########################## Render the UI part ##########################################
 
@@ -56,18 +53,14 @@ def main(getters):
             st.info("No countries found")
             
     with col12:
-        scenario_options = getters.get_project_folder_list(df_widgets_handler.base_input_path)
-
+        scenario_options = getters.get_input_scenario_list()
         # Use the first scenario as default if no scenario is set
         if "scenario" not in st.session_state:
-            st.session_state.scenario = scenario_options[0] if scenario_options else None
-
+            st.session_state.scenario = scenario_options if scenario_options else None
         selected_scenario = st.pills(
             "Select Scenario:",
             options=scenario_options,
-            default=st.session_state.scenario 
-            if st.session_state.scenario in scenario_options 
-            else scenario_options[0],
+            default=scenario_options[0],
             help="Select scenario to view/edit data.",
             selection_mode="single",
             key="supply_scenario_pills"
@@ -248,7 +241,7 @@ def main(getters):
             st.info("No countries found")
             
     with col12:
-        scenario_options = getters.get_project_folder_list(df_widgets_handler.base_input_path)
+        scenario_options = getters.get_input_scenario_list()
 
         # Use the first scenario as default if no scenario is set
         if "scenario" not in st.session_state:
@@ -276,11 +269,11 @@ def main(getters):
 
     ## Interconnectors
     input_ui_handler.set_up_single_tab_widget(
-        "interconnector",
-        dfs["intercon_df"],
-        ["ITCN"], 
-        csvs_dict["interconnector"].path,
-        [base_country], 
+        csv_dict_key="interconnector",
+        input_df=dfs["intercon_df"],
+        selected_types=["ITCN"], 
+        input_csv_path=csvs_dict["interconnector"].path,
+        selected_countries=[base_country], 
     )
     
 

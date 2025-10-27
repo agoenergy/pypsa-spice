@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,12 +14,14 @@ and countries.
 import logging
 import os
 import pathlib
+from functools import partial
 from typing import Any
 
 import pandas as pd
 import pypsa
 from _helpers import (
     configure_logging,
+    open_scenario_config,
 )
 from custom_constraints import (
     add_energy_independence_constraint,
@@ -38,7 +40,9 @@ from linopy.oetc import OetcCredentials, OetcHandler, OetcSettings
 logger = logging.getLogger(__name__)
 
 
-def extra_functionality_linopt(network: pypsa.Network, snapshots: pd.Series):
+def extra_functionality_linopt(
+    network: pypsa.Network, snapshots: pd.Series, scenario_configs: dict
+):
     """Add all custom constraints to the network before solving.
 
     Parameters
@@ -47,6 +51,8 @@ def extra_functionality_linopt(network: pypsa.Network, snapshots: pd.Series):
         PyPSA network object containing all components and functions.
     snapshots (pd.Series):
         hours being optimised in the model.
+    scenario_configs : dict
+        Configuration dictionary containing scenario settings.
     """
     add_storage_constraints(network)
     constraint_added = False
@@ -56,7 +62,7 @@ def extra_functionality_linopt(network: pypsa.Network, snapshots: pd.Series):
     base_year = config["base_configs"]["years"][0]
     country = config
     for country in config["base_configs"]["regions"].keys():
-        country_emission_settings = config["co2_management"][country]
+        country_emission_settings = scenario_configs["co2_management"][country]
         if country_emission_settings.get("option") == "co2_cap":
             co2_cap_constraint(
                 network,
@@ -64,10 +70,10 @@ def extra_functionality_linopt(network: pypsa.Network, snapshots: pd.Series):
                 co2_cap=country_emission_settings["value"][year],
             )
 
-        if country not in config.get("custom_constraints", {}):
+        if country not in scenario_configs.get("custom_constraints", {}):
             continue
 
-        country_constraints = config["custom_constraints"][country]
+        country_constraints = scenario_configs["custom_constraints"][country]
 
         # Capacity factor constraint
         if (
@@ -99,7 +105,7 @@ def extra_functionality_linopt(network: pypsa.Network, snapshots: pd.Series):
             ].set_index("carrier")
             restricted_carriers = country_constraints["production_constraint_fuels"]
             fuel_supply_limits = fuel_supply_limits.loc[
-                restricted_carriers, "max_supply [MWh/year]"
+                restricted_carriers, "max_supply__mwh_year"
             ].to_dict()
             fuel_supply_constraint(
                 network, country=country, supply_limits=fuel_supply_limits
@@ -150,7 +156,9 @@ def extra_functionality_linopt(network: pypsa.Network, snapshots: pd.Series):
         print("No custom constraint was added to the model")
 
 
-def solve_network(network: pypsa.Network, year: int, config: dict) -> pypsa.Network:
+def solve_network(
+    network: pypsa.Network, year: int, scenario_configs: dict
+) -> pypsa.Network:
     """Solve the optimization problem for the given network and year.
 
     Parameters
@@ -159,7 +167,7 @@ def solve_network(network: pypsa.Network, year: int, config: dict) -> pypsa.Netw
         PyPSA network object containing all components and functions.
     year : int
         Year for which the optimization is being solved.
-    config : dict
+    scenario_configs : dict
         Configuration dictionary containing solver settings and other parameters.
 
     Returns
@@ -168,12 +176,14 @@ def solve_network(network: pypsa.Network, year: int, config: dict) -> pypsa.Netw
         The solved PyPSA network object.
     """
     # solver settings
-    set_of_options = config["solving"]["solver"]["options"]
+    set_of_options = scenario_configs["solving"]["solver"]["options"]
     solver_options = (
-        config["solving"]["solver_options"][set_of_options] if set_of_options else {}
+        scenario_configs["solving"]["solver_options"][set_of_options]
+        if set_of_options
+        else {}
     )
-    solver_name = (config["solving"]["solver"]["name"]).lower()
-    oetc = config["solving"]["oetc"]
+    solver_name = (scenario_configs["solving"]["solver"]["name"]).lower()
+    oetc = scenario_configs["solving"]["oetc"]
 
     if oetc["activate"]:
         # remove activate key from oetc dict
@@ -197,12 +207,15 @@ def solve_network(network: pypsa.Network, year: int, config: dict) -> pypsa.Netw
         oetc_handler = None
 
     print(f"######## Solving model with {solver_name.capitalize()}")
+    extra_functionality_linopt_config = partial(
+        extra_functionality_linopt, scenario_configs=scenario_configs
+    )
     # ================================ Solve with Gurobi ===============================
     if solver_name.lower() == "gurobi":
         # solve network
         network.optimize(
             solver_name=solver_name,
-            extra_functionality=extra_functionality_linopt,
+            extra_functionality=extra_functionality_linopt_config,
             **({"remote": oetc_handler} if oetc_handler else {}),
             **solver_options,
         )
@@ -228,13 +241,13 @@ def solve_network(network: pypsa.Network, year: int, config: dict) -> pypsa.Netw
             network.optimize(
                 solver_name=solver_name,
                 solver_options=solver_options_numerical,
-                extra_functionality=extra_functionality_linopt,
+                extra_functionality=extra_functionality_linopt_config,
             )
     # ======= Solve with solver with solver-specific options (e.g., CPLEX, HiGHS) ======
     elif solver_name.lower() in ["cplex", "highs"]:
         network.optimize(
             solver_name=solver_name,
-            extra_functionality=extra_functionality_linopt,
+            extra_functionality=extra_functionality_linopt_config,
             **({"remote": oetc_handler} if oetc_handler else {}),
             **solver_options,
         )
@@ -243,7 +256,7 @@ def solve_network(network: pypsa.Network, year: int, config: dict) -> pypsa.Netw
         network.optimize(
             solver_name=solver_name,
             keep_references=True,
-            extra_functionality=extra_functionality_linopt,
+            extra_functionality=extra_functionality_linopt_config,
         )
     return network
 
@@ -255,6 +268,14 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake("solve_network", sector="p-i-t", years=2025)
     configure_logging(snakemake)
+    scenario_configs = open_scenario_config(
+        "data/"
+        + snakemake.config["path_configs"]["data_folder_name"]
+        + "/"
+        + snakemake.config["path_configs"]["project_name"]
+        + "/input/"
+        + snakemake.config["path_configs"]["input_scenario_name"]
+    )
     y = int(snakemake.wildcards.years)
     n = pypsa.Network(
         snakemake.input.network,
@@ -264,7 +285,7 @@ if __name__ == "__main__":
             n, snakemake.input.re_technical_potential, year=y
         )
     n.export_to_netcdf(snakemake.output.pre_solved)
-    n = solve_network(n, y, config=snakemake.config)
+    n = solve_network(n, y, scenario_configs=scenario_configs)
 
     if n.model.status != "warning":
         print("model feasible!")

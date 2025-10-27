@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# Untrack all files and folders in this directory
+/pypsa-spice-data/
+
+# Exceptions: These files will not be ignored and will remain under Git version control.
+# You can list additional files or folders here that you want Git to track.
+!/pypsa-spice-data/project_01/input/

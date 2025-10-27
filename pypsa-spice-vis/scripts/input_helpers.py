@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 import os
 import streamlit as st
 import pandas as pd
@@ -17,10 +21,8 @@ class dfWidgetsHandler:
     def __init__(self):
         self.getters = Getters()
         self.input_ui_handler = InputUiHandler()
-
         self.csvs_dict = self.input_ui_handler.csvs_dict
         self.input_folder_path = st.session_state["input_data_folder_path"]
-        
         project_folders = self.getters.get_project_folder_list(
             self.input_folder_path
         )
@@ -31,18 +33,25 @@ class dfWidgetsHandler:
 
         self.base_input_path = os.path.join(
             self.input_folder_path, 
-            self.input_data_project
+            self.input_data_project,
+            "input",
         )
 
+        self.global_input_path = os.path.join(
+            self.base_input_path,
+            "global_input",
+        )
         sub_folder = (
             st.session_state["scenario"]
             if "scenario" in st.session_state
-            else self.getters.get_project_folder_list(self.base_input_path)[0]
+            else self.getters.init_conf["path_configs"]["input_scenario_name"]
         )
 
-        # Params for scenario-dependent files
-        self.scenario_input_path = os.path.join(self.base_input_path, sub_folder)
-
+        self.scenario_input_path = os.path.join(
+            self.base_input_path, 
+            sub_folder
+        )
+        
         self.scenario_input_file_keys = [
             "decomission", 
             "fuel_costs",
@@ -55,21 +64,21 @@ class dfWidgetsHandler:
 
         # Path parts to all the csvs
         self.csv_files_path_parts = {
-            "technologies": ["Technologies.csv"],           
-            "availability": ["Availability.csv"],     
-            "demand": ["Demand_Profile.csv"],
-            "pp_costs": ["PowerPlant_costs.csv"],       
-            "potentials": ["Renewables_technical_potential.csv"],
-            "storage_cost": ["Storage_costs.csv"],
-            "storage_inflows": ["Storage-Inflows.csv"],
-            "decomission": ["Power", "decomission_capacity.csv"],
-            "fuel_costs": ["Power", "fuel_supplies.csv"],
-            "interconnector": ["Power", "interconnector.csv"],
-            "load": ["Power", "loads.csv"],
-            "generator": ["Power", "power_generators.csv"],
-            "links": ["Power", "power_links.csv"],
-            "storageunit": ["Power", "storage_capacity.csv"],
-            "store": ["Power", "storage_energy.csv"],
+            "technologies": ["technologies.csv"],           
+            "availability": ["availability.csv"],     
+            "demand": ["demand_profile.csv"],
+            "pp_costs": ["power_plant_costs.csv"],       
+            "potentials": ["renewables_technical_potential.csv"],
+            "storage_cost": ["storage_costs.csv"],
+            "storage_inflows": ["storage_inflows.csv"],
+            "decomission": ["power", "decomission_capacity.csv"],
+            "fuel_costs": ["power", "fuel_supplies.csv"],
+            "interconnector": ["power", "interconnector.csv"],
+            "load": ["power", "loads.csv"],
+            "generator": ["power", "power_generators.csv"],
+            "links": ["power", "power_links.csv"],
+            "storageunit": ["power", "storage_capacity.csv"],
+            "store": ["power", "storage_energy.csv"],
         }
         
     def load_all_dfs(self) -> dict:
@@ -86,7 +95,7 @@ class dfWidgetsHandler:
                 base_folder = (
                     self.scenario_input_path
                     if key in self.scenario_input_file_keys
-                    else self.base_input_path
+                    else self.global_input_path
                 )
                 self.csvs_dict[key].path = os.path.join(base_folder, *parts)
 
@@ -139,6 +148,7 @@ class dfWidgetsHandler:
             self.csvs_dict[key].path = os.path.join(
                 self.input_folder_path,
                 self.input_data_project,
+                "input",
                 selected_scenario,
                 *parts,
             )
@@ -182,7 +192,7 @@ class InputUiHandler:
                 title="Availability",
                 filter_fn=self._filter_df_generic,
                 empty_df_fn=self._empty_df_message_generic,
-                empty_df_kwargs={"msg": "Taking Availability from Availability.csv"},
+                empty_df_kwargs={"msg": "Taking availability from availability.csv"},
             ),
             "demand": CsvDictConfig(
                 identifier="demand",
@@ -190,7 +200,7 @@ class InputUiHandler:
                 title="Demand Profiles",
                 filter_fn=self._filter_df_generic,
                 empty_df_fn=self._empty_df_message_generic,
-                empty_df_kwargs={"msg": "Taking Demand from Demand_Profile.csv"},
+                empty_df_kwargs={"msg": "Taking demand from demand_profile.csv"},
             ),
             "pp_costs": CsvDictConfig(
                 identifier="costs",
@@ -216,7 +226,7 @@ class InputUiHandler:
                 title="Storage Inflows",
                 filter_fn=self._filter_df_generic,
                 empty_df_fn=self._empty_df_message_generic,
-                empty_df_kwargs={"msg": "Taking Demand from Demand_Profile.csv"},
+                empty_df_kwargs={"msg": "Taking inflows from storage_inflows.csv"},
             ),
             "decomission": CsvDictConfig(
                 identifier="decomission",
@@ -235,14 +245,14 @@ class InputUiHandler:
             ),
             "interconnector": CsvDictConfig(
                 identifier="interconnector",
-                filter_col="link",
+                filter_col="type",
                 title="Interconnector",
                 filter_fn=self._filter_df_generic,
                 empty_df_fn=self._empty_df_message_generic,
             ),
             "load": CsvDictConfig(
                 identifier="load",
-                filter_col="name",
+                filter_col="profile_type",
                 title="Load",
                 filter_fn=self._filter_df_generic,
                 empty_df_fn=self._empty_df_message_generic,
@@ -531,7 +541,7 @@ class InputUiHandler:
         selected_countries : list, optional
             Country(s) selected by the user in the global country select widget. 
         secondary_df : pd.DataFrame, optional
-            Additional df if needed (e.g., Availability may need Technologies.csv).
+            Additional df if needed (e.g., Availability may need technologies.csv).
         """
         csv_config = self.csvs_dict[csv_dict_key]
 
@@ -739,7 +749,7 @@ class InputUiHandler:
 
             if node_demand_toggle:
                 nodes = df.loc[df["country"] == selected_country, "node"].unique()
-                # # Node filter within the vis tab, only for Availability
+                # # Node filter within the vis tab
                 selected_demand_node = st.pills(
                     "Select a node",
                     options=nodes,
@@ -761,17 +771,37 @@ class InputUiHandler:
 
         elif csv_identifier == "load":
             filtered_df = df[df["country"] == selected_country]
+            
+            node_load_toggle = st.toggle("Include node filter in the load", value=False)
 
-            x, y = "year", "total_load"
-            leg_col = "profile_type"
-            labels = {"total_load": "Total Load (MW)", "year": "Year"}
+            if node_load_toggle:
+                nodes = df.loc[df["country"] == selected_country, "node"].unique()
+                # # Node filter within the vis tab
+                selected_load_node = st.pills(
+                    "Select a node",
+                    options=nodes,
+                    default=nodes[0], # First node in the list as default
+                    selection_mode="single",
+                    key="node_select_key_avail"
+                )
+                filtered_df = filtered_df[
+                    (filtered_df["country"] == selected_country) &
+                    (filtered_df["node"] == selected_load_node)
+                ]
+                leg_col = "profile_type"
+            else:
+                filtered_df = filtered_df[(filtered_df["country"] == selected_country)]
+                leg_col = "node"
+
+            x, y = "year", "total_load__mwh"
+            labels = {"total_load__mwh": "Total Load (MW)", "year": "Year"}
 
         elif csv_identifier == "costs":
             filtered_df = df[df["country"] == selected_country]
 
-            x, y = "year", "CAP[USD/MW]"
+            x, y = "year", "cap__usd_mw"
             leg_col = "powerplant_type"
-            labels = {"CAP[USD/MW]": "Capital Cost (USD/MW)", "year": "Year"}
+            labels = {"cap__usd_mw": "Capital Cost (USD/MW)", "year": "Year"}
         else:
             raise ValueError(f"Unknown csv_identifier: {csv_identifier}")
 

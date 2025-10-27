@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,7 +13,7 @@ import os
 from typing import Any
 
 import pandas as pd
-from _helpers import add_unit_column
+from _helpers import add_unit_column, configure_logging, open_scenario_config
 from _post_analysis import OutputTables
 
 
@@ -48,23 +48,31 @@ if __name__ == "__main__":
         from _helpers import mock_snakemake  # pylint: disable=ungrouped-imports
 
         snakemake = mock_snakemake("make_summary", sector="p-i-t", years=2025)
+    configure_logging(snakemake)
+    scenario_configs = open_scenario_config(
+        "data/"
+        + snakemake.config["path_configs"]["data_folder_name"]
+        + "/"
+        + snakemake.config["path_configs"]["project_name"]
+        + "/input/"
+        + snakemake.config["path_configs"]["input_scenario_name"]
+    )
 
     selected_year = int(snakemake.wildcards.years)
     selected_sector = snakemake.wildcards.sector
-    output_dir = (
-        snakemake.params.results_dir
-        + snakemake.params.project_name
-        + "/"
-        + snakemake.params.scenario_name
-        + "/"
-    )
 
     save_output_folder = create_folder(
-        year=selected_year, sector=selected_sector, results_dir=output_dir
+        year=selected_year,
+        sector=selected_sector,
+        results_dir=snakemake.params.results_dir,
     )
     network_list = []
     network_list.append(snakemake.input.network)
-    ot = OutputTables(network_list=network_list, config=snakemake.config)
+    ot = OutputTables(
+        network_list=network_list,
+        config=snakemake.config,
+        scenario_configs=scenario_configs,
+    )
     # Get all non-default callable methods of output table class
     method_list = [
         func
@@ -84,8 +92,9 @@ if __name__ == "__main__":
     if "t" not in snakemake.wildcards.sector:
         summary_methods = [func for func in summary_methods if "tran_" not in func]
 
-    if snakemake.params.resolution["method"] == "nth_hour":
-        NTH_HOUR = snakemake.params.resolution["stepsize"]
+    resolution = scenario_configs["scenario_configs"]["resolution"]
+    if resolution["method"] == "nth_hour":
+        NTH_HOUR = resolution["stepsize"]
     else:  # clustered method
         NTH_HOUR = 1
 

@@ -1,6 +1,6 @@
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
@@ -10,27 +10,21 @@ This section explains how to set up a new model for a particular country/region 
 
 Steps of setting up a new model:
 
-1. Set up the configuration file (`config.yaml`).
-2. Run `python script/build_skeleton.py` to create a folder structure and template CSV files for your input data.
+1. Adjust the information inside `base_config.yaml`.
+2. Run `snakemake -c1 build_skeleton` to create a folder structure and template CSV files for your input data. All input folders and files shall be created inside the `data` folder after this command is executed.
 3. Fill in the skeleton CSVs with the required data manually or using available resources.
 
 An example structure created by ``build_skeleton`` is displayed below. The following sections will use this example to explain the settings.
 
-## Step 1: Set up the Configuration File
+## Step 1: Set up the Base Configuration File
 
-Setting up the config requires defining the scope and resolution of the model. Specifically, defining which countries/regions will be represented in the model and for which year the model will be run. While it is possible to change these after initial model is created, it would require significant effort to add new regions/years in the input CSVs.  
+Setting up the base config requires defining the scope and resolution of the model. Specifically, defining which countries/regions will be represented in the model and for which year the model will be run. While it is possible to change these after initial model is created, it would require significant effort to add new regions/years in the input CSVs.  
 
-The `config.yaml` contains two parts:
-
-- **Skeleton settings:** for defining the overall structure of the model that is used to create the input data files.
-- **Model settings:** for model execution (see [Model Configuration](model-builder-configuration.md)) and turning on/off different conditions.
-
-In the first part (named **Init settings**), following parameters should be defined as shown below.
+The `base_config.yaml` contains two parts which will be used both for folder structure building and model executions:
 
 ```yaml title="Init settings in the config.yaml file"
 path_configs: #(1)!
-  input_dir: data/example/
-  results_dir: results/ 
+  data_folder_name: pypsa-spice-data
   project_name: project_01
   input_scenario_name: scenario_01 # (2)!
   output_scenario_name: scenario_01_tag1 # (3)!
@@ -50,66 +44,66 @@ base_configs:
 5. Modelled years should be provided as a list.
 6. Options: [`p`, `p-i`, `p-t`, `p-i-t`], representing power (`p`), industry (`i`), and transport (`t`) sectors.
 
-The final skeleton folder path will follow this structure:: `input_dir`/`countries`/`input_scenario_name`.
+The final skeleton folder path will follow this structure:: `data`/`data_folder_name`/`project_name`.
 
-By setting different ``input_scenario_name`` and country or regional settings in the ``base_configs`` section (see details in [Model Configuration](model-builder-configuration.md)), a new skeleton structure under the same `input_dir` folder will be created.
+By setting different ``input_scenario_name`` and country or regional settings in the ``base_configs`` section (see details in [Model Configuration](model-builder-configuration.md)), a new skeleton structure under the same `data_folder_name` folder will be created.
 
 ## Step 2: Build the Skeleton
 
 After modifying the configuration file, run the following command in your terminal.
 
 ```bash title="Generating the skeleton folder"
-python script/build_skeleton.py
+snakemake -c1 build_skeleton
 ```
 
 This step creates your skeleton folder and files which can be feed with your data.
 
 ```text title="Structure of Folder and files created by build skeleton script"
 📦 data
- ┣ 📂 example
- ┃  ┗ 📂 project_01
- ┃   ┗ 📂 scenario_01
- ┃     ┣ 📂 industry
- ┃     ┃ ┣ 📜 buses.csv
- ┃     ┃ ┣ 📜 decommission_capacity.csv
- ┃     ┃ ┣ 📜 direct_air_capture.csv
- ┃     ┃ ┣ 📜 fuel_conversion.csv
- ┃     ┃ ┣ 📜 heat_generators.csv
- ┃     ┃ ┣ 📜 heat_links.csv
- ┃     ┃ ┣ 📜 loads.csv
- ┃     ┃ ┣ 📜 storage_capacity.csv
- ┃     ┃ ┗ 📜 storage_energy.csv
- ┃     ┣ 📂 Power
- ┃     ┃ ┣ 📜 buses.csv
- ┃     ┃ ┣ 📜 decommission_capacity.csv
- ┃     ┃ ┣ 📜 fuel_suppliers.csv
- ┃     ┃ ┣ 📜 interconnector.csv
- ┃     ┃ ┣ 📜 loads.csv
- ┃     ┃ ┣ 📜 power_generators.csv
- ┃     ┃ ┣ 📜 storage_capacity.csv
- ┃     ┃ ┣ 📜 power_links.csv
- ┃     ┃ ┗ 📜 storage_energy.csv
- ┃     ┗ 📂 Transport
- ┃       ┣ 📜 buses.csv
- ┃       ┣ 📜 loads.csv
- ┃       ┣ 📜 pev_chargers.csv
- ┃       ┗ 📜 pev_storages.csv
- ┣ 📂 global_csv_templates
- ┃ ┣ 📜 Technologies.csv
- ┃ ┣ 📜 Availability.csv
- ┃ ┣ 📜 Demand_Profile.csv
- ┃ ┣ 📜 PowerPlant_costs.csv
- ┃ ┣ 📜 Renewables_technical_potential.csv
- ┃ ┣ 📜 Storage-Inflows.csv
- ┃ ┗ 📜 Storage_costs.csv
- ┗ 📂 override_component_attrs
+ ┗ 📂 pypsa-spice-data
+    ┗ 📂 project_01
+       ┣ 📂 input
+       ┃ ┣ 📂 global_input
+       ┃ ┃ ┣ 📜 availability.csv
+       ┃ ┃ ┣ 📜 demand_profile.csv
+       ┃ ┃ ┣ 📜 ev_parameters.csv
+       ┃ ┃ ┣ 📜 power_plant_costs.csv
+       ┃ ┃ ┣ 📜 renewables_technical_potential.csv
+       ┃ ┃ ┣ 📜 storage_costs.csv
+       ┃ ┃ ┣ 📜 storage_inflows.csv
+       ┃ ┃ ┗ 📜 technologies.csv
+       ┃ ┗ 📂 scenario_01
+       ┃   ┣ 📂 industry
+       ┃   ┃ ┣ 📜 buses.csv
+       ┃   ┃ ┣ 📜 decommission_capacity.csv
+       ┃   ┃ ┣ 📜 direct_air_capture.csv
+       ┃   ┃ ┣ 📜 fuel_conversion.csv
+       ┃   ┃ ┣ 📜 heat_generators.csv
+       ┃   ┃ ┣ 📜 heat_links.csv
+       ┃   ┃ ┣ 📜 loads.csv
+       ┃   ┃ ┣ 📜 storage_capacity.csv
+       ┃   ┃ ┗ 📜 storage_energy.csv
+       ┃   ┣ 📂 power
+       ┃   ┃ ┣ 📜 buses.csv
+       ┃   ┃ ┣ 📜 decommission_capacity.csv
+       ┃   ┃ ┣ 📜 fuel_suppliers.csv
+       ┃   ┃ ┣ 📜 interconnector.csv
+       ┃   ┃ ┣ 📜 loads.csv
+       ┃   ┃ ┣ 📜 power_generators.csv
+       ┃   ┃ ┣ 📜 storage_capacity.csv
+       ┃   ┃ ┣ 📜 power_links.csv
+       ┃   ┃ ┗ 📜 storage_energy.csv
+       ┃   ┣ 📂 transport
+       ┃   ┃ ┣ 📜 buses.csv
+       ┃   ┃ ┣ 📜 loads.csv
+       ┃   ┃ ┣ 📜 pev_chargers.csv
+       ┃   ┃ ┗ 📜 pev_storages.csv
+       ┃   ┗ 📜 scenario_config.yaml
+       ┗ 📂 results (will be created when during the model execution)
 ```
 
-**Note:** The ``override_component_attrs`` folder supports multi-output for PyPSA components. These files are used internally and don’t need to be edited.
-
 !!! Tip
-    You will only need to run `build_skeleton` ones while setting up the model. After this initial run you *should* turn of `build_skeleton` in `config.yaml`. Otherwise, the `build_skeleton` will overwrite your data from in the input files and create new empty files.
-    Once you have created a skeleton for one of the scenarios, you can simply copy this folder to create additional scenarios. We recommend to do this after you have filled the data for the first scenario.  
+    Once you’ve created a skeleton data folder for one scenario, you can simply duplicate the scenario folder and rename the folder name to set up additional scenarios. However, we recommend doing this only after you’ve completed filling in the data for the first one.  
 
 ## Step 3: Fill in the Skeleton CSVs
 
@@ -117,9 +111,8 @@ Once a new skeleton folder is created, project-specific CSV templates will be se
 
 To help you fill these files:
 
-- See [Regional CSV Template](regional_csv_template.md) for detailed file descriptions.
-- Check [Global CSV Template](global_csv_template.md) for default global values. If needed, you can copy values from global templates into the regional ones. However, these values are based on the average assumption of global average, and might not be as accurate as valued obtained from regional sources. Global data is useful as a fallback, but using regional data is strongly recommended for more accurate results.
-
+- Check [Global CSV Template](global_csv_template.md) for default  file descriptions of country-level data.
+- See [Regional CSV Template](regional_csv_template.md) for detailed file descriptions of region-level data.
 Once all the necessary input data is provided, adjust model and solver settings in [Model Configuration](model-builder-configuration.md) and follow [Model Execution](model-builder-execution.md) to understand the model logic and how to run the model.
 
 !!! Tip

@@ -1,11 +1,10 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # coding: utf-8
 
-project: "project_01" # Mandatory input project name. This name is the same as `project_name` from pypsa-spice/config.yaml.
-
-sce1: "scenario_01" # Mandatory input name of the first scenario ( the name is usually `ref` from the `output_scenario_name` in pypsa-spice/config.yaml).
-
-sce2: "" # Optional input name of the first scenario ( the name is usually other scenarios from the `output_scenario_name` in pypsa-spice/config.yaml).
+input_data_folder: "../data/pypsa-spice-data"
+project: "project_01" # Mandatory input project name. This name is the same as `project_name` from pypsa-spice/base_config.yaml.
+sce1: "scenario_01" # Mandatory input name of the first scenario ( the name is usually `ref` from the `output_scenario_name` in pypsa-spice/base_config.yaml).
+sce2: "" # Optional input name of the first scenario ( the name is usually other scenarios from the `output_scenario_name` in pypsa-spice/base_config.yaml).

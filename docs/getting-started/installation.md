@@ -1,6 +1,6 @@
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
@@ -86,19 +86,17 @@ On Windows, new versions of ``ipopt`` have caused problems. Consider downgrading
 
 ## Set up the Default Configuration
 
-PyPSA-SPICE requires several configuration options to be defined in a `config.yaml` file located in the root directory of the project. An example file, `config.default.yaml`, is provided in the repository as a reference.
+PyPSA-SPICE requires two configuration files:
 
-Before running PyPSA-SPICE for the first time, create your own ``config.yaml`` by copying the example file:
+1. **`base_config.yaml`**: Located in the project root directory, this file contains general configurations needed to set up the initial input data structure.
 
-```bash title="Creating the config.yaml file"
-cp config.default.yaml config.yaml
-```
+2. **`scenario_config.yaml`**: Located inside each scenario folder, this file contains scenario-specific configurations. It is only used after the input data structure has been created.
 
-Users are encouraged to regularly compare their own ``config.yaml`` with ``config.default.yaml`` when pulling updates from the remote repository, to ensure compatibility with any new or changed configuration options.
+To get started, configure `base_config.yaml` first, then run the data setup process. Once complete, you can configure individual scenarios using their respective `scenario_config.yaml` files. For detailed configuration options, refer to [model-builder-configuration](input-data/model-builder-configuration.md).
 
 ## Quick Execution of the Model Builder using Template Data
 
-To have a first glance of how the model builder works, template data in `/root/data/global_csv_templates` folder can be used. After completing the installation, run the entire workflow with the following command:
+To have a first glance of how the model builder works, template data in `data/pypsa-spice-data` folder can be used. You can run the entire workflow with the following command:
 
 ```bash title="Running the entire workflow using this single command"
 snakemake -j1 -c4 solve_all_networks # (1)!

@@ -1,6 +1,6 @@
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
@@ -8,38 +8,39 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 ```text title="Structure of the regional CSV template files"
 📦 data
- ┗ 📂 example
+ ┗ 📂 pypsa-spice-data
     ┗ 📂 project_01
-     ┗ 📂 scenario_01
-       ┣ 📂 Power
-       ┃ ┣ 📜 buses.csv
-       ┃ ┣ 📜 decommission_capacity.csv
-       ┃ ┣ 📜 fuel_suppliers.csv
-       ┃ ┣ 📜 interconnector.csv
-       ┃ ┣ 📜 loads.csv
-       ┃ ┣ 📜 power_generators.csv
-       ┃ ┣ 📜 power_links.csv
-       ┃ ┣ 📜 storage_capacity.csv
-       ┃ ┗ 📜 storage_energy.csv
-       ┣ 📂 Industry
-       ┃ ┣ 📜 buses.csv
-       ┃ ┣ 📜 decommission_capacity.csv
-       ┃ ┣ 📜 direct_air_capture.csv
-       ┃ ┣ 📜 fuel_conversion.csv
-       ┃ ┣ 📜 heat_generators.csv
-       ┃ ┣ 📜 heat_links.csv
-       ┃ ┣ 📜 loads.csv
-       ┃ ┣ 📜 storage_capacity.csv
-       ┃ ┗ 📜 storage_energy.csv
-       ┗ 📂 Transport
-         ┣ 📜 buses.csv
-         ┣ 📜 loads.csv
-         ┣ 📜 pev_chargers.csv
-         ┗ 📜 pev_storages.csv
+       ┗ 📂 input
+         ┗ 📂 scenario_01
+           ┣ 📂 industry
+           ┃ ┣ 📜 buses.csv
+           ┃ ┣ 📜 decommission_capacity.csv
+           ┃ ┣ 📜 direct_air_capture.csv
+           ┃ ┣ 📜 fuel_conversion.csv
+           ┃ ┣ 📜 heat_generators.csv
+           ┃ ┣ 📜 heat_links.csv
+           ┃ ┣ 📜 loads.csv
+           ┃ ┣ 📜 storage_capacity.csv
+           ┃ ┗ 📜 storage_energy.csv
+           ┣ 📂 power
+           ┃ ┣ 📜 buses.csv
+           ┃ ┣ 📜 decommission_capacity.csv
+           ┃ ┣ 📜 fuel_suppliers.csv
+           ┃ ┣ 📜 interconnector.csv
+           ┃ ┣ 📜 loads.csv
+           ┃ ┣ 📜 power_generators.csv
+           ┃ ┣ 📜 storage_capacity.csv
+           ┃ ┣ 📜 power_links.csv
+           ┃ ┗ 📜 storage_energy.csv
+           ┗ 📂 transport
+             ┣ 📜 buses.csv
+             ┣ 📜 loads.csv
+             ┣ 📜 pev_chargers.csv
+             ┗ 📜 pev_storages.csv
 ```
 
 !!! Tip
-    The currency of all example data is `USD` defined in the `base_configs` section of `config.yaml`. You can refer to [Model Builder Configuration](model-builder-configuration.md#init-settings) for more information.
+    The currency of all example data is `USD` defined in the `base_configs` section of `config.yaml`. You can refer to [Model Builder Configuration](model-builder-configuration.md#base_configyaml) for more information.
 
 !!! Tip
     If there's a cell with `inf` in the csv files, it represents infinite value in `float` datatype when it is read into the network.
@@ -59,8 +60,8 @@ This file defines the buses to be used in the model. All components need to be c
 
 `Decommission_capacity.csv` contains the installed capacity of power plants scheduled for decommissioning.
 
-- For **Generators**, the `name` column must match the `name` column in `input_dir/project_name/input_scenario_name/Power/power_generators.csv`.
-- For **Links**, the `name` column must match the `link` column in `input_dir/project_name/input_scenario_name/Power/power_links.csv`
+- For **Generators**, the `name` column must match the `name` column in `data_folder_name/project_name/input/input_scenario_name/power/power_generators.csv`.
+- For **Links**, the `name` column must match the `link` column in `data_folder_name/project_name/input/input_scenario_name/power/power_links.csv`
 
 
 | Parameter   | definition                                                |
@@ -101,8 +102,8 @@ Interconnectors connect different regions by their maximum power transfer capaci
 | `p_min_pu`                 | Minimum availability per snapshot (per unit of `p_nom`)                           |
 | `p_nom`                    | Nominal capacity in the default year [MW]                        |
 | `p_nom_extendable`         | Indicates if capacity can be expanded. Possible values: `TRUE` or `FALSE`    |
-| `CAP`                      | Capital expenditure in USD/MW (currency based on input data)     |
-| `FOM`                      | Fixed annual operation and maintenance cost in USD/MWa (currency based on input data)     |
+| `cap__usd_mw`                      | Capital expenditure in USD/MW (currency based on input data)     |
+| `fom__usd_mwa`                      | Fixed annual operation and maintenance cost in USD/MWa (currency based on input data)     |
 | `marginal_cost`            | Marginal cost of the link in USD/MWh (currency based on input data)      |
 | `p_nom_max_{YEAR}` | Maximum additional capacity allowed for the given year in MW  |
 | `p_nom_min_{YEAR}` | Minimum additional capacity allowed for the given year in MW  |
@@ -118,7 +119,7 @@ This file contains the **total** load per load type which is matched to `profile
 | `bus`          | PyPSA `bus` component. The values can be `{NODE}_HVELEC` or `{NODE}_LVELEC` for power sector, `{NODE}_IND-LH` or `{NODE}_IND-HH` for industry sector, and `{NODE}_TRAN-PRV` or `{NODE}_TRAN-PUB` for transport sector |
 | `profile_type` | Load profile type                         |
 | `name`         | Load name. Format: `{BUS}_{PROFILE_TYPE}`   |
-| `total_load`   | Total annual load in MW                                      |
+| `total_load__mwh`   | Total annual load in MWh                                  |
 | `carrier`      | Energy carrier or resource. First letter capitalized                  |
 | `year`         | Year of the load data                                                          |
 
@@ -190,7 +191,7 @@ See details of description for use of storage energy in [power sector](../../use
 
 ## EV Chargers
 
-See details of implementation [here](../../user-guide/transport_sector.md/#electric-vehicle-chargers).
+See details of implementation [here](../../user-guide/transport_sector.md).
 
 | Parameter                | definition                                                                 |
 | ------------------------ | -------------------------------------------------------------------------- |
