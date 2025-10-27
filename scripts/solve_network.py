@@ -207,10 +207,10 @@ def solve_network(
         oetc_handler = None
 
     print(f"######## Solving model with {solver_name.capitalize()}")
-    # ================================ Solve with Gurobi ===============================
     extra_functionality_linopt_config = partial(
         extra_functionality_linopt, scenario_configs=scenario_configs
     )
+    # ================================ Solve with Gurobi ===============================
     if solver_name.lower() == "gurobi":
         # solve network
         network.optimize(
@@ -247,7 +247,7 @@ def solve_network(
     elif solver_name.lower() in ["cplex", "highs"]:
         network.optimize(
             solver_name=solver_name,
-            extra_functionality=extra_functionality_linopt,
+            extra_functionality=extra_functionality_linopt_config,
             **({"remote": oetc_handler} if oetc_handler else {}),
             **solver_options,
         )
