@@ -4,4 +4,6 @@ SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
-# To be updated
+# How to Contribute
+
+PyPSA-SPICE is an open-source repository and thus your contributions are welcome and appreciated!
