@@ -853,7 +853,7 @@
 
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
@@ -863,7 +863,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <li>Optimal charging of electric vehicles (EVs), taking into account availability and charging constraints.</li>
 <li>Supply of fuels for transport.</li>
 </ul>
-<p>The structure and function of each component follow the definitions from the <a href="https://pypsa.readthedocs.io/en/latest/user-guide/components.html" target="_blank">PyPSA components</a>. The diagram below illustrates the components and energy flows at a single node in the transport sector.</p>
+<p>The structure and function of each component follow the definitions from the <a href="https://docs.pypsa.org/latest/user-guide/design/" target="_blank">PyPSA components</a>. The diagram below illustrates the components and energy flows at a single node in the transport sector.</p>
 <p><a href="../../assets/images/pypsa-spice_schema_transport_sector.svg" target="_blank"><img alt="PyPSA-SPICE transport sector energy flow" class="img-center" src="../../assets/images/pypsa-spice_schema_transport_sector.svg" width="60%" /></a></p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -895,7 +895,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <p class="admonition-title">Tip</p>
 <p>In PyPSA components, <code>Store</code> is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of <code>store</code> + 2 <code>links</code>. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
 In the transport sector of PyPSA-SPICE model builder, technologies that are defined as storage energy, their links of charging and discharging links are defined in <a href="./#electric-vehicle-chargers">Electric Vehicle Chargers</a>.<br><br>
-Detailed information and example can be found in <a href="https://pypsa.readthedocs.io/en/latest/user-guide/components.html#store" target="_blank">PyPSA Components - Store</a> and <a href="https://pypsa.readthedocs.io/en/latest/examples/replace-generator-storage-units-with-store.html" target="_blank">Replace StorageUnits with fundamental Links and Stores</a>.</p>
+Detailed information and example can be found in <a href="https://docs.pypsa.org/latest/user-guide/components/stores/" target="_blank">PyPSA Components - Store</a> and <a href="https://docs.pypsa.org/latest/examples/replace-generator-storage-units-with-store/" target="_blank">Replace StorageUnits with fundamental Links and Stores</a>.</p>
 </div>
 <table>
 <thead>
@@ -1055,7 +1055,7 @@ Detailed information and example can be found in <a href="https://pypsa.readthed
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025, PyPSA-SPICE Developers, see References section.
+      Copyright &copy; 2025, PyPSA-SPICE Developers, see References section. | CC-BY-4.0
     </div>
   
   

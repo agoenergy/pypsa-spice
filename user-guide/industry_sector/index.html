@@ -889,7 +889,7 @@
 
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
@@ -900,7 +900,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <li>High-temperature (above 350°C)</li>
 <li>Low/medium-temperature (350°C or below)</li>
 </ul>
-<p>The structure and functionality of components follow the <a href="https://pypsa.readthedocs.io/en/latest/user-guide/components.html" target="_blank">PyPSA Components</a>. The diagram below shows the full set of components involved in energy flows for a single industrial node.</p>
+<p>The structure and functionality of components follow the <a href="https://docs.pypsa.org/latest/user-guide/design/" target="_blank">PyPSA Components</a>. The diagram below shows the full set of components involved in energy flows for a single industrial node.</p>
 <p><a href="../../assets/images/pypsa-spice_schema_industrial_sector.svg" target="_blank"><img alt="PyPSA-SPICE industry sector energy flow" class="img-center" src="../../assets/images/pypsa-spice_schema_industrial_sector.svg" width="100%" /></a></p>
 <h2 id="heat-generators">Heat Generators<a class="headerlink" href="#heat-generators" title="Permanent link">&para;</a></h2>
 <p>The following component is defined as <code>Generator</code> in PyPSA.</p>
@@ -1002,7 +1002,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <p>The following component is defined as <code>StorageUnit</code> in PyPSA.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>In PyPSA components, <code>StorageUnit</code> is modelled as a storage asset with a fixed energy-to-power ratio defined by <code>max_hours</code> of the nominal power (you can also refer to <a href="https://pypsa.readthedocs.io/en/latest/user-guide/components.html#storage-unit" target="_blank">PyPSA Components - Storage Unit</a> for more information).<br><br>
+<p>In PyPSA components, <code>StorageUnit</code> is modelled as a storage asset with a fixed energy-to-power ratio defined by <code>max_hours</code> of the nominal power (you can also refer to <a href="https://docs.pypsa.org/latest/user-guide/components/storage-units/" target="_blank">PyPSA Components - Storage Unit</a> for more information).<br><br>
 To model the storage energy separately from the power capacity, <code>store</code> + 2 <code>links</code> is a better combination. You can refer to <a href="../power_sector/#storage-energy">Storage Energy</a> for more information. Technologies defined in the storage energy require storage capacity if the carrier is related to electricity (power).</p>
 </div>
 <table>
@@ -1025,7 +1025,7 @@ To model the storage energy separately from the power capacity, <code>store</cod
 <p class="admonition-title">Tip</p>
 <p>In PyPSA components, <code>Store</code> is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of <code>store</code> + 2 <code>links</code>. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
 IIn the industry sector of PyPSA-SPICE model builder, the media <code>electricity</code> is replaced by <code>low temperature heat</code> in the storage process. Technologies that are defined as storage energy, <strong>they should also be included in <a href="../power_sector/#storage-capacity">Storage Capacity</a> to describe charging and discharging processes. The links are created automatically , and hence it's not required to add charging and discharging links inside <a href="./#heat-links">Heat Links</a>, <a href="./#fuel-conversion">Fuel Conversion</a>, or <a href="./#direct-air-capture">Direct Air Capture</a>.</strong><br><br>
-Detailed information and example can be found in <a href="https://pypsa.readthedocs.io/en/latest/user-guide/components.html#store" target="_blank">PyPSA Components - Store</a> and <a href="https://pypsa.readthedocs.io/en/latest/examples/replace-generator-storage-units-with-store.html" target="_blank">Replace StorageUnits with fundamental Links and Stores</a>.</p>
+Detailed information and example can be found in <a href="https://docs.pypsa.org/latest/user-guide/components/stores/" target="_blank">PyPSA Components - Store</a> and <a href="https://docs.pypsa.org/latest/examples/replace-generator-storage-units-with-store/" target="_blank">Replace StorageUnits with fundamental Links and Stores</a>.</p>
 </div>
 <table>
 <thead>
@@ -1229,7 +1229,7 @@ Detailed information and example can be found in <a href="https://pypsa.readthed
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025, PyPSA-SPICE Developers, see References section.
+      Copyright &copy; 2025, PyPSA-SPICE Developers, see References section. | CC-BY-4.0
     </div>
   
   

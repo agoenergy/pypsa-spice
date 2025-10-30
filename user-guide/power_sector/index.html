@@ -871,7 +871,7 @@
 
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
@@ -882,7 +882,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <li><strong>Myopic</strong> (Year-by-year) optimisation. Each year is optimised independently, without assuming knowledge of future developments.</li>
 <li><strong>Brownfield</strong> modelling approach. The model builds on existing infrastructure, meaning capacity from previous years is retained and carried forward.</li>
 </ul>
-<p>PyPSA-SPICE follows the component definitions from <a href="https://pypsa.readthedocs.io/en/latest/user-guide/components.html" target="_blank">PyPSA Components</a>. The diagram below illustrates all components involved in energy flows at a single node in the power sector.</p>
+<p>PyPSA-SPICE follows the component definitions from <a href="https://docs.pypsa.org/latest/user-guide/design/" target="_blank">PyPSA Components</a>. The diagram below illustrates all components involved in energy flows at a single node in the power sector.</p>
 <p><a href="../../assets/images/pypsa-spice_schema_power_sector.svg" target="_blank"><img alt="PyPSA-SPICE power sector energy flow" class="img-center" src="../../assets/images/pypsa-spice_schema_power_sector.svg" width="100%" /></a></p>
 <h2 id="power-generators">Power Generators<a class="headerlink" href="#power-generators" title="Permanent link">&para;</a></h2>
 <p>All the listed components are defined as <code>Generator</code> in PyPSA.</p>
@@ -984,12 +984,12 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <p>The following component is defined as <code>StorageUnit</code> in PyPSA.</p>
 <p>Storages can be modelled with two approaches.</p>
 <ol>
-<li><strong>Fixed Energy/Power Ratio:</strong> In this case, the energy to power ratio for storage is predefined. You can use multiple storage type with different energy to power ratio. For example, <code>BATS</code> with E/P ratio of 4 and <code>BATS</code> with E/P ratio of 8 representing different energy to power ratio and the model will optimise the capacity of each of these technology. In this case, PyPSA type <code>Storage_units</code> can be used for modelling and defining the energy to power ratio in <code>Technologies.csv</code>.</li>
+<li><strong>Fixed Energy/Power Ratio:</strong> In this case, the energy to power ratio for storage is predefined. You can use multiple storage type with different energy to power ratio. For example, <code>BATS</code> with E/P ratio of 4 and <code>BATS</code> with E/P ratio of 8 representing different energy to power ratio and the model will optimise the capacity of each of these technology. In this case, PyPSA type <code>Storage_units</code> can be used for modelling and defining the energy to power ratio in <code>technologies.csv</code>.</li>
 <li><strong>Variable Energy/Power Ratio:</strong> If you want the model to optimise the energy/power ratio of storage your have to model it using a combination of <code>links</code> + <code>store</code> component. This requires separate inputs like costs for capacity and energy component of the storage inputs.</li>
 </ol>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>In PyPSA components, <code>StorageUnit</code> is modelled as a storage asset with a fixed energy-to-power ratio defined by <code>max_hours</code> of the nominal power (you can also refer to <a href="https://pypsa.readthedocs.io/en/latest/user-guide/components.html#storage-unit" target="_blank">PyPSA Components - Storage Unit</a> for more information). Thus, in PyPSA-SPICE model builder, hydro dam <code>HDAM</code> is defined as a <code>StorageUnit</code> and it is given in storage capcaity only to represent nominal power-related params. <br><br>
+<p>In PyPSA components, <code>StorageUnit</code> is modelled as a storage asset with a fixed energy-to-power ratio defined by <code>max_hours</code> of the nominal power (you can also refer to <a href="https://docs.pypsa.org/latest/user-guide/components/storage-units/" target="_blank">PyPSA Components - Storage Unit</a> for more information). Thus, in PyPSA-SPICE model builder, hydro dam <code>HDAM</code> is defined as a <code>StorageUnit</code> and it is given in storage capcaity only to represent nominal power-related params. <br><br>
 To model the storage energy separately from the power capacity, <code>store</code> + 2 <code>links</code> is a better combination. You can refer to <a href="./#storage-energy">Storage Energy</a> for more information. Technologies defined in the storage energy require storage capacity if the carrier is related to electricity (power).</p>
 </div>
 <table>
@@ -1024,7 +1024,7 @@ To model the storage energy separately from the power capacity, <code>store</cod
 <p class="admonition-title">Tip</p>
 <p>In PyPSA components, <code>Store</code> is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of <code>store</code> + 2 <code>links</code>. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
 In PyPSA-SPICE model builder, technologies that are defined as storage energy, <strong>they should also be included in <a href="./#storage-capacity">Storage Capacity</a> to describe charging and discharging processes. The links are created automatically , and hence it's not required to add charging and discharging links inside <a href="./#power-links">Power Links</a>.</strong><br><br>
-Detailed information and example can be found in <a href="https://pypsa.readthedocs.io/en/latest/user-guide/components.html#store" target="_blank">PyPSA Components - Store</a> and <a href="https://pypsa.readthedocs.io/en/latest/examples/replace-generator-storage-units-with-store.html" target="_blank">Replace StorageUnits with fundamental Links and Stores</a>.</p>
+Detailed information and example can be found in <a href="https://docs.pypsa.org/latest/user-guide/components/stores/" target="_blank">PyPSA Components - Store</a> and <a href="https://docs.pypsa.org/latest/examples/replace-generator-storage-units-with-store/" target="_blank">Replace StorageUnits with fundamental Links and Stores</a>.</p>
 </div>
 <table>
 <thead>
@@ -1243,7 +1243,7 @@ Detailed information and example can be found in <a href="https://pypsa.readthed
 <li>Must run constraint of thermal generators</li>
 <li>Capacity factor constraint</li>
 </ul>
-<p>You can refer to <a href="../../getting-started/input-data/model-builder-configuration/#custom-constraints">Model Builder Constraints</a> for more information.</p>
+<p>You can refer to <a href="../../getting-started/input-data/model-builder-configuration/">Model Builder Constraints</a> for more information.</p>
 
 
 
@@ -1319,7 +1319,7 @@ Detailed information and example can be found in <a href="https://pypsa.readthed
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025, PyPSA-SPICE Developers, see References section.
+      Copyright &copy; 2025, PyPSA-SPICE Developers, see References section. | CC-BY-4.0
     </div>
   
   

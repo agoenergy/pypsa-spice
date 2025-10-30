@@ -539,9 +539,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#step-1-set-up-the-configuration-file" class="md-nav__link">
+  <a href="#step-1-set-up-the-base-configuration-file" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 1: Set up the Configuration File
+      Step 1: Set up the Base Configuration File
     </span>
   </a>
   
@@ -902,7 +902,7 @@
 
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
@@ -910,99 +910,96 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <p>This section explains how to set up a new model for a particular country/region using the PyPSA-SPICE model builder. Once your model is step you can run the model as described in <a href="../model-builder-execution/">model execution</a>.</p>
 <p>Steps of setting up a new model:</p>
 <ol>
-<li>Set up the configuration file (<code>config.yaml</code>).</li>
-<li>Run <code>python script/build_skeleton.py</code> to create a folder structure and template CSV files for your input data.</li>
+<li>Adjust the information inside <code>base_config.yaml</code>.</li>
+<li>Run <code>snakemake -c1 build_skeleton</code> to create a folder structure and template CSV files for your input data. All input folders and files shall be created inside the <code>data</code> folder after this command is executed.</li>
 <li>Fill in the skeleton CSVs with the required data manually or using available resources.</li>
 </ol>
 <p>An example structure created by <code>build_skeleton</code> is displayed below. The following sections will use this example to explain the settings.</p>
-<h2 id="step-1-set-up-the-configuration-file">Step 1: Set up the Configuration File<a class="headerlink" href="#step-1-set-up-the-configuration-file" title="Permanent link">&para;</a></h2>
-<p>Setting up the config requires defining the scope and resolution of the model. Specifically, defining which countries/regions will be represented in the model and for which year the model will be run. While it is possible to change these after initial model is created, it would require significant effort to add new regions/years in the input CSVs.  </p>
-<p>The <code>config.yaml</code> contains two parts:</p>
-<ul>
-<li><strong>Skeleton settings:</strong> for defining the overall structure of the model that is used to create the input data files.</li>
-<li><strong>Model settings:</strong> for model execution (see <a href="../model-builder-configuration/">Model Configuration</a>) and turning on/off different conditions.</li>
-</ul>
-<p>In the first part (named <strong>Init settings</strong>), following parameters should be defined as shown below.</p>
+<h2 id="step-1-set-up-the-base-configuration-file">Step 1: Set up the Base Configuration File<a class="headerlink" href="#step-1-set-up-the-base-configuration-file" title="Permanent link">&para;</a></h2>
+<p>Setting up the base config requires defining the scope and resolution of the model. Specifically, defining which countries/regions will be represented in the model and for which year the model will be run. While it is possible to change these after initial model is created, it would require significant effort to add new regions/years in the input CSVs.  </p>
+<p>The <code>base_config.yaml</code> contains two parts which will be used both for folder structure building and model executions:</p>
 <div class="language-yaml highlight"><span class="filename">Init settings in the config.yaml file</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">path_configs</span><span class="p">:</span><span class="w"> </span><span class="c1">#(1)!</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">input_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data/example/</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">results_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/</span><span class="w"> </span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">project_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">project_01</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">scenario_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scenario_01</span><span class="w"> </span><span class="c1"># (2)!</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">data_folder_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pypsa-spice-data</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">project_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">project_01</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">input_scenario_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scenario_01</span><span class="w"> </span><span class="c1"># (2)!</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">output_scenario_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scenario_01_tag1</span><span class="w"> </span><span class="c1"># (3)!</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nt">base_configs</span><span class="p">:</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">regions</span><span class="p">:</span><span class="w"> </span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nt">XY</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;NR&quot;</span><span class="p p-Indicator">,</span><span class="s">&quot;CE&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;SO&quot;</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># (3)!</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nt">XY</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;NR&quot;</span><span class="p p-Indicator">,</span><span class="s">&quot;CE&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;SO&quot;</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># (4)!</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">YZ</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;NR&quot;</span><span class="p p-Indicator">,</span><span class="s">&quot;CE&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;SO&quot;</span><span class="p p-Indicator">]</span><span class="w"> </span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nt">years</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">2025</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2030</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2035</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2040</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2045</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2050</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># (4)!</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="nt">sector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;p-i-t&quot;</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># (5)!</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nt">years</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">2025</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2030</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2035</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2040</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2045</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2050</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># (5)!</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="nt">sector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;p-i-t&quot;</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># (6)!</span>
 </span></code></pre></div>
 <ol>
 <li>This section is for configuring directory structure for storing model inputs and results.</li>
-<li>A custom name you define for the scenario in your model.</li>
+<li>A custom name you define for the input scenario folder in your model.</li>
+<li>A custom name you define for the output scenario folder to save your model results.</li>
 <li>List of regions or nodes within each country. This defines the network’s nodal structure. The country list contains <strong>2-letter</strong> country codes according to <a href="https://www.iso.org/iso-3166-country-codes.html" target="_blank">ISO 3166</a>.</li>
 <li>Modelled years should be provided as a list.</li>
 <li>Options: [<code>p</code>, <code>p-i</code>, <code>p-t</code>, <code>p-i-t</code>], representing power (<code>p</code>), industry (<code>i</code>), and transport (<code>t</code>) sectors.</li>
 </ol>
-<p>The final skeleton folder path will follow this structure:: <code>input_dir</code>/<code>countries</code>/<code>scenario_name</code>.</p>
-<p>By setting different <code>scenario_name</code> and country or regional settings in the <code>base_configs</code> section (see details in <a href="../model-builder-configuration/">Model Configuration</a>), a new skeleton structure under the same <code>input_dir</code> folder will be created.</p>
+<p>The final skeleton folder path will follow this structure:: <code>data</code>/<code>data_folder_name</code>/<code>project_name</code>.</p>
+<p>By setting different <code>input_scenario_name</code> and country or regional settings in the <code>base_configs</code> section (see details in <a href="../model-builder-configuration/">Model Configuration</a>), a new skeleton structure under the same <code>data_folder_name</code> folder will be created.</p>
 <h2 id="step-2-build-the-skeleton">Step 2: Build the Skeleton<a class="headerlink" href="#step-2-build-the-skeleton" title="Permanent link">&para;</a></h2>
 <p>After modifying the configuration file, run the following command in your terminal.</p>
-<div class="language-bash highlight"><span class="filename">Generating the skeleton folder</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>script/build_skeleton.py
+<div class="language-bash highlight"><span class="filename">Generating the skeleton folder</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>snakemake<span class="w"> </span>-c1<span class="w"> </span>build_skeleton
 </span></code></pre></div>
 <p>This step creates your skeleton folder and files which can be feed with your data.</p>
 <div class="language-text highlight"><span class="filename">Structure of Folder and files created by build skeleton script</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>📦 data
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a> ┣ 📂 example
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a> ┃  ┗ 📂 project_01
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a> ┃   ┗ 📂 scenario_01
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a> ┃     ┣ 📂 industry
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a> ┃     ┃ ┣ 📜 buses.csv
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a> ┃     ┃ ┣ 📜 decommission_capacity.csv
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a> ┃     ┃ ┣ 📜 direct_air_capture.csv
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a> ┃     ┃ ┣ 📜 fuel_conversion.csv
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a> ┃     ┃ ┣ 📜 heat_generators.csv
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a> ┃     ┃ ┣ 📜 heat_links.csv
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a> ┃     ┃ ┣ 📜 loads.csv
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a> ┃     ┃ ┣ 📜 storage_capacity.csv
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a> ┃     ┃ ┗ 📜 storage_energy.csv
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a> ┃     ┣ 📂 Power
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a> ┃     ┃ ┣ 📜 buses.csv
-</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a> ┃     ┃ ┣ 📜 decommission_capacity.csv
-</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a> ┃     ┃ ┣ 📜 fuel_suppliers.csv
-</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a> ┃     ┃ ┣ 📜 interconnector.csv
-</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a> ┃     ┃ ┣ 📜 loads.csv
-</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a> ┃     ┃ ┣ 📜 power_generators.csv
-</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a> ┃     ┃ ┣ 📜 storage_capacity.csv
-</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a> ┃     ┃ ┣ 📜 power_links.csv
-</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a> ┃     ┃ ┗ 📜 storage_energy.csv
-</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a> ┃     ┗ 📂 Transport
-</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a> ┃       ┣ 📜 buses.csv
-</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a> ┃       ┣ 📜 loads.csv
-</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a> ┃       ┣ 📜 pev_chargers.csv
-</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a> ┃       ┗ 📜 pev_storages.csv
-</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a> ┣ 📂 global_csv_templates
-</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a> ┃ ┣ 📜 Technologies.csv
-</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a> ┃ ┣ 📜 Availability.csv
-</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a> ┃ ┣ 📜 Demand_Profile.csv
-</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a> ┃ ┣ 📜 PowerPlant_costs.csv
-</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a> ┃ ┣ 📜 Renewables_technical_potential.csv
-</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a> ┃ ┣ 📜 Storage-Inflows.csv
-</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a> ┃ ┗ 📜 Storage_costs.csv
-</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a> ┗ 📂 override_component_attrs
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a> ┗ 📂 pypsa-spice-data
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    ┗ 📂 project_01
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>       ┣ 📂 input
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>       ┃ ┣ 📂 global_input
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>       ┃ ┃ ┣ 📜 availability.csv
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>       ┃ ┃ ┣ 📜 demand_profile.csv
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>       ┃ ┃ ┣ 📜 ev_parameters.csv
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>       ┃ ┃ ┣ 📜 power_plant_costs.csv
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>       ┃ ┃ ┣ 📜 renewables_technical_potential.csv
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>       ┃ ┃ ┣ 📜 storage_costs.csv
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>       ┃ ┃ ┣ 📜 storage_inflows.csv
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>       ┃ ┃ ┗ 📜 technologies.csv
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>       ┃ ┗ 📂 scenario_01
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>       ┃   ┣ 📂 industry
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>       ┃   ┃ ┣ 📜 buses.csv
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>       ┃   ┃ ┣ 📜 decommission_capacity.csv
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>       ┃   ┃ ┣ 📜 direct_air_capture.csv
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>       ┃   ┃ ┣ 📜 fuel_conversion.csv
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>       ┃   ┃ ┣ 📜 heat_generators.csv
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>       ┃   ┃ ┣ 📜 heat_links.csv
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>       ┃   ┃ ┣ 📜 loads.csv
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>       ┃   ┃ ┣ 📜 storage_capacity.csv
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>       ┃   ┃ ┗ 📜 storage_energy.csv
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>       ┃   ┣ 📂 power
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>       ┃   ┃ ┣ 📜 buses.csv
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>       ┃   ┃ ┣ 📜 decommission_capacity.csv
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>       ┃   ┃ ┣ 📜 fuel_suppliers.csv
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a>       ┃   ┃ ┣ 📜 interconnector.csv
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>       ┃   ┃ ┣ 📜 loads.csv
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>       ┃   ┃ ┣ 📜 power_generators.csv
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a>       ┃   ┃ ┣ 📜 storage_capacity.csv
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a>       ┃   ┃ ┣ 📜 power_links.csv
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>       ┃   ┃ ┗ 📜 storage_energy.csv
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a>       ┃   ┣ 📂 transport
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a>       ┃   ┃ ┣ 📜 buses.csv
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a>       ┃   ┃ ┣ 📜 loads.csv
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a>       ┃   ┃ ┣ 📜 pev_chargers.csv
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a>       ┃   ┃ ┗ 📜 pev_storages.csv
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a>       ┃   ┗ 📜 scenario_config.yaml
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a>       ┗ 📂 results (will be created when during the model execution)
 </span></code></pre></div>
-<p><strong>Note:</strong> The <code>override_component_attrs</code> folder supports multi-output for PyPSA components. These files are used internally and don’t need to be edited.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>You will only need to run <code>build_skeleton</code> ones while setting up the model. After this initial run you <em>should</em> turn of <code>build_skeleton</code> in <code>config.yaml</code>. Otherwise, the <code>build_skeleton</code> will overwrite your data from in the input files and create new empty files.
-Once you have created a skeleton for one of the scenarios, you can simply copy this folder to create additional scenarios. We recommend to do this after you have filled the data for the first scenario.  </p>
+<p>Once you’ve created a skeleton data folder for one scenario, you can simply duplicate the scenario folder and rename the folder name to set up additional scenarios. However, we recommend doing this only after you’ve completed filling in the data for the first one.  </p>
 </div>
 <h2 id="step-3-fill-in-the-skeleton-csvs">Step 3: Fill in the Skeleton CSVs<a class="headerlink" href="#step-3-fill-in-the-skeleton-csvs" title="Permanent link">&para;</a></h2>
 <p>Once a new skeleton folder is created, project-specific CSV templates will be setup. Each CSV will include placeholders marked with <code>Please fill here</code>. These need to be completed with relevant data so the model can perform more accurate optimizations.</p>
 <p>To help you fill these files:</p>
 <ul>
-<li>See <a href="../regional_csv_template/">Regional CSV Template</a> for detailed file descriptions.</li>
-<li>Check <a href="../global_csv_template/">Global CSV Template</a> for default global values. If needed, you can copy values from global templates into the regional ones. However, these values are based on the average assumption of global average, and might not be as accurate as valued obtained from regional sources. Global data is useful as a fallback, but using regional data is strongly recommended for more accurate results.</li>
+<li>Check <a href="../global_csv_template/">Global CSV Template</a> for default  file descriptions of country-level data.</li>
+<li>See <a href="../regional_csv_template/">Regional CSV Template</a> for detailed file descriptions of region-level data.
+Once all the necessary input data is provided, adjust model and solver settings in <a href="../model-builder-configuration/">Model Configuration</a> and follow <a href="../model-builder-execution/">Model Execution</a> to understand the model logic and how to run the model.</li>
 </ul>
-<p>Once all the necessary input data is provided, adjust model and solver settings in <a href="../model-builder-configuration/">Model Configuration</a> and follow <a href="../model-builder-execution/">Model Execution</a> to understand the model logic and how to run the model.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>By detault, the input structure considers large number of technologies represented in the model. If the particular technologies are not needed in your model, it is good practice to remove the input data for these technologies. You can also define your own technologies and customise the model accordingly.  </p>
@@ -1082,7 +1079,7 @@ Once you have created a skeleton for one of the scenarios, you can simply copy t
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025, PyPSA-SPICE Developers, see References section.
+      Copyright &copy; 2025, PyPSA-SPICE Developers, see References section. | CC-BY-4.0
     </div>
   
   

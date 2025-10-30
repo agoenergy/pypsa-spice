@@ -562,15 +562,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#technologies" class="md-nav__link">
-    <span class="md-ellipsis">
-      Technologies
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#availability" class="md-nav__link">
     <span class="md-ellipsis">
       Availability
@@ -583,6 +574,15 @@
   <a href="#demand-profile" class="md-nav__link">
     <span class="md-ellipsis">
       Demand Profile
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ev-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      EV Parameters
     </span>
   </a>
   
@@ -619,6 +619,15 @@
   <a href="#storage-inflows" class="md-nav__link">
     <span class="md-ellipsis">
       Storage Inflows
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technologies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technologies
     </span>
   </a>
   
@@ -938,28 +947,69 @@
 
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
 <h1 id="input-data-global-csv-template">Input Data: Global CSV Template<a class="headerlink" href="#input-data-global-csv-template" title="Permanent link">&para;</a></h1>
-<p>Global csvs contain parameters that are typically kept constant accross scenarios. This is to maintain comparability of the scenarios. </p>
+<p>Global csvs contain parameters that are typically kept constant accross scenarios. This is to maintain comparability of the scenarios. <code>global_input_template</code> folder is used for creating skeletons purposes, and thus it can be considered as hidden folder inside the template.</p>
 <div class="language-text highlight"><span class="filename">Structure of the global CSV template files</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>📦 data
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a> ┗ 📂 global_csv_templates
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>   ┣ 📜 Technologies.csv
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>   ┣ 📜 Availability.csv
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>   ┣ 📜 Demand_Profile.csv
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>   ┣ 📜 PowerPlant_costs.csv
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>   ┣ 📜 Renewables_technical_potential.csv
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>   ┣ 📜 Storage_costs.csv
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>   ┗ 📜 Storage-Inflows.csv
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a> ┗ 📂 global_input_template
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a> ┗ 📂 pypsa-spice-data
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    ┗ 📂 project_01
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>       ┗ 📂 input
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>         ┗ 📂 global_input
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>           ┣ 📜 availability.csv
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>           ┣ 📜 demand_profile.csv
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>           ┣ 📜 ev_parameters.csv
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>           ┣ 📜 power_plant_costs.csv
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>           ┣ 📜 renewables_technical_potential.csv
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>           ┣ 📜 storage_costs.csv
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>           ┣ 📜 storage_inflows.csv
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>           ┗ 📜 technologies.csv
 </span></code></pre></div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>The currency of all example data is <code>USD</code> defined in the <code>base_configs</code> section of <code>config.yaml</code>. You can refer to <a href="../model-builder-configuration/#init-settings">Model Builder Configuration</a> for more information.</p>
+<p>The currency of all example data is <code>USD</code> defined in the <code>base_configs</code> section of <code>base_config.yaml</code>. You can refer to <a href="../model-builder-configuration/#base_configyaml">Model Builder Configuration</a> for more information.</p>
 </div>
+<h2 id="availability">Availability<a class="headerlink" href="#availability" title="Permanent link">&para;</a></h2>
+<p><code>availability.csv</code> contains time-series availability data, mainly for renewable plants. By default, availability is matched using renewables type (e.g., solar photovoltaic (<code>PHOT</code>), onshore wind (<code>WTON</code>), etc.) and their locations (e.g., region <code>XY_NO</code> in country <code>XY</code>, region <code>YZ_SO</code> in country <code>YZ</code>).</p>
+<p>If a technology shares the same profile across the country (e.g., electric vehicle charger public (<code>EVCH-PUB</code>)), then both region and country fields use the same name (e.g., region <code>XY</code> in country <code>XY</code>). If the technology is listed and it requires availability profile, but the profile is not in this csv, then it will be defined as <strong>constant 1</strong> for all hours.</p>
+<h2 id="demand-profile">Demand Profile<a class="headerlink" href="#demand-profile" title="Permanent link">&para;</a></h2>
+<p><code>demand_profile.csv</code> stores normalized hourly load profiles, which are scaled using total annual load values of each year to create time-series demand data.</p>
+<p>By default, Load profiles are matched based on:</p>
+<ul>
+<li><strong>Profile type and location</strong> for power sector loads such as wholesale market load (<code>HV_LOAD</code>) and building load (<code>LV_LOAD</code>).</li>
+<li><strong>Profile type only</strong> for all other loads.</li>
+</ul>
+<p>To add new load profiles (e.g., for a new project or country), insert a new row.</p>
+<h2 id="ev-parameters">EV Parameters<a class="headerlink" href="#ev-parameters" title="Permanent link">&para;</a></h2>
+<p><code>ev_parameters.csv</code> stores the technical parameters relevant to the electric vehicles.</p>
+<h2 id="power-plant-costs">Power Plant Costs<a class="headerlink" href="#power-plant-costs" title="Permanent link">&para;</a></h2>
+<p><code>power_plant_costs.csv</code> defines cost data for all technologies in each country. It includes:</p>
+<ul>
+<li>Capital expenditure (CAPEX) in USD/MW (currency based on input data)</li>
+<li>Fixed operation and maintenance cost (FOM) in USD/MW (currency based on input data)</li>
+<li>Variable operation and maintenance cost (VOM) in USD/MWh (currency based on input data)</li>
+</ul>
+<p>Note: Currencies may vary depending on the source data.</p>
+<p>This data applies to generators, storage, converters, and storage capacity expansion (In case of lithium battery, it refers to inverter costs).</p>
+<h2 id="renewables-technical-potential">Renewables Technical Potential<a class="headerlink" href="#renewables-technical-potential" title="Permanent link">&para;</a></h2>
+<p><code>renewables_technical_potential.csv</code> defines maximum expansion limits (technical potential or land-use limits) for renewable technologies. It is currently only applied to solar photovoltaic (<code>PHOT</code>), hydro run-of-river (<code>HROR</code>), onshore wind (<code>WTON</code>), offshore wind (<code>WTOF</code>), rooftop PV (<code>RTPV</code>), solar hot water heater (<code>SWHT</code>) but can be modified to apply for other technologies.</p>
+<p>The model builder does not allow higher expansion than what are specified in this CSV file. You can expand the file to include other technologies if needed.</p>
+<h2 id="storage-costs">Storage Costs<a class="headerlink" href="#storage-costs" title="Permanent link">&para;</a></h2>
+<p><code>storage_costs.csv</code> covers the cost structure for all storage tanks (storage volume or energy capacity) in each country. It includes:</p>
+<ul>
+<li>Capital expenditure (CAPEX) in USD/MW (currency based on input data)</li>
+<li>Fixed operation and maintenance cost (FOM) in USD/MW (currency based on input data)</li>
+<li>Variable operation and maintenance cost (VOM) in USD/MWh (currency based on input data)</li>
+</ul>
+<p>Note: Currencies may vary depending on the source data.</p>
+<h2 id="storage-inflows">Storage Inflows<a class="headerlink" href="#storage-inflows" title="Permanent link">&para;</a></h2>
+<p><code>storage_inflows.csv</code> provides time-series inflow data [MW] for <code>StorageUnit</code> components. Inflow profiles are only designed for reservoir-based systems like hydropower and hydro pumped storage.</p>
+<p>Matching the inflows is based on the technology (hydro dam (<code>HDAM</code>) and/or hydro pumped storage (<code>HPHS</code>)) and their location (e.g., region <code>XY_NO</code> in country <code>XY</code>). If the technology is listed and it requires inflow profile, but the profile is not in this csv, then it will be defined as <strong>constant 0</strong> for all hours.</p>
 <h2 id="technologies">Technologies<a class="headerlink" href="#technologies" title="Permanent link">&para;</a></h2>
-<p>Technologies.csv defines typical technical parameters for each technology used in the model builder. It provides values like efficiency, ramp limits, and availability of various technologies. To add a new technology, insert a new row and fill in all required parameters.</p>
+<p>technologies.csv defines typical technical parameters for each technology used in the model builder. It provides values like efficiency, ramp limits, and availability of various technologies. To add a new technology, insert a new row and fill in all required parameters.</p>
 <p>Description of all technical parameters:</p>
 <table>
 <thead>
@@ -975,11 +1025,11 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 <tr>
 <td><code>technology</code></td>
-<td>Abbreviations of the technology(=technologies)</td>
+<td>Abbreviations of the technology</td>
 </tr>
 <tr>
 <td><code>technology_nomenclature</code></td>
-<td>Full names of the technology (=technologies)</td>
+<td>Full names of the technology</td>
 </tr>
 <tr>
 <td><code>carrier</code></td>
@@ -1043,40 +1093,6 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 </tbody>
 </table>
-<h2 id="availability">Availability<a class="headerlink" href="#availability" title="Permanent link">&para;</a></h2>
-<p><code>Availability.csv</code> contains time-series availability data, mainly for renewable plants. By default, availability is matched using renewables type (e.g., solar photovoltaic (<code>PHOT</code>), onshore wind (<code>WTON</code>), etc.) and their locations (e.g., region <code>XY_NO</code> in country <code>XY</code>, region <code>YZ_SO</code> in country <code>YZ</code>).</p>
-<p>If a technology shares the same profile across the country (e.g., electric vehicle charger public (<code>EVCH-PUB</code>)), then both region and country fields use the same name (e.g., region <code>XY</code> in country <code>XY</code>). If the technology is listed and it requires availability profile, but the profile is not in this csv, then it will be defined as <strong>constant 1</strong> for all hours.</p>
-<h2 id="demand-profile">Demand Profile<a class="headerlink" href="#demand-profile" title="Permanent link">&para;</a></h2>
-<p><code>Demand_Profile.csv</code> stores normalized hourly load profiles, which are scaled using total annual load values of each year to create time-series demand data.</p>
-<p>By default, Load profiles are matched based on:</p>
-<ul>
-<li><strong>Profile type and location</strong> for power sector loads such as wholesale market load (<code>HV_LOAD</code>) and building load (<code>LV_LOAD</code>).</li>
-<li><strong>Profile type only</strong> for all other loads.</li>
-</ul>
-<p>To add new load profiles (e.g., for a new project or country), insert a new row.</p>
-<h2 id="power-plant-costs">Power Plant Costs<a class="headerlink" href="#power-plant-costs" title="Permanent link">&para;</a></h2>
-<p><code>PowerPlant_costs.csv</code> defines cost data for all technologies in each country. It includes:</p>
-<ul>
-<li>Capital expenditure (CAPEX) in USD/MW (currency based on input data)</li>
-<li>Fixed operation and maintenance cost (FOM) in USD/MW (currency based on input data)</li>
-<li>Variable operation and maintenance cost (VOM) in USD/MWh (currency based on input data)</li>
-</ul>
-<p>Note: Currencies may vary depending on the source data.</p>
-<p>This data applies to generators, storage, converters, and storage capacity expansion (In case of lithium battery, it refers to inverter costs).</p>
-<h2 id="renewables-technical-potential">Renewables Technical Potential<a class="headerlink" href="#renewables-technical-potential" title="Permanent link">&para;</a></h2>
-<p><code>Renewables_technical_potential.csv</code> defines maximum expansion limits (technical potential or land-use limits) for renewable technologies. It is currently only applied to solar photovoltaic (<code>PHOT</code>), hydro run-of-river (<code>HROR</code>), onshore wind (<code>WTON</code>), offshore wind (<code>WTOF</code>), rooftop PV (<code>RTPV</code>), solar hot water heater (<code>SWHT</code>) but can be modified to apply for other technologies.</p>
-<p>The model builder does not allow higher expansion than what are specified in this CSV file. You can expand the file to include other technologies if needed.</p>
-<h2 id="storage-costs">Storage Costs<a class="headerlink" href="#storage-costs" title="Permanent link">&para;</a></h2>
-<p><code>Storage_costs.csv</code> covers the cost structure for all storage tanks (storage volume or energy capacity) in each country. It includes:</p>
-<ul>
-<li>Capital expenditure (CAPEX) in USD/MW (currency based on input data)</li>
-<li>Fixed operation and maintenance cost (FOM) in USD/MW (currency based on input data)</li>
-<li>Variable operation and maintenance cost (VOM) in USD/MWh (currency based on input data)</li>
-</ul>
-<p>Note: Currencies may vary depending on the source data.</p>
-<h2 id="storage-inflows">Storage Inflows<a class="headerlink" href="#storage-inflows" title="Permanent link">&para;</a></h2>
-<p><code>Storage-inflows.csv</code> provides time-series inflow data [MW] for <code>StorageUnit</code> components. Inflow profiles are only designed for reservoir-based systems like hydropower and hydro pumped storage.</p>
-<p>Matching the inflows is based on the technology (hydro dam (<code>HDAM</code>) and/or hydro pumped storage (<code>HPHS</code>)) and their location (e.g., region <code>XY_NO</code> in country <code>XY</code>). If the technology is listed and it requires inflow profile, but the profile is not in this csv, then it will be defined as <strong>constant 0</strong> for all hours.</p>
 
 
 
@@ -1152,7 +1168,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2025, PyPSA-SPICE Developers, see References section.
+      Copyright &copy; 2025, PyPSA-SPICE Developers, see References section. | CC-BY-4.0
     </div>
   
   
