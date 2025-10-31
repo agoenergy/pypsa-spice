@@ -162,6 +162,7 @@ extra_javascript:
 
 plugins:
   - search
+  - mkdocs-video
   - to-pdf:
       author: Data and Modelling Team at Agora Think Tanks
       copyright: Copyright © PyPSA-SPICE Developers

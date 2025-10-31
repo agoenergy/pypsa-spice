@@ -16,6 +16,7 @@ dependencies:
   - isort==6.0.1
   - linopy==0.5.7
   - mkdocs-material==9.6.16
+  - mkdocs-video==1.5.0
   - numpy==1.26.4
   - pandas==2.3.1
   - pip==25.2
