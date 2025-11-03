@@ -8,7 +8,6 @@ import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
 import streamlit as st
-from streamlit_js_eval import streamlit_js_eval
 import re
 from plotly.graph_objs._figure import Figure
 from plotly.subplots import make_subplots
