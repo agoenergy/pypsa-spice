@@ -13,7 +13,7 @@ import os
 from typing import Any
 
 import pandas as pd
-from _helpers import add_unit_column, configure_logging, open_scenario_config
+from _helpers import add_unit_column, configure_logging, load_scenario_config
 from _post_analysis import OutputTables
 
 
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake("make_summary", sector="p-i-t", years=2025)
     configure_logging(snakemake)
-    scenario_configs = open_scenario_config(
+    scenario_configs = load_scenario_config(
         "data/"
         + snakemake.config["path_configs"]["data_folder_name"]
         + "/"

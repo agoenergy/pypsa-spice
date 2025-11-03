@@ -21,7 +21,7 @@ import pandas as pd
 import pypsa
 from _helpers import (
     configure_logging,
-    open_scenario_config,
+    load_scenario_config,
 )
 from custom_constraints import (
     add_energy_independence_constraint,
@@ -268,7 +268,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake("solve_network", sector="p-i-t", years=2025)
     configure_logging(snakemake)
-    scenario_configs = open_scenario_config(
+    scenario_configs = load_scenario_config(
         "data/"
         + snakemake.config["path_configs"]["data_folder_name"]
         + "/"
