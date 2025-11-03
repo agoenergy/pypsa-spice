@@ -685,8 +685,6 @@ def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None
     yaxis_scales = calculate_yaxis_scales(config_plot.get("graph_type"), config_plot)
     config_plot["yaxis_scales"] = yaxis_scales
 
-    custom_legend_visibility = None
-
     # These are the graph types that have the year+month+date filter
     graphs_with_date_filters = [
         "simple_bar_hourly",
