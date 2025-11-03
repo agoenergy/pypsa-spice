@@ -28,47 +28,50 @@ def main(getters):
         dfs["generator_df"],
         dfs["links_df"],
         dfs["storageunit_df"],
-        dfs["store_df"]
-        ]:
+        dfs["store_df"],
+    ]:
         all_countries.update(getters.get_country_list(df))
 
-
-########################## Demand Side #################################################
-########################## Render the UI part ##########################################
+    ########################## Demand Side #################################################
+    ########################## Render the UI part ##########################################
 
     st.header(":material/Lightbulb: Demand")
 
     col11, col12 = st.columns([1, 1])
     col21, col22 = st.columns([1, 1])
-    
+
     with col11:
         if all_countries:
             selected_countries = st.pills(
-            "Select Countries:",
-            options=all_countries,
-            default=all_countries,
-            help="Select countries to filter the data.",
-            selection_mode="multi"
+                "Select Countries:",
+                options=all_countries,
+                default=all_countries,
+                help="Select countries to filter the data.",
+                selection_mode="multi",
             )
         else:
             selected_countries = None
             st.info("No countries found")
-            
+
     with col12:
         scenario_options = getters.get_input_scenario_list()
 
         # Use the first scenario as default if no scenario is set
         if "scenario" not in st.session_state:
-            st.session_state.scenario = scenario_options[0] if scenario_options else None
+            st.session_state.scenario = (
+                scenario_options[0] if scenario_options else None
+            )
 
         selected_scenario = st.pills(
             "Select Scenario:",
             options=scenario_options,
-            default=st.session_state.scenario 
-            if st.session_state.scenario in scenario_options 
-            else scenario_options[0],
+            default=(
+                st.session_state.scenario
+                if st.session_state.scenario in scenario_options
+                else scenario_options[0]
+            ),
             help="Select scenario to view/edit data.",
-            selection_mode="single"
+            selection_mode="single",
         )
 
         if selected_scenario:
@@ -92,10 +95,14 @@ def main(getters):
         )
 
         if not selected_profile_types_full:
-            st.warning("At least one load profile must be selected. Resetting to default.")
+            st.warning(
+                "At least one load profile must be selected. Resetting to default."
+            )
             selected_profile_types_full = default_profile_types_selection
 
-        selected_profile_types = [reverse_mapping.get(v, v) for v in selected_profile_types_full]
+        selected_profile_types = [
+            reverse_mapping.get(v, v) for v in selected_profile_types_full
+        ]
         selected_profile_types_str = ", ".join(selected_profile_types)
     with col22:
         selecte_types_str = ", ".join(selected_profile_types)
@@ -118,9 +125,9 @@ def main(getters):
         dfs["load_df"],
         selected_profile_types,
         csvs_dict["load"].path,
-        selected_countries
+        selected_countries,
     )
-    
+
 
 if __name__ == "__main__":
     getters = Getters()
