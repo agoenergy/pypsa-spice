@@ -2,102 +2,98 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://agora-energiewende.org/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/contributing/code_of_conduct/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/contributing/contributing/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/getting-started/installation/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/getting-started/overview/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/getting-started/input-data/global_csv_template/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/getting-started/input-data/model-builder-configuration/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/getting-started/input-data/model-builder-execution/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/getting-started/input-data/new-model/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/getting-started/input-data/regional_csv_template/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/references/citation_and_license/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/references/developers/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/tutorials-and-examples/data_sources/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/tutorials-and-examples/publication/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/tutorials-and-examples/training_materials/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/user-guide/industry_sector/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/user-guide/model-builder-methodology/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/user-guide/post-analysis/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/user-guide/power_sector/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/user-guide/transport_sector/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/user-guide/troubleshooting/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/visualisation-tool/deployment/</loc>
-         <lastmod>2025-10-30</lastmod>
-    </url>
-    <url>
-         <loc>https://agora-energiewende.org/visualisation-tool/pypsa-spice-vis%20copy/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/visualisation-tool/pypsa-spice-vis/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
     <url>
          <loc>https://agora-energiewende.org/visualisation-tool/vis-sections-and-charts/</loc>
-         <lastmod>2025-10-30</lastmod>
+         <lastmod>2025-11-04</lastmod>
     </url>
 </urlset>

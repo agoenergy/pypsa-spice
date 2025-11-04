@@ -834,7 +834,7 @@
   
   
   
-    <a href="../../../tutorials-and-examples/data_sources/" class="md-nav__link">
+    <a href="../../../tutorials-and-examples/training_materials/" class="md-nav__link">
       
   
   
@@ -972,13 +972,7 @@
   
 
 
-<!--
--*- coding: utf-8 -*-
-SPDX-FileCopyrightText: PyPSA-SPICE Developers
-SPDX-License-Identifier: GPL-2.0-or-later
--->
-
-<h1 id="input-data-regional-csv-template">Input Data: Regional CSV Template<a class="headerlink" href="#input-data-regional-csv-template" title="Permanent link">&para;</a></h1>
+<div><h1 id="input-data-regional-csv-template">Input Data: Regional CSV Template<a class="headerlink" href="#input-data-regional-csv-template" title="Permanent link">¶</a></h1>
 <div class="language-text highlight"><span class="filename">Structure of the regional CSV template files</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>📦 data
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a> ┗ 📂 pypsa-spice-data
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    ┗ 📂 project_01
@@ -1018,7 +1012,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <p class="admonition-title">Tip</p>
 <p>If there's a cell with <code>inf</code> in the csv files, it represents infinite value in <code>float</code> datatype when it is read into the network.</p>
 </div>
-<h2 id="buses">Buses<a class="headerlink" href="#buses" title="Permanent link">&para;</a></h2>
+<h2 id="buses">Buses<a class="headerlink" href="#buses" title="Permanent link">¶</a></h2>
 <p>This file defines the buses to be used in the model. All components need to be connected to one or more buses.</p>
 <table>
 <thead>
@@ -1046,7 +1040,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 </tbody>
 </table>
-<h2 id="decommission-capacity">Decommission Capacity<a class="headerlink" href="#decommission-capacity" title="Permanent link">&para;</a></h2>
+<h2 id="decommission-capacity">Decommission Capacity<a class="headerlink" href="#decommission-capacity" title="Permanent link">¶</a></h2>
 <p><code>Decommission_capacity.csv</code> contains the installed capacity of power plants scheduled for decommissioning.</p>
 <ul>
 <li>For <strong>Generators</strong>, the <code>name</code> column must match the <code>name</code> column in <code>data_folder_name/project_name/input/input_scenario_name/power/power_generators.csv</code>.</li>
@@ -1078,7 +1072,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 </tbody>
 </table>
-<h2 id="fuel-supplies">Fuel Supplies<a class="headerlink" href="#fuel-supplies" title="Permanent link">&para;</a></h2>
+<h2 id="fuel-supplies">Fuel Supplies<a class="headerlink" href="#fuel-supplies" title="Permanent link">¶</a></h2>
 <p>These are fuel supply generators that provide fuel in the thermal energy unit [MWh_th]. It is possible to put maximum supply constraint over a year for these fuel supplies. See model <a href="../../../user-guide/model-builder-methodology/#model-builder-methodology">schematic diagram</a></p>
 <table>
 <thead>
@@ -1118,7 +1112,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 </tbody>
 </table>
-<h2 id="interconnector">Interconnector<a class="headerlink" href="#interconnector" title="Permanent link">&para;</a></h2>
+<h2 id="interconnector">Interconnector<a class="headerlink" href="#interconnector" title="Permanent link">¶</a></h2>
 <p>Interconnectors connect different regions by their maximum power transfer capacity.</p>
 <table>
 <thead>
@@ -1194,7 +1188,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 </tbody>
 </table>
-<h2 id="loads">Loads<a class="headerlink" href="#loads" title="Permanent link">&para;</a></h2>
+<h2 id="loads">Loads<a class="headerlink" href="#loads" title="Permanent link">¶</a></h2>
 <p>This file contains the <strong>total</strong> load per load type which is matched to <code>profile_type</code>. You can connect multiple load types to the same bus and they would be added to create total load for the bus.  </p>
 <table>
 <thead>
@@ -1238,7 +1232,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 </tbody>
 </table>
-<h2 id="generators">Generators<a class="headerlink" href="#generators" title="Permanent link">&para;</a></h2>
+<h2 id="generators">Generators<a class="headerlink" href="#generators" title="Permanent link">¶</a></h2>
 <p>See details of implementation in <a href="../../../user-guide/power_sector/#power-generators">power</a> and <a href="../../../user-guide/industry_sector/#heat-generators">industry</a> sectors.</p>
 <table>
 <thead>
@@ -1290,7 +1284,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 </tbody>
 </table>
-<h2 id="links">Links<a class="headerlink" href="#links" title="Permanent link">&para;</a></h2>
+<h2 id="links">Links<a class="headerlink" href="#links" title="Permanent link">¶</a></h2>
 <p>See details of implementation logic in <a href="../../../user-guide/power_sector/#power-links">power</a>, <a href="../../../user-guide/industry_sector/#heat-links">industry</a>, <a href="../../../user-guide/transport_sector/#electric-vehicle-chargers">transport</a> sectors.</p>
 <table>
 <thead>
@@ -1338,7 +1332,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 </tbody>
 </table>
-<h2 id="storage-capacity">Storage Capacity<a class="headerlink" href="#storage-capacity" title="Permanent link">&para;</a></h2>
+<h2 id="storage-capacity">Storage Capacity<a class="headerlink" href="#storage-capacity" title="Permanent link">¶</a></h2>
 <p>See details of implementation logic for <a href="../../../user-guide/power_sector/#storage-capacity">power</a> and <a href="../../../user-guide/industry_sector/#storage-capacity">industry</a> sectors.</p>
 <table>
 <thead>
@@ -1390,7 +1384,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 </tbody>
 </table>
-<h2 id="storage-energy">Storage Energy<a class="headerlink" href="#storage-energy" title="Permanent link">&para;</a></h2>
+<h2 id="storage-energy">Storage Energy<a class="headerlink" href="#storage-energy" title="Permanent link">¶</a></h2>
 <p>See details of description for use of storage energy in <a href="../../../user-guide/power_sector/#storage-energy">power sector</a> and <a href="../../../user-guide/industry_sector/#storage-energy">industry sectors</a>. </p>
 <table>
 <thead>
@@ -1438,7 +1432,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 </tbody>
 </table>
-<h2 id="ev-chargers">EV Chargers<a class="headerlink" href="#ev-chargers" title="Permanent link">&para;</a></h2>
+<h2 id="ev-chargers">EV Chargers<a class="headerlink" href="#ev-chargers" title="Permanent link">¶</a></h2>
 <p>See details of implementation <a href="../../../user-guide/transport_sector/">here</a>.</p>
 <table>
 <thead>
@@ -1482,7 +1476,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 </tbody>
 </table>
-<h2 id="ev-storages">EV Storages<a class="headerlink" href="#ev-storages" title="Permanent link">&para;</a></h2>
+<h2 id="ev-storages">EV Storages<a class="headerlink" href="#ev-storages" title="Permanent link">¶</a></h2>
 <p>See details of implementation <a href="../../../user-guide/transport_sector/#electric-vehicle-storage">here</a>.</p>
 <table>
 <thead>
@@ -1521,7 +1515,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <td>Number of electric vehicles in the given year</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 
 
 

@@ -807,7 +807,7 @@
   
   
   
-    <a href="../../../tutorials-and-examples/data_sources/" class="md-nav__link">
+    <a href="../../../tutorials-and-examples/training_materials/" class="md-nav__link">
       
   
   
@@ -945,13 +945,7 @@
   
 
 
-<!--
--*- coding: utf-8 -*-
-SPDX-FileCopyrightText: PyPSA-SPICE Developers
-SPDX-License-Identifier: GPL-2.0-or-later
--->
-
-<h1 id="input-data-global-csv-template">Input Data: Global CSV Template<a class="headerlink" href="#input-data-global-csv-template" title="Permanent link">&para;</a></h1>
+<div><h1 id="input-data-global-csv-template">Input Data: Global CSV Template<a class="headerlink" href="#input-data-global-csv-template" title="Permanent link">¶</a></h1>
 <p>Global csvs contain parameters that are typically kept constant accross scenarios. This is to maintain comparability of the scenarios. <code>global_input_template</code> folder is used for creating skeletons purposes, and thus it can be considered as hidden folder inside the template.</p>
 <div class="language-text highlight"><span class="filename">Structure of the global CSV template files</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>📦 data
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a> ┗ 📂 global_input_template
@@ -972,10 +966,10 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <p class="admonition-title">Tip</p>
 <p>The currency of all example data is <code>USD</code> defined in the <code>base_configs</code> section of <code>base_config.yaml</code>. You can refer to <a href="../model-builder-configuration/#base_configyaml">Model Builder Configuration</a> for more information.</p>
 </div>
-<h2 id="availability">Availability<a class="headerlink" href="#availability" title="Permanent link">&para;</a></h2>
+<h2 id="availability">Availability<a class="headerlink" href="#availability" title="Permanent link">¶</a></h2>
 <p><code>availability.csv</code> contains time-series availability data, mainly for renewable plants. By default, availability is matched using renewables type (e.g., solar photovoltaic (<code>PHOT</code>), onshore wind (<code>WTON</code>), etc.) and their locations (e.g., region <code>XY_NO</code> in country <code>XY</code>, region <code>YZ_SO</code> in country <code>YZ</code>).</p>
 <p>If a technology shares the same profile across the country (e.g., electric vehicle charger public (<code>EVCH-PUB</code>)), then both region and country fields use the same name (e.g., region <code>XY</code> in country <code>XY</code>). If the technology is listed and it requires availability profile, but the profile is not in this csv, then it will be defined as <strong>constant 1</strong> for all hours.</p>
-<h2 id="demand-profile">Demand Profile<a class="headerlink" href="#demand-profile" title="Permanent link">&para;</a></h2>
+<h2 id="demand-profile">Demand Profile<a class="headerlink" href="#demand-profile" title="Permanent link">¶</a></h2>
 <p><code>demand_profile.csv</code> stores normalized hourly load profiles, which are scaled using total annual load values of each year to create time-series demand data.</p>
 <p>By default, Load profiles are matched based on:</p>
 <ul>
@@ -983,9 +977,9 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <li><strong>Profile type only</strong> for all other loads.</li>
 </ul>
 <p>To add new load profiles (e.g., for a new project or country), insert a new row.</p>
-<h2 id="ev-parameters">EV Parameters<a class="headerlink" href="#ev-parameters" title="Permanent link">&para;</a></h2>
+<h2 id="ev-parameters">EV Parameters<a class="headerlink" href="#ev-parameters" title="Permanent link">¶</a></h2>
 <p><code>ev_parameters.csv</code> stores the technical parameters relevant to the electric vehicles.</p>
-<h2 id="power-plant-costs">Power Plant Costs<a class="headerlink" href="#power-plant-costs" title="Permanent link">&para;</a></h2>
+<h2 id="power-plant-costs">Power Plant Costs<a class="headerlink" href="#power-plant-costs" title="Permanent link">¶</a></h2>
 <p><code>power_plant_costs.csv</code> defines cost data for all technologies in each country. It includes:</p>
 <ul>
 <li>Capital expenditure (CAPEX) in USD/MW (currency based on input data)</li>
@@ -994,10 +988,10 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </ul>
 <p>Note: Currencies may vary depending on the source data.</p>
 <p>This data applies to generators, storage, converters, and storage capacity expansion (In case of lithium battery, it refers to inverter costs).</p>
-<h2 id="renewables-technical-potential">Renewables Technical Potential<a class="headerlink" href="#renewables-technical-potential" title="Permanent link">&para;</a></h2>
+<h2 id="renewables-technical-potential">Renewables Technical Potential<a class="headerlink" href="#renewables-technical-potential" title="Permanent link">¶</a></h2>
 <p><code>renewables_technical_potential.csv</code> defines maximum expansion limits (technical potential or land-use limits) for renewable technologies. It is currently only applied to solar photovoltaic (<code>PHOT</code>), hydro run-of-river (<code>HROR</code>), onshore wind (<code>WTON</code>), offshore wind (<code>WTOF</code>), rooftop PV (<code>RTPV</code>), solar hot water heater (<code>SWHT</code>) but can be modified to apply for other technologies.</p>
 <p>The model builder does not allow higher expansion than what are specified in this CSV file. You can expand the file to include other technologies if needed.</p>
-<h2 id="storage-costs">Storage Costs<a class="headerlink" href="#storage-costs" title="Permanent link">&para;</a></h2>
+<h2 id="storage-costs">Storage Costs<a class="headerlink" href="#storage-costs" title="Permanent link">¶</a></h2>
 <p><code>storage_costs.csv</code> covers the cost structure for all storage tanks (storage volume or energy capacity) in each country. It includes:</p>
 <ul>
 <li>Capital expenditure (CAPEX) in USD/MW (currency based on input data)</li>
@@ -1005,10 +999,10 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <li>Variable operation and maintenance cost (VOM) in USD/MWh (currency based on input data)</li>
 </ul>
 <p>Note: Currencies may vary depending on the source data.</p>
-<h2 id="storage-inflows">Storage Inflows<a class="headerlink" href="#storage-inflows" title="Permanent link">&para;</a></h2>
+<h2 id="storage-inflows">Storage Inflows<a class="headerlink" href="#storage-inflows" title="Permanent link">¶</a></h2>
 <p><code>storage_inflows.csv</code> provides time-series inflow data [MW] for <code>StorageUnit</code> components. Inflow profiles are only designed for reservoir-based systems like hydropower and hydro pumped storage.</p>
 <p>Matching the inflows is based on the technology (hydro dam (<code>HDAM</code>) and/or hydro pumped storage (<code>HPHS</code>)) and their location (e.g., region <code>XY_NO</code> in country <code>XY</code>). If the technology is listed and it requires inflow profile, but the profile is not in this csv, then it will be defined as <strong>constant 0</strong> for all hours.</p>
-<h2 id="technologies">Technologies<a class="headerlink" href="#technologies" title="Permanent link">&para;</a></h2>
+<h2 id="technologies">Technologies<a class="headerlink" href="#technologies" title="Permanent link">¶</a></h2>
 <p>technologies.csv defines typical technical parameters for each technology used in the model builder. It provides values like efficiency, ramp limits, and availability of various technologies. To add a new technology, insert a new row and fill in all required parameters.</p>
 <p>Description of all technical parameters:</p>
 <table>
@@ -1092,7 +1086,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <td>Contribution of reserve rating (if used)</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 
 
 

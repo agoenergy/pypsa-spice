@@ -659,7 +659,7 @@
   
   
   
-    <a href="../../tutorials-and-examples/data_sources/" class="md-nav__link">
+    <a href="../../tutorials-and-examples/training_materials/" class="md-nav__link">
       
   
   
@@ -797,27 +797,21 @@
   
 
 
-<!--
--*- coding: utf-8 -*-
-SPDX-FileCopyrightText: PyPSA-SPICE Developers
-SPDX-License-Identifier: GPL-2.0-or-later
--->
-
-<h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
-<h2 id="clone-the-repository">Clone the Repository<a class="headerlink" href="#clone-the-repository" title="Permanent link">&para;</a></h2>
+<div><h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">¶</a></h1>
+<h2 id="clone-the-repository">Clone the Repository<a class="headerlink" href="#clone-the-repository" title="Permanent link">¶</a></h2>
 <p>First, clone the <a href="https://github.com/agoenergy/pypsa-spice" target="_blank">PyPSA-SPICE repository</a> using the <strong>Git</strong> version control system. <strong>Important:</strong> the path to the directory where the repository is cloned <strong>must not contain any spaces</strong>.</p>
 <p>If Git is not installed on your system, please follow the <a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git" target="_blank">Git installation instructions</a>.</p>
 <div class="language-shell highlight"><span class="filename">Cloning the repository</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/agoenergy/pypsa-spice.git
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>pypsa-spice
 </span></code></pre></div>
-<h2 id="install-python-dependencies">Install Python Dependencies<a class="headerlink" href="#install-python-dependencies" title="Permanent link">&para;</a></h2>
+<h2 id="install-python-dependencies">Install Python Dependencies<a class="headerlink" href="#install-python-dependencies" title="Permanent link">¶</a></h2>
 <p>PyPSA-SPICE needs a set of Python packages to function. We recommend using <strong>Conda</strong>, a package and environment management system, to handle these dependencies.</p>
 <p>Start by installing <a href="https://docs.conda.io/en/latest/miniconda.html" target="_blank">Miniconda</a>, a lightweight version of <a href="https://www.anaconda.com/" target="_blank">Anaconda</a> that includes only Conda and its core dependencies. If you already have Conda installed, you can skip this step. For installation instructions tailored to your operating system, refer to the <a href="https://docs.conda.io/projects/conda/en/latest/user-guide/install/" target="_blank">official Conda installation guide</a>.</p>
 <p>Once Conda is installed, we recommend installing <strong>Mamba</strong>, a fast drop-in replacement for Conda that significantly speeds up environment installation. According to the <a href="https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html" target="_blank">official mamba documentation</a>, the recommended way to install it is via <strong>Miniforge3</strong>, a minimal Conda installer bundled with Mamba.</p>
 <p>Installation steps for Miniforge3 vary depending on your operating system. You can find platform-specific instructions in the <a href="https://github.com/conda-forge/miniforge" target="_blank">official Miniforge guide</a>.</p>
 <p>For example, if you’re using Linux system, you can install Miniforge3 by running the following command outside the PyPSA-SPICE folder and following the prompts:</p>
 <div class="language-shell highlight"><span class="filename">Installing Miniforge3 on Linux</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>..
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>curl<span class="w"> </span>-L<span class="w"> </span>-O<span class="w"> </span><span class="s2">&quot;https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh&quot;</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>curl<span class="w"> </span>-L<span class="w"> </span>-O<span class="w"> </span><span class="s2">"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh"</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>bash<span class="w"> </span>Miniforge3-$<span class="w"> </span>Miniforge3-Linux-x86_64.sh
 </span></code></pre></div>
 <p>You can switch to any other directory outside the folder you cloned PyPSA-SPICE.</p>
@@ -832,7 +826,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>conda<span class="w"> </span>activate<span class="w"> </span>pypsa-spice
 </span></code></pre></div>
 <p>Note that the environment activation is local to the currently open terminal session. If you open a new terminal window, you will need to re-run the activation command.</p>
-<h2 id="install-a-solver">Install a Solver<a class="headerlink" href="#install-a-solver" title="Permanent link">&para;</a></h2>
+<h2 id="install-a-solver">Install a Solver<a class="headerlink" href="#install-a-solver" title="Permanent link">¶</a></h2>
 <p>Th network model created in PyPSA-SPICE model builder is passed to an external solver to perform total annual system cost minimization and obtain optimal power flows. PyPSA-SPICE is compatible with several solvers that can be installed via Python. In our default environment, Gurobi and HiGHs solvers are installed (packages installed not licenses). Below is a list of supported solvers along with links to their official installation guides for different operating systems:</p>
 <table>
 <thead>
@@ -881,7 +875,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tbody>
 </table>
 <p>Commercial solvers such as Gurobi currently significantly outperform open-source solvers for large-scale problems. In some cases, using a commercial solver may be necessary to obtain a feasible solution. However, open-source solvers are being improved recently, and some of them already perform very well for small to medium-sized problems. Please check the <a href="https://openenergybenchmark.org/dashboard/main-results" target="_blank">solver benchmarking results</a> to compare their performance.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">on Mac or Linux</label><label for="__tabbed_1_2">on Windows</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked id="__tabbed_1_1" name="__tabbed_1" type="radio"><input id="__tabbed_1_2" name="__tabbed_1" type="radio"><div class="tabbed-labels"><label for="__tabbed_1_1">on Mac or Linux</label><label for="__tabbed_1_2">on Windows</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>conda<span class="w"> </span>activate<span class="w"> </span>pypsa-spice
@@ -896,7 +890,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </div>
 </div>
 <p>On Windows, new versions of <code>ipopt</code> have caused problems. Consider downgrading to version 3.11.1.</p>
-<h2 id="set-up-the-default-configuration">Set up the Default Configuration<a class="headerlink" href="#set-up-the-default-configuration" title="Permanent link">&para;</a></h2>
+<h2 id="set-up-the-default-configuration">Set up the Default Configuration<a class="headerlink" href="#set-up-the-default-configuration" title="Permanent link">¶</a></h2>
 <p>PyPSA-SPICE requires two configuration files:</p>
 <ol>
 <li>
@@ -907,7 +901,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </li>
 </ol>
 <p>To get started, configure <code>base_config.yaml</code> first, then run the data setup process. Once complete, you can configure individual scenarios using their respective <code>scenario_config.yaml</code> files. For detailed configuration options, refer to <a href="../input-data/model-builder-configuration/">model-builder-configuration</a>.</p>
-<h2 id="quick-execution-of-the-model-builder-using-template-data">Quick Execution of the Model Builder using Template Data<a class="headerlink" href="#quick-execution-of-the-model-builder-using-template-data" title="Permanent link">&para;</a></h2>
+<h2 id="quick-execution-of-the-model-builder-using-template-data">Quick Execution of the Model Builder using Template Data<a class="headerlink" href="#quick-execution-of-the-model-builder-using-template-data" title="Permanent link">¶</a></h2>
 <p>To have a first glance of how the model builder works, template data in <code>data/pypsa-spice-data</code> folder can be used. You can run the entire workflow with the following command:</p>
 <div class="language-bash highlight"><span class="filename">Running the entire workflow using this single command</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>snakemake<span class="w"> </span>-j1<span class="w"> </span>-c4<span class="w"> </span>solve_all_networks<span class="w"> </span><span class="c1"># (1)!</span>
 </span></code></pre></div>
@@ -917,7 +911,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <p>or</p>
 <div class="language-bash highlight"><span class="filename">Running the entire workflow using this call command</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>snakemake<span class="w"> </span>-call
 </span></code></pre></div>
-<p>For more information, please refer to the <a href="https://snakemake.readthedocs.io/en/stable/index.html" target="_blank">Snakemake documentation</a> to adjust the cores and threads to use.</p>
+<p>For more information, please refer to the <a href="https://snakemake.readthedocs.io/en/stable/index.html" target="_blank">Snakemake documentation</a> to adjust the cores and threads to use.</p></div>
 
 
 

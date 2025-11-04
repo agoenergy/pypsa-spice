@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#to-be-updated" class="md-skip">
+        <a href="#how-to-contribute" class="md-skip">
           Skip to content
         </a>
       
@@ -464,7 +464,7 @@
   
   
   
-    <a href="../../tutorials-and-examples/data_sources/" class="md-nav__link">
+    <a href="../../tutorials-and-examples/training_materials/" class="md-nav__link">
       
   
   
@@ -549,6 +549,19 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -560,6 +573,43 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#code-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code style
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pre-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pre-Commit
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -664,13 +714,26 @@
   
 
 
-<!--
--*- coding: utf-8 -*-
-SPDX-FileCopyrightText: PyPSA-SPICE Developers
-SPDX-License-Identifier: GPL-2.0-or-later
--->
-
-<h1 id="to-be-updated">To be updated<a class="headerlink" href="#to-be-updated" title="Permanent link">&para;</a></h1>
+<div><h1 id="how-to-contribute">How to Contribute<a class="headerlink" href="#how-to-contribute" title="Permanent link">¶</a></h1>
+<p>PyPSA-SPICE is an open-source repository and thus your contributions are welcome and appreciated!</p>
+<p>If you are considering using this model builder, please reach out to us at <a href="mailto:modelling@agora-thinktanks.org" target="_blank">modelling@agora-thinktanks.org</a>. We would be happy to help you get started.</p>
+<p>If you encounter a bug, please create a <a href="https://github.com/agoenergy/pypsa-spice/issues" target="_blank">new issue</a>. For new ideas or feature requests, you can start a conversation in the <a href="https://github.com/agoenergy/pypsa-spice/discussions" target="_blank">discussions</a> section of the repository. For troubleshooting, please check the <a href="../../user-guide/troubleshooting/">troubleshooting</a> guide for more information.</p>
+<h2 id="code-style">Code style<a class="headerlink" href="#code-style" title="Permanent link">¶</a></h2>
+<p>If your contributions involve code changes, please follow the steps below to format your code before creating a pull request. This will help us review your changes more efficiently!</p>
+<ol>
+<li>Fork the repository on GitHub</li>
+<li>Clone your fork: <code>git clone https://github.com/&lt;your-username&gt;/pypsa-spice.git</code></li>
+<li>Fetch the upstream tags <code>git fetch --tags https://github.com/agoenergy/pypsa-spice/pypsa-spice.git</code></li>
+<li>Install with dependencies in editable mode: <code>pip install -e .[dev]</code></li>
+<li>Setup linter and formatter, e.g <code>pre-commit install</code> (see <a href="#pre-commit">Pre-Commit</a>)</li>
+<li>Open a new branch and write your code</li>
+<li>Push your changes to your fork and create a pull request on GitHub</li>
+</ol>
+<h2 id="pre-commit">Pre-Commit<a class="headerlink" href="#pre-commit" title="Permanent link">¶</a></h2>
+<p>We use <a href="https://pre-commit.com/">pre-commit</a> to maintain consistent code style and catch common errors before commits. The pre-commit package is included in the <code>pypsa-spice</code> environment. To enable automatic formatting before each commit (recommended), run this command once:</p>
+<div class="language-bash highlight"><span class="filename">Initialize pre-commit</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pre-commit<span class="w"> </span>install
+</span></code></pre></div>
+<p>This will automatically check the changes which are staged before you commit them.</p></div>
 
 
 

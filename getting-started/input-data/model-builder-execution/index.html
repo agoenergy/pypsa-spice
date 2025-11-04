@@ -786,7 +786,7 @@
   
   
   
-    <a href="../../../tutorials-and-examples/data_sources/" class="md-nav__link">
+    <a href="../../../tutorials-and-examples/training_materials/" class="md-nav__link">
       
   
   
@@ -924,18 +924,12 @@
   
 
 
-<!--
--*- coding: utf-8 -*-
-SPDX-FileCopyrightText: PyPSA-SPICE Developers
-SPDX-License-Identifier: GPL-2.0-or-later
--->
-
-<h1 id="input-data-model-execution">Input Data: Model Execution<a class="headerlink" href="#input-data-model-execution" title="Permanent link">&para;</a></h1>
+<div><h1 id="input-data-model-execution">Input Data: Model Execution<a class="headerlink" href="#input-data-model-execution" title="Permanent link">¶</a></h1>
 <p>The execution of the model is orchestrated using <a href="https://snakemake.readthedocs.io/en/stable/" target="_blank">Snakemake</a>, as defined in the project’s <code>Snakefile</code> located in the root directory. Snakemake acts as the workflow engine, coordinating individual rules and chaining them into a single, automated execution process. This allows for scalable, parallel computation across multiple cores or threads.</p>
-<h2 id="execution-of-snakemake-workflow">Execution of Snakemake workflow<a class="headerlink" href="#execution-of-snakemake-workflow" title="Permanent link">&para;</a></h2>
+<h2 id="execution-of-snakemake-workflow">Execution of Snakemake workflow<a class="headerlink" href="#execution-of-snakemake-workflow" title="Permanent link">¶</a></h2>
 <p>Below is a simplified representation, showing the workflow for the years 2025-2050 with the power sector only.</p>
-<p><img alt="PyPSA-SPICE_snakemake_workflow_DAG" src="../../../assets/images/snakemake_workflow_dag.jpg" /></p>
-<h2 id="rules-and-functions">Rules and Functions<a class="headerlink" href="#rules-and-functions" title="Permanent link">&para;</a></h2>
+<p><img alt="PyPSA-SPICE_snakemake_workflow_DAG" src="../../../assets/images/snakemake_workflow_dag.jpg"></p>
+<h2 id="rules-and-functions">Rules and Functions<a class="headerlink" href="#rules-and-functions" title="Permanent link">¶</a></h2>
 <p>The table below explains the main Snakemake rules and helper functions used in the PyPSA-SPICE workflow:</p>
 <table>
 <thead>
@@ -988,8 +982,8 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 </tbody>
 </table>
-<h2 id="running-the-model-builder">Running the Model Builder<a class="headerlink" href="#running-the-model-builder" title="Permanent link">&para;</a></h2>
-<h3 id="run-the-entire-workflow-at-once">Run the Entire Workflow at Once<a class="headerlink" href="#run-the-entire-workflow-at-once" title="Permanent link">&para;</a></h3>
+<h2 id="running-the-model-builder">Running the Model Builder<a class="headerlink" href="#running-the-model-builder" title="Permanent link">¶</a></h2>
+<h3 id="run-the-entire-workflow-at-once">Run the Entire Workflow at Once<a class="headerlink" href="#run-the-entire-workflow-at-once" title="Permanent link">¶</a></h3>
 <p>To execute the entire workflow, modify the <code>configfile</code> parameter in the snakemake to point to your scenario <code>config_scenario.yaml</code> file. After this, you can run the whole workflow using:</p>
 <div class="language-bash highlight"><span class="filename">Run the entire model builder workflow at once.</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>snakemake<span class="w"> </span>-j1<span class="w"> </span>-c4<span class="w"> </span>solve_all_networks<span class="w"> </span><span class="c1">#(1)!</span>
 </span></code></pre></div>
@@ -999,11 +993,11 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <p>or</p>
 <div class="language-bash highlight"><span class="filename">Running the entire model builder workflow using this call command</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>snakemake<span class="w"> </span>-call
 </span></code></pre></div>
-<h3 id="run-a-single-year">Run a Single Year<a class="headerlink" href="#run-a-single-year" title="Permanent link">&para;</a></h3>
+<h3 id="run-a-single-year">Run a Single Year<a class="headerlink" href="#run-a-single-year" title="Permanent link">¶</a></h3>
 <p>If you want to run a specific year instead of running multiple years, You can do it using the following command:</p>
 <div class="language-bash highlight"><span class="filename">Option 2: Run a single output file.</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>snakemake<span class="w"> </span>-j1<span class="w"> </span>-c4<span class="w"> </span>post-solve/elec_<span class="o">{</span>SECTOR<span class="o">}</span>_<span class="o">{</span>YEAR<span class="o">}</span>.nc
 </span></code></pre></div>
-<p>Since a particular year run needs previous year outputs (except base year), snakemake will run the all the required worksflows to generate the output for specified year.</p>
+<p>Since a particular year run needs previous year outputs (except base year), snakemake will run the all the required worksflows to generate the output for specified year.</p></div>
 
 
 

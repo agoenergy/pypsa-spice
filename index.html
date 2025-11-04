@@ -585,7 +585,7 @@
   
   
   
-    <a href="tutorials-and-examples/data_sources/" class="md-nav__link">
+    <a href="tutorials-and-examples/training_materials/" class="md-nav__link">
       
   
   
@@ -723,18 +723,12 @@
   
 
 
-<!--
--*- coding: utf-8 -*-
-SPDX-FileCopyrightText: PyPSA-SPICE Developers
-SPDX-License-Identifier: GPL-2.0-or-later
--->
-
-<h1 id="pypsa-spice-pypsa-based-scenario-planning-and-integrated-capacity-expansion">PyPSA-SPICE: PyPSA-based Scenario Planning and Integrated Capacity Expansion<a class="headerlink" href="#pypsa-spice-pypsa-based-scenario-planning-and-integrated-capacity-expansion" title="Permanent link">&para;</a></h1>
+<div><h1 id="pypsa-spice-pypsa-based-scenario-planning-and-integrated-capacity-expansion">PyPSA-SPICE: PyPSA-based Scenario Planning and Integrated Capacity Expansion<a class="headerlink" href="#pypsa-spice-pypsa-based-scenario-planning-and-integrated-capacity-expansion" title="Permanent link">¶</a></h1>
 <!-- badges-begin -->
-<p><a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html" target="_blank"><img alt="License" src="https://eddelbuettel.github.io/badges/GPL2+.svg" /></a>
-<a href="https://pypi.org/project/pypsa/" target="_blank"><img alt="PyPSA version" src="https://img.shields.io/pypi/v/pypsa?label=pypsa" /></a>
-<a href="https://snakemake.readthedocs.io" target="_blank"><img alt="Snakemake" src="https://img.shields.io/badge/snakemake-minimal==8.10.8-brightgreen.svg?style=flat" /></a>
-<a href="https://github.com/ambv/black" target="_blank"><img alt="Code style" src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a></p>
+<p><a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html" target="_blank"><img alt="License" src="https://eddelbuettel.github.io/badges/GPL2+.svg"></a>
+<a href="https://pypi.org/project/pypsa/" target="_blank"><img alt="PyPSA version" src="https://img.shields.io/pypi/v/pypsa?label=pypsa"></a>
+<a href="https://snakemake.readthedocs.io" target="_blank"><img alt="Snakemake" src="https://img.shields.io/badge/snakemake-minimal==8.10.8-brightgreen.svg?style=flat"></a>
+<a href="https://github.com/ambv/black" target="_blank"><img alt="Code style" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a></p>
 <!-- badges-end -->
 
 <div class="admonition info">
@@ -742,10 +736,10 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <p>If you are considering using this model builder, please reach out to us at <a href="mailto:modelling@agora-thinktanks.org" target="_blank">modelling@agora-thinktanks.org</a>. We would be happy to help you get started.
 If you encounter a bug, please create a <a href="https://github.com/agoenergy/pypsa-spice/issues" target="_blank">new issue</a>. For new ideas or feature requests, you can start a conversation in the <a href="https://github.com/agoenergy/pypsa-spice/discussions" target="_blank">discussions</a> section of the repository.</p>
 </div>
-<p>PyPSA-SPICE is an open-source model builder for assessing national mid/long-term energy scenarios using a least-cost, multi-sectoral optimization approach based on the <a href="https://pypsa.org/" target="_blank">PyPSA</a> framework. It can be used to build models that represent one or more countries across multiple interconnected nodes linked by electricity transmission, and within each region, it models the integration of power, heat, and transport sectors. The model focuses on the power sector, which is represented with a high level of detail.</p>
+<p>PyPSA-SPICE (https://agoenergy.github.io/pypsa-spice/) is an open-source model builder for assessing national mid/long-term energy scenarios using a least-cost, multi-sectoral optimization approach based on the <a href="https://pypsa.org/" target="_blank">PyPSA</a> framework. It can be used to build models that represent one or more countries across multiple interconnected nodes linked by electricity transmission, and within each region, it models the integration of power, heat, and transport sectors. The model focuses on the power sector, which is represented with a high level of detail.</p>
 <p>The model workflow has been designed to be more accessible compared to other PyPSA-based models, though basic Python coding knowledge is required.</p>
-<p><img alt="PyPSA-SPICE_single_node_energy_flow" src="assets/images/pypsa-spice_intro.jpg" /></p>
-<h2 id="key-features-of-pypsa-spice">Key Features of PyPSA-SPICE<a class="headerlink" href="#key-features-of-pypsa-spice" title="Permanent link">&para;</a></h2>
+<p><img alt="PyPSA-SPICE_single_node_energy_flow" src="assets/images/pypsa-spice_intro.jpg"></p>
+<h2 id="key-features-of-pypsa-spice">Key Features of PyPSA-SPICE<a class="headerlink" href="#key-features-of-pypsa-spice" title="Permanent link">¶</a></h2>
 <ul>
 <li>Assessment of national or regional long-term energy scenarios using a least-cost optimization approach based on the <a href="https://pypsa.org/" target="_blank">PyPSA</a> framework.</li>
 <li>Co-optimization of generation, capacity, and interconnector expansion at hourly resolution.</li>
@@ -757,7 +751,7 @@ If you encounter a bug, please create a <a href="https://github.com/agoenergy/py
 <li><a href="visualisation-tool/pypsa-spice-vis/">PyPSA-SPICE-Vis</a> as a visual tool for easy visualization of model outputs.</li>
 <li>Extensive documentation to facilitate working with the model.</li>
 </ul>
-<h2 id="types-of-models-outside-the-scope-of-pypsa-spice">Types of models outside the scope of PyPSA-SPICE<a class="headerlink" href="#types-of-models-outside-the-scope-of-pypsa-spice" title="Permanent link">&para;</a></h2>
+<h2 id="types-of-models-outside-the-scope-of-pypsa-spice">Types of models outside the scope of PyPSA-SPICE<a class="headerlink" href="#types-of-models-outside-the-scope-of-pypsa-spice" title="Permanent link">¶</a></h2>
 <p>PyPSA-SPICE is not designed for modeling power or energy systems with very high geographic resolution, such as load flow modeling. Instead, it prioritizes ease of building country- or region-level models using manually provided custom data. For this reason, it is best suited for models with a maximum of 10–15 regional nodes.</p>
 <ul>
 <li>For higher geographic detail other open-source PyPSA-based frameworks can be used:</li>
@@ -769,30 +763,30 @@ If you encounter a bug, please create a <a href="https://github.com/agoenergy/py
 <p>PyPSA-SPICE requires total energy demand as an input and does not optimize total demand, modal shifts, or other demand-side dynamics.  </p>
 </li>
 </ul>
-<h2 id="studies-conducted-using-pypsa-spice">Studies conducted using PyPSA-SPICE<a class="headerlink" href="#studies-conducted-using-pypsa-spice" title="Permanent link">&para;</a></h2>
+<h2 id="studies-conducted-using-pypsa-spice">Studies conducted using PyPSA-SPICE<a class="headerlink" href="#studies-conducted-using-pypsa-spice" title="Permanent link">¶</a></h2>
 <p>Please refer to <a href="tutorials-and-examples/publication/">Publication</a> to see the publications or studies
 using the PyPSA-SPICE model builder.</p>
-<h2 id="visualisation-of-pypsa-spice-results">Visualisation of PyPSA-SPICE Results<a class="headerlink" href="#visualisation-of-pypsa-spice-results" title="Permanent link">&para;</a></h2>
+<h2 id="visualisation-of-pypsa-spice-results">Visualisation of PyPSA-SPICE Results<a class="headerlink" href="#visualisation-of-pypsa-spice-results" title="Permanent link">¶</a></h2>
 <p>To make it easy to visualise and compare scenario outputs, we provide an open-source
 library <a href="visualisation-tool/pypsa-spice-vis/">PyPSA-SPICE-Vis</a> within the model builder.</p>
-<h2 id="citing-pypsa-spice">Citing PyPSA-SPICE<a class="headerlink" href="#citing-pypsa-spice" title="Permanent link">&para;</a></h2>
+<h2 id="citing-pypsa-spice">Citing PyPSA-SPICE<a class="headerlink" href="#citing-pypsa-spice" title="Permanent link">¶</a></h2>
 <p>Please use the citation below:</p>
 <ul>
 <li>Agora Think Tanks (2025): PyPSA-SPICE: PyPSA-based Scenario Planning and Integrated Capacity Expansion</li>
 </ul>
-<h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>
+<h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">¶</a></h2>
 <p>We welcome contributions from anyone interested in improving this project. Please take a moment to review our <a href="contributing/contributing/">Contributing Guide</a> and <a href="contributing/code_of_conduct/">Code of Conduct</a>.
 If you have ideas, suggestions, or encounter any issues, feel free to open an issue or submit a pull request on GitHub.</p>
-<h2 id="maintained-by">Maintained by<a class="headerlink" href="#maintained-by" title="Permanent link">&para;</a></h2>
-<p><a href="https://www.agora-energiewende.org/"><img alt="AgoraEW" src="assets/images/Agora_EW.png" /></a></p>
-<h2 id="supported-by">Supported by<a class="headerlink" href="#supported-by" title="Permanent link">&para;</a></h2>
-<p><a href="https://caseforsea.org/"><img alt="CASE" src="assets/images/CASE.png" /></a> <a href="https://www.inettt.org/"><img alt="INETTT" src="assets/images/INETTT.svg" /></a></p>
-<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
-<p>Copyright &copy; <a href="references/developers/">PyPSA-SPICE Developers</a></p>
+<h2 id="maintained-by">Maintained by<a class="headerlink" href="#maintained-by" title="Permanent link">¶</a></h2>
+<p><a href="https://www.agora-energiewende.org/"><img alt="AgoraEW" src="assets/images/Agora_EW.png"></a></p>
+<h2 id="supported-by">Supported by<a class="headerlink" href="#supported-by" title="Permanent link">¶</a></h2>
+<p><a href="https://caseforsea.org/"><img alt="CASE" src="assets/images/CASE.png"></a> <a href="https://www.inettt.org/"><img alt="INETTT" src="assets/images/INETTT.png"></a></p>
+<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">¶</a></h2>
+<p>Copyright © <a href="references/developers/">PyPSA-SPICE Developers</a></p>
 <p>PyPSA-SPICE is licensed under the open source <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html">GNU General Public License v2.0 or later</a>
 with the following information:</p>
 <p>The documentation is licensed under <a href="https://interoperable-europe.ec.europa.eu/licence/creative-commons-attribution-40-international-cc-40">CC-BY-4.0</a>.</p>
-<p>The repository uses <a href="https://reuse.software/">REUSE</a> to expose the licenses of its files.</p>
+<p>The repository uses <a href="https://reuse.software/">REUSE</a> to expose the licenses of its files.</p></div>
 
 
 

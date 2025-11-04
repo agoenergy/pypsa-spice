@@ -686,7 +686,7 @@
   
   
   
-    <a href="../../tutorials-and-examples/data_sources/" class="md-nav__link">
+    <a href="../../tutorials-and-examples/training_materials/" class="md-nav__link">
       
   
   
@@ -824,15 +824,9 @@
   
 
 
-<!--
--*- coding: utf-8 -*-
-SPDX-FileCopyrightText: PyPSA-SPICE Developers
-SPDX-License-Identifier: GPL-2.0-or-later
--->
-
-<h1 id="standard-output-from-the-snakemake-workflow">Standard Output from the Snakemake Workflow<a class="headerlink" href="#standard-output-from-the-snakemake-workflow" title="Permanent link">&para;</a></h1>
+<div><h1 id="standard-output-from-the-snakemake-workflow">Standard Output from the Snakemake Workflow<a class="headerlink" href="#standard-output-from-the-snakemake-workflow" title="Permanent link">¶</a></h1>
 <p>The following NetCDF files, CSVs, and charts are generated automatically after the whole Snakemake workflow is successfully executed.</p>
-<h2 id="netcdf-files-nc-files">NetCDF Files (<code>*.nc</code> Files)<a class="headerlink" href="#netcdf-files-nc-files" title="Permanent link">&para;</a></h2>
+<h2 id="netcdf-files-nc-files">NetCDF Files (<code>*.nc</code> Files)<a class="headerlink" href="#netcdf-files-nc-files" title="Permanent link">¶</a></h2>
 <p><a href="https://en.wikipedia.org/wiki/NetCDF" target="_blank">NetCDF (Network Common Data Form)</a> is a data format for efficiently storing multi-dimensional arrays. By default, the PyPSA-SPICE model creates:</p>
 <ul>
 <li><strong>Pre-solve networks</strong> in the <code>results/pre-solve</code> directory in the <code>project_name</code> folder.</li>
@@ -840,7 +834,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <li><strong>Post networks</strong> in the <code>results/post-solve</code> directory in the <code>project_name</code> folder.</li>
 </ul>
 <p>These <code>*.nc</code> files allow users to examine the model’s structure, inputs, and results before and after optimisation.</p>
-<h2 id="excel-ready-csvs">Excel-Ready CSVs<a class="headerlink" href="#excel-ready-csvs" title="Permanent link">&para;</a></h2>
+<h2 id="excel-ready-csvs">Excel-Ready CSVs<a class="headerlink" href="#excel-ready-csvs" title="Permanent link">¶</a></h2>
 <p>The following CSV files are created automatically. Each file represents a key indicator, broken down by sector and modeling year or hour, depending on granularity.</p>
 <table>
 <thead>
@@ -1136,10 +1130,10 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </tr>
 </tbody>
 </table>
-<h2 id="jupyter-notebook">Jupyter Notebook<a class="headerlink" href="#jupyter-notebook" title="Permanent link">&para;</a></h2>
+<h2 id="jupyter-notebook">Jupyter Notebook<a class="headerlink" href="#jupyter-notebook" title="Permanent link">¶</a></h2>
 <p>We provide a <code>post-analysis/post_analysis.ipynb</code> for manual exploration of the pre-solve, pre-solve-brownfield, or post-solve network files.</p>
-<h2 id="dynamic-visualization">Dynamic Visualization<a class="headerlink" href="#dynamic-visualization" title="Permanent link">&para;</a></h2>
-<p>To make it easier to explore and compare model outputs, we provide an open-source library <a href="../../visualisation-tool/pypsa-spice-vis/">PyPSA-SPICE-Vis</a>, an interactive visualisation library that generates dynamic charts using the outputs listed above.</p>
+<h2 id="dynamic-visualization">Dynamic Visualization<a class="headerlink" href="#dynamic-visualization" title="Permanent link">¶</a></h2>
+<p>To make it easier to explore and compare model outputs, we provide an open-source library <a href="../../visualisation-tool/pypsa-spice-vis/">PyPSA-SPICE-Vis</a>, an interactive visualisation library that generates dynamic charts using the outputs listed above.</p></div>
 
 
 

@@ -762,7 +762,7 @@
   
   
   
-    <a href="../../../tutorials-and-examples/data_sources/" class="md-nav__link">
+    <a href="../../../tutorials-and-examples/training_materials/" class="md-nav__link">
       
   
   
@@ -900,13 +900,7 @@
   
 
 
-<!--
--*- coding: utf-8 -*-
-SPDX-FileCopyrightText: PyPSA-SPICE Developers
-SPDX-License-Identifier: GPL-2.0-or-later
--->
-
-<h1 id="input-data-define-a-new-model">Input Data: Define a New Model<a class="headerlink" href="#input-data-define-a-new-model" title="Permanent link">&para;</a></h1>
+<div><h1 id="input-data-define-a-new-model">Input Data: Define a New Model<a class="headerlink" href="#input-data-define-a-new-model" title="Permanent link">¶</a></h1>
 <p>This section explains how to set up a new model for a particular country/region using the PyPSA-SPICE model builder. Once your model is step you can run the model as described in <a href="../model-builder-execution/">model execution</a>.</p>
 <p>Steps of setting up a new model:</p>
 <ol>
@@ -915,7 +909,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <li>Fill in the skeleton CSVs with the required data manually or using available resources.</li>
 </ol>
 <p>An example structure created by <code>build_skeleton</code> is displayed below. The following sections will use this example to explain the settings.</p>
-<h2 id="step-1-set-up-the-base-configuration-file">Step 1: Set up the Base Configuration File<a class="headerlink" href="#step-1-set-up-the-base-configuration-file" title="Permanent link">&para;</a></h2>
+<h2 id="step-1-set-up-the-base-configuration-file">Step 1: Set up the Base Configuration File<a class="headerlink" href="#step-1-set-up-the-base-configuration-file" title="Permanent link">¶</a></h2>
 <p>Setting up the base config requires defining the scope and resolution of the model. Specifically, defining which countries/regions will be represented in the model and for which year the model will be run. While it is possible to change these after initial model is created, it would require significant effort to add new regions/years in the input CSVs.  </p>
 <p>The <code>base_config.yaml</code> contains two parts which will be used both for folder structure building and model executions:</p>
 <div class="language-yaml highlight"><span class="filename">Init settings in the config.yaml file</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">path_configs</span><span class="p">:</span><span class="w"> </span><span class="c1">#(1)!</span>
@@ -926,10 +920,10 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nt">base_configs</span><span class="p">:</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nt">regions</span><span class="p">:</span><span class="w"> </span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nt">XY</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;NR&quot;</span><span class="p p-Indicator">,</span><span class="s">&quot;CE&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;SO&quot;</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># (4)!</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">YZ</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;NR&quot;</span><span class="p p-Indicator">,</span><span class="s">&quot;CE&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;SO&quot;</span><span class="p p-Indicator">]</span><span class="w"> </span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nt">XY</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"NR"</span><span class="p p-Indicator">,</span><span class="s">"CE"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"SO"</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># (4)!</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">YZ</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"NR"</span><span class="p p-Indicator">,</span><span class="s">"CE"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"SO"</span><span class="p p-Indicator">]</span><span class="w"> </span>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nt">years</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">2025</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2030</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2035</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2040</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2045</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2050</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># (5)!</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="nt">sector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;p-i-t&quot;</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># (6)!</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="nt">sector</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"p-i-t"</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># (6)!</span>
 </span></code></pre></div>
 <ol>
 <li>This section is for configuring directory structure for storing model inputs and results.</li>
@@ -941,7 +935,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </ol>
 <p>The final skeleton folder path will follow this structure:: <code>data</code>/<code>data_folder_name</code>/<code>project_name</code>.</p>
 <p>By setting different <code>input_scenario_name</code> and country or regional settings in the <code>base_configs</code> section (see details in <a href="../model-builder-configuration/">Model Configuration</a>), a new skeleton structure under the same <code>data_folder_name</code> folder will be created.</p>
-<h2 id="step-2-build-the-skeleton">Step 2: Build the Skeleton<a class="headerlink" href="#step-2-build-the-skeleton" title="Permanent link">&para;</a></h2>
+<h2 id="step-2-build-the-skeleton">Step 2: Build the Skeleton<a class="headerlink" href="#step-2-build-the-skeleton" title="Permanent link">¶</a></h2>
 <p>After modifying the configuration file, run the following command in your terminal.</p>
 <div class="language-bash highlight"><span class="filename">Generating the skeleton folder</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>snakemake<span class="w"> </span>-c1<span class="w"> </span>build_skeleton
 </span></code></pre></div>
@@ -992,7 +986,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 <p class="admonition-title">Tip</p>
 <p>Once you’ve created a skeleton data folder for one scenario, you can simply duplicate the scenario folder and rename the folder name to set up additional scenarios. However, we recommend doing this only after you’ve completed filling in the data for the first one.  </p>
 </div>
-<h2 id="step-3-fill-in-the-skeleton-csvs">Step 3: Fill in the Skeleton CSVs<a class="headerlink" href="#step-3-fill-in-the-skeleton-csvs" title="Permanent link">&para;</a></h2>
+<h2 id="step-3-fill-in-the-skeleton-csvs">Step 3: Fill in the Skeleton CSVs<a class="headerlink" href="#step-3-fill-in-the-skeleton-csvs" title="Permanent link">¶</a></h2>
 <p>Once a new skeleton folder is created, project-specific CSV templates will be setup. Each CSV will include placeholders marked with <code>Please fill here</code>. These need to be completed with relevant data so the model can perform more accurate optimizations.</p>
 <p>To help you fill these files:</p>
 <ul>
@@ -1003,7 +997,7 @@ Once all the necessary input data is provided, adjust model and solver settings 
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>By detault, the input structure considers large number of technologies represented in the model. If the particular technologies are not needed in your model, it is good practice to remove the input data for these technologies. You can also define your own technologies and customise the model accordingly.  </p>
-</div>
+</div></div>
 
 
 
