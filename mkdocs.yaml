@@ -98,8 +98,8 @@ nav:
     - Deployment: visualisation-tool/deployment.md
 
   - 📚 Tutorials and Examples:
-    - Data Sources: tutorials-and-examples/data_sources.md
     - Training Materials: tutorials-and-examples/training_materials.md
+    - Data Sources: tutorials-and-examples/data_sources.md
     - Publication: tutorials-and-examples/publication.md
 
   - 🤝 Contributing:
