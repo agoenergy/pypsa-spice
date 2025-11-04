@@ -30,7 +30,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
     If you are considering using this model builder, please reach out to us at [modelling@agora-thinktanks.org](mailto:modelling@agora-thinktanks.org){:target="_blank"}. We would be happy to help you get started.
     If you encounter a bug, please create a [new issue](https://github.com/agoenergy/pypsa-spice/issues){:target="_blank"}. For new ideas or feature requests, you can start a conversation in the [discussions](https://github.com/agoenergy/pypsa-spice/discussions){:target="_blank"} section of the repository.
 
-PyPSA-SPICE is an open-source model builder for assessing national mid/long-term energy scenarios using a least-cost, multi-sectoral optimization approach based on the [PyPSA](https://pypsa.org/){:target="_blank"} framework. It can be used to build models that represent one or more countries across multiple interconnected nodes linked by electricity transmission, and within each region, it models the integration of power, heat, and transport sectors. The model focuses on the power sector, which is represented with a high level of detail.
+PyPSA-SPICE (https://agoenergy.github.io/pypsa-spice/) is an open-source model builder for assessing national mid/long-term energy scenarios using a least-cost, multi-sectoral optimization approach based on the [PyPSA](https://pypsa.org/){:target="_blank"} framework. It can be used to build models that represent one or more countries across multiple interconnected nodes linked by electricity transmission, and within each region, it models the integration of power, heat, and transport sectors. The model focuses on the power sector, which is represented with a high level of detail.
 
 The model workflow has been designed to be more accessible compared to other PyPSA-based models, though basic Python coding knowledge is required.
 
@@ -85,7 +85,7 @@ If you have ideas, suggestions, or encounter any issues, feel free to open an is
 
 ## Supported by
 
-[![CASE](assets/images/CASE.png)](https://caseforsea.org/) [![INETTT](assets/images/INETTT.svg)](https://www.inettt.org/)
+[![CASE](assets/images/CASE.png)](https://caseforsea.org/) [![INETTT](assets/images/INETTT.png)](https://www.inettt.org/)
 
 ## License
 

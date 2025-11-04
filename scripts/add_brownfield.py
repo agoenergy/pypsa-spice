@@ -35,7 +35,7 @@ from _helpers import (
     get_storage_units_inflows,
     get_store_min_availabilities,
     get_time_series_demands,
-    open_scenario_config,
+    load_scenario_config,
     update_ev_char_parameters,
     update_ev_store_parameters,
     update_storage_costs,
@@ -932,7 +932,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake("add_brownfield", sector="p-i-t", years=2030)
     configure_logging(snakemake)
-    scenario_configs = open_scenario_config(
+    scenario_configs = load_scenario_config(
         "data/"
         + snakemake.config["path_configs"]["data_folder_name"]
         + "/"
