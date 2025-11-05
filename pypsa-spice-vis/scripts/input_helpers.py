@@ -668,7 +668,7 @@ class InputUiHandler:
         filter_col: str,
         selected_types: list,
     ) -> pd.DataFrame:
-        """Filter the decomission capacity df based on the user's selection.
+        """Filter the decommission capacity df based on the user's selection.
 
         Parameters
         ----------
