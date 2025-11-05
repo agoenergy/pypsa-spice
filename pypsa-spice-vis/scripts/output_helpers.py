@@ -20,7 +20,10 @@ use_flexo()
 pd.options.mode.chained_assignment = None
 
 
-def _get_mapping_df(tab_name: str) -> pd.DataFrame:
+##TODO `Move to graph_settings.py`
+def create_nice_names_and_color_mapping(
+    tab_name: str,
+) -> pd.DataFrame:
     """Get the names to hex codes mapping df for a given graph.
 
     Parameters
@@ -58,7 +61,8 @@ def _get_mapping_df(tab_name: str) -> pd.DataFrame:
     return df
 
 
-def _get_nice_colour_mapping(
+##TODO `Move to graph_settings.py`
+def handle_color_mapping_for_chart(
     tab_name: str, legend_labels: Optional[list[str]] = None
 ) -> Dict[str, str]:
     """Get the colour mapping dict for a given graph.
@@ -75,9 +79,9 @@ def _get_nice_colour_mapping(
     Dict[str, str]
         Dict of nice names to hex code mapping
     """
-    df = _get_mapping_df(tab_name)
+    df = create_nice_names_and_color_mapping(tab_name)
 
-    default_colours = _get_default_colour_list()
+    default_colours = get_default_colour_list()
 
     if df is None:
         return {}
@@ -106,7 +110,8 @@ def _get_nice_colour_mapping(
     return nice_mapping
 
 
-def _generate_default_colour_mapping(df: pd.DataFrame, leg_col: str) -> Dict[str, str]:
+##TODO `Move to graph_settings.py`
+def generate_default_colour_mapping(df: pd.DataFrame, leg_col: str) -> Dict[str, str]:
     """Generate a default colour mapping dictionary.
 
     Generate a colour mapping dict for the legend series in a graph using a default
@@ -128,14 +133,15 @@ def _generate_default_colour_mapping(df: pd.DataFrame, leg_col: str) -> Dict[str
     unique_legends = df[leg_col].unique().tolist()
     prettified_legends = [_prettify_label(label) for label in unique_legends]
 
-    default_colours = _get_default_colour_list()
+    default_colours = get_default_colour_list()
 
     mapping = dict(zip(prettified_legends, cycle(default_colours)))
 
     return mapping
 
 
-def _get_default_colour_list() -> list:
+##TODO `Move to graph_settings.py`
+def get_default_colour_list() -> list:
     """Gets the list of default colours to use.
 
     Colours are assigned to legends that do not have a specified hex_code in
@@ -149,32 +155,55 @@ def _get_default_colour_list() -> list:
     return ["#64B9E4", "#48A8AE", "#AD86B0", "#1E83B3", "#8393BE", "#637596"]
 
 
+##TODO `Move to utils.py`
 def read_result_csv(
-    sc_name: str, tab_name: str, shared_country: str = None, hourly_year: str = None
+    scenario_name: str,
+    table_name: str,
+    country: str = None,
+    year: str = None,
 ) -> pd.DataFrame:
-    if hourly_year:
+    """Read model ouput csv files for a given scenario and tab name.
+
+    Parameters
+    ----------
+    scenario_name : str
+        Selected scenario in streamlit UI
+    table_name : str
+        Output table name
+    country : str, optional
+        If not None, filter the csv by inputted country, by default None
+    year : str, optional
+        If not None, read csv from year specific folder else all_years folder,
+        by default None
+
+    Returns
+    -------
+    pd.DataFrame
+        _description_
+    """
+    if year:
         file_path = os.path.abspath(
             st.session_state.result_path
             + "/"
-            + sc_name
+            + scenario_name
             + "/csvs/"
             + st.session_state.sector
             + "/"
-            + hourly_year
+            + year
             + "/"
-            + tab_name
+            + table_name
             + ".csv"
         )
     else:
         file_path = os.path.abspath(
             st.session_state.result_path
             + "/"
-            + sc_name
+            + scenario_name
             + "/csvs/"
             + st.session_state.sector
             + "/"
             + "/all_years/"
-            + tab_name
+            + table_name
             + ".csv"
         )
 
@@ -188,15 +217,16 @@ def read_result_csv(
                 )
             )
         return None
-    if "country" in df.columns and shared_country != None:
-        df = df[df["country"] == shared_country]
+    if "country" in df.columns and country != None:
+        df = df[df["country"] == country]
 
     df = df.fillna(0)
 
     return df
 
 
-def slugify(text: str):
+##TODO `Move to utils.py`
+def slugify_text(text: str):
     """Helper function to slugify text string.
 
     This is used to generate safe anchor IDs (URL fragments) in the sidebar.
@@ -217,21 +247,22 @@ def slugify(text: str):
     return text
 
 
-def generate_sidebar(toc):
+def generate_sidebar(table_of_content):
+    """generate sidebar with navigation links."""
     with st.sidebar:
         st.divider()
 
         apply_sidebar_chart_nav_styles()
 
-        for section in toc:
-            anchor_id = slugify(section)
+        for section in table_of_content:
+            anchor_id = slugify_text(section)
             st.markdown(
                 f'<a href="#{anchor_id}" class="nav-link">{section}</a>',
                 unsafe_allow_html=True,
             )
 
 
-def _setup_year_filter(config_plot: Dict, is_dual_scenario: bool) -> str:
+def setup_year_filter(config_plot: Dict, is_dual_scenario: bool) -> str:
     """Setup the year filter that appears in graphs with hourly data.
 
     Parameters
@@ -282,14 +313,22 @@ def _setup_year_filter(config_plot: Dict, is_dual_scenario: bool) -> str:
     return shared_year
 
 
-def _setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None):
-    """
-    Setup the country filter that appears in filtered_bar_hourly graphs
-    Args:
-        config_plot (Dict): Configuration dictionary for the plot
-        is_dual_scenario (bool): True if sce2 is selected, False otherwise
-        secnario_tag (str): Optional tag for the scenario, used in the label
-    Returns:
+def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None) -> str:
+    """Setup the country filter that appears in filtered_bar_hourly graphs.
+
+    Parameters
+    ----------
+    config_plot : _type_
+        Configuration dictionary for the plot
+    is_dual_scenario : bool, optional
+        True if sce2 is selected, by default False
+    scenario_tag : _type_, optional
+        Optional tag for the scenario, used in the label, by default None
+
+    Returns
+    -------
+    str
+        ountry selected in the widget. Defaults to the first country.
     """
     df = read_result_csv(scenario_tag, "pow_cap_by_type_yearly")
 
@@ -325,7 +364,7 @@ def _setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None
     return shared_country
 
 
-def _setup_region_filter(
+def setup_region_filter(
     config_plot: Dict,
     df1: pd.DataFrame,
     df2: pd.DataFrame = None,
@@ -378,7 +417,7 @@ def _setup_region_filter(
     return shared_region
 
 
-def _setup_month_filter(
+def setup_month_filter(
     config_plot: Dict,
     df1: pd.DataFrame,
     df2: pd.DataFrame | None = None,
@@ -432,7 +471,7 @@ def _setup_month_filter(
     return selected_month
 
 
-def _setup_date_filter_complete(
+def setup_date_filter_complete(
     config_plot: Dict,
     df1_m: pd.DataFrame,
     df2_m: pd.DataFrame | None = None,
@@ -494,7 +533,7 @@ def _setup_date_filter_complete(
     return selected_dates
 
 
-def _setup_date_filter_incomplete(
+def setup_date_filter_incomplete(
     config_plot: Dict,
     df1_m: pd.DataFrame,
     df2_m: pd.DataFrame | None = None,
@@ -554,7 +593,9 @@ def _setup_date_filter_incomplete(
     return selected_dates
 
 
-def _setup_radio_filter(config_plot: Dict, is_dual_scenario: bool) -> Optional[str]:
+def setup_radio_button_filter(
+    config_plot: Dict, is_dual_scenario: bool
+) -> Optional[str]:
     """Setup the radio button filter that appears in bar_with_filter graphs.
 
     Parameters
@@ -597,7 +638,7 @@ def _setup_radio_filter(config_plot: Dict, is_dual_scenario: bool) -> Optional[s
     return shared_filter
 
 
-def _setup_hourly_data_filters(
+def setup_hourly_data_filters(
     df1: pd.DataFrame,
     df2: pd.DataFrame | None,
     config_plot: Dict,
@@ -641,16 +682,14 @@ def _setup_hourly_data_filters(
     if not is_empty:
         if is_complete:
             # Month selection filter
-            selected_month = _setup_month_filter(
-                config_plot, df1, df2, is_dual_scenario
-            )
+            selected_month = setup_month_filter(config_plot, df1, df2, is_dual_scenario)
 
             # Filter by month
             df1_m = _filter_by_month(df1, selected_month)
             df2_m = _filter_by_month(df2, selected_month) if df2 is not None else None
 
             # Date range filter
-            selected_dates = _setup_date_filter_complete(
+            selected_dates = setup_date_filter_complete(
                 config_plot, df1_m, df2_m, shared_year, selected_month, is_dual_scenario
             )
         else:
@@ -659,7 +698,7 @@ def _setup_hourly_data_filters(
             df1_m, df2_m = df1, df2
 
             # Integer range slider
-            selected_dates = _setup_date_filter_incomplete(
+            selected_dates = setup_date_filter_incomplete(
                 config_plot, df1_m, df2_m, is_dual_scenario
             )
     else:
@@ -673,7 +712,7 @@ def _setup_hourly_data_filters(
     }
 
 
-def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None):
+def plot_indicator(graph_type, config_plot: dict):
     # graph_type: function (plot_function)
     st.markdown(
         f"<div id='{config_plot['name'].replace(' ','-')}'></div>",
@@ -701,24 +740,24 @@ def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None
         apply_radio_menu_styles()
 
     # Setup country filter
-    config_plot["shared_country"] = _setup_country_filter(
+    config_plot["shared_country"] = setup_country_filter(
         config_plot, is_dual_scenario, scenario_tag=st.session_state.sce1
     )
 
     # Setup filters based on graph type
     if config_plot.get("graph_type") == "bar_with_filter":
         # Two scenarios: plots with radio button filters
-        shared_filter = _setup_radio_filter(config_plot, is_dual_scenario)
+        shared_filter = setup_radio_button_filter(config_plot, is_dual_scenario)
         if shared_filter:
             config_plot["shared_filter"] = shared_filter
 
     elif config_plot.get("graph_type") in graphs_with_date_filters:
         # Setup year filter
-        shared_year = _setup_year_filter(config_plot, is_dual_scenario)
+        shared_year = setup_year_filter(config_plot, is_dual_scenario)
         config_plot["shared_year"] = str(shared_year)
 
         df1 = read_result_csv(
-            st.session_state.sce1, config_plot["tab_name"], hourly_year=str(shared_year)
+            st.session_state.sce1, config_plot["tab_name"], year=str(shared_year)
         )
         df1["snapshot"] = pd.to_datetime(df1["snapshot"])
 
@@ -727,7 +766,7 @@ def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None
                 read_result_csv(
                     st.session_state.sce2,
                     config_plot["tab_name"],
-                    hourly_year=str(shared_year),
+                    year=str(shared_year),
                 )
                 if is_dual_scenario
                 else None
@@ -735,7 +774,7 @@ def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None
         ][0]
 
         # Setup region filter if needed
-        config_plot["shared_region"] = _setup_region_filter(
+        config_plot["shared_region"] = setup_region_filter(
             config_plot, df1, df2, is_dual_scenario
         )
 
@@ -746,7 +785,7 @@ def plot_indicator(graph_type, config_plot: dict, yaxis_scales_dict: dict = None
                 df2["snapshot"] = pd.to_datetime(df2["snapshot"])
 
         # Setup all hourly data filters
-        filter_results = _setup_hourly_data_filters(
+        filter_results = setup_hourly_data_filters(
             df1, df2, config_plot, is_dual_scenario
         )
         config_plot.update(filter_results)
@@ -820,8 +859,8 @@ def display_data_download_button(sc_name: str, config_g: Dict[str, str]):
     df = read_result_csv(
         sc_name,
         config_g["tab_name"],
-        hourly_year=str(config_g["shared_years"]),
-        shared_country=config_g["shared_country"],
+        year=str(config_g["shared_years"]),
+        country=config_g["shared_country"],
     )
 
     if df is not None and not df.empty:
@@ -851,7 +890,7 @@ def display_data_table(sc_name: str, config_g: Dict[str, str]):
     leg_col = config_g["leg_col"]
     download_id = config_g["download_id"].format(sc_name)
     df = read_result_csv(
-        sc_name, config_g["tab_name"], shared_country=config_g["shared_country"]
+        sc_name, config_g["tab_name"], country=config_g["shared_country"]
     )
     base_group_cols = {"year", leg_col}
 
@@ -1052,11 +1091,11 @@ def simple_bar_yearly(sc_name: str, config_g: Dict[str, str]) -> Optional[None]:
 
     # Construct file path
     df = read_result_csv(
-        sc_name, config_g["tab_name"], shared_country=config_g["shared_country"]
+        sc_name, config_g["tab_name"], country=config_g["shared_country"]
     )
     df = _clean_df_for_plotting(leg_col, df)
 
-    mapping_df = _get_mapping_df(tab_name)
+    mapping_df = create_nice_names_and_color_mapping(tab_name)
 
     df_grouped = df.groupby(["year", leg_col], as_index=False)["value"].sum()
     df_grouped["nice_names"] = df_grouped[leg_col].map(
@@ -1069,9 +1108,9 @@ def simple_bar_yearly(sc_name: str, config_g: Dict[str, str]) -> Optional[None]:
 
     unique_legends = df_grouped["nice_names"].unique().tolist()
     colour_mapping = (
-        _get_nice_colour_mapping(tab_name, unique_legends)
+        handle_color_mapping_for_chart(tab_name, unique_legends)
         if mapping_df is not None
-        else _generate_default_colour_mapping(df, leg_col)
+        else generate_default_colour_mapping(df, leg_col)
     )
 
     df1_grouped = df_grouped
@@ -1126,11 +1165,11 @@ def simple_line_yearly(sc_name: str, config_g):
     leg_col = config_g["leg_col"]
     download_id = config_g["download_id"].format(sc_name)
 
-    df = read_result_csv(sc_name, tab_name, shared_country=config_g["shared_country"])
+    df = read_result_csv(sc_name, tab_name, country=config_g["shared_country"])
 
     df = _clean_df_for_plotting(leg_col, df)
 
-    mapping_df = _get_mapping_df(tab_name)
+    mapping_df = create_nice_names_and_color_mapping(tab_name)
 
     df["nice_names"] = df[leg_col].map(
         lambda x: (
@@ -1142,9 +1181,9 @@ def simple_line_yearly(sc_name: str, config_g):
 
     unique_legends = df["nice_names"].unique().tolist()
     colour_mapping = (
-        _get_nice_colour_mapping(tab_name, unique_legends)
+        handle_color_mapping_for_chart(tab_name, unique_legends)
         if mapping_df is not None
-        else _generate_default_colour_mapping(df, leg_col)
+        else generate_default_colour_mapping(df, leg_col)
     )
 
     df1 = df
@@ -1173,9 +1212,9 @@ def bar_with_filter(sc_name: str, config_g: dict):
     slider_id = config_g["slider_id"].format(sc_name)
     download_id = config_g["download_id"].format(sc_name)
     tab_name = config_g["tab_name"]
-    df = read_result_csv(sc_name, tab_name, shared_country=config_g["shared_country"])
+    df = read_result_csv(sc_name, tab_name, country=config_g["shared_country"])
 
-    mapping_df = _get_mapping_df(tab_name)
+    mapping_df = create_nice_names_and_color_mapping(tab_name)
 
     # This creates a shared filter that applies to both graphs if the entry is found in
     # the config dict, otherwise a local filter is generated for the single graph.
@@ -1201,9 +1240,9 @@ def bar_with_filter(sc_name: str, config_g: dict):
 
     unique_legends = df_reg["nice_names"].unique().tolist()
     colour_mapping = (
-        _get_nice_colour_mapping(tab_name, unique_legends)
+        handle_color_mapping_for_chart(tab_name, unique_legends)
         if mapping_df is not None
-        else _generate_default_colour_mapping(df, leg_col)
+        else generate_default_colour_mapping(df, leg_col)
     )
 
     # If scenario2 exists, recalculate the maximum y tick value considering both
@@ -1250,10 +1289,10 @@ def area_share_yearly(sc_name: str, config_g):
     leg_col = config_g["leg_col"]
     tab_name = config_g["tab_name"]
 
-    df = read_result_csv(sc_name, tab_name, shared_country=config_g["shared_country"])
+    df = read_result_csv(sc_name, tab_name, country=config_g["shared_country"])
     df = _clean_df_for_plotting(leg_col, df)
 
-    mapping_df = _get_mapping_df(tab_name)
+    mapping_df = create_nice_names_and_color_mapping(tab_name)
 
     df["nice_names"] = df[leg_col].map(
         lambda x: (
@@ -1264,9 +1303,9 @@ def area_share_yearly(sc_name: str, config_g):
     )
     unique_legends = df["nice_names"].unique().tolist()
     colour_mapping = (
-        _get_nice_colour_mapping(tab_name, unique_legends)
+        handle_color_mapping_for_chart(tab_name, unique_legends)
         if mapping_df is not None
-        else _generate_default_colour_mapping(df, leg_col)
+        else generate_default_colour_mapping(df, leg_col)
     )
 
     # Plot stacked bar chart using Plotly
@@ -1294,8 +1333,8 @@ def simple_bar_hourly(sc_name: str, config_g: Dict[str, str]) -> Optional[None]:
     df = read_result_csv(
         sc_name,
         config_g["tab_name"],
-        hourly_year=str(config_g["shared_years"]),
-        shared_country=config_g["shared_country"],
+        year=str(config_g["shared_years"]),
+        country=config_g["shared_country"],
     )
 
     if df is not None and not df.empty:
@@ -1306,7 +1345,7 @@ def simple_bar_hourly(sc_name: str, config_g: Dict[str, str]) -> Optional[None]:
             st.error("Error: End date must be greater than or equal to start date.")
             return
 
-        mapping_df = _get_mapping_df(tab_name)
+        mapping_df = create_nice_names_and_color_mapping(tab_name)
 
         # Filter data by date range
         df_sel = _filter_between_dates(df_m, start_date=start_date, end_date=end_date)
@@ -1319,9 +1358,9 @@ def simple_bar_hourly(sc_name: str, config_g: Dict[str, str]) -> Optional[None]:
         )
         unique_legends = df_sel["nice_names"].unique().tolist()
         colour_mapping = (
-            _get_nice_colour_mapping(tab_name, unique_legends)
+            handle_color_mapping_for_chart(tab_name, unique_legends)
             if mapping_df is not None
-            else _generate_default_colour_mapping(df_sel, leg_col)
+            else generate_default_colour_mapping(df_sel, leg_col)
         )
 
         df_sel = _handle_small_values(df_sel)
@@ -1370,14 +1409,14 @@ def simple_line_hourly(sc_name: str, config_g: dict):
     df = read_result_csv(
         sc_name,
         config_g["tab_name"],
-        hourly_year=str(config_g["shared_years"]),
-        shared_country=config_g["shared_country"],
+        year=str(config_g["shared_years"]),
+        country=config_g["shared_country"],
     )
 
     if df is not None and not df.empty:
         df_m, start_date, end_date, is_complete = _get_filtered_data(df, config_g)
 
-        mapping_df = _get_mapping_df(tab_name)
+        mapping_df = create_nice_names_and_color_mapping(tab_name)
 
         if start_date <= end_date:
             pass
@@ -1395,9 +1434,9 @@ def simple_line_hourly(sc_name: str, config_g: dict):
         )
         unique_legends = df_sel["nice_names"].unique().tolist()
         colour_mapping = (
-            _get_nice_colour_mapping(tab_name, unique_legends)
+            handle_color_mapping_for_chart(tab_name, unique_legends)
             if mapping_df is not None
-            else _generate_default_colour_mapping(df_sel, leg_col)
+            else generate_default_colour_mapping(df_sel, leg_col)
         )
 
         df_sel = _handle_small_values(df_sel)
@@ -1445,14 +1484,14 @@ def filtered_bar_hourly(sc_name: str, config_g: dict):
     df = read_result_csv(
         sc_name,
         config_g["tab_name"],
-        hourly_year=str(config_g["shared_years"]),
-        shared_country=config_g["shared_country"],
+        year=str(config_g["shared_years"]),
+        country=config_g["shared_country"],
     )
 
     if df is not None and not df.empty:
         df_m, start_date, end_date, is_complete = _get_filtered_data(df, config_g)
 
-        mapping_df = _get_mapping_df(tab_name)
+        mapping_df = create_nice_names_and_color_mapping(tab_name)
 
         if start_date <= end_date:
             pass
@@ -1473,9 +1512,9 @@ def filtered_bar_hourly(sc_name: str, config_g: dict):
 
         unique_legends = df_sel["nice_names"].unique().tolist()
         colour_mapping = (
-            _get_nice_colour_mapping(tab_name, unique_legends)
+            handle_color_mapping_for_chart(tab_name, unique_legends)
             if mapping_df is not None
-            else _generate_default_colour_mapping(df_sel, leg_col)
+            else generate_default_colour_mapping(df_sel, leg_col)
         )
 
         fig = px.bar(
@@ -1538,18 +1577,18 @@ def line_with_secondary_y_hourly(sc_name: str, config_g: dict):
     df = read_result_csv(
         sc_name,
         config_g["tab_name"],
-        hourly_year=str(config_g["shared_years"]),
-        shared_country=config_g["shared_country"],
+        year=str(config_g["shared_years"]),
+        country=config_g["shared_country"],
     )
 
     if df is not None and not df.empty:
         df_m, start_date, end_date, is_complete = _get_filtered_data(df, config_g)
 
-        mapping_df = _get_mapping_df(tab_name)
+        mapping_df = create_nice_names_and_color_mapping(tab_name)
         colour_mapping = (
-            _get_nice_colour_mapping(tab_name)
+            handle_color_mapping_for_chart(tab_name)
             if mapping_df is not None
-            else _generate_default_colour_mapping(df_m, leg_col)
+            else generate_default_colour_mapping(df_m, leg_col)
         )
 
         if start_date <= end_date:
@@ -2033,14 +2072,14 @@ def _grouping_data(
         df_combined = pd.concat(
             [
                 read_result_csv(
-                    sc_name=sc_name, tab_name=tab_name, hourly_year=str(year)
+                    scenario_name=sc_name, table_name=tab_name, year=str(year)
                 )
                 for year in years
             ],
             ignore_index=True,
         )
     else:
-        df_combined = read_result_csv(sc_name=sc_name, tab_name=tab_name)
+        df_combined = read_result_csv(scenario_name=sc_name, table_name=tab_name)
     return df_combined
 
 
@@ -2093,8 +2132,8 @@ def _get_hourly_filtered_dfs(config_g: Dict) -> tuple[pd.DataFrame, pd.DataFrame
         df = read_result_csv(
             scenario,
             config_g["tab_name"],
-            hourly_year=str(config_g["shared_years"]),
-            shared_country=config_g["shared_country"],
+            year=str(config_g["shared_years"]),
+            country=config_g["shared_country"],
         )
 
         if df is not None and not df.empty:
