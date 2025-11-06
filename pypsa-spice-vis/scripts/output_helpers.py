@@ -814,11 +814,11 @@ def plot_indicator(graph_type, config_plot: dict):
         with col1:
             config_plot["years"] = st.session_state.sce1_years
             st.markdown(f"#### {st.session_state.sce1} ")
-            graph_type(sc_name=st.session_state.sce1, config_g=config_plot)
+            graph_type(scenario_name=st.session_state.sce1, config_g=config_plot)
         with col3:
             config_plot["years"] = st.session_state.sce2_years
             st.markdown(f"#### {st.session_state.sce2} ")
-            graph_type(sc_name=st.session_state.sce2, config_g=config_plot)
+            graph_type(scenario_name=st.session_state.sce2, config_g=config_plot)
 
         # Display the data download part
         col1, col2, col3 = st.columns([6, 1, 6])
@@ -855,7 +855,7 @@ def display_download_button_without_data(
 
     Parameters
     ----------
-    sc_name : str
+    scenario_name : str
         The scenario name for the data that will be downloaded.
     config_g : Dict[str, str]
         The configuration dictionary for the graph.
@@ -892,7 +892,7 @@ def display_download_button_with_data(scenario_name: str, graph_config: Dict[str
 
     Parameters
     ----------
-    sc_name : str
+    scenario_name : str
         The scenario name for the data being displayed in the table.
     config_g : Dict[str, str]
         The configuration dictionary for the graph.
@@ -1176,7 +1176,7 @@ def simple_line_yearly(scenario_name: str, graph_config: dict):
     """_summary_
 
     Args:
-        sc_name (str): _description_
+        scenario_name (str): _description_
         tab_name (str): _description_
     """
     # Read data from file
@@ -1307,7 +1307,7 @@ def area_share_yearly(scenario_name: str, graph_config: dict):
     """_summary_
 
     Args:
-        sc_name (str): _description_
+        scenario_name (str): _description_
         tab_name (str): _description_
     """
     download_id = graph_config["download_id"].format(scenario_name)
@@ -1433,7 +1433,7 @@ def simple_line_hourly(scenario_name: str, graph_config: dict):
     """_summary_
 
     Args:
-        sc_name (str): _description_
+        scenario_name (str): _description_
         tab_name (str): _description_
         slider_id (str): _description_
     """
@@ -1515,7 +1515,7 @@ def filtered_bar_hourly(scenario_name: str, graph_config: dict):
     """_summary_
 
     Args:
-        sc_name (str): _description_
+        scenario_name (str): _description_
         tab_name (str): _description_
         slider_id (str): _description_
     """
@@ -1614,7 +1614,7 @@ def line_with_secondary_y_hourly(scenario_name: str, graph_config: dict):
     """_summary_
 
     Args:
-        sc_name (str): _description_
+        scenario_name (str): _description_
         tab_name (str): _description_
         slider_id (str): _description_
     """
