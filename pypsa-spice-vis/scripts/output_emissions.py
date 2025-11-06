@@ -7,7 +7,7 @@ import os
 import streamlit as st
 from scripts.output_helpers import (
     plot_indicator,
-    plot_function,
+    map_chart_to_plot_function,
     generate_sidebar,
 )
 
@@ -26,7 +26,7 @@ for item, values in config.items():
         or values["incl_sector"] in st.session_state.sector
     ):
         plot_indicator(
-            graph_type=plot_function(values["graph_type"]),
+            graph_type=map_chart_to_plot_function(values["graph_type"]),
             config_plot=values,
         )
         table_of_content.append(values["name"])

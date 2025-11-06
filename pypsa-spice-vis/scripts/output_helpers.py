@@ -2080,7 +2080,7 @@ def update_hourly_plot_x_axis(
     return fig
 
 
-def plot_function(func_name: str = None):
+def map_chart_to_plot_function(func_name: str = None):
     """Map plot function to corresponding chart type  from config yaml."""
     mapping = {
         "simple_bar_yearly": simple_bar_yearly,
