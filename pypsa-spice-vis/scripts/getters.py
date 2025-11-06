@@ -4,59 +4,61 @@
 
 """Get various parameters related to the visual app and data structure."""
 
-import sys
 import os
-import yaml
+import sys
 import time
+
 import pandas as pd
 import streamlit as st
+import yaml
 from streamlit_js_eval import streamlit_js_eval
 
 
 class Getters:
-    """Functions that handle retrieval of app-related params"""
+    """Functions that handle retrieval of app-related params."""
 
     def __init__(self):
         # Directory of app's entry point file (pypsa-spice/pypsa-spice-vis)
         self.streamlit_base_dir = os.path.dirname(
-            os.path.abspath(sys.modules["__main__"].__file__)
+            os.path.abspath(
+                sys.modules["__main__"].__file__  # pylint: disable=no-member
+            )
         )
 
         # pypsa-spice/base_config.yaml
         self.config_path = "../base_config.yaml"
 
         try:
-          with open(
-              os.path.join(self.streamlit_base_dir, self.config_path), "r"
-          ) as file:
-              self.init_config = yaml.safe_load(file)
+            with open(
+                os.path.join(self.streamlit_base_dir, self.config_path),
+                encoding="utf-8",
+            ) as file:
+                self.init_config = yaml.safe_load(file)
         except FileNotFoundError:
             raise FileNotFoundError(
                 "Please ensure your working directory is at the pypsa-spice root level."
             )
         except Exception as e:
             raise Exception(
-                f"Error loading configuration file: {str(e)}. " + 
-                "Please ensure that the base_config.yaml file exists."
+                f"Error loading configuration file: {str(e)}. "
+                + "Please ensure that the base_config.yaml file exists."
             )
-            
 
-        # data/{data_folder_name}
+        # data/data_folder_name
         data_folder_path = os.path.join(
             "data/", self.init_config["path_configs"]["data_folder_name"]
         )
         default_project_name = self.init_config["path_configs"]["project_name"]
 
         self.init_config["data_folder_path"] = data_folder_path
-        # data/{data_folder_name}/{project_name}/input
+        # data/data_folder_name/project_name/input
         self.init_config["input_folder_path"] = os.path.join(
             data_folder_path, default_project_name, "input"
         )
-        # data/{data_folder_name}/{project_name}/results
+        # data/data_folder_name/project_name/results
         self.init_config["results_folder_path"] = os.path.join(
             data_folder_path, default_project_name, "results"
         )
-
 
     def get_project_folder_list(self, folder_path: str) -> list[str]:
         """Get a list of project subfolders in a given folder.
@@ -90,9 +92,8 @@ class Getters:
 
         return project_folders
 
-
     def get_input_scenario_list(self) -> list[str]:
-        """Get the list of input scenarios from a given project within the input/ folder.
+        """Get the list of input scenarios from a given project within the input folder.
 
         Parameters
         ----------
@@ -122,9 +123,10 @@ class Getters:
 
         return scenario_list
 
-
     def get_output_scenario_list(self, selected_project_name: str) -> list[str]:
-        """Get the list of output scenarios from a given project within the results/ folder.
+        """Get the list of output scenarios.
+
+        From a given project within the results folder.
 
         Parameters
         ----------
@@ -148,17 +150,17 @@ class Getters:
             for scenario in os.listdir(data_folder_path)
             if scenario not in [".DS_Store"]
         ]
-        
+
         # Make default scenario the first option in the list if present
         default_scenarios = [
-            self.init_config["path_configs"]["output_scenario_name"], ""
+            self.init_config["path_configs"]["output_scenario_name"],
+            "",
         ]
         for sce in default_scenarios:
             if sce in scenario_list:
                 scenario_list.insert(0, scenario_list.pop(scenario_list.index(sce)))
 
         return scenario_list
-
 
     def get_sector_list(self, scenario: str) -> list[str]:
         """Get the list of sectors from the scenario/ folder in a given project.
@@ -189,7 +191,6 @@ class Getters:
 
         return sector_list
 
-
     def get_year_list(self, scenario: str, sector: str) -> list[str]:
         """Get the list of years from the scenario/sector/ folder in a given project.
 
@@ -219,9 +220,8 @@ class Getters:
 
         return years_list
 
-
     def get_country_list(self, df: pd.DataFrame) -> list[str]:
-        """Get the list of countries from a dataframe if it has a "country" column
+        """Get the list of countries from a dataframe if it has a "country" column.
 
         Parameters
         ----------
@@ -238,9 +238,8 @@ class Getters:
 
         return []
 
-
     def get_mapping_list(self, *dfs: pd.DataFrame) -> list[str]:
-        """Get the list of technologies to display in the input UI
+        """Get the list of technologies to display in the input UI.
 
         Parameters
         ----------
@@ -262,19 +261,18 @@ class Getters:
 
         return sorted(type_set)
 
-
     def get_window_width(
         self, current_width: int, max_attempts: int = 5, delay: float = 0.2
     ) -> int:
         """Get the current window width.
 
-        Since streamlit_js_eval is asynchronous and may return None on first pass if 
-        the javascript has not executed in the browser yet, we use a logic that tries 
-        for up to five attempts with a short delay in between, before falling back to 
+        Since streamlit_js_eval is asynchronous and may return None on first pass if
+        the javascript has not executed in the browser yet, we use a logic that tries
+        for up to five attempts with a short delay in between, before falling back to
         a default width.
 
-        This width is used to set window_width in the session state, in order to set 
-        the legend position and orientation later on (below the graph and horizontal 
+        This width is used to set window_width in the session state, in order to set
+        the legend position and orientation later on (below the graph and horizontal
         for narrow widths + two scenario cases).
 
         Parameters
@@ -291,7 +289,6 @@ class Getters:
         int
           The window width in px.
         """
-
         default_width = 1200  # Default fallback width
 
         # Return current width if it is valid
@@ -305,8 +302,8 @@ class Getters:
                     key=f"SCR_{attempt}",  # Use a different key for each attempt
                     want_output=True,
                 )
-                # Note that this does not actually correspond to the true 
-                # window.innerWidth possibly because of streamlit's iframe context - 
+                # Note that this does not actually correspond to the true
+                # window.innerWidth possibly because of streamlit's iframe context -
                 # it seems to be smaller
 
                 # Check for a valid result
