@@ -2,38 +2,39 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-"""
-Plot setting functions that are used across multiple plot types.
-"""
+"""Plot setting functions that are used across multiple plot types."""
 
-import os
 import datetime as dt
-import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
+import os
 import re
-import streamlit as st
-from plotly.subplots import make_subplots
-from plotly.graph_objs._figure import Figure
-from typing import Dict, Optional, Callable
+from collections.abc import Callable
 from itertools import cycle
+
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import streamlit as st
+from plotly.graph_objs._figure import Figure
+from plotly.subplots import make_subplots
+
 from scripts.data_utils import (
     calculate_min_max_y_scale,
     clean_df_for_plotting,
+    filter_dataframe_by_date_range,
     get_filtered_df_and_date_range,
     get_hourly_dfs_for_both_scenarios,
-    filter_dataframe_by_date_range,
     handle_small_values,
     prettify_label,
     read_result_csv,
 )
 
+# pylint: disable=too-many-locals, broad-exception-caught
 
 # =========================== General functions for plotting =========================
 
+
 def add_stackedbar_total(fig: Figure, df: pd.DataFrame) -> Figure:
     """Add total values on top of each stacked bar in a Plotly bar chart."""
-
     if "year" not in df.columns or "value" not in df.columns:
         raise ValueError("Dataframe must contain 'year' and 'value' columns.")
 
@@ -118,8 +119,8 @@ def handle_y_axis_list(title_list: list[str]) -> str:
 
 
 def handle_color_mapping_for_chart(
-    table_name: str, legend_labels: Optional[list[str]] = None
-) -> Dict[str, str]:
+    table_name: str, legend_labels: list[str] | None = None
+) -> dict[str, str]:
     """Get the colour mapping dict for a given graph.
 
     Parameters
@@ -165,7 +166,7 @@ def handle_color_mapping_for_chart(
     return nice_mapping
 
 
-def generate_default_colour_mapping(df: pd.DataFrame, leg_col: str) -> Dict[str, str]:
+def generate_default_colour_mapping(df: pd.DataFrame, leg_col: str) -> dict[str, str]:
     """Generate a default colour mapping dictionary.
 
     Generate a colour mapping dict for the legend series in a graph using a default
@@ -195,7 +196,7 @@ def generate_default_colour_mapping(df: pd.DataFrame, leg_col: str) -> Dict[str,
 
 
 def get_default_colour_list() -> list:
-    """Gets the list of default colours to use.
+    """Get the list of default colours to use.
 
     Colours are assigned to legends that do not have a specified hex_code in
     tech_mapping or carrier_mapping. Currently using Agora EW default colours.
@@ -209,10 +210,11 @@ def get_default_colour_list() -> list:
 
 
 def get_yearly_dfs_for_both_scenarios(
-    graph_config: Dict, func: Optional[Callable[[pd.DataFrame], pd.DataFrame]] = None
+    graph_config: dict, func: Callable[[pd.DataFrame], pd.DataFrame] | None = None
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Get the yearly dfs for two scenarios, and optionally process (before min/max y
-    calculation takes place).
+    """Get the yearly dfs for two scenarios.
+
+    optionally process (before min/max y calculation takes place).
 
     Parameters
     ----------
@@ -284,7 +286,7 @@ def update_hourly_plot_x_axis(
             tickformat="%d/%m %H:%M",
             dtick=3600000 * tick_spacing,
             tickangle=40,
-            tickfont=dict(size=11),
+            tickfont={"size": 11},
         )
     else:
         unique_snapshots = filtered_df["snapshot"].unique()
@@ -316,7 +318,7 @@ def update_hourly_plot_x_axis(
             ticktext=tick_labels,
             tickvals=tick_positions,
             tickangle=0,
-            tickfont=dict(size=13),
+            tickfont={"size": 13},
         )
 
     return fig
@@ -349,7 +351,6 @@ def update_layout(
     Figure
         Updated The updated plotly figure with modified layout settings
     """
-
     # Default legend orientation and position: vertical, to the left of graph
     legend_orientation = "v"
     legend_x_pos = 1.05
@@ -387,7 +388,7 @@ def update_layout(
 
     layout_dict = {
         "showlegend": True,
-        "font": dict(family="Flexo, sans-serif", size=15),
+        "font": {"family": "Flexo, sans-serif", "size": 15},
         "legend": dict(
             orientation=legend_orientation,
             y=legend_y_pos,
@@ -396,10 +397,10 @@ def update_layout(
             yanchor=legend_y_anchor,
             title_text=graph_config["leg_col"].capitalize(),
             title_font_size=16,
-        ),
-        "margin": dict(t=50, b=margin_b),
-        "xaxis": dict(tickfont=dict(size=x_tick_font_size)),
-        "yaxis": dict(tickfont=dict(size=15)),
+        ),  # pylint: disable=use-dict-literal
+        "margin": {"t": 50, "b": margin_b},
+        "xaxis": {"tickfont": {"size": x_tick_font_size}},
+        "yaxis": {"tickfont": {"size": 15}},
         "xaxis_title": "",
         "yaxis_title": "",
         "annotations": [
@@ -415,7 +416,7 @@ def update_layout(
                 yshift=20,
                 showarrow=False,
                 font=dict(size=15),
-            )
+            )  # pylint: disable=use-dict-literal
         ],
     }
 
@@ -433,7 +434,7 @@ def update_layout(
     if "year" in df.columns:
         years_with_data = df["year"].unique()
         layout_dict["xaxis"].update(
-            dict(tickvals=list(years_with_data), tickmode="array")
+            {"tickvals": list(years_with_data), "tickmode": "array"}
         )
 
     fig.update_layout(**layout_dict)
@@ -443,8 +444,9 @@ def update_layout(
 
 # =========================== Add different charts =========================
 
+
 @st.fragment
-def simple_bar_yearly(scenario_name: str, graph_config: dict) -> Optional[None]:
+def simple_bar_yearly(scenario_name: str, graph_config: dict) -> None:
     """Generate a yearly stacked bar chart with a downloadable data table."""
     leg_col = graph_config["leg_col"]
     download_id = graph_config["download_id"].format(scenario_name)
@@ -452,7 +454,9 @@ def simple_bar_yearly(scenario_name: str, graph_config: dict) -> Optional[None]:
 
     # Construct file path
     df = read_result_csv(
-        scenario_name, graph_config["table_name"], country=graph_config["shared_country"]
+        scenario_name,
+        graph_config["table_name"],
+        country=graph_config["shared_country"],
     )
     df = clean_df_for_plotting(leg_col, df)
 
@@ -515,14 +519,12 @@ def simple_bar_yearly(scenario_name: str, graph_config: dict) -> Optional[None]:
         st.dataframe(df)
 
 
-
 @st.fragment
 def simple_line_yearly(scenario_name: str, graph_config: dict):
     """Generate a yearly line chart with a downloadable data table."""
     # Read data from file
     table_name = graph_config["table_name"]
     leg_col = graph_config["leg_col"]
-    download_id = graph_config["download_id"].format(scenario_name)
 
     df = read_result_csv(
         scenario_name, table_name, country=graph_config["shared_country"]
@@ -566,17 +568,16 @@ def simple_line_yearly(scenario_name: str, graph_config: dict):
     )
 
 
-
 @st.fragment
 def bar_with_filter(scenario_name: str, graph_config: dict):
     """
-    Generate a yearly stacked bar chart with a filter and  with a downloadable data 
-    table.
+    Generate a yearly stacked bar chart.
+
+    Chart with a filter and  with a downloadable data table.
     """
     leg_col = graph_config["leg_col"]
     fil_col = graph_config["fil_col"]
     slider_id = graph_config["slider_id"].format(scenario_name)
-    download_id = graph_config["download_id"].format(scenario_name)
     table_name = graph_config["table_name"]
     df = read_result_csv(
         scenario_name, table_name, country=graph_config["shared_country"]
@@ -587,17 +588,17 @@ def bar_with_filter(scenario_name: str, graph_config: dict):
     # This creates a shared filter that applies to both graphs if the entry is found in
     # the config dict, otherwise a local filter is generated for the single graph.
     if "shared_filter" in graph_config:
-        filter = graph_config["shared_filter"]
+        shared_filter = graph_config["shared_filter"]
     else:
-        filter = st.radio(
-            "{} Select {} ({})".format(slider_id, fil_col, scenario_name) + ":",
+        shared_filter = st.radio(
+            f"{slider_id} Select {fil_col} ({scenario_name})" + ":",
             options=df[fil_col].unique(),
             format_func=prettify_label,
             horizontal=True,
             label_visibility="collapsed",
         )
 
-    df_reg = df.loc[df[fil_col] == filter]
+    df_reg = df.loc[df[fil_col] == shared_filter]
     df_reg["nice_names"] = df_reg[leg_col].map(
         lambda x: (
             mapping_df.loc[x, "nice_names"]
@@ -619,7 +620,7 @@ def bar_with_filter(scenario_name: str, graph_config: dict):
     df2_reg = None
     if graph_config.get("shared_filter") is not None and st.session_state.sce2:
         df1_reg, df2_reg = get_yearly_dfs_for_both_scenarios(
-            graph_config, func=lambda df: df.loc[df[fil_col] == filter]
+            graph_config, func=lambda df: df.loc[df[fil_col] == shared_filter]
         )
 
     y_range = calculate_min_max_y_scale(df1_reg, df2_reg, "year")
@@ -645,12 +646,9 @@ def bar_with_filter(scenario_name: str, graph_config: dict):
     )
 
 
-
 @st.fragment
 def area_share_yearly(scenario_name: str, graph_config: dict):
-    """Generate a yearly area chart (percentage share) with a downloadable data table.
-    """
-    download_id = graph_config["download_id"].format(scenario_name)
+    """Generate yearly area chart (percentage share) with a downloadable data table."""
     leg_col = graph_config["leg_col"]
     table_name = graph_config["table_name"]
 
@@ -690,11 +688,8 @@ def area_share_yearly(scenario_name: str, graph_config: dict):
     )
 
 
-
 @st.fragment
-def simple_bar_hourly(
-    scenario_name: str, graph_config: Dict[str, str]
-) -> Optional[None]:
+def simple_bar_hourly(scenario_name: str, graph_config: dict[str, str]) -> None:
     """Generate hourly stacked bar chart for datetime."""
     table_name = graph_config["table_name"]
     leg_col = graph_config["leg_col"]
@@ -747,7 +742,9 @@ def simple_bar_hourly(
             color_discrete_map=colour_mapping,
         )
 
-        fig = update_hourly_plot_x_axis(fig, filtered_df, start_date, end_date, is_complete)
+        fig = update_hourly_plot_x_axis(
+            fig, filtered_df, start_date, end_date, is_complete
+        )
 
         if st.session_state.sce2 and st.session_state.sce2 != "":
             df1_sel, df2_sel = get_hourly_dfs_for_both_scenarios(graph_config)
@@ -767,13 +764,11 @@ def simple_bar_hourly(
         )
 
 
-
 @st.fragment
 def simple_line_hourly(scenario_name: str, graph_config: dict):
     """Generate hourly line chart with filters for datetime."""
     table_name = graph_config["table_name"]
     leg_col = graph_config["leg_col"]
-    download_id = graph_config["download_id"].format(scenario_name)
 
     df = read_result_csv(
         scenario_name,
@@ -822,7 +817,9 @@ def simple_line_hourly(scenario_name: str, graph_config: dict):
             color_discrete_map=colour_mapping,
         )
 
-        fig = update_hourly_plot_x_axis(fig, filtered_df, start_date, end_date, is_complete)
+        fig = update_hourly_plot_x_axis(
+            fig, filtered_df, start_date, end_date, is_complete
+        )
 
         if st.session_state.sce2 and st.session_state.sce2 != "":
             df1_sel, df2_sel = get_hourly_dfs_for_both_scenarios(graph_config)
@@ -841,7 +838,6 @@ def simple_line_hourly(scenario_name: str, graph_config: dict):
             use_container_width=True,
             key=f"plotly_chart_{scenario_name}_{table_name}",
         )
-
 
 
 @st.fragment
@@ -899,7 +895,9 @@ def filtered_bar_hourly(scenario_name: str, graph_config: dict):
             color_discrete_map=colour_mapping,
         )
 
-        fig = update_hourly_plot_x_axis(fig, filtered_df, start_date, end_date, is_complete)
+        fig = update_hourly_plot_x_axis(
+            fig, filtered_df, start_date, end_date, is_complete
+        )
 
         if st.session_state.sce2 and st.session_state.sce2 != "":
             df1_sel, df2_sel = get_hourly_dfs_for_both_scenarios(graph_config)
@@ -915,16 +913,20 @@ def filtered_bar_hourly(scenario_name: str, graph_config: dict):
         )
 
         if fil_col in filtered_df.columns:
-            df_line = filtered_df.groupby(["snapshot", fil_col])["value"].sum().reset_index()
+            df_line = (
+                filtered_df.groupby(["snapshot", fil_col])["value"].sum().reset_index()
+            )
             line_chart_trace = px.line(df_line, x="snapshot", y="value")
-            line_chart_trace.update_traces(line=dict(color="blue", width=3))
+            line_chart_trace.update_traces(line={"color": "blue", "width": 3})
 
             for trace in line_chart_trace.data:
                 fig.add_trace(trace)
 
-        df_line = filtered_df.groupby(["snapshot", fil_col])["value"].sum().reset_index()
+        df_line = (
+            filtered_df.groupby(["snapshot", fil_col])["value"].sum().reset_index()
+        )
         line_chart_trace = px.line(df_line, x="snapshot", y="value")
-        line_chart_trace.update_traces(line=dict(color="blue", width=3))
+        line_chart_trace.update_traces(line={"color": "blue", "width": 3})
 
         for trace in line_chart_trace.data:
             fig.add_trace(trace)
@@ -934,7 +936,6 @@ def filtered_bar_hourly(scenario_name: str, graph_config: dict):
             use_container_width=True,
             key=f"plotly_chart_{scenario_name}_{table_name}",
         )
-
 
 
 @st.fragment
@@ -987,7 +988,7 @@ def line_with_secondary_y_hourly(scenario_name: str, graph_config: dict):
                     y=filtered_df[filtered_df[leg_col] == prim_y]["value"],
                     x=filtered_df["snapshot"],
                     name=nice_name,
-                    line=dict(color=colour_mapping.get(nice_name, "#a0a0a0")),
+                    line={"color": colour_mapping.get(nice_name, "#a0a0a0")},
                 ),
                 secondary_y=False,
             )
@@ -1003,12 +1004,14 @@ def line_with_secondary_y_hourly(scenario_name: str, graph_config: dict):
                     y=filtered_df[filtered_df[leg_col] == secd_y]["value"],
                     x=filtered_df["snapshot"],
                     name=nice_name,
-                    line=dict(color=colour_mapping.get(nice_name, "#a0a0a0")),
+                    line={"color": colour_mapping.get(nice_name, "#a0a0a0")},
                 ),
                 secondary_y=True,
             )
 
-        fig = update_hourly_plot_x_axis(fig, filtered_df, start_date, end_date, is_complete)
+        fig = update_hourly_plot_x_axis(
+            fig, filtered_df, start_date, end_date, is_complete
+        )
 
         if st.session_state.sce2 and st.session_state.sce2 != "":
             df1_sel, df2_sel = get_hourly_dfs_for_both_scenarios(graph_config)
