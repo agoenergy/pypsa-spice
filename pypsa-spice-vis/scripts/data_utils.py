@@ -2,21 +2,18 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-"""
-Utility functions that are DataFrame or calculation related and used across handler 
-modules.
-"""
+"""Store utility functions that are used across handler modules."""
 
-import os
-import pandas as pd
-from typing import Dict
-import re
-import streamlit as st
 import datetime as dt
+import os
+import re
+
+import pandas as pd
+import streamlit as st
 
 
 def handle_small_values(df: pd.DataFrame) -> pd.DataFrame:
-    """Converts <1e-6 values in the "value" column to 0.0.
+    """Convert <1e-6 values in the "value" column to 0.0.
 
     Parameters
     ----------
@@ -56,6 +53,7 @@ def calculate_min_max_y_scale(
         - "max" : float
             Maximum value for the y-axis, scaled by 1.2
     """
+
     def compute_min_max(data: pd.DataFrame) -> tuple[float, float]:
         if group_col and group_col in data.columns:
 
@@ -200,9 +198,9 @@ def get_filtered_df_and_date_range(df: pd.DataFrame, graph_config: dict):
 
 
 def get_hourly_dfs_for_both_scenarios(
-    graph_config: Dict,
+    graph_config: dict,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Get the filtered hourly dataframes for two scenarios
+    """Get the filtered hourly dataframes for two scenarios.
 
     Parameters
     ----------
@@ -214,6 +212,7 @@ def get_hourly_dfs_for_both_scenarios(
     tuple[pd.DataFrame, pd.DataFrame]
         The filtered hourly dataframes for the two scenarios
     """
+    start_date = end_date = None
     filtered_dfs = []
     for i, scenario in enumerate([st.session_state.sce1, st.session_state.sce2]):
         df = read_result_csv(
@@ -238,8 +237,7 @@ def get_hourly_dfs_for_both_scenarios(
 
 def prettify_label(label: str) -> str:
     """
-    Converts snake_case or camelCase string into readable text version for legends and
-    filters.
+    Convert snake_case or camelCase string into readable text for legends and filters.
 
     Parameters
     ----------
@@ -252,21 +250,23 @@ def prettify_label(label: str) -> str:
         The formatted, human-readable string.
     """
     # Handle snake_case labels
+
+    camel_re = re.compile(r"[a-z][A-Z]")
+    split_camel_re = re.compile(r"([a-z])([A-Z])")
     if "_" in label:
         if "_to_" in label:
-            # Specific case of 'flow' strings
             parts = label.split("_")
             if len(parts) == 5 and parts[2] == "to":
                 # Format XX_YY_to_AA_BB -> XX (YY) to AA (BB)
                 return f"{parts[0]} ({parts[1]}) to {parts[3]} ({parts[4]})"
             # Fallback in case the string is malformed but still has _to_
             return " ".join(parts)
-        else:
-            return " ".join(label.split("_"))
+
+        return " ".join(label.split("_"))
 
     # Handle camelCase labels
-    elif re.search(r"[a-z][A-Z]", label):
-        spaced = re.sub(r"([a-z])([A-Z])", r"\1 \2", label)
+    if camel_re.search(label):
+        spaced = split_camel_re.sub(r"\1 \2", label)
         return spaced.capitalize()
 
     return label
@@ -327,13 +327,9 @@ def read_result_csv(
         df = pd.read_csv(os.path.abspath(file_path))
     except FileNotFoundError:
         with st.container(height=450, border=True):
-            st.write(
-                ":material/warning: File dose not exist or is empty: {}".format(
-                    file_path
-                )
-            )
+            st.write(f":material/warning: File dose not exist or is empty: {file_path}")
         return None
-    if "country" in df.columns and country != None:
+    if "country" in df.columns and country is not None:
         df = df[df["country"] == country]
 
     df = df.fillna(0)
