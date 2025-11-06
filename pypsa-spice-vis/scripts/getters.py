@@ -41,11 +41,11 @@ class Getters:
         # data/{data_folder_name}
         self.init_config["project_folder_path"] = project_folder_path
         # data/{data_folder_name}/{project_name}/{input}
-        self.init_config["input_data_folder_path"] = os.path.join(
+        self.init_config["input_folder_path"] = os.path.join(
             project_folder_path, project_name, "input"
         )
         # data/{data_folder_name}/{project_name}/{results}
-        self.init_config["data_folder_path"] = os.path.join(
+        self.init_config["results_folder_path"] = os.path.join(
             project_folder_path, project_name, "results"
         )
 
@@ -94,7 +94,7 @@ class Getters:
         list[str]
           The list of scenarios for this project.
         """
-        data_folder_path = self.init_config["input_data_folder_path"]
+        data_folder_path = self.init_config["input_folder_path"]
 
         if not os.path.exists(data_folder_path):
             raise FileNotFoundError(f"folder not found: {data_folder_path}")
@@ -125,7 +125,7 @@ class Getters:
         list[str]
           The list of scenarios for this project.
         """
-        data_folder_path = self.init_config["data_folder_path"]
+        data_folder_path = self.init_config["results_folder_path"]
 
         if not os.path.exists(data_folder_path):
             raise FileNotFoundError(f"folder not found: {data_folder_path}")
@@ -158,7 +158,7 @@ class Getters:
         list[str]
           The list of sectors for this scenario.
         """
-        results_path = self.init_config["data_folder_path"]
+        results_path = self.init_config["results_folder_path"]
         csv_folder_path = os.path.join(results_path, scenario, "csvs")
 
         if not os.path.exists(csv_folder_path):
@@ -189,7 +189,7 @@ class Getters:
         list[str]
           The list of years for this sector.
         """
-        results_path = self.init_config["data_folder_path"]
+        results_path = self.init_config["results_folder_path"]
         sector_folder_path = os.path.join(results_path, scenario, "csvs", sector)
 
         if not os.path.exists(sector_folder_path):
