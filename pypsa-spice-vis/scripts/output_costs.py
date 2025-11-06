@@ -3,8 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Create Costs page under Results section showing editable costs related
-dataframes and visualisations from the modelling results.
+Create Costs page under Results section.
+
+Page shows costs related dataframes and visualisations from the modelling results.
 """
 
 import os
@@ -26,11 +27,10 @@ with open(
 ) as file:
     config = yaml.safe_load(file)["costs"]
 
-# table_of_content = [config[item]["name"] for item in config]
 table_of_content = []
 
 
-for item, values in config.items():
+for _item, values in config.items():
     if (
         values["incl_sector"] == "all"
         or values["incl_sector"] in st.session_state.sector
