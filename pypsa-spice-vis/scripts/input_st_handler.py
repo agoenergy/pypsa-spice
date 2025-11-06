@@ -4,23 +4,29 @@
 
 """Helper functions for handling Input section in visual app."""
 
-import os
 import csv
-import streamlit as st
-import pandas as pd
-import plotly.express as px
+import hashlib
+import os
+import re
+import shutil
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from tempfile import NamedTemporaryFile
-from typing import Callable, Optional
+
 import numpy as np
-import re
-import hashlib
+import pandas as pd
+import plotly.express as px
+import streamlit as st
+
 from scripts.getters import Getters
-import shutil
+
+# pylint: disable=too-many-arguments, broad-exception-caught
 
 
-class dfWidgetsHandler:
+class DFWidgetsHandler:
+    """Handle the DataFrame widget."""
+
     def __init__(self):
         self.getters = Getters()
         self.input_ui_handler = InputUiHandler()
@@ -126,7 +132,7 @@ class dfWidgetsHandler:
         return dfs
 
     def reload_scenario_dfs(self, dfs: dict, selected_scenario: str) -> dict:
-        """Reload the scenario-related dataframes after the user has selected a scenario.
+        """Reload the scenario-related dataframes after user has selected a scenario.
 
         Parameters
         ----------
@@ -161,30 +167,26 @@ class dfWidgetsHandler:
 
 @dataclass
 class CsvDictConfig:
-    """Configuration for different csvs"""
+    """Configuration for different csvs."""
 
     identifier: str
     filter_col: str
     title: str
     filter_fn: Callable
-    empty_df_fn: Optional[Callable] = None
-    empty_df_kwargs: Optional[dict] = None
+    empty_df_fn: Callable | None = None
+    empty_df_kwargs: dict | None = None
     path: str = ""  # Populate after user selections are made
 
 
 class InputUiHandler:
+    """Handler class for input UI."""
+
     def __init__(self):
         self.csvs_dict = {
             "technologies": CsvDictConfig(
                 identifier="tech",
                 filter_col="technology",
                 title="Techonology Parameters",
-                filter_fn=self.filter_df_generic,
-            ),
-            "links": CsvDictConfig(
-                identifier="links",
-                filter_col="type",
-                title="Asset Parameters",
                 filter_fn=self.filter_df_generic,
             ),
             "availability": CsvDictConfig(
@@ -288,7 +290,6 @@ class InputUiHandler:
             ),
         }
 
-
     def create_editable_df(
         self,
         filtered_df: pd.DataFrame,
@@ -335,22 +336,21 @@ class InputUiHandler:
         for col in filtered_df.select_dtypes(include=[float]).columns:
             try:
                 result_df[col] = result_df[col].astype(float)
-            except:
+            except Exception:
                 invalid_mask = result_df[col].apply(
-                    lambda x: not (
-                        isinstance(x, float) or isinstance(x, int) or x == np.inf
-                    )
+                    lambda x: not (isinstance(x, (float, int)) or x == np.inf)
                 )
+
                 if invalid_mask.any():
                     st.error(
-                        f"Column '{col}' contains invalid entries. Only numbers or 'inf' allowed."
+                        f"Column '{col}' contains invalid entries. "
+                        "Only numbers or 'inf' allowed."
                     )
                     to_save = False
 
                 result_df[col] = result_df[col].astype(float, errors="ignore")
 
         return result_df, to_save
-
 
     def create_save_button(
         self,
@@ -417,7 +417,6 @@ class InputUiHandler:
             except Exception as e:
                 st.error(f"Error saving changes: {e}")
 
-
     def set_up_single_tab_widget(
         self,
         csv_dict_key: str,
@@ -425,10 +424,12 @@ class InputUiHandler:
         selected_types: list,
         input_csv_path: str,
         selected_countries: list = None,
-        selected_classes: Optional[list] = None,
-        secondary_df: Optional[pd.DataFrame] = None,
+        selected_classes: list | None = None,
+        secondary_df: pd.DataFrame | None = None,
     ):
-        """Set up the widget with a single tab containing the editable df and save
+        """Set up the widget with a single tab.
+
+        The tab contains the editable df and save
         button that handles saving of the edited df.
 
         Parameters
@@ -489,10 +490,6 @@ class InputUiHandler:
             st.write(f"### {csv_config.title}")
 
             path_to_display = os.path.normpath(input_csv_path)
-            # link = f"file://{path_to_display}"
-            # st.markdown(
-            # f'<small><i><a href="{link}">{path_to_display}</a></i></small>', 
-            # unsafe_allow_html=True)
             st.markdown(
                 f"<small><i>{path_to_display}</i></small>", unsafe_allow_html=True
             )
@@ -523,7 +520,6 @@ class InputUiHandler:
                 kwargs = dict(csv_config.empty_df_kwargs or {})
                 csv_config.empty_df_fn(**kwargs)
 
-
     def set_up_double_tab_widget(
         self,
         csv_dict_key: str,
@@ -531,7 +527,7 @@ class InputUiHandler:
         selected_types: list,
         input_csv_path: str,
         selected_countries: list = None,
-        secondary_df: Optional[pd.DataFrame] = None,
+        secondary_df: pd.DataFrame | None = None,
     ):
         """Set up the widget with a double tab.
 
@@ -623,13 +619,11 @@ class InputUiHandler:
                     )
                 csv_config.empty_df_fn(**kwargs)
 
-
     def get_tech_mapping(self):
         """Load the technology mapping csv."""
         current_dir = os.path.dirname(__file__)
         file_path = os.path.join(current_dir, "..", "setting", "tech_mapping.csv")
         return pd.read_csv(file_path)
-
 
     def list_to_key(self, selected_types: list) -> str:
         """Hash a list of selected types.
@@ -648,8 +642,7 @@ class InputUiHandler:
             An eight character hash
         """
         joined = ",".join(sorted(selected_types))
-        return hashlib.md5(joined.encode()).hexdigest()[:8]
-
+        return hashlib.md5(joined.encode(), usedforsecurity=False).hexdigest()[:8]
 
     def filter_df_generic(
         self,
@@ -675,7 +668,6 @@ class InputUiHandler:
         """
         return df[df[filter_col].isin(selected_types)]
 
-
     def filter_df_decomission(
         self,
         df: pd.DataFrame,
@@ -700,13 +692,12 @@ class InputUiHandler:
         """
         return df[df[filter_col].str.split("_").str[-1].isin(selected_types)]
 
-
     def empty_df_message_generic(self, **kwargs):
         """Display a generic info message when the dataframe is empty."""
         info_message = kwargs.get("msg")
         st.info(info_message)
 
-
+    # pylint: disable=too-many-statements
     def visualise_data(self, df: pd.DataFrame, csv_identifier: str):
         """Visualise cost data with a line graph.
 
@@ -850,7 +841,6 @@ class InputUiHandler:
 
         st.plotly_chart(fig, use_container_width=True)
 
-
     def resample_to_monthly(self, df: pd.DataFrame, leg_col: str) -> pd.DataFrame:
         """Resamples dataframe from hourly to monthly.
 
@@ -892,7 +882,6 @@ class InputUiHandler:
 
         return df_monthly
 
-
     def get_fuel_mapping(self, tech_df: pd.DataFrame, selected_types: str) -> dict:
         """Get mapping of technology types to their carriers.
 
@@ -919,7 +908,6 @@ class InputUiHandler:
 
         return type_to_carrier
 
-
     def update_csv_file(
         self,
         file_path: str,
@@ -931,7 +919,10 @@ class InputUiHandler:
         temp_file = NamedTemporaryFile(mode="w", delete=False, newline="")
 
         try:
-            with open(file_path, "r") as csvfile, temp_file:
+            with (
+                open(file_path, encoding="utf-8") as csvfile,
+                temp_file,
+            ):
                 reader = csv.DictReader(csvfile)
                 fieldnames = reader.fieldnames
                 writer = csv.DictWriter(temp_file, fieldnames=fieldnames)

@@ -3,20 +3,20 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Create Power - Supply page under Input section showing editable supply related 
+Create Power - Supply page under Input section showing editable supply related
 dataframes and visualisations.
 """
 
 import streamlit as st
 import pandas as pd
 from scripts.getters import Getters
-from scripts.input_st_handler import dfWidgetsHandler
+from scripts.input_st_handler import DFWidgetsHandler
 
 pd.set_option("future.no_silent_downcasting", True)
 
 
 def main(getters):
-    df_widgets_handler = dfWidgetsHandler()
+    df_widgets_handler = DFWidgetsHandler()
 
     input_ui_handler = df_widgets_handler.input_ui_handler
 
