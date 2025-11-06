@@ -10,7 +10,7 @@ dataframes and visualisations from the modelling results.
 import yaml
 import os
 import streamlit as st
-from scripts.output_helpers import (
+from scripts.output_st_handler import (
     plot_indicator,
     map_chart_to_plot_function,
     generate_sidebar,

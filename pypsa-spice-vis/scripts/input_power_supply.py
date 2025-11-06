@@ -10,7 +10,7 @@ dataframes and visualisations.
 import streamlit as st
 import pandas as pd
 from scripts.getters import Getters
-from scripts.input_helpers import dfWidgetsHandler
+from scripts.input_st_handler import dfWidgetsHandler
 
 pd.set_option("future.no_silent_downcasting", True)
 
