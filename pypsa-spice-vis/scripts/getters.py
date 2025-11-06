@@ -27,28 +27,28 @@ class Getters:
         self.config_path = "../base_config.yaml"
 
         with open(os.path.join(self.entry_dir, self.config_path), "r") as file:
-            self.init_conf = yaml.safe_load(file)
+            self.init_config = yaml.safe_load(file)
 
         if "vis" in str(self.working_dir):
             data_path = "../data/"
         else:
             data_path = "data/"
 
-        self.init_conf["project_folder_path"] = (
-            data_path + self.init_conf["path_configs"]["data_folder_name"] + "/"
+        self.init_config["project_folder_path"] = (
+            data_path + self.init_config["path_configs"]["data_folder_name"] + "/"
         )
 
-        self.init_conf["input_data_folder_path"] = (
-            self.init_conf["project_folder_path"]
+        self.init_config["input_data_folder_path"] = (
+            self.init_config["project_folder_path"]
             + "/"
-            + self.init_conf["path_configs"]["project_name"]
+            + self.init_config["path_configs"]["project_name"]
             + "/input/"
         )
 
-        self.init_conf["data_folder_path"] = (
-            self.init_conf["project_folder_path"]
+        self.init_config["data_folder_path"] = (
+            self.init_config["project_folder_path"]
             + "/"
-            + self.init_conf["path_configs"]["project_name"]
+            + self.init_config["path_configs"]["project_name"]
             + "/results/"
         )
 
@@ -78,9 +78,9 @@ class Getters:
         project_folders = [f for f in project_folders if not f.startswith(".")]
 
         # Make default project the first option in the list if present
-        if self.init_conf["path_configs"]["project_name"] in project_folders:
-            project_folders.remove(self.init_conf["path_configs"]["project_name"])
-            project_folders.insert(0, self.init_conf["path_configs"]["project_name"])
+        if self.init_config["path_configs"]["project_name"] in project_folders:
+            project_folders.remove(self.init_config["path_configs"]["project_name"])
+            project_folders.insert(0, self.init_config["path_configs"]["project_name"])
 
         return project_folders
 
@@ -97,7 +97,7 @@ class Getters:
         list[str]
           The list of scenarios for this project.
         """
-        data_folder_path = self.init_conf["input_data_folder_path"]
+        data_folder_path = self.init_config["input_data_folder_path"]
 
         if not os.path.exists(data_folder_path):
             raise FileNotFoundError(f"folder not found: {data_folder_path}")
@@ -109,7 +109,7 @@ class Getters:
         ]
 
         # Make default scenario the first option in the list if present
-        for sce in (self.init_conf["path_configs"]["input_scenario_name"], ""):
+        for sce in (self.init_config["path_configs"]["input_scenario_name"], ""):
             if sce in scenario_list:
                 scenario_list.insert(0, scenario_list.pop(scenario_list.index(sce)))
 
@@ -128,7 +128,7 @@ class Getters:
         list[str]
           The list of scenarios for this project.
         """
-        data_folder_path = self.init_conf["data_folder_path"]
+        data_folder_path = self.init_config["data_folder_path"]
 
         if not os.path.exists(data_folder_path):
             raise FileNotFoundError(f"folder not found: {data_folder_path}")
@@ -140,7 +140,7 @@ class Getters:
         ]
 
         # Make default scenario the first option in the list if present
-        for sce in (self.init_conf["path_configs"]["output_scenario_name"], ""):
+        for sce in (self.init_config["path_configs"]["output_scenario_name"], ""):
             if sce in scenario_list:
                 scenario_list.insert(0, scenario_list.pop(scenario_list.index(sce)))
 
@@ -161,7 +161,7 @@ class Getters:
         list[str]
           The list of sectors for this scenario.
         """
-        results_path = self.init_conf["data_folder_path"]
+        results_path = self.init_config["data_folder_path"]
         csv_folder_path = os.path.join(results_path, scenario, "csvs")
 
         if not os.path.exists(csv_folder_path):
@@ -192,7 +192,7 @@ class Getters:
         list[str]
           The list of years for this sector.
         """
-        results_path = self.init_conf["data_folder_path"]
+        results_path = self.init_config["data_folder_path"]
         sector_folder_path = os.path.join(results_path, scenario, "csvs", sector)
 
         if not os.path.exists(sector_folder_path):
@@ -307,3 +307,8 @@ class Getters:
 
         # Use the default fallback if all attempts fail
         return default_width
+
+
+if __name__ == "__main__":
+    getters = Getters()
+    print(getters.get_project_folder_list(getters.init_config["project_folder_path"]))

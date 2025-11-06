@@ -42,7 +42,7 @@ class dfWidgetsHandler:
         sub_folder = (
             st.session_state["scenario"]
             if "scenario" in st.session_state
-            else self.getters.init_conf["path_configs"]["input_scenario_name"]
+            else self.getters.init_config["path_configs"]["input_scenario_name"]
         )
 
         self.scenario_input_path = os.path.join(self.base_input_path, sub_folder)
