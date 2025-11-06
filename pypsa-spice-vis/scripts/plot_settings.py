@@ -518,12 +518,7 @@ def simple_bar_yearly(scenario_name: str, graph_config: dict) -> Optional[None]:
 
 @st.fragment
 def simple_line_yearly(scenario_name: str, graph_config: dict):
-    """_summary_
-
-    Args:
-        scenario_name (str): _description_
-        table_name (str): _description_
-    """
+    """Generate a yearly line chart with a downloadable data table."""
     # Read data from file
     table_name = graph_config["table_name"]
     leg_col = graph_config["leg_col"]
@@ -574,6 +569,10 @@ def simple_line_yearly(scenario_name: str, graph_config: dict):
 
 @st.fragment
 def bar_with_filter(scenario_name: str, graph_config: dict):
+    """
+    Generate a yearly stacked bar chart with a filter and  with a downloadable data 
+    table.
+    """
     leg_col = graph_config["leg_col"]
     fil_col = graph_config["fil_col"]
     slider_id = graph_config["slider_id"].format(scenario_name)
@@ -649,11 +648,7 @@ def bar_with_filter(scenario_name: str, graph_config: dict):
 
 @st.fragment
 def area_share_yearly(scenario_name: str, graph_config: dict):
-    """_summary_
-
-    Args:
-        scenario_name (str): _description_
-        table_name (str): _description_
+    """Generate a yearly area chart (percentage share) with a downloadable data table.
     """
     download_id = graph_config["download_id"].format(scenario_name)
     leg_col = graph_config["leg_col"]
@@ -700,7 +695,7 @@ def area_share_yearly(scenario_name: str, graph_config: dict):
 def simple_bar_hourly(
     scenario_name: str, graph_config: Dict[str, str]
 ) -> Optional[None]:
-    """Generate hourly stacked bar chart with filters for datetime."""
+    """Generate hourly stacked bar chart for datetime."""
     table_name = graph_config["table_name"]
     leg_col = graph_config["leg_col"]
     download_id = graph_config["download_id"].format(scenario_name)
@@ -775,13 +770,7 @@ def simple_bar_hourly(
 
 @st.fragment
 def simple_line_hourly(scenario_name: str, graph_config: dict):
-    """_summary_
-
-    Args:
-        scenario_name (str): _description_
-        table_name (str): _description_
-        slider_id (str): _description_
-    """
+    """Generate hourly line chart with filters for datetime."""
     table_name = graph_config["table_name"]
     leg_col = graph_config["leg_col"]
     download_id = graph_config["download_id"].format(scenario_name)
@@ -857,13 +846,7 @@ def simple_line_hourly(scenario_name: str, graph_config: dict):
 
 @st.fragment
 def filtered_bar_hourly(scenario_name: str, graph_config: dict):
-    """_summary_
-
-    Args:
-        scenario_name (str): _description_
-        table_name (str): _description_
-        slider_id (str): _description_
-    """
+    """Generate hourly stacked bar chart with filters for datetime."""
     table_name = graph_config["table_name"]
     leg_col = graph_config["leg_col"]
     fil_col = graph_config["fil_col"]
@@ -956,13 +939,7 @@ def filtered_bar_hourly(scenario_name: str, graph_config: dict):
 
 @st.fragment
 def line_with_secondary_y_hourly(scenario_name: str, graph_config: dict):
-    """_summary_
-
-    Args:
-        scenario_name (str): _description_
-        table_name (str): _description_
-        slider_id (str): _description_
-    """
+    """Generate hourly line chart with secondary y-axis for datetime."""
     table_name = graph_config["table_name"]
     leg_col = graph_config["leg_col"]
     primary_y_lab = graph_config["primary_y_lab"]

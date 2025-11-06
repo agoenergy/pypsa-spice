@@ -5,16 +5,19 @@
 """Helper functions for handling Input section in visual app."""
 
 import os
+import csv
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import time
 from dataclasses import dataclass
+from tempfile import NamedTemporaryFile
 from typing import Callable, Optional
 import numpy as np
 import re
 import hashlib
 from scripts.getters import Getters
+import shutil
 
 pd.set_option("future.no_silent_downcasting", True)
 
@@ -178,114 +181,115 @@ class InputUiHandler:
                 identifier="tech",
                 filter_col="technology",
                 title="Techonology Parameters",
-                filter_fn=self._filter_df_generic,
+                filter_fn=self.filter_df_generic,
             ),
             "links": CsvDictConfig(
                 identifier="links",
                 filter_col="type",
                 title="Asset Parameters",
-                filter_fn=self._filter_df_generic,
+                filter_fn=self.filter_df_generic,
             ),
             "availability": CsvDictConfig(
                 identifier="avail",
                 filter_col="technology",
                 title="Availability",
-                filter_fn=self._filter_df_generic,
-                empty_df_fn=self._empty_df_message_generic,
+                filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
                 empty_df_kwargs={"msg": "Taking availability from availability.csv"},
             ),
             "demand": CsvDictConfig(
                 identifier="demand",
                 filter_col="profile_type",
                 title="Demand Profiles",
-                filter_fn=self._filter_df_generic,
-                empty_df_fn=self._empty_df_message_generic,
+                filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
                 empty_df_kwargs={"msg": "Taking demand from demand_profile.csv"},
             ),
             "pp_costs": CsvDictConfig(
                 identifier="costs",
                 filter_col="powerplant_type",
                 title="Power Plant Costs",
-                filter_fn=self._filter_df_generic,
+                filter_fn=self.filter_df_generic,
             ),
             "potentials": CsvDictConfig(
                 identifier="potentials",
                 filter_col="type",
                 title="Renewable Technical Potentials",
-                filter_fn=self._filter_df_generic,
+                filter_fn=self.filter_df_generic,
             ),
             "storage_cost": CsvDictConfig(
                 identifier="storage_cost",
                 filter_col="storage_type",
                 title="Storage Costs",
-                filter_fn=self._filter_df_generic,
+                filter_fn=self.filter_df_generic,
             ),
             "storage_inflows": CsvDictConfig(
                 identifier="storage_inflows",
                 filter_col="technology",
                 title="Storage Inflows",
-                filter_fn=self._filter_df_generic,
-                empty_df_fn=self._empty_df_message_generic,
+                filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
                 empty_df_kwargs={"msg": "Taking inflows from storage_inflows.csv"},
             ),
             "decomission": CsvDictConfig(
                 identifier="decomission",
                 filter_col="name",
                 title="Decomissioning",
-                filter_fn=self._filter_df_decomission,
-                empty_df_fn=self._empty_df_message_generic,
+                filter_fn=self.filter_df_decomission,
+                empty_df_fn=self.empty_df_message_generic,
                 empty_df_kwargs={"msg": "No decomissioning"},
             ),
             "fuel_costs": CsvDictConfig(
                 identifier="fuel",
                 filter_col="carrier",
                 title="Fuel Costs",
-                filter_fn=self._filter_df_generic,
-                empty_df_fn=self._empty_df_message_generic,
+                filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
             ),
             "interconnector": CsvDictConfig(
                 identifier="interconnector",
                 filter_col="type",
                 title="Interconnector",
-                filter_fn=self._filter_df_generic,
-                empty_df_fn=self._empty_df_message_generic,
+                filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
             ),
             "load": CsvDictConfig(
                 identifier="load",
                 filter_col="profile_type",
                 title="Load",
-                filter_fn=self._filter_df_generic,
-                empty_df_fn=self._empty_df_message_generic,
+                filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
             ),
             "generator": CsvDictConfig(
                 identifier="generator",
                 filter_col="type",
                 title="Assest Parameters - Generators",
-                filter_fn=self._filter_df_generic,
-                empty_df_fn=self._empty_df_message_generic,
+                filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
             ),
             "links": CsvDictConfig(
                 identifier="links",
                 filter_col="carrier",
                 title="Assest Parameters - Links",
-                filter_fn=self._filter_df_generic,
-                empty_df_fn=self._empty_df_message_generic,
+                filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
             ),
             "storageunit": CsvDictConfig(
                 identifier="storageunit",
                 filter_col="carrier",
                 title="Assest Parameters - StorageUnits",
-                filter_fn=self._filter_df_generic,
-                empty_df_fn=self._empty_df_message_generic,
+                filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
             ),
             "store": CsvDictConfig(
                 identifier="store",
                 filter_col="carrier",
                 title="Assest Parameters - Stores",
-                filter_fn=self._filter_df_generic,
-                empty_df_fn=self._empty_df_message_generic,
+                filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
             ),
         }
+
 
     def create_editable_df(
         self,
@@ -348,6 +352,7 @@ class InputUiHandler:
                 result_df[col] = result_df[col].astype(float, errors="ignore")
 
         return result_df, to_save
+
 
     def create_save_button(
         self,
@@ -414,6 +419,7 @@ class InputUiHandler:
             except Exception as e:
                 st.error(f"Error saving changes: {e}")
 
+
     def set_up_single_tab_widget(
         self,
         csv_dict_key: str,
@@ -448,7 +454,7 @@ class InputUiHandler:
         csv_identifier = csv_config.identifier
 
         # Create session state var keys based on the current csv
-        list_key = self._list_to_key(selected_types)
+        list_key = self.list_to_key(selected_types)
         edited_df_key = f"{csv_identifier}_editor_{list_key}"
         has_changes_key = f"has_changes_{csv_identifier}_{list_key}"
         save_button_key = f"save_{csv_identifier}_{list_key}"
@@ -462,7 +468,7 @@ class InputUiHandler:
             if "Link" in selected_classes and secondary_df is not None:
                 # Set up filtered_df and no_data_msg for the fuel_costs df
                 try:
-                    fuels = self._get_fuel_mapping(secondary_df, selected_types)
+                    fuels = self.get_fuel_mapping(secondary_df, selected_types)
                     filtered_df = csv_config.filter_fn(
                         input_df, filter_col, list(fuels.values())
                     )
@@ -486,7 +492,9 @@ class InputUiHandler:
 
             path_to_display = os.path.normpath(input_csv_path)
             # link = f"file://{path_to_display}"
-            # st.markdown(f'<small><i><a href="{link}">{path_to_display}</a></i></small>', unsafe_allow_html=True)
+            # st.markdown(
+            # f'<small><i><a href="{link}">{path_to_display}</a></i></small>', 
+            # unsafe_allow_html=True)
             st.markdown(
                 f"<small><i>{path_to_display}</i></small>", unsafe_allow_html=True
             )
@@ -516,6 +524,7 @@ class InputUiHandler:
                 # Fallback if defined in csvs_config
                 kwargs = dict(csv_config.empty_df_kwargs or {})
                 csv_config.empty_df_fn(**kwargs)
+
 
     def set_up_double_tab_widget(
         self,
@@ -551,7 +560,7 @@ class InputUiHandler:
         csv_identifier = csv_config.identifier
 
         # Create session state var keys based on the current csv
-        list_key = self._list_to_key(selected_types)
+        list_key = self.list_to_key(selected_types)
         edited_df_key = f"{csv_identifier}_editor_{list_key}"
         has_changes_key = f"has_changes_{csv_identifier}_{list_key}"
         save_button_key = f"save_{csv_identifier}_{list_key}"
@@ -593,7 +602,7 @@ class InputUiHandler:
                     has_changes = st.session_state.get(has_changes_key, False)
 
                 with tab2:
-                    self._visualise_data(filtered_df, csv_identifier)
+                    self.visualise_data(filtered_df, csv_identifier)
 
                 if to_save:
                     self.create_save_button(
@@ -616,13 +625,16 @@ class InputUiHandler:
                     )
                 csv_config.empty_df_fn(**kwargs)
 
-    def _get_tech_mapping(self):
+
+    def get_tech_mapping(self):
+        """Load the technology mapping csv."""
         current_dir = os.path.dirname(__file__)
         file_path = os.path.join(current_dir, "..", "setting", "tech_mapping.csv")
         return pd.read_csv(file_path)
 
-    def _list_to_key(self, selected_types: list) -> str:
-        """Helper function to hash a list of selected types.
+
+    def list_to_key(self, selected_types: list) -> str:
+        """Hash a list of selected types.
 
         This is used to generate short, unique widget keys as an alternative to joining
         a potentially long list of selected types.
@@ -640,7 +652,8 @@ class InputUiHandler:
         joined = ",".join(sorted(selected_types))
         return hashlib.md5(joined.encode()).hexdigest()[:8]
 
-    def _filter_df_generic(
+
+    def filter_df_generic(
         self,
         df: pd.DataFrame,
         filter_col: str,
@@ -664,7 +677,8 @@ class InputUiHandler:
         """
         return df[df[filter_col].isin(selected_types)]
 
-    def _filter_df_decomission(
+
+    def filter_df_decomission(
         self,
         df: pd.DataFrame,
         filter_col: str,
@@ -688,11 +702,14 @@ class InputUiHandler:
         """
         return df[df[filter_col].str.split("_").str[-1].isin(selected_types)]
 
-    def _empty_df_message_generic(self, **kwargs):
+
+    def empty_df_message_generic(self, **kwargs):
+        """Display a generic info message when the dataframe is empty."""
         info_message = kwargs.get("msg")
         st.info(info_message)
 
-    def _visualise_data(self, df: pd.DataFrame, csv_identifier: str):
+
+    def visualise_data(self, df: pd.DataFrame, csv_identifier: str):
         """Visualise cost data with a line graph.
 
         Parameters
@@ -702,7 +719,7 @@ class InputUiHandler:
         df : pd.DataFrame
             The dataframe already filtered by technology type.
         """
-        tech_mapping = self._get_tech_mapping()
+        tech_mapping = self.get_tech_mapping()
 
         colour_map = dict(
             zip(tech_mapping["original_names"], tech_mapping["hex_codes"])
@@ -723,7 +740,7 @@ class InputUiHandler:
 
         if csv_identifier == "avail":
             filtered_df = df[df["country"] == selected_country]
-            resampled = self._resample_to_monthly(df, "technology")
+            resampled = self.resample_to_monthly(df, "technology")
 
             node_avail_toggle = st.toggle(
                 "Include node filter in the Availability Profiles", value=False
@@ -753,7 +770,7 @@ class InputUiHandler:
 
         elif csv_identifier == "demand":
             filtered_df = df[df["country"] == selected_country]
-            resampled = self._resample_to_monthly(df, "profile_type")
+            resampled = self.resample_to_monthly(df, "profile_type")
 
             node_demand_toggle = st.toggle(
                 "Include node filter in the Demand Profile", value=False
@@ -835,7 +852,8 @@ class InputUiHandler:
 
         st.plotly_chart(fig, use_container_width=True)
 
-    def _resample_to_monthly(self, df: pd.DataFrame, leg_col: str) -> pd.DataFrame:
+
+    def resample_to_monthly(self, df: pd.DataFrame, leg_col: str) -> pd.DataFrame:
         """Resamples dataframe from hourly to monthly.
 
         Parameters
@@ -876,7 +894,22 @@ class InputUiHandler:
 
         return df_monthly
 
-    def _get_fuel_mapping(self, tech_df: pd.DataFrame, selected_types):
+
+    def get_fuel_mapping(self, tech_df: pd.DataFrame, selected_types: str) -> dict:
+        """Get mapping of technology types to their carriers.
+
+        Parameters
+        ----------
+        tech_df : pd.DataFrame
+            Dataframe containing technology data.
+        selected_types : str
+            Selected technology hash string from list_to_key.
+
+        Returns
+        -------
+        dict
+            Dictionary of technology type to carrier.
+        """
         type_to_carrier = (
             tech_df.loc[
                 tech_df["technology"].isin(selected_types), ["technology", "carrier"]
@@ -888,19 +921,15 @@ class InputUiHandler:
 
         return type_to_carrier
 
+
     def update_csv_file(
         self,
         file_path: str,
         row_identifier: str,
         column_name: str,
         new_value: str,
-        identifier_column: str,
     ):
         """Make targeted changes to CSV file without loading entire file into memory."""
-        import csv
-        from tempfile import NamedTemporaryFile
-        import shutil
-
         temp_file = NamedTemporaryFile(mode="w", delete=False, newline="")
 
         try:

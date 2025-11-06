@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Utility functions that are independent of Streamlit and used across helper modules.
+Utility functions that are independent of Streamlit and used across handler modules.
 """
 
 import os
@@ -55,7 +55,6 @@ def calculate_min_max_y_scale(
         - "max" : float
             Maximum value for the y-axis, scaled by 1.2
     """
-
     def compute_min_max(data: pd.DataFrame) -> tuple[float, float]:
         if group_col and group_col in data.columns:
 
@@ -133,7 +132,7 @@ def clean_df_for_plotting(leg_col: str, df: pd.DataFrame):
 
 
 def convert_month_to_name(month_num: int) -> str:
-    """Helper function to convert a month number to the abbreviated month name."""
+    """Convert a month number to the abbreviated month name."""
     return dt.datetime.strptime(str(month_num), "%m").strftime("%b")
 
 
@@ -141,10 +140,7 @@ def filter_dataframe_by_date_range(
     df: pd.DataFrame, start_date: dt.datetime, end_date: dt.datetime
 ):
     """Filter input dataframe by specific date range."""
-    # Convert the 'Date' column to datetime format
     df["Date"] = pd.to_datetime(df["snapshot"])
-
-    # Filter data between the selected dates
     filtered_df = df[(df["Date"] >= start_date) & (df["Date"] <= end_date)]
 
     return filtered_df
@@ -152,16 +148,10 @@ def filter_dataframe_by_date_range(
 
 def filter_dataframe_by_month(df: pd.DataFrame, month: int):
     """Filter input dataframe by month."""
-    # Convert the 'Date' column to datetime format
     df["Date"] = pd.to_datetime(df["snapshot"])
-
-    # Extract month from the 'Date' column
     df["Month"] = df["Date"].dt.month
 
-    # Filter data by the selected month
-    filtered_df = df[df["Month"] == month]
-
-    return filtered_df
+    return df[df["Month"] == month]
 
 
 def get_filtered_df_and_date_range(df: pd.DataFrame, graph_config: dict):
@@ -260,7 +250,6 @@ def prettify_label(label: str) -> str:
     str
         The formatted, human-readable string.
     """
-
     # Handle snake_case labels
     if "_" in label:
         if "_to_" in label:
@@ -352,7 +341,7 @@ def read_result_csv(
 
 
 def slugify_text(text: str):
-    """Helper function to slugify text string.
+    """Slugify text string.
 
     This is used to generate safe anchor IDs (URL fragments) in the sidebar.
 

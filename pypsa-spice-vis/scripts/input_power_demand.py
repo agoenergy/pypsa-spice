@@ -37,8 +37,8 @@ def main(getters):
     ]:
         all_countries.update(getters.get_country_list(df))
 
-    ########################## Demand Side #################################################
-    ########################## Render the UI part ##########################################
+    ########################## Demand Side ############################################
+    ########################## Render the UI part #####################################
 
     st.header(":material/Lightbulb: Demand")
 

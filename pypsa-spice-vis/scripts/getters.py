@@ -57,6 +57,7 @@ class Getters:
             data_folder_path, default_project_name, "results"
         )
 
+
     def get_project_folder_list(self, folder_path: str) -> list[str]:
         """Get a list of project subfolders in a given folder.
 
@@ -89,6 +90,7 @@ class Getters:
 
         return project_folders
 
+
     def get_input_scenario_list(self) -> list[str]:
         """Get the list of input scenarios from a given project within the input/ folder.
 
@@ -119,6 +121,7 @@ class Getters:
                 scenario_list.insert(0, scenario_list.pop(scenario_list.index(sce)))
 
         return scenario_list
+
 
     def get_output_scenario_list(self, selected_project_name: str) -> list[str]:
         """Get the list of output scenarios from a given project within the results/ folder.
@@ -156,6 +159,7 @@ class Getters:
 
         return scenario_list
 
+
     def get_sector_list(self, scenario: str) -> list[str]:
         """Get the list of sectors from the scenario/ folder in a given project.
 
@@ -184,6 +188,7 @@ class Getters:
         ]
 
         return sector_list
+
 
     def get_year_list(self, scenario: str, sector: str) -> list[str]:
         """Get the list of years from the scenario/sector/ folder in a given project.
@@ -214,6 +219,7 @@ class Getters:
 
         return years_list
 
+
     def get_country_list(self, df: pd.DataFrame) -> list[str]:
         """Get the list of countries from a dataframe if it has a "country" column
 
@@ -231,6 +237,7 @@ class Getters:
             return sorted(df["country"].unique().tolist())
 
         return []
+
 
     def get_mapping_list(self, *dfs: pd.DataFrame) -> list[str]:
         """Get the list of technologies to display in the input UI
@@ -254,6 +261,7 @@ class Getters:
                 type_set |= set(df["profile_type"].unique())
 
         return sorted(type_set)
+
 
     def get_window_width(
         self, current_width: int, max_attempts: int = 5, delay: float = 0.2

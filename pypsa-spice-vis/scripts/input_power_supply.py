@@ -36,8 +36,8 @@ def main(getters):
     ]:
         all_countries.update(getters.get_country_list(df))
 
-    ########################## Supply Side #################################################
-    ########################## Render the UI part ##########################################
+    ########################## Supply Side ############################################
+    ########################## Render the UI part #####################################
 
     st.header(":material/bolt: Supply")
 
@@ -224,8 +224,8 @@ def main(getters):
         selected_countries,
     )
 
-    ########################## Interconnection #############################################
-    ########################## Render the UI part ##########################################
+    ########################## Interconnection #######################################
+    ########################## Render the UI part ####################################
 
     st.header(":material/diagonal_line: Interconnections")
 
