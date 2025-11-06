@@ -2084,7 +2084,6 @@ def plot_function(func_name: str = None):
     """Map plot function to corresponding chart type  from config yaml."""
     mapping = {
         "simple_bar_yearly": simple_bar_yearly,
-        "simple_bar_yearly_2": simple_bar_yearly,
         "simple_line_yearly": simple_line_yearly,
         "bar_with_filter": bar_with_filter,
         "area_share_yearly": area_share_yearly,

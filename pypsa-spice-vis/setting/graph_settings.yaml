@@ -8,7 +8,7 @@ power:
   p1: 
     name: Capacity by type
     units: GW
-    graph_type: simple_bar_yearly_2
+    graph_type: simple_bar_yearly
     tab_name: pow_cap_by_type_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
@@ -32,7 +32,7 @@ power:
   p3:
     name: Generation by type
     units: TWh
-    graph_type: simple_bar_yearly_2
+    graph_type: simple_bar_yearly
     tab_name: pow_gen_by_type_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
