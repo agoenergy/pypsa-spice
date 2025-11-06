@@ -2,6 +2,11 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+"""
+Create a config editor page under the Input section showing editable input data from 
+configuration files.
+"""
+
 import pandas as pd
 import yaml
 import streamlit as st

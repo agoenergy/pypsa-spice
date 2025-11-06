@@ -2,6 +2,8 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+"""Helper functions for handling Results section in visual app."""
+
 import os
 import datetime as dt
 import plotly.graph_objects as go

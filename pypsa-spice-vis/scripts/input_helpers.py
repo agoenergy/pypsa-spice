@@ -2,6 +2,8 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+"""Helper functions for handling Input section in visual app."""
+
 import os
 import streamlit as st
 import pandas as pd

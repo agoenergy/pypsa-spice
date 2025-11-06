@@ -2,6 +2,8 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+"""Get various parameters related to the visual app and data structure."""
+
 import sys
 import os
 import yaml
@@ -24,7 +26,9 @@ class Getters:
         self.config_path = "../base_config.yaml"
 
         try:
-          with open(os.path.join(self.streamlit_base_dir, self.config_path), "r") as file:
+          with open(
+              os.path.join(self.streamlit_base_dir, self.config_path), "r"
+          ) as file:
               self.init_config = yaml.safe_load(file)
         except FileNotFoundError:
             raise FileNotFoundError(
@@ -256,13 +260,14 @@ class Getters:
     ) -> int:
         """Get the current window width.
 
-        Since streamlit_js_eval is asynchronous and may return None on first pass if the js
-        has not executed in the browser yet, we use a logic that tries for up to five
-        attempts with a short delay in between, before falling back to a default width.
+        Since streamlit_js_eval is asynchronous and may return None on first pass if 
+        the javascript has not executed in the browser yet, we use a logic that tries 
+        for up to five attempts with a short delay in between, before falling back to 
+        a default width.
 
-        This width is used to set window_width in the session state, in order to set the
-        legend position and orientation later on (below the graph and horizontal for narrow
-        widths + two scenario cases).
+        This width is used to set window_width in the session state, in order to set 
+        the legend position and orientation later on (below the graph and horizontal 
+        for narrow widths + two scenario cases).
 
         Parameters
         ----------
@@ -292,8 +297,9 @@ class Getters:
                     key=f"SCR_{attempt}",  # Use a different key for each attempt
                     want_output=True,
                 )
-                # Note that this does not actually correspond to the true window.innerWidth
-                # possibly because of streamlit's iframe context - it seems to be smaller
+                # Note that this does not actually correspond to the true 
+                # window.innerWidth possibly because of streamlit's iframe context - 
+                # it seems to be smaller
 
                 # Check for a valid result
                 if (

@@ -2,6 +2,11 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+"""
+Create Costs page under Results section showing editable costs related 
+dataframes and visualisations from the modelling results.
+"""
+
 import yaml
 import os
 import streamlit as st

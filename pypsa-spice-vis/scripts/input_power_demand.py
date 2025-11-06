@@ -2,6 +2,11 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+"""
+Create Power - Demand page under Input section showing editable demand related 
+dataframes and visualisations.
+"""
+
 import streamlit as st
 import pandas as pd
 from scripts.getters import Getters

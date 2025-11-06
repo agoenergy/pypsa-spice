@@ -2,6 +2,8 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+"""Initialize the Streamlit application for PyPSA-SPICE visualization."""
+
 import os
 import sys
 

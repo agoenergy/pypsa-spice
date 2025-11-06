@@ -2,6 +2,8 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+"""Define styles for all pages inside pypsa-spice-vis app."""
+
 import streamlit as st
 import os
 import base64
