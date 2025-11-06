@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Create Emissions page under Results section showing editable emission related 
+Create Emissions page under Results section showing editable emission related
 dataframes and visualisations from the modelling results.
 """
 
@@ -19,7 +19,9 @@ from scripts.output_st_handler import (
 st.title(":material/thermostat: Emissions")
 
 with open(
-    os.path.join(st.session_state.current_dir, "setting/graph_settings.yaml"), "r"
+    os.path.join(st.session_state.current_dir, "setting/graph_settings.yaml"),
+    "r",
+    encoding="utf-8",
 ) as file:
     config = yaml.safe_load(file)["emissions"]
 

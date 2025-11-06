@@ -3,23 +3,26 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Create Costs page under Results section showing editable costs related 
+Create Costs page under Results section showing editable costs related
 dataframes and visualisations from the modelling results.
 """
 
-import yaml
 import os
+
 import streamlit as st
+import yaml
+
 from scripts.output_st_handler import (
-    plot_indicator,
-    map_chart_to_plot_function,
     generate_sidebar,
+    map_chart_to_plot_function,
+    plot_indicator,
 )
 
 st.title(":material/attach_money: Costs")
 
 with open(
-    os.path.join(st.session_state.current_dir, "setting/graph_settings.yaml"), "r"
+    os.path.join(st.session_state.current_dir, "setting/graph_settings.yaml"),
+    encoding="utf-8",
 ) as file:
     config = yaml.safe_load(file)["costs"]
 

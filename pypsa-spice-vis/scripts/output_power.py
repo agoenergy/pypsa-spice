@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Create Power page under Results section showing editable power related 
+Create Power page under Results section showing editable power related
 dataframes and visualisations from the modelling results.
 """
 
@@ -20,7 +20,9 @@ st.title(":material/bolt: Power")
 
 
 with open(
-    os.path.join(st.session_state.current_dir, "setting/graph_settings.yaml"), "r"
+    os.path.join(st.session_state.current_dir, "setting/graph_settings.yaml"),
+    "r",
+    encoding="utf-8",
 ) as file:
     config = yaml.safe_load(file)["power"]
 
