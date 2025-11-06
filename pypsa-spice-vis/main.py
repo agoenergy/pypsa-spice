@@ -63,18 +63,22 @@ with st.sidebar:
     # Set sce1 name in session state
     st.session_state.sce1 = st.sidebar.selectbox(
         ":material/looks_one: Scenario 1:",
-        options=getters.get_output_scenario_list(),
+        options=getters.get_output_scenario_list(
+            selected_project_name=st.session_state.project
+            ),
         index=0,
     )
 
     # Set sce2 name in session state
-    sc_list = getters.get_output_scenario_list()
-    if len(sc_list) == 1:
+    scenario_list = getters.get_output_scenario_list(
+        selected_project_name=st.session_state.project
+    )
+    if len(scenario_list) == 1:
         st.session_state.sce2 = ""
     else:
-        sc_list.append("None")
+        scenario_list.append("None")
         st.session_state.sce2 = st.sidebar.selectbox(
-            ":material/looks_two: Scenario 2:", options=sc_list, index=1
+            ":material/looks_two: Scenario 2:", options=scenario_list, index=1
         )
         if st.session_state.sce2 == "None":
             st.session_state.sce2 = ""

@@ -41,16 +41,16 @@ class Getters:
         data_folder_path = os.path.join(
             "data/", self.init_config["path_configs"]["data_folder_name"]
         )
-        project_name = self.init_config["path_configs"]["project_name"]
+        default_project_name = self.init_config["path_configs"]["project_name"]
 
         self.init_config["data_folder_path"] = data_folder_path
         # data/{data_folder_name}/{project_name}/input
         self.init_config["input_folder_path"] = os.path.join(
-            data_folder_path, project_name, "input"
+            data_folder_path, default_project_name, "input"
         )
         # data/{data_folder_name}/{project_name}/results
         self.init_config["results_folder_path"] = os.path.join(
-            data_folder_path, project_name, "results"
+            data_folder_path, default_project_name, "results"
         )
 
     def get_project_folder_list(self, folder_path: str) -> list[str]:
@@ -116,20 +116,22 @@ class Getters:
 
         return scenario_list
 
-    def get_output_scenario_list(self) -> list[str]:
+    def get_output_scenario_list(self, selected_project_name: str) -> list[str]:
         """Get the list of output scenarios from a given project within the results/ folder.
 
         Parameters
         ----------
-        project_dir : str
-          Name of the project folder to look within for the scenarios.
+        selected_project_name : str
+          Name of the project folder selected by users in the app.
 
         Returns
         -------
         list[str]
           The list of scenarios for this project.
         """
-        data_folder_path = self.init_config["results_folder_path"]
+        data_folder_path = os.path.join(
+            self.init_config["data_folder_path"], selected_project_name, "results"
+        )
 
         if not os.path.exists(data_folder_path):
             raise FileNotFoundError(f"folder not found: {data_folder_path}")
@@ -139,9 +141,12 @@ class Getters:
             for scenario in os.listdir(data_folder_path)
             if scenario not in [".DS_Store"]
         ]
-
+        
         # Make default scenario the first option in the list if present
-        for sce in (self.init_config["path_configs"]["output_scenario_name"], ""):
+        default_scenarios = [
+            self.init_config["path_configs"]["output_scenario_name"], ""
+        ]
+        for sce in default_scenarios:
             if sce in scenario_list:
                 scenario_list.insert(0, scenario_list.pop(scenario_list.index(sce)))
 
