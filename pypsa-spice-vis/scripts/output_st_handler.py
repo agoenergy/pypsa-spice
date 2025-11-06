@@ -32,8 +32,14 @@ from styles import use_flexo, apply_sidebar_chart_nav_styles, apply_radio_menu_s
 
 use_flexo()
 
-pd.options.mode.chained_assignment = None
 
+# These are the graph types that have the year+month+date filter
+GRAPHS_WITH_TIME_FILTERS = [
+    "simple_bar_hourly",
+    "simple_line_hourly",
+    "line_with_secondary_y_hourly",
+    "filtered_bar_hourly",
+]
 
 def generate_sidebar(table_of_content):
     """generate sidebar with navigation links."""
@@ -516,14 +522,6 @@ def plot_indicator(graph_type, config_plot: dict):
     # yaxis_scales = calculate_yaxis_scales(config_plot.get("graph_type"), config_plot)
     # config_plot["yaxis_scales"] = yaxis_scales
 
-    # These are the graph types that have the year+month+date filter
-    graphs_with_date_filters = [
-        "simple_bar_hourly",
-        "simple_line_hourly",
-        "line_with_secondary_y_hourly",
-        "filtered_bar_hourly",
-    ]
-
     # Track whether sce2 has been selected by the user or not
     is_dual_scenario = st.session_state.sce2 and st.session_state.sce2 != ""
 
@@ -544,7 +542,7 @@ def plot_indicator(graph_type, config_plot: dict):
         if shared_filter:
             config_plot["shared_filter"] = shared_filter
 
-    elif config_plot.get("graph_type") in graphs_with_date_filters:
+    elif config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
         # Setup year filter
         shared_year = setup_year_filter(config_plot, is_dual_scenario)
         config_plot["shared_year"] = str(shared_year)
@@ -591,7 +589,7 @@ def plot_indicator(graph_type, config_plot: dict):
         graph_type(scenario_name=st.session_state.sce1, graph_config=config_plot)
 
         # Display the data download part
-        if config_plot.get("graph_type") in graphs_with_date_filters:
+        if config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
             display_download_button_without_data(st.session_state.sce1, config_plot)
         else:
             display_download_button_with_data(st.session_state.sce1, config_plot)
@@ -611,7 +609,7 @@ def plot_indicator(graph_type, config_plot: dict):
         # Display the data download part
         col1, col2, col3 = st.columns([6, 1, 6])
 
-        if config_plot.get("graph_type") in graphs_with_date_filters:
+        if config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
             with col1:
                 display_download_button_without_data(st.session_state.sce1, config_plot)
             with col3:

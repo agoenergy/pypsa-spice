@@ -19,8 +19,6 @@ import hashlib
 from scripts.getters import Getters
 import shutil
 
-pd.set_option("future.no_silent_downcasting", True)
-
 
 class dfWidgetsHandler:
     def __init__(self):
