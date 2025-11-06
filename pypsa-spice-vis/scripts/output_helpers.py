@@ -814,11 +814,11 @@ def plot_indicator(graph_type, config_plot: dict):
         with col1:
             config_plot["years"] = st.session_state.sce1_years
             st.markdown(f"#### {st.session_state.sce1} ")
-            graph_type(scenario_name=st.session_state.sce1, config_g=config_plot)
+            graph_type(scenario_name=st.session_state.sce1, graph_config=config_plot)
         with col3:
             config_plot["years"] = st.session_state.sce2_years
             st.markdown(f"#### {st.session_state.sce2} ")
-            graph_type(scenario_name=st.session_state.sce2, config_g=config_plot)
+            graph_type(scenario_name=st.session_state.sce2, graph_config=config_plot)
 
         # Display the data download part
         col1, col2, col3 = st.columns([6, 1, 6])
@@ -857,7 +857,7 @@ def display_download_button_without_data(
     ----------
     scenario_name : str
         The scenario name for the data that will be downloaded.
-    config_g : Dict[str, str]
+    graph_config : Dict[str, str]
         The configuration dictionary for the graph.
     """
     leg_col = graph_config["leg_col"]
@@ -894,7 +894,7 @@ def display_download_button_with_data(scenario_name: str, graph_config: Dict[str
     ----------
     scenario_name : str
         The scenario name for the data being displayed in the table.
-    config_g : Dict[str, str]
+    graph_config : Dict[str, str]
         The configuration dictionary for the graph.
     """
     leg_col = graph_config["leg_col"]
@@ -1895,7 +1895,7 @@ def update_layout(
     yaxis_scales : dict, optional
         Dictionary containing y-axis scale settings with keys 'min_scale' and
             'max_scale', by default None
-    config_g : dict, optional
+    graph_config : dict, optional
         Configuration dictionary that may contain:
             - 'units': str, which will be displayed at the top of the y-axis
             - 'yaxis_scales': dict, fallback y-axis scales if yaxis_scales is None
@@ -2147,7 +2147,7 @@ def get_yearly_dfs_for_both_scenarios(
 
     Parameters
     ----------
-    config_g : Dict
+    graph_config : Dict
         Configuration dictionary for the current graph
     func: Callable
         Optional function to further process each dataframe (e.g., groupby or filter)
@@ -2267,14 +2267,14 @@ def calculate_min_max_y_scale(
 
 
 # TODO remove if this is not needed
-# def _generate_min_max_scales(df: pd.DataFrame, config_g: dict) -> tuple:
+# def _generate_min_max_scales(df: pd.DataFrame, graph_config: dict) -> tuple:
 #     """Generate minimum and maximum values.
 
 #     Parameters
 #     ----------
 #     df : pd.DataFrame
 #         input Dataframe
-#     config_g : dict
+#     graph_config : dict
 #         Configuration dictionary containing tab name and years.
 
 #     Returns
@@ -2286,47 +2286,47 @@ def calculate_min_max_y_scale(
 #         return 0, 0
 
 #     groupby_list = []
-#     if config_g.get("fil_col"):
-#         groupby_list.append(config_g["fil_col"])
+#     if graph_config.get("fil_col"):
+#         groupby_list.append(graph_config["fil_col"])
 
 #     # Separate hourly and yearly charts to define groupby list
-#     if "hourly" in config_g["graph_type"]:
+#     if "hourly" in graph_config["graph_type"]:
 #         groupby_list.append("snapshot")
 #         max_scale = df.groupby(groupby_list)["value"].sum().max()
 #         min_sum = df.groupby(groupby_list)["value"].sum().min()
 #         min_scale = [0 if min_sum >= 0 else min_sum][0]
 #         return max_scale * 1.2, min_scale * 1.2
 
-#     if "yearly" in config_g["graph_type"]:
+#     if "yearly" in graph_config["graph_type"]:
 #         groupby_list.append("year")
 
 #     # For yearly charts, groupby activates when the input is not a number
-#     if "max" in str(config_g["yaxis_scale"]["max"]):
-#         if config_g.get("tab_name") == "pow_bats_ep_ratio":
+#     if "max" in str(graph_config["yaxis_scale"]["max"]):
+#         if graph_config.get("tab_name") == "pow_bats_ep_ratio":
 #             # For EP Ratio chart, do not sum all values to calculate the max y value
 #             # since the chart is unstacked
 #             max_scale = df.groupby(groupby_list)["value"].max().max() * 1.2
 #         else:
 #             max_scale = df.groupby(groupby_list)["value"].sum().max() * 1.2
 #     else:
-#         max_scale = config_g["yaxis_scale"]["max"]
+#         max_scale = graph_config["yaxis_scale"]["max"]
 
-#     if "min" in str(config_g["yaxis_scale"]["min"]):
+#     if "min" in str(graph_config["yaxis_scale"]["min"]):
 #         min_scale = df.groupby(groupby_list)["value"].sum().min() * 1.2
 #     else:
-#         min_scale = config_g["yaxis_scale"]["min"]
+#         min_scale = graph_config["yaxis_scale"]["min"]
 
 #     return max_scale, min_scale
 
 
-# def calculate_yaxis_scales(func_name: str, config_g: dict) -> dict:
+# def calculate_yaxis_scales(func_name: str, graph_config: dict) -> dict:
 #     """Calculate the maximum and minimum scales of the y-axis.
 
 #     Parameters
 #     ----------
 #     func_name : str
 #         Name of the function determining the calculation type.
-#     config_g : dict
+#     graph_config : dict
 #         Configuration dictionary containing tab name and years.
 
 #     Returns
@@ -2340,21 +2340,21 @@ def calculate_min_max_y_scale(
 
 #     df_sc1 = read_and_concatenate_hourly_data(
 #         scenario_name=st.session_state.sce1,
-#         table_name=config_g.get("tab_name"),
+#         table_name=graph_config.get("tab_name"),
 #         list_of_years=st.session_state.get("sce1_years"),
 #         is_hourly="hourly" in func_name,
 #     )
 
-#     max_scale, min_scale = _generate_min_max_scales(df_sc1, config_g)
+#     max_scale, min_scale = _generate_min_max_scales(df_sc1, graph_config)
 
 #     if st.session_state.sce2:
 #         df_sc2 = read_and_concatenate_hourly_data(
 #             scenario_name=st.session_state.sce2,
-#             table_name=config_g.get("tab_name"),
+#             table_name=graph_config.get("tab_name"),
 #             list_of_years=st.session_state.get("sce2_years"),
 #             is_hourly="hourly" in func_name,
 #         )
-#         max_scale_sc2, min_scale_sc2 = _generate_min_max_scales(df_sc2, config_g)
+#         max_scale_sc2, min_scale_sc2 = _generate_min_max_scales(df_sc2, graph_config)
 
 #         # Update global max and min scales
 #         max_scale = max(max_scale, max_scale_sc2)
