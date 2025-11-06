@@ -17,7 +17,7 @@ import yaml
 from scripts.output_st_handler import (
     generate_sidebar,
     map_chart_to_plot_function,
-    plot_indicator,
+    render_st_page_and_plot,
 )
 
 st.title(":material/thermostat: Emissions")
@@ -35,7 +35,7 @@ for _item, values in config.items():
         values["incl_sector"] == "all"
         or values["incl_sector"] in st.session_state.sector
     ):
-        plot_indicator(
+        render_st_page_and_plot(
             graph_type=map_chart_to_plot_function(values["graph_type"]),
             config_plot=values,
         )

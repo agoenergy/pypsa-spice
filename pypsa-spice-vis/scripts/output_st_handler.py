@@ -507,7 +507,7 @@ def setup_hourly_data_filters(
     }
 
 
-def plot_indicator(graph_type, config_plot: dict):
+def render_st_page_and_plot(graph_type, config_plot: dict):
     """Render and plot all graphs based on the provided graph type and configuration."""
     st.markdown(
         f"<div id='{config_plot['name'].replace(' ', '-')}'></div>",
