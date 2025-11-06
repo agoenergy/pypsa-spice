@@ -23,7 +23,7 @@ with open(
 ) as file:
     config = yaml.safe_load(file)["costs"]
 
-# toc = [config[item]["name"] for item in config]
+# table_of_content = [config[item]["name"] for item in config]
 table_of_content = []
 
 
