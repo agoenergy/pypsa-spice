@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Utility functions that are independent of Streamlit and used across handler modules.
+Utility functions that are DataFrame or calculation related and used across handler 
+modules.
 """
 
 import os
