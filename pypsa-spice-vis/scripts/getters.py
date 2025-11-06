@@ -15,38 +15,42 @@ class Getters:
     """Functions that handle retrieval of app-related params"""
 
     def __init__(self):
-        # Where app was launched from
-        self.working_dir = os.path.basename(os.getcwd())
-
-        # Directory of app's entry point file
-        self.entry_dir = os.path.dirname(
+        # Directory of app's entry point file (pypsa-spice/pypsa-spice-vis)
+        self.streamlit_base_dir = os.path.dirname(
             os.path.abspath(sys.modules["__main__"].__file__)
         )
 
-        # Rel path to initial config file - modify as necessary if DEPLOY is true
+        # pypsa-spice/base_config.yaml
         self.config_path = "../base_config.yaml"
 
-        with open(os.path.join(self.entry_dir, self.config_path), "r") as file:
-            self.init_config = yaml.safe_load(file)
+        try:
+          with open(os.path.join(self.streamlit_base_dir, self.config_path), "r") as file:
+              self.init_config = yaml.safe_load(file)
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                "Please ensure your working directory is at the pypsa-spice root level."
+            )
+        except Exception as e:
+            raise Exception(
+                f"Error loading configuration file: {str(e)}. " + 
+                "Please ensure that the base_config.yaml file exists."
+            )
+            
 
-        if "vis" in str(self.working_dir):
-            data_path = "../data/"
-        else:
-            data_path = "data/"
-
-        project_folder_path = os.path.join(
-            data_path, self.init_config["path_configs"]["data_folder_name"]
+        # data/{data_folder_name}
+        data_folder_path = os.path.join(
+            "data/", self.init_config["path_configs"]["data_folder_name"]
         )
         project_name = self.init_config["path_configs"]["project_name"]
-        # data/{data_folder_name}
-        self.init_config["project_folder_path"] = project_folder_path
-        # data/{data_folder_name}/{project_name}/{input}
+
+        self.init_config["data_folder_path"] = data_folder_path
+        # data/{data_folder_name}/{project_name}/input
         self.init_config["input_folder_path"] = os.path.join(
-            project_folder_path, project_name, "input"
+            data_folder_path, project_name, "input"
         )
-        # data/{data_folder_name}/{project_name}/{results}
+        # data/{data_folder_name}/{project_name}/results
         self.init_config["results_folder_path"] = os.path.join(
-            project_folder_path, project_name, "results"
+            data_folder_path, project_name, "results"
         )
 
     def get_project_folder_list(self, folder_path: str) -> list[str]:
@@ -308,4 +312,4 @@ class Getters:
 
 if __name__ == "__main__":
     getters = Getters()
-    print(getters.get_project_folder_list(getters.init_config["project_folder_path"]))
+    print(getters.get_project_folder_list(getters.init_config["data_folder_path"]))

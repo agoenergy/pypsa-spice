@@ -22,15 +22,15 @@ class dfWidgetsHandler:
         self.getters = Getters()
         self.input_ui_handler = InputUiHandler()
         self.csvs_dict = self.input_ui_handler.csvs_dict
-        self.input_folder_path = st.session_state["input_folder_path"]
-        project_folders = self.getters.get_project_folder_list(self.input_folder_path)
+        self.data_folder_path = self.getters.init_config["data_folder_path"]
+        project_folders = self.getters.get_project_folder_list(self.data_folder_path)
         if not project_folders:
-            st.error(f"No valid project folders found in {self.input_folder_path}")
+            st.error(f"No valid project folders found in {self.data_folder_path}")
 
         self.input_data_project = project_folders[0]
 
         self.base_input_path = os.path.join(
-            self.input_folder_path,
+            self.data_folder_path,
             self.input_data_project,
             "input",
         )
@@ -142,7 +142,7 @@ class dfWidgetsHandler:
         for key in self.scenario_input_file_keys:
             parts = self.csv_files_path_parts[key]
             self.csvs_dict[key].path = os.path.join(
-                self.input_folder_path,
+                self.data_folder_path,
                 self.input_data_project,
                 "input",
                 selected_scenario,

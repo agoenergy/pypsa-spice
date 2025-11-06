@@ -21,13 +21,13 @@ DEPLOY = False
 
 getters = Getters()
 
-current_dir = getters.entry_dir
+current_dir = getters.streamlit_base_dir
 st.session_state.current_dir = current_dir
 
 init_conf = getters.init_config
 
 # Initialize input_data_folder_path in session state
-st.session_state.input_data_folder_path = init_conf["project_folder_path"]
+st.session_state.input_data_folder_path = init_conf["input_folder_path"]
 
 # st.logo(
 #     os.path.join(st.session_state.current_dir, "design/pypsa-spice-long.png"),
@@ -53,7 +53,7 @@ with st.sidebar:
     # Set project in session state
     st.session_state.project = st.sidebar.selectbox(
         ":material/globe: Project :",
-        options=getters.get_project_folder_list(init_conf["project_folder_path"]),
+        options=getters.get_project_folder_list(init_conf["data_folder_path"]),
         index=0,
     )
 
