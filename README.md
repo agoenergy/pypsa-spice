@@ -7,10 +7,10 @@ SPDX-License-Identifier: GPL-2.0-or-later
 # PyPSA-SPICE: PyPSA-based Scenario Planning and Integrated Capacity Expansion
 
 <!-- badges-begin -->
-[![License][license badge]][license]{:target="_blank"}
-[![PyPSA version][PyPSA version badge]][PyPSA version]{:target="_blank"}
-[![Snakemake][Snakemake badge]][Snakemake]{:target="_blank"}
-[![Code style][Code style badge]][Code style]{:target="_blank"}
+[![License][license badge]][license]
+[![PyPSA version][PyPSA version badge]][PyPSA version]
+[![Snakemake][Snakemake badge]][Snakemake]
+[![Code style][Code style badge]][Code style]
 
 [license badge]: https://eddelbuettel.github.io/badges/GPL2+.svg
 [license]: https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
@@ -30,7 +30,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 > If you are considering using this model builder, please reach out to us at [modelling@agora-thinktanks.org](mailto:modelling@agora-thinktanks.org). We would be happy to help you get started.
 > If you encounter a bug, please create a [new issue](https://github.com/agoenergy/pypsa-spice/issues). For new ideas or feature requests, you can start a conversation in the [discussions](https://github.com/agoenergy/pypsa-spice/discussions) section of the repository.
 
-PyPSA-SPICE is an open-source model builder for assessing national mid/long-term energy scenarios using a least-cost, multi-sectoral optimization approach based on the [PyPSA](https://pypsa.org/){:target="_blank"} framework. It can be used to build models that represent one or more countries across multiple interconnected nodes linked by electricity transmission, and within each region, it models the integration of power, heat, and transport sectors. The model focuses on the power sector, which is represented with a high level of detail.
+PyPSA-SPICE (https://agoenergy.github.io/pypsa-spice/) is an open-source model builder for assessing national mid/long-term energy scenarios using a least-cost, multi-sectoral optimization approach based on the [PyPSA](https://pypsa.org/) framework. It can be used to build models that represent one or more countries across multiple interconnected nodes linked by electricity transmission, and within each region, it models the integration of power, heat, and transport sectors. The model focuses on the power sector, which is represented with a high level of detail.
 
 The model workflow has been designed to be more accessible compared to other PyPSA-based models, though basic Python coding knowledge is required.
 
@@ -119,8 +119,8 @@ or make pull requests on GitHub.
     <td align="center">
       <a href="https://www.inettt.org/">
         <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="docs/assets/images/INETTT.svg">
-          <img alt="INETTT" width="200px" src="docs/assets/images/INETTT.svg">
+          <source media="(prefers-color-scheme: dark)" srcset="docs/assets/images/INETTT.png">
+          <img alt="INETTT" width="200px" src="docs/assets/images/INETTT.png">
         </picture>
       </a>
     </td>
