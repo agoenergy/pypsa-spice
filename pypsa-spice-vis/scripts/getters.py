@@ -34,22 +34,19 @@ class Getters:
         else:
             data_path = "data/"
 
-        self.init_config["project_folder_path"] = (
-            data_path + self.init_config["path_configs"]["data_folder_name"] + "/"
+        project_folder_path = os.path.join(
+            data_path, self.init_config["path_configs"]["data_folder_name"]
         )
-
-        self.init_config["input_data_folder_path"] = (
-            self.init_config["project_folder_path"]
-            + "/"
-            + self.init_config["path_configs"]["project_name"]
-            + "/input/"
+        project_name = self.init_config["path_configs"]["project_name"]
+        # data/{data_folder_name}
+        self.init_config["project_folder_path"] = project_folder_path
+        # data/{data_folder_name}/{project_name}/{input}
+        self.init_config["input_data_folder_path"] = os.path.join(
+            project_folder_path, project_name, "input"
         )
-
-        self.init_config["data_folder_path"] = (
-            self.init_config["project_folder_path"]
-            + "/"
-            + self.init_config["path_configs"]["project_name"]
-            + "/results/"
+        # data/{data_folder_name}/{project_name}/{results}
+        self.init_config["data_folder_path"] = os.path.join(
+            project_folder_path, project_name, "results"
         )
 
     def get_project_folder_list(self, folder_path: str) -> list[str]:
