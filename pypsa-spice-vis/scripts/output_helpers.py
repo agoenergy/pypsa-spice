@@ -162,7 +162,7 @@ def read_result_csv(
     country: str = None,
     year: str = None,
 ) -> pd.DataFrame:
-    """Read model ouput csv files for a given scenario and tab name.
+    """Read model ouput csv files for a given scenario and table name.
 
     Parameters
     ----------
