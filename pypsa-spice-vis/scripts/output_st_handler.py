@@ -5,30 +5,30 @@
 """Helper functions for handling Results section in visual app."""
 
 import datetime as dt
+
 import pandas as pd
 import streamlit as st
-from plotly.graph_objs._figure import Figure
-from typing import Dict, Optional
+from styles import apply_radio_menu_styles, apply_sidebar_chart_nav_styles, use_flexo
+
 from scripts.data_utils import (
-    read_result_csv,
     convert_month_to_name,
-    filter_dataframe_by_month,
     filter_dataframe_by_date_range,
+    filter_dataframe_by_month,
     get_filtered_df_and_date_range,
     prettify_label,
+    read_result_csv,
     slugify_text,
 )
 from scripts.plot_settings import (
-    simple_bar_yearly,
-    simple_line_yearly,
-    bar_with_filter,
     area_share_yearly,
-    simple_bar_hourly,
-    simple_line_hourly,
+    bar_with_filter,
     filtered_bar_hourly,
     line_with_secondary_y_hourly,
+    simple_bar_hourly,
+    simple_bar_yearly,
+    simple_line_hourly,
+    simple_line_yearly,
 )
-from styles import use_flexo, apply_sidebar_chart_nav_styles, apply_radio_menu_styles
 
 use_flexo()
 
@@ -41,8 +41,9 @@ GRAPHS_WITH_TIME_FILTERS = [
     "filtered_bar_hourly",
 ]
 
+
 def generate_sidebar(table_of_content):
-    """generate sidebar with navigation links."""
+    """Generate sidebar with navigation links."""
     with st.sidebar:
         st.divider()
 
@@ -56,8 +57,8 @@ def generate_sidebar(table_of_content):
             )
 
 
-def setup_year_filter(config_plot: Dict, is_dual_scenario: bool) -> str:
-    """Setup the year filter that appears in graphs with hourly data.
+def setup_year_filter(config_plot: dict, is_dual_scenario: bool) -> str:
+    """Set up the year filter that appears in graphs with hourly data.
 
     Parameters
     ----------
@@ -74,9 +75,7 @@ def setup_year_filter(config_plot: Dict, is_dual_scenario: bool) -> str:
     """
     # Set widget configuration params based on one or two scenarios
     if is_dual_scenario:
-        years = sorted(
-            list(set(st.session_state.sce1_years + st.session_state.sce2_years))
-        )
+        years = sorted(set(st.session_state.sce1_years + st.session_state.sce2_years))
         scenario_text = "both"
         key_prefix = "shared"
     else:
@@ -89,13 +88,13 @@ def setup_year_filter(config_plot: Dict, is_dual_scenario: bool) -> str:
     label = f"{slider_id} Select Year:"
 
     # Pills widget for the year filter
-    pills_widget = lambda: st.pills(
+    pills_widget = lambda: st.pills(  # noqa:E731
         label,
         options=years,
         key=key,
         default=years[0],
         label_visibility="collapsed",
-    )
+    )  # noqa:E731
 
     if is_dual_scenario:
         spacer1, filter_col, spacer2 = st.columns([1, 3, 1])
@@ -108,7 +107,7 @@ def setup_year_filter(config_plot: Dict, is_dual_scenario: bool) -> str:
 
 
 def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None) -> str:
-    """Setup the country filter that appears in filtered_bar_hourly graphs.
+    """Set up the country filter that appears in filtered_bar_hourly graphs.
 
     Parameters
     ----------
@@ -130,11 +129,11 @@ def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None)
     if "country" in df.columns:
         # Set widget configuration params based on one or two scenarios
         if is_dual_scenario:
-            country_options = sorted(list(set(df["country"].unique().tolist())))
-            scenario_text = "both"
+            country_options = sorted(set(df["country"].unique().tolist()))
+            scenario_text = "both"  # noqa: F841
         else:
             country_options = df["country"].unique()
-            scenario_text = st.session_state.sce1
+            scenario_text = st.session_state.sce1  # noqa: F841
 
         slider_id = config_plot["table_name"]
         if "shared_country" in config_plot:
@@ -159,12 +158,12 @@ def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None)
 
 
 def setup_region_filter(
-    config_plot: Dict,
+    config_plot: dict,
     df1: pd.DataFrame,
     df2: pd.DataFrame = None,
     is_dual_scenario: bool = False,
-) -> Optional[str]:
-    """Setup the region filter that appears in filtered_bar_hourly graphs.
+) -> str | None:
+    """Set up the region filter that appears in filtered_bar_hourly graphs.
 
     Parameters
     ----------
@@ -188,7 +187,7 @@ def setup_region_filter(
     # Set widget configuration params based on one or two scenarios
     if is_dual_scenario:
         region_options = sorted(
-            list(set(df1[fil_col].unique().tolist() + df2[fil_col].unique().tolist()))
+            set(df1[fil_col].unique().tolist() + df2[fil_col].unique().tolist())
         )
         scenario_text = "both"
     else:
@@ -212,12 +211,12 @@ def setup_region_filter(
 
 
 def setup_month_filter(
-    config_plot: Dict,
+    config_plot: dict,
     df1: pd.DataFrame,
     df2: pd.DataFrame | None = None,
     is_dual_scenario: bool = False,
 ) -> int:
-    """Setup month selection filter.
+    """Set up month selection filter.
 
     This is called when data is complete (no discontinuous hours).
 
@@ -241,7 +240,7 @@ def setup_month_filter(
     if is_dual_scenario:
         months_sce1 = set(df1["snapshot"].dt.month.unique())
         months_sce2 = set(df2["snapshot"].dt.month.unique())
-        months_all = sorted(list(months_sce1.union(months_sce2)))
+        months_all = sorted(months_sce1.union(months_sce2))
         scenario_text = "both"
     else:
         months_all = df1["snapshot"].dt.month.unique()
@@ -266,14 +265,14 @@ def setup_month_filter(
 
 
 def setup_date_filter_complete(
-    config_plot: Dict,
+    config_plot: dict,
     df1_m: pd.DataFrame,
     df2_m: pd.DataFrame | None = None,
     shared_year: str = None,
     selected_month: str = None,
     is_dual_scenario: bool = False,
 ) -> tuple[dt.datetime, dt.datetime]:
-    """Setup date range slider.
+    """Set up date range slider.
 
     This is called when data is complete (no discontinuous hours).
 
@@ -328,12 +327,12 @@ def setup_date_filter_complete(
 
 
 def setup_date_filter_incomplete(
-    config_plot: Dict,
+    config_plot: dict,
     df1_m: pd.DataFrame,
     df2_m: pd.DataFrame | None = None,
     is_dual_scenario: bool = False,
 ) -> tuple[pd.Timestamp, pd.Timestamp]:
-    """Setup integer range slider.
+    """Set up integer range slider.
 
     This is called when there are missing hours in the data.
 
@@ -358,7 +357,7 @@ def setup_date_filter_incomplete(
     if is_dual_scenario:
         timestamps_1 = set(df1_m["snapshot"].unique())
         timestamps_2 = set(df2_m["snapshot"].unique())
-        all_timestamps = sorted(list(timestamps_1.union(timestamps_2)))
+        all_timestamps = sorted(timestamps_1.union(timestamps_2))
         scenario_text = "both"
     else:
         all_timestamps = df1_m["snapshot"].unique()
@@ -387,10 +386,8 @@ def setup_date_filter_incomplete(
     return selected_dates
 
 
-def setup_radio_button_filter(
-    config_plot: Dict, is_dual_scenario: bool
-) -> Optional[str]:
-    """Setup the radio button filter that appears in bar_with_filter graphs.
+def setup_radio_button_filter(config_plot: dict, is_dual_scenario: bool) -> str | None:
+    """Set up the radio button filter that appears in bar_with_filter graphs.
 
     Parameters
     ----------
@@ -413,11 +410,11 @@ def setup_radio_button_filter(
         df2 = read_result_csv(st.session_state.sce2, config_plot["table_name"])
         fil_col = config_plot["fil_col"]
         filter_options = sorted(
-            list(set(df1[fil_col].unique().tolist() + df2[fil_col].unique().tolist()))
+            set(df1[fil_col].unique().tolist() + df2[fil_col].unique().tolist())
         )
         slider_id = config_plot["slider_id"].format("both")
 
-        spacer1, filter_col, spacer2 = st.columns([1, 2, 1])
+        spacer1, filter_col, spacer2 = st.columns([1, 2, 1])  # noqa: F841
         with filter_col:
             shared_filter = st.radio(
                 f"{slider_id} Select {fil_col} (both):",
@@ -435,10 +432,10 @@ def setup_radio_button_filter(
 def setup_hourly_data_filters(
     df1: pd.DataFrame,
     df2: pd.DataFrame | None,
-    config_plot: Dict,
+    config_plot: dict,
     is_dual_scenario: bool,
-) -> Dict:
-    """Setup relevant filters for graphs with hourly data.
+) -> dict:
+    """Set up relevant filters for graphs with hourly data.
 
     This will setup month and date selection filters if data is complete, and an
     integer range filter if data is incomplete. Also adds the region selection filter if
@@ -512,15 +509,11 @@ def setup_hourly_data_filters(
 
 def plot_indicator(graph_type, config_plot: dict):
     """Render and plot all graphs based on the provided graph type and configuration."""
-    # graph_type: function (plot_function)
     st.markdown(
-        f"<div id='{config_plot['name'].replace(' ','-')}'></div>",
+        f"<div id='{config_plot['name'].replace(' ', '-')}'></div>",
         unsafe_allow_html=True,
     )
     st.markdown(f"#### {config_plot['name']}")
-    # TODO remove if this is not needed
-    # yaxis_scales = calculate_yaxis_scales(config_plot.get("graph_type"), config_plot)
-    # config_plot["yaxis_scales"] = yaxis_scales
 
     # Track whether sce2 has been selected by the user or not
     is_dual_scenario = st.session_state.sce2 and st.session_state.sce2 != ""
@@ -635,7 +628,7 @@ def create_download_csv_button(csv_data, download_id):
 
 
 def display_download_button_without_data(
-    scenario_name: str, graph_config: Dict[str, str]
+    scenario_name: str, graph_config: dict[str, str]
 ):
     """Generate and display the CSV download button for a graph without showing data.
 
@@ -673,7 +666,7 @@ def display_download_button_without_data(
         create_download_csv_button(csv_data, download_id)
 
 
-def display_download_button_with_data(scenario_name: str, graph_config: Dict[str, str]):
+def display_download_button_with_data(scenario_name: str, graph_config: dict[str, str]):
     """Generate and display the CSV download button for a with data table included.
 
     Parameters
@@ -686,7 +679,9 @@ def display_download_button_with_data(scenario_name: str, graph_config: Dict[str
     leg_col = graph_config["leg_col"]
     download_id = graph_config["download_id"].format(scenario_name)
     df = read_result_csv(
-        scenario_name, graph_config["table_name"], country=graph_config["shared_country"]
+        scenario_name,
+        graph_config["table_name"],
+        country=graph_config["shared_country"],
     )
     base_group_cols = {"year", leg_col}
 
@@ -792,15 +787,15 @@ def generate_diff_arrows(data):
                     background-color: rgba(100, 100, 100, 0.15);
                     position: relative;
                     padding-right: 20px;
-                    background-image: 
+                    background-image:
                         linear-gradient(135deg, transparent 50%, rgb(40 167 69 / {intensity}) 30%),
                         linear-gradient(-135deg, transparent 50%, rgb(40 167 69 / {intensity}) 30%);
                     background-size: 6px 6px, 6px 6px;
-                    background-position: 
+                    background-position:
                         right 8px top 2px,
                         right 2px top 2px;
                     background-repeat: no-repeat;
-                """
+                """  # noqa:E501
             elif pct_change < 0:
                 # Down arrow from two triangles
                 styled.iloc[
@@ -809,15 +804,15 @@ def generate_diff_arrows(data):
                     background-color: rgba(100, 100, 100, 0.15);
                     position: relative;
                     padding-right: 20px;
-                    background-image: 
+                    background-image:
                         linear-gradient(45deg, transparent 50%, rgb(240 30 55 / {intensity}) 30%),
                         linear-gradient(-45deg, transparent 50%, rgb(240 30 55 / {intensity}) 30%);
                     background-size: 6px 6px, 6px 6px;
-                    background-position: 
+                    background-position:
                         right 8px top 2px,
                         right 2px top 2px;
                     background-repeat: no-repeat;
-                """
+                            """  # noqa:E501
 
     return styled
 
@@ -846,7 +841,7 @@ def read_and_concatenate_hourly_data(
     list_of_years: list = None,
     is_hourly: bool = False,
 ) -> pd.DataFrame:
-    """Helper function to read and concatenate data for hourly scenarios
+    """Read and concatenate data for hourly scenarios.
 
     Parameters
     ----------
