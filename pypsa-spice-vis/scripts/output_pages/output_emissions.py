@@ -3,9 +3,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Create Costs page under Results section.
+Create Emissions page under Results section.
 
-Page shows costs related dataframes and visualisations from the modelling results.
+Page shows editable emission related dataframes and visualisations
+from the modelling results.
 """
 
 import os
@@ -13,22 +14,19 @@ import os
 import streamlit as st
 import yaml
 
-from scripts.output_st_handler import (
-    generate_sidebar,
-    map_chart_to_plot_function,
-    render_st_page_and_plot,
-)
+from scripts.output_st_handler import (generate_sidebar,
+                                       map_chart_to_plot_function,
+                                       render_st_page_and_plot)
 
-st.title(":material/attach_money: Costs")
+st.title(":material/thermostat: Emissions")
 
 with open(
     os.path.join(st.session_state.current_dir, "setting/graph_settings.yaml"),
     encoding="utf-8",
 ) as file:
-    config = yaml.safe_load(file)["costs"]
+    config = yaml.safe_load(file)["emissions"]
 
 table_of_content = []
-
 
 for _item, values in config.items():
     if (
@@ -42,5 +40,6 @@ for _item, values in config.items():
         table_of_content.append(values["name"])
     else:
         pass
+
 
 generate_sidebar(table_of_content)

@@ -114,26 +114,40 @@ try:
 except FileNotFoundError as e:
     st.write(e)
 
-p_page = st.Page("scripts/output_power.py", title="Power", icon=":material/bolt:")
+p_page = st.Page(
+    "scripts/output_pages/output_power.py", title="Power", icon=":material/bolt:"
+)
 i_page = st.Page(
-    "scripts/output_industry.py", title="Industry", icon=":material/construction:"
+    "scripts/output_pages/output_industry.py",
+    title="Industry",
+    icon=":material/construction:",
 )
 t_page = st.Page(
-    "scripts/output_transport.py", title="Transport", icon=":material/directions_car:"
+    "scripts/output_pages/output_transport.py",
+    title="Transport",
+    icon=":material/directions_car:",
 )
 e_page = st.Page(
-    "scripts/output_emissions.py", title="Emissions", icon=":material/thermostat:"
+    "scripts/output_pages/output_emissions.py",
+    title="Emissions",
+    icon=":material/thermostat:",
 )
 c_page = st.Page(
-    "scripts/output_costs.py", title="Costs", icon=":material/attach_money:"
+    "scripts/output_pages/output_costs.py",
+    title="Costs",
+    icon=":material/attach_money:",
 )
 info_page = st.Page("scripts/info.py", title="Info", icon=":material/info:")
 in_p_supply_page = st.Page(
-    "scripts/input_power_supply.py", title="Power - Supply", icon=":material/bolt:"
+    "scripts/input_pages/input_power_supply.py",
+    title="Power - Supply",
+    icon=":material/bolt:",
 )
 
 in_p_demand_page = st.Page(
-    "scripts/input_power_demand.py", title="Power - Demand", icon=":material/bolt:"
+    "scripts/input_pages/input_power_demand.py",
+    title="Power - Demand",
+    icon=":material/bolt:",
 )
 
 pages_list = {
