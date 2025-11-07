@@ -3,14 +3,16 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Create a config editor page under the Input section showing editable input data from 
-configuration files.
+Create Config editor page under Input section.
+
+Page shows editable input data from configuration files.
 """
 
-import pandas as pd
-import yaml
-import streamlit as st
 import os
+
+import pandas as pd
+import streamlit as st
+import yaml
 
 st.write(
     """
@@ -20,7 +22,9 @@ st.write(
 
 
 def get_config_files(base_path):
-    # get files with .yaml extension in the base_path or subfolder as a list only give file names
+    """Find configuration files from the specified base path."""
+    # get files with .yaml extension in the base_path or subfolder as a list only give
+    # file names
     folders = [
         f for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))
     ]
@@ -38,7 +42,7 @@ def get_config_files(base_path):
 
 def load_config(file_path):
     """Load configuration while preserving comments and structure."""
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -53,6 +57,7 @@ def save_config(new_config, file_path):
 
 
 def handle_base_settings(config, file_path):
+    """Handle base settings configuration with years and regions."""
     if "base_configs" not in config:
         return config
 
@@ -77,7 +82,8 @@ def handle_base_settings(config, file_path):
             valid_years = [year for year in years_list if 2019 <= year <= 2050]
             if len(valid_years) != len(years_list):
                 st.warning(
-                    "Some years were removed as they were outside the valid range (2019-2050)"
+                    "Some years were removed as they were outside the valid range "
+                    + " (2019-2050)"
                 )
             base_config["years"] = valid_years
         except ValueError as e:
@@ -101,13 +107,16 @@ def handle_base_settings(config, file_path):
             try:
                 save_config(config, file_path)
                 st.success("Scenario settings saved successfully!")
-            except Exception as e:
+            except OSError as e:
                 st.error(f"Error saving scenario settings: {e}")
+            except yaml.YAMLError as e:
+                st.error(f"Error formatting yaml file: {e}")
 
     return config
 
 
 def display_co2_limits(config, years):
+    """Display and edit CO2 limits for given years in the config editor."""
     st.write("CO2 Limits (Mt):")
     co2_df = pd.DataFrame(
         {
@@ -134,6 +143,7 @@ def display_co2_limits(config, years):
 
 
 def display_emission_costs(config, years):
+    """Display and edit emission costsfor given years in the config editor."""
     st.write("Emission Costs (€/tCO2):")
     emission_costs_df = pd.DataFrame(
         {
@@ -241,6 +251,7 @@ def handle_co2_management(config, file_path):
 
 
 def handle_resolution(config, file_path):
+    """Handle resolution configuration with method and interest rate."""
     if "scenario_configs" not in config:
         return config
 
@@ -297,6 +308,7 @@ def handle_resolution(config, file_path):
 
 
 def handle_custom_constraints(config, file_path):
+    """Handle custom constraints configuration with country-specific settings."""
     if "custom_constraints" not in config:
         return config
 
@@ -421,6 +433,7 @@ def handle_custom_constraints(config, file_path):
 
 
 def get_project_folder_from_path(path):
+    """Get the project folder name from the given path."""
     # get all folders that are project folders. only one folder should be there
     folders = [
         f
@@ -437,6 +450,7 @@ def get_project_folder_from_path(path):
 
 
 def config_editor():
+    """Render the config editor page."""
     st.session_state.config_file = st.selectbox(
         "Select Configuration File",
         options=get_config_files(st.session_state.input_data_folder_path),
