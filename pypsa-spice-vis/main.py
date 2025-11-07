@@ -7,13 +7,15 @@
 import os
 import sys
 
+import streamlit as st
+from styles import apply_sidebar_styles, use_flexo
+
+from scripts.getters import Getters
+
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
-import streamlit as st
-from styles import use_flexo, apply_sidebar_styles
-from scripts.getters import Getters
 
 st.set_page_config(initial_sidebar_state="expanded", layout="wide")
 
@@ -31,10 +33,14 @@ init_conf = getters.init_config
 # Initialize input_data_folder_path in session state
 st.session_state.input_data_folder_path = init_conf["input_folder_path"]
 
-# st.logo(
-#     os.path.join(st.session_state.current_dir, "design/pypsa-spice-long.png"),
-#     icon_image=os.path.join(st.session_state.current_dir, "design/agora-icon.png"),
-# )
+# st.logo( # noqa: E800
+#     os.path.join( # noqa: E800
+#       st.session_state.current_dir, "design/pypsa-spice-long.png" # noqa: E800
+#     ),  # noqa: E800
+#     icon_image=os.path.join( # noqa: E800
+#       st.session_state.current_dir, "design/agora-icon.png" # noqa: E800
+#     ),  # noqa: E800
+# ) # noqa: E800
 
 apply_sidebar_styles()
 
@@ -67,7 +73,7 @@ with st.sidebar:
         ":material/looks_one: Scenario 1:",
         options=getters.get_output_scenario_list(
             selected_project_name=st.session_state.project
-            ),
+        ),
         index=0,
     )
 
