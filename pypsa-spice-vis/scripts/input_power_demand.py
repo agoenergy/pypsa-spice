@@ -3,12 +3,15 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Create Power - Demand page under Input section showing editable demand related
-dataframes and visualisations.
+Create Power - Demand page under Input section.
+
+Page shows editable power supply related
+dataframes and visualisations from the modelling inputs.
 """
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
+
 from scripts.getters import Getters
 from scripts.input_st_handler import DFWidgetsHandler
 
@@ -16,6 +19,7 @@ pd.set_option("future.no_silent_downcasting", True)
 
 
 def main(getters):
+    """Render the Power - Demand page."""
     df_widgets_handler = DFWidgetsHandler()
 
     input_ui_handler = df_widgets_handler.input_ui_handler
@@ -37,8 +41,8 @@ def main(getters):
     ]:
         all_countries.update(getters.get_country_list(df))
 
-    ########################## Demand Side ############################################
-    ########################## Render the UI part #####################################
+    # =============================== Demand Side ====================================
+    # ============================== Render the UI part ==============================
 
     st.header(":material/Lightbulb: Demand")
 
@@ -108,23 +112,21 @@ def main(getters):
         selected_profile_types = [
             reverse_mapping.get(v, v) for v in selected_profile_types_full
         ]
-        selected_profile_types_str = ", ".join(selected_profile_types)
     with col22:
         selecte_types_str = ", ".join(selected_profile_types)
         st.markdown(f"Tech: **{selecte_types_str}**")
-        st.markdown(f"Class: **Load**")
+        st.markdown("Class: **Load**")
 
-    ## Demand Profiles
+    # Demand Profiles
     input_ui_handler.set_up_double_tab_widget(
         "demand",
         dfs["demand_df"],
         selected_profile_types,
         csvs_dict["demand"].path,
         selected_countries,
-        # secondary_df=dfs["tech_df"]
     )
 
-    ## Load
+    # Load
     input_ui_handler.set_up_double_tab_widget(
         "load",
         dfs["load_df"],
