@@ -17,7 +17,7 @@ import yaml
 from scripts.output_st_handler import (
     generate_sidebar,
     map_chart_to_plot_function,
-    render_st_page_and_plot
+    render_st_page_and_plot,
 )
 
 st.title(":material/directions_car: Transport")
