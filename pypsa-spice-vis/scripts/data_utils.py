@@ -139,6 +139,7 @@ def filter_dataframe_by_date_range(
     df: pd.DataFrame, start_date: dt.datetime, end_date: dt.datetime
 ):
     """Filter input dataframe by specific date range."""
+    df = df.copy()
     df["Date"] = pd.to_datetime(df["snapshot"])
     filtered_df = df[(df["Date"] >= start_date) & (df["Date"] <= end_date)]
 

@@ -598,7 +598,8 @@ def bar_with_filter(scenario_name: str, graph_config: dict):
             label_visibility="collapsed",
         )
 
-    df_reg = df.loc[df[fil_col] == shared_filter]
+    df_reg = df.copy()
+    df_reg = df_reg.loc[df_reg[fil_col] == shared_filter]
     df_reg["nice_names"] = df_reg[leg_col].map(
         lambda x: (
             mapping_df.loc[x, "nice_names"]
@@ -718,6 +719,7 @@ def simple_bar_hourly(scenario_name: str, graph_config: dict[str, str]) -> None:
         filtered_df = filter_dataframe_by_date_range(
             df_m, start_date=start_date, end_date=end_date
         )
+        filtered_df = filtered_df.copy()
         filtered_df["nice_names"] = filtered_df[leg_col].map(
             lambda x: (
                 mapping_df.loc[x, "nice_names"]
@@ -793,6 +795,7 @@ def simple_line_hourly(scenario_name: str, graph_config: dict):
         filtered_df = filter_dataframe_by_date_range(
             df_m, start_date=start_date, end_date=end_date
         )
+        filtered_df = filtered_df.copy()
         filtered_df["nice_names"] = filtered_df[leg_col].map(
             lambda x: (
                 mapping_df.loc[x, "nice_names"]
@@ -870,6 +873,7 @@ def filtered_bar_hourly(scenario_name: str, graph_config: dict):
         filtered_df = filter_dataframe_by_date_range(
             df_m, start_date=start_date, end_date=end_date
         )
+        filtered_df = filtered_df.copy()
         filtered_df["nice_names"] = filtered_df[leg_col].map(
             lambda x: (
                 mapping_df.loc[x, "nice_names"]
