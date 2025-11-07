@@ -3,12 +3,15 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Create Power - Supply page under Input section showing editable supply related
-dataframes and visualisations.
+Create Power - Supply page under Input section.
+
+Page shows editable power supply related
+dataframes and visualisations from the modelling inputs.
 """
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
+
 from scripts.getters import Getters
 from scripts.input_st_handler import DFWidgetsHandler
 
@@ -16,6 +19,7 @@ pd.set_option("future.no_silent_downcasting", True)
 
 
 def main(getters):
+    """Render the Power - Supply page."""
     df_widgets_handler = DFWidgetsHandler()
 
     input_ui_handler = df_widgets_handler.input_ui_handler
@@ -36,8 +40,8 @@ def main(getters):
     ]:
         all_countries.update(getters.get_country_list(df))
 
-    ########################## Supply Side ############################################
-    ########################## Render the UI part #####################################
+    # =============================== Supply Side ====================================
+    # ============================== Render the UI part ==============================
 
     st.header(":material/bolt: Supply")
 
@@ -112,7 +116,7 @@ def main(getters):
         st.markdown(f"Tech: **{selected_types_str}**")
         st.markdown(f"Class: **{selected_classes_str}**")
 
-    ## Technologies
+    # Technologies
     input_ui_handler.set_up_single_tab_widget(
         "technologies",
         dfs["tech_df"],
@@ -121,7 +125,7 @@ def main(getters):
         selected_countries,
     )
 
-    ## Availability
+    # Availability
     input_ui_handler.set_up_double_tab_widget(
         "availability",
         dfs["avail_df"],
@@ -131,7 +135,7 @@ def main(getters):
         secondary_df=dfs["tech_df"],
     )
 
-    ## Power plant costs
+    # Power plant costs
     input_ui_handler.set_up_double_tab_widget(
         "pp_costs",
         dfs["pp_costs_df"],
@@ -140,7 +144,7 @@ def main(getters):
         selected_countries,
     )
 
-    ## Potentials
+    # Potentials
     input_ui_handler.set_up_single_tab_widget(
         "potentials",
         dfs["potentials_df"],
@@ -149,7 +153,7 @@ def main(getters):
         selected_countries,
     )
 
-    ## Storage Costs
+    # Storage Costs
     input_ui_handler.set_up_single_tab_widget(
         "storage_cost",
         dfs["storage_cost_df"],
@@ -158,7 +162,7 @@ def main(getters):
         selected_countries,
     )
 
-    ## Storage Inflows
+    # Storage Inflows
     input_ui_handler.set_up_single_tab_widget(
         "storage_inflows",
         dfs["storage_inflows_df"],
@@ -167,7 +171,7 @@ def main(getters):
         selected_countries,
     )
 
-    ## Fuel costs
+    # Fuel costs
     input_ui_handler.set_up_single_tab_widget(
         "fuel_costs",
         dfs["fuel_costs_df"],
@@ -178,8 +182,7 @@ def main(getters):
         secondary_df=dfs["tech_df"],
     )
 
-    # Asset
-    ## Generators
+    # Asset - Generators
     if "Generator" in selected_classes:
         input_ui_handler.set_up_single_tab_widget(
             "generator",
@@ -215,7 +218,7 @@ def main(getters):
         selected_countries,
     )
 
-    ## Decomissioning
+    # Asset - Decomissioning
     input_ui_handler.set_up_single_tab_widget(
         "decomission",
         dfs["decomission_capacity_df"],
@@ -224,8 +227,8 @@ def main(getters):
         selected_countries,
     )
 
-    ########################## Interconnection #######################################
-    ########################## Render the UI part ####################################
+    # ============================== Interconnection =================================
+    # ============================== Render the UI part ==============================
 
     st.header(":material/diagonal_line: Interconnections")
 
@@ -235,7 +238,7 @@ def main(getters):
             base_country = st.pills(
                 "Select Base Country (only one country):",
                 options=sorted(all_countries),
-                default=sorted(list(all_countries))[0],
+                default=sorted(all_countries)[0],
                 help="Select a base country to filter the data.",
                 selection_mode="single",
                 key="intercon_selection_pills",
@@ -269,12 +272,12 @@ def main(getters):
         if selected_scenario:
             st.session_state.scenario = selected_scenario
     with col13:
-        st.markdown(f"Tech: **ITCN**")
-        st.markdown(f"Class: **Link**")
+        st.markdown("Tech: **ITCN**")
+        st.markdown("Class: **Link**")
 
     df_widgets_handler.reload_scenario_dfs(dfs, selected_scenario)
 
-    ## Interconnectors
+    # Interconnectors
     input_ui_handler.set_up_single_tab_widget(
         csv_dict_key="interconnector",
         input_df=dfs["intercon_df"],
