@@ -16,7 +16,6 @@ repos:
         exclude: '^(data|docs)/.*'
       - id: mixed-line-ending
         exclude: '^(data|docs)/.*'
-      - id: no-commit-to-branch
 
   # ================================== UPGRADE SYNTAX ==================================
   - repo: https://github.com/asottile/pyupgrade
