@@ -1,3 +1,9 @@
+<!--
+-*- coding: utf-8 -*-
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
+SPDX-License-Identifier: GPL-2.0-or-later
+-->
+
 ---
 name: Bug report
 about: Report a bug to help us improve

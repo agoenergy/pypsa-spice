@@ -1,9 +1,10 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """Helper functions for pypsa-spice."""
 
+import glob
 import logging
 import os
 import urllib
@@ -16,6 +17,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import snakemake as sm
+import yaml
 from progressbar import ProgressBar
 from snakemake.api import Workflow
 from snakemake.common import SNAKEFILE_CHOICES
@@ -436,13 +438,13 @@ def mock_snakemake(
 
 
 def scaling_conversion(
-    df: pd.DataFrame, scaling_number: int, decimals: int
+    input_df: pd.DataFrame, scaling_number: int, decimals: int
 ) -> pd.DataFrame:
     """Change scale of value column in a DataFrame and return the DataFrame.
 
     Parameters
     ----------
-    df : pd.DataFrame
+    input_df : pd.DataFrame
         Input DataFrame.
     scaling_number : int
         Scaling number used for conversion.
@@ -454,15 +456,15 @@ def scaling_conversion(
     pd.DataFrame
         Output DataFrame after scaling conversion.
     """
-    df = df.reset_index()
-    df = df.loc[:, ~df.columns.duplicated(keep="last")]
-    col_list = df.columns.to_list()
+    input_df = input_df.reset_index()
+    input_df = input_df.loc[:, ~input_df.columns.duplicated(keep="last")]
+    col_list = input_df.columns.to_list()
     col_list.remove("value")
-    df = df.set_index(col_list)
-    df = (df / scaling_number).round(decimals)
-    df = df.reset_index()
+    input_df = input_df.set_index(col_list)
+    input_df = (input_df / scaling_number).round(decimals)
+    input_df = input_df.reset_index()
 
-    return df.set_index(df.columns[0])
+    return input_df.set_index(input_df.columns[0])
 
 
 def get_buses(bus_df: pd.DataFrame) -> pd.DataFrame:
@@ -492,14 +494,14 @@ def get_time_series_demands(
     load_df : FilePath
         table of load to convert
     profile_dir : FilePath
-        list of profile patterns per bus type
+        directory to database of profile patterns per bus type
     year : int
         load year to convert
 
     Returns
     -------
     pd.DataFrame
-        table of load per buses converted into time series for 8760 hour based on
+        DataFrame of load per buses converted into time series for 8760 hour based on
         profile pattern
 
     Raises
@@ -531,7 +533,7 @@ def get_time_series_demands(
             result = profile_country_df[
                 profile_country_df["profile_type"].isin([row["profile_type"]])
             ]
-        result = result.iloc[:, 2:].astype(float) * float(row["total_load"])
+        result = result.iloc[:, 2:].astype(float) * float(row["total_load__mwh"])
         if result.empty:
             print(f'{row["profile_type"]} is not in profile database')
         result["bus"] = row["bus"]
@@ -559,7 +561,7 @@ def get_plant_availabilities(
 
     Parameters
     ----------
-    pp_dir : pd.DataFrame
+    pp_df : pd.DataFrame
         DataFrame of all power plants
     avail_dir : FilePath
         directory to database of availability per location and technology
@@ -569,8 +571,8 @@ def get_plant_availabilities(
     Returns
     -------
     pd.DataFrame
-        table of all generators and storage units with assigned timeseries availability
-        for 8760 snapshots
+        DataFrame of all generators and storage units with assigned timeseries
+        availability for 8760 snapshots
 
     Raises
     ------
@@ -642,7 +644,7 @@ def get_link_availabilities(
     Parameters
     ----------
     link_df : pd.DataFrame
-        DataFrame all links
+        DataFrame of all links
     avail_dir : FilePath
         directory to database of availability per location and technology
     arch_dir : FilePath
@@ -651,7 +653,7 @@ def get_link_availabilities(
     Returns
     -------
     pd.DataFrame
-        table of all links with assigned time-series availability for 8760 snapshots
+        DataFrame of all links with assigned time-series availability for 8760 snapshots
 
     Raises
     ------
@@ -724,12 +726,12 @@ def get_store_min_availabilities(
     stores_df : pd.DataFrame
         Table of all storage units
     avail_dir : FilePath
-        minimum availability database
+        directory to database of availability per location and technology
 
     Returns
     -------
     pd.DataFrame
-        table of all storage units with assigned timeseries minimum availability
+        DataFrame of all Store components with assigned timeseries minimum availability
         for 8760 snapshots
 
     Raises
@@ -781,25 +783,16 @@ def get_storage_units_inflows(
 
     Parameters
     ----------
-    storage_capacity_dir : FilePath
-        table of all storage units
+    storage_capacity : pd.DataFrame
+        DataFrame of all storage units
     inflows_path : FilePath
         inflow database
-    technologies_dir : FilePath
-        technology database
-    tech_cost_dir : FilePath
-        technology cost database
-    year : FilePath
-        year of model run
-    interest : FilePath
-        interest rate
-    currency : FilePath
-        currency of model run
 
     Returns
     -------
     pd.DataFrame
-        table of all storage units with assigned time-series inflow for 8760 snapshots
+        DataFrame of all storage units with assigned time-series inflows
+        for 8760 snapshots
     """
     dfs = []
     storage_inflows = pd.read_csv(inflows_path)
@@ -850,7 +843,7 @@ def get_capital_cost(
     Parameters
     ----------
     plant_type : list[str]
-        type of plant to calculate cost
+        list of plant types to calculate cost
     tech_costs : pd.DataFrame
         database of plant's costs
     interest : float
@@ -865,14 +858,14 @@ def get_capital_cost(
     """
     crf = (
         interest
-        * (1 + interest) ** tech_costs.LIFE
-        / ((1 + interest) ** tech_costs.LIFE - 1)
+        * (1 + interest) ** tech_costs.life__years
+        / ((1 + interest) ** tech_costs.life__years - 1)
     )
 
     return (
         (
-            tech_costs[f"CAP[{currency}/MW]"].astype(float) * crf
-            + tech_costs[f"FOM[{currency}/MWa]"].astype(float)
+            tech_costs[f"cap__{str(currency).lower()}_mw"].astype(float) * crf
+            + tech_costs[f"fom__{str(currency).lower()}_mwa"].astype(float)
         )
         .fillna(0)
         .loc[plant_type]
@@ -894,9 +887,9 @@ def update_tech_fact_table(
     tech_table : pd.DataFrame
         plants or links table
     technologies_dir : FilePath
-        technology table from database
+        directory to database of technological params per technology
     tech_costs_dir : FilePath
-        cost table from database
+        directory to database of cost params per technology
     year : int
         year of model run
     interest : float
@@ -907,7 +900,7 @@ def update_tech_fact_table(
     Returns
     -------
     pd.DataFrame
-        Cleaned plant/link table with fact columns added
+        Cleaned plant/link DataFrame with fact columns added
     """
     technology_df = pd.read_csv(technologies_dir)
     tech_costs = pd.read_csv(tech_costs_dir, index_col=["powerplant_type", "country"])
@@ -948,19 +941,19 @@ def update_tech_fact_table(
             currency=currency,
         )
         result["marginal_cost"] = (
-            tech_costs[f"VOM[{currency}/MWh]"]
+            tech_costs[f"vom__{str(currency).lower()}_mwh"]
             .astype(float)
             .fillna(0)
             .loc[(row["type"], row["country"])]
         )
         result["fom_cost"] = (
-            tech_costs[f"FOM[{currency}/MWa]"]
+            tech_costs[f"fom__{str(currency).lower()}_mwa"]
             .astype(float)
             .fillna(0)
             .loc[(row["type"], row["country"])]
         )
         result["inv_cost"] = (
-            tech_costs[f"CAP[{currency}/MW]"]
+            tech_costs[f"cap__{str(currency).lower()}_mw"]
             .astype(float)
             .fillna(0)
             .loc[(row["type"], row["country"])]
@@ -977,7 +970,7 @@ def update_tech_fact_table(
                 result[column] = result[column] / result["efficiency"]
 
         result["lifetime"] = (
-            tech_costs["LIFE"]
+            tech_costs["life__years"]
             .astype(float)
             .fillna(0)
             .loc[(row["type"], row["country"])]
@@ -1037,8 +1030,8 @@ def update_storage_costs(
     # Calculate capital recovery factor (CRF) for each storage type/country
     crf = (
         interest
-        * (1 + interest) ** storage_costs_df.LIFE
-        / ((1 + interest) ** storage_costs_df.LIFE - 1)
+        * (1 + interest) ** storage_costs_df.life__years
+        / ((1 + interest) ** storage_costs_df.life__years - 1)
     )
 
     def get_cost(row, col):
@@ -1063,32 +1056,32 @@ def update_storage_costs(
 
     # Compute capital_cost: (CAPEX * CRF + FOM)
     storage_table["capital_cost"] = storage_table.apply(
-        lambda row: get_cost(row, f"CAP[{currency}/MWh]") * get_crf(row)
-        + get_cost(row, f"FOM[{currency}/MWh]"),
+        lambda row: get_cost(row, f"cap__{str(currency).lower()}_mwh") * get_crf(row)
+        + get_cost(row, f"fom__{str(currency).lower()}_mwh"),
         axis=1,
     )
 
     # Compute marginal_cost: VOM
     storage_table["marginal_cost"] = storage_table.apply(
-        lambda row: get_cost(row, f"VOM[{currency}/MWh]"),
+        lambda row: get_cost(row, f"vom__{str(str(currency).lower()).lower()}_mwh"),
         axis=1,
     )
 
     # Compute lifetime: LIFE
     storage_table["lifetime"] = storage_table.apply(
-        lambda row: get_cost(row, "LIFE"),
+        lambda row: get_cost(row, "life__years"),
         axis=1,
     )
 
     # Compute inv_cost: CAPEX
     storage_table["inv_cost"] = storage_table.apply(
-        lambda row: get_cost(row, f"CAP[{currency}/MWh]"),
+        lambda row: get_cost(row, f"cap__{str(currency).lower()}_mwh"),
         axis=1,
     )
 
     # Compute fom_cost: FOM
     storage_table["fom_cost"] = storage_table.apply(
-        lambda row: get_cost(row, f"FOM[{currency}/MWh]"),
+        lambda row: get_cost(row, f"fom__{str(currency).lower()}_mwh"),
         axis=1,
     )
 
@@ -1103,7 +1096,28 @@ def update_ev_char_parameters(
     interest_rate: float,
     currency: str,
 ) -> pd.DataFrame:
-    """Update ev storage and link parameters parameters."""
+    """Update ev storage and link parameters parameters.
+
+    Parameters
+    ----------
+    tech_table : pd.DataFrame
+        table of EV storage to update
+    year : int
+        year of model run
+    ev_param_dir : FilePath
+        directory of EV parameter database
+    cost_df : pd.DataFrame
+        DataFrame of cost parameters
+    interest_rate : float
+        Discount rate (as a decimal, e.g., 0.07 for 7%).
+    currency : str
+        Currency in all uppercase, , ISO4217 format
+
+    Returns
+    -------
+    pd.DataFrame
+        Cleaned EV charger DataFrame with parameters updated
+    """
     ev_param_df = pd.read_csv(ev_param_dir)
     cost_df_single_year = cost_df[cost_df.year == year]
     dfs = []
@@ -1126,25 +1140,25 @@ def update_ev_char_parameters(
             currency=currency,
         )
         result["marginal_cost"] = (
-            cost_df_single_year[f"VOM[{currency}/MWh]"]
+            cost_df_single_year[f"vom__{str(currency).lower()}_mwh"]
             .astype(float)
             .fillna(0)
             .loc[(row["type"], row["country"])]
         )
         result["fom_cost"] = (
-            cost_df_single_year[f"FOM[{currency}/MWa]"]
+            cost_df_single_year[f"fom__{str(currency).lower()}_mwa"]
             .astype(float)
             .fillna(0)
             .loc[(row["type"], row["country"])]
         )
         result["inv_cost"] = (
-            cost_df_single_year[f"CAP[{currency}/MW]"]
+            cost_df_single_year[f"cap__{str(currency).lower()}_mw"]
             .astype(float)
             .fillna(0)
             .loc[(row["type"], row["country"])]
         )
         result["lifetime"] = (
-            cost_df_single_year["LIFE"]
+            cost_df_single_year["life__years"]
             .astype(float)
             .fillna(0)
             .loc[(row["type"], row["country"])]
@@ -1224,25 +1238,25 @@ def update_ev_store_parameters(
 
 
 def get_link_min_availabilities(
-    link_df_dir: FilePath, avail_df_dir: FilePath
+    link_dir: FilePath, avail_dir: FilePath
 ) -> pd.DataFrame:
     """Match each links to corresponding maximum reverse flow based on technology.
 
     Parameters
     ----------
-    link_df_dir : FilePath
-        table of link to match
+    link_dir : FilePath
+        directory to a table of link to match
     avail_df_dir : FilePath
-        database of availability per location and technology
+        directory to database of availability per location and technology
 
     Returns
     -------
     pd.DataFrame
-        table of links with assigned time-series maximum reverse flow availability for
-        8760 snapshots
+        DataFrame of links with assigned time-series maximum reverse flow availability
+        for 8760 snapshots
     """
-    link_df = pd.read_csv(link_df_dir)
-    avail_df = pd.read_csv(avail_df_dir)
+    link_df = pd.read_csv(link_dir)
+    avail_df = pd.read_csv(avail_dir)
     dfs = []
     link_df = link_df.to_dict("records")
     for row in link_df:
@@ -1590,7 +1604,7 @@ def add_unit_column(table_name: str, currency: str) -> str:
 
     direct_mappings = [
         ("share", "%"),
-        ("fuel_costs", f"{currency}/MWh_th"),
+        ("fuel_costs", f"{str(currency).lower()}/MWh_th"),
         ("flh", "hours"),
         ("emi_by", "MtCO2"),
     ]
@@ -1604,7 +1618,7 @@ def add_unit_column(table_name: str, currency: str) -> str:
         return "%" if "share" in table_name else "TWh"
 
     if "hourly" in table_name:
-        return f"{currency}/MWh_el" if "price" in table_name else "MW"
+        return f"{str(currency).lower()}/MWh_el" if "price" in table_name else "MW"
 
     if any(k in table_name for k in ["cap_by", "capacity"]):
         return "GW"
@@ -1613,14 +1627,18 @@ def add_unit_column(table_name: str, currency: str) -> str:
         k in table_name
         for k in ["capex", "opex", "fom", "overnight", "costs", "cost_by"]
     ):
-        return f"Million {currency}"
+        return f"Million {str(currency).lower()}"
 
     # Default fallback if no match found
     return "Dimensionless"
 
 
 def filter_selected_countries_and_regions(
-    df: pd.DataFrame, column: str, country_region: dict, buses_csv: bool = False
+    df: pd.DataFrame,
+    column: str,
+    country_region: dict,
+    currency: str,
+    buses_csv: bool = False,
 ) -> pd.DataFrame:
     """Filter selected regions defined in the config.yaml.
 
@@ -1632,6 +1650,8 @@ def filter_selected_countries_and_regions(
         Targeted column for filtering
     country_region : dict{str, list[str]}
         A dictionary with countries regions within those countries to filter by.
+    currency: str
+        Currency from the config file
     buses_csv : bool
         If True, apply filtering algorithms especially for buses.csv.
 
@@ -1653,7 +1673,7 @@ def filter_selected_countries_and_regions(
             filter_df = pd.concat([country_node_df, region_df])
         else:
             # for interconnector cases
-            columns_to_check = [column, "bus0", "bus1", "CAP[USD/MW]"]
+            columns_to_check = [column, "bus0", "bus1", f"cap__{currency.lower()}_mw"]
             if (
                 column == "link"
                 and len([col for col in columns_to_check if col in df.columns]) == 4
@@ -1674,6 +1694,24 @@ def filter_selected_countries_and_regions(
                 filter_df = df[(df[column].str.contains("|".join(region_pattern)))]
         final_df = pd.concat([final_df, filter_df])
     return final_df
+
+
+def load_scenario_config(path: str) -> dict:
+    """Open and read scenario configuration from a YAML file.
+
+    Parameters
+    ----------
+    path : str
+        path to scenario_config.yaml
+
+    Returns
+    -------
+    dict
+        dictionary of scenario configuration
+    """
+    yaml_files = glob.glob(f"{path}/*.yaml")
+    with open(yaml_files[0]) as f:
+        return yaml.safe_load(f)
 
 
 if __name__ == "__main__":

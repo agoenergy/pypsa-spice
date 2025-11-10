@@ -1,32 +1,38 @@
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
 # Input Data: Model Builder Configuration
 
-You can configure several settings for running PyPSA-SPICE in `config.yaml` file located in the root directory of the project. We suggest to make one config file per scenario you are running.
-This section provides a detailed explanation of the key variables that can be configured to run different scenarios.
+PyPSA-SPICE requires two configuration files:
 
-## Init Settings
+1. **`base_config.yaml`**: Located in the project root directory, this file contains general configurations needed to set up the initial input data structure.
+
+2. **`scenario_config.yaml`**: Located inside each scenario folder, this file contains scenario-specific configurations. It is only used after the input data structure has been created.
+
+To get started, configure `base_config.yaml` first, then run the data setup process. Once complete, you can configure individual scenarios using their respective `scenario_config.yaml` files.
+
+## base_config.yaml
 
 ```yaml title="Path configurations"
 path_configs: 
-  input_dir: data/example/ #(1)!
-  results_dir: results/ # (2)!
-  project_name: project_01 #(3)!
-  scenario_name: scenario_01 # (4)!
+  data_folder_name: pypsa-spice-data #(1)!
+  project_name: project_01 #(2)!
+  input_scenario_name: scenario_01 # (3)!
+  output_scenario_name: scenario_01_tag1 # (4)!
 ```
 
-1. Directory containing all scenario data. Inside this folder, subfolders for `project_name` and `scenario_name` will be created.
-2. Directory where output network files, CSVs and graphs are saved.
-3. Directory for project-related data, including the `scenario_name` folder.
-4. Directory for storing scenario input CSVs.
+1. Directory containing all scenario data. Inside this folder, subfolders for `project_name` and `input_scenario_name` will be created.
+2. Directory for project-related data, including the `input_scenario_name` folder.
+3. Directory for storing scenario input CSVs.
+4. Directory for storing scenario output CSVs.
 
-The path for the skeleton folder follows the pattern: `input_dir`/`project_name`/`scenario_name`.
+The path for the skeleton folder follows the pattern: `data_folder_name`/`project_name`/input/`input_scenario_name`.
+The path for the output folder follows the pattern: `data_folder_name`/`project_name`/results/`output_scenario_name`.
 
-This config file is used for both creating a new model via `python script/build_skeleton.py` (see the section on [defining a new model](new-model.md)) and used for running different instances of the model.
+This config file is used for both creating a new model via `snakemake -c1 build_skeleton` (see the section on [defining a new model](new-model.md)) and used for running different instances of the model.
 
 !!! Tip
     Make sure your snakemake file points to correct config file. To run different scenarios, you just need to change the snakemake file to the corresponding scenario config file.
@@ -46,7 +52,7 @@ base_configs:
 3. List of sectors to include in model run. The power sector (`p`) needs to be included. Other available options are `p-i`, `p-t`, `p-i-t`, representing industry (`i`), and transport (`t`) sectors coupled with the power sector.
 4. Currency usd in the model. The default setting is USD (also used in example data). Format shall be in all uppercases, [ISO4217](https://www.iso.org/iso-4217-currency-codes.html){:target="_blank"} format.
 
-## Scenario Settings
+## scenario_config.yaml - scenario settings
 
 ```yaml title="Scenario configurations"
 scenario_configs:
@@ -71,7 +77,7 @@ scenario_configs:
 7. Interest rate in decimal form (e.g., 0.05 represents 5%).
 8. Removes non expandable assets with a capacity below this threshold (in MW) to avoid numerical issues during optimization.
 
-## Mandatory Constraints
+## scenario_config.yaml - mandatory constraints
 
 The CO~2~ management is the most important and mandatory constraint in the model. The model allows for two different instruments to decrease CO~2~ emissions: CO~2~ price or CO~2~ constraint. You can choose between each of these but not both.
 The variables listed below should be filled out for each country individually.
@@ -105,7 +111,7 @@ co2_management: # (1)!
 !!! Tip
     If you don't want to use any CO~2~ constraint, default to using `co2_price` with very small value for the years.  
 
-## Custom Constraints
+## scenario_config.yaml - custom constraints
 
 The custom constraints section allows you to apply additional rules or limits to the model’s behavior, tailoring it to specific scenario requirements. All custom constraints are listed below in the two countries as an example. These constraints can control various aspects of the model, such as renewable generation share, thermal power plant operation, reserve margins, energy independence, and production limitations. By adjusting these settings, you can implement assumptions or policies. The settings listed below should be configured for each country individually.
 
@@ -218,15 +224,15 @@ Where
 
 See [Linopy example](https://github.com/PyPSA/pypsa-eur/blob/7ac983e5b31bcaf3ae667ceec4fc9d5d91c18046/scripts/solve_network.py#L387-L454){:target="_blank"} of the reserve constraint implementation for more details.
 
-## Solver Settings
+## scenario_config.yaml - solver settings
 
 Solving the optimisation model builder requires a good solver to boost the performance. PyPSA-SPICE supports solvers such as `gurobi`, `cplex`, and `highs`. A comparison of solver performance is available in [solver benchmarking results](https://openenergybenchmark.org/dashboard/main-results){:target="_blank"}.
 
 ```yaml title="Solver configurations"
 solving:
   solver:
-    name: cbc #(1)!
-    options: cbc-default #(2)!
+    name: highs #(1)!
+    options: highs-default #(2)!
   oetc: # (3)!
     activate: false
     name: test-agora-job

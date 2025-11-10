@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -8,8 +8,8 @@ power:
   p1: 
     name: Capacity by type
     units: GW
-    graph_type: simple_bar_yearly_2
-    tab_name: pow_cap_by_type_yearly
+    graph_type: simple_bar_yearly
+    table_name: pow_cap_by_type_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -20,7 +20,7 @@ power:
     name: Capacity by region
     units: GW
     graph_type: bar_with_filter
-    tab_name: pow_cap_by_type_by_region_yearly
+    table_name: pow_cap_by_type_by_region_yearly
     leg_col: technology
     fil_col: region
     yaxis_scale:
@@ -32,8 +32,8 @@ power:
   p3:
     name: Generation by type
     units: TWh
-    graph_type: simple_bar_yearly_2
-    tab_name: pow_gen_by_type_yearly
+    graph_type: simple_bar_yearly
+    table_name: pow_gen_by_type_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -44,7 +44,7 @@ power:
     name: Share category
     units: "%"
     graph_type: area_share_yearly
-    tab_name: pow_gen_by_category_share_yearly
+    table_name: pow_gen_by_category_share_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -55,7 +55,7 @@ power:
   #   name: Generation by regions
   #   units: TWh
   #   graph_type: simple_bar_yearly
-  #   tab_name: pow_gen_by_region_yearly
+  #   table_name: pow_gen_by_region_yearly
   #   leg_col: region
   #   yaxis_scale: # only valid when the chart does not include filters or sliders
   #     min: 0
@@ -66,7 +66,7 @@ power:
     name: Transmission capacity between regions
     units: GW
     graph_type: bar_with_filter
-    tab_name: pow_intercap_by_region_yearly
+    table_name: pow_intercap_by_region_yearly
     leg_col: from
     fil_col: to
     yaxis_scale: # only valid when the chart does not include filters or sliders
@@ -79,7 +79,7 @@ power:
     name: Hourly generation
     units: MW
     graph_type: simple_bar_hourly
-    tab_name: pow_gen_by_type_hourly
+    table_name: pow_gen_by_type_hourly
     leg_col: technology
     slider_id: 'Gen: ({}):'
     download_id: '{}_down_pow_gen_by_type_hourly'
@@ -88,7 +88,7 @@ power:
     name: Regional hourly generation
     units: MW
     graph_type: filtered_bar_hourly
-    tab_name: pow_gen_by_type_region_hourly
+    table_name: pow_gen_by_type_region_hourly
     leg_col: type_and_flow
     fil_col: "region"
     slider_id: "NodalFlow: {}"
@@ -98,7 +98,7 @@ power:
     name: Energy demand by carrier
     units: TWh
     graph_type: simple_bar_yearly
-    tab_name: ene_dmd_by_carrier_yearly
+    table_name: ene_dmd_by_carrier_yearly
     leg_col: carrier
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -109,7 +109,7 @@ power:
     name: Hourly demand
     units: MW
     graph_type: simple_bar_hourly
-    tab_name: pow_elec_load_by_sector_hourly
+    table_name: pow_elec_load_by_sector_hourly
     leg_col: sector
     slider_id: 'Load: ({}):".format(sce_name)'
     download_id: '{}_down_elec_load_by_sector_hourly'
@@ -118,7 +118,7 @@ power:
     name: Hourly elec price
     units: USD/MWh
     graph_type: simple_line_hourly
-    tab_name: pow_marginal_price_by_region_hourly
+    table_name: pow_marginal_price_by_region_hourly
     leg_col: region
     slider_id: 'Price: ({}):".format(sce_name)'
     download_id: '{}_down_marginal_price_by_region_hourly'
@@ -127,7 +127,7 @@ power:
     name: Nodal flow between regions
     units: MW
     graph_type: simple_line_hourly
-    tab_name: pow_nodal_flow_hourly
+    table_name: pow_nodal_flow_hourly
     leg_col: flow
     download_id: '{}_nodal_flow_hourly'
     slider_id: 'NodalFlow_regions: {}'
@@ -135,7 +135,7 @@ power:
   p13:
     name: Battery's E/P ratio
     graph_type: simple_bar_yearly
-    tab_name: pow_bats_ep_ratio
+    table_name: pow_bats_ep_ratio
     leg_col: bus
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -146,7 +146,7 @@ power:
     name: Battery's charging profile
     units: MW
     graph_type: line_with_secondary_y_hourly
-    tab_name: pow_bats_charging_hourly
+    table_name: pow_bats_charging_hourly
     leg_col: status
     slider_id: 'battery_profile_{}'
     download_id: '{}_down_bats_charging_hourly'
@@ -158,7 +158,7 @@ industry:
     name: Capacity by carrier
     units: GW
     graph_type: simple_bar_yearly
-    tab_name: ind_cap_by_type_by_carrier_yearly
+    table_name: ind_cap_by_type_by_carrier_yearly
     leg_col: carrier
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -169,7 +169,7 @@ industry:
     name: Capacity by region
     units: GW
     graph_type: bar_with_filter
-    tab_name: ind_cap_by_carrier_by_region_yearly
+    table_name: ind_cap_by_carrier_by_region_yearly
     leg_col: carrier
     yaxis_scale:
       min: 0
@@ -182,7 +182,7 @@ industry:
     name: Generation by region
     units: TWh
     graph_type: bar_with_filter
-    tab_name: ind_gen_by_carrier_by_region_yearly
+    table_name: ind_gen_by_carrier_by_region_yearly
     leg_col: carrier
     yaxis_scale:
       min: 0
@@ -195,7 +195,7 @@ industry:
     name: Generation by type
     units: TWh
     graph_type: simple_bar_yearly
-    tab_name: ind_gen_by_type_by_carrier_by_heatgroup_yearly
+    table_name: ind_gen_by_type_by_carrier_by_heatgroup_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -207,7 +207,7 @@ transport:
     name: EV load profile
     units: MW
     graph_type: line_with_secondary_y_hourly
-    tab_name: tran_load_charging_all_hourly
+    table_name: tran_load_charging_all_hourly
     leg_col: status
     slider_id: '{}_tran_ev_profile'
     download_id: '{}_tran_load_charging_all_hourly'
@@ -224,7 +224,7 @@ emissions:
     name: Emission (power sector)
     units: MtCO₂
     graph_type: simple_bar_yearly
-    tab_name: pow_emi_by_carrier_yearly
+    table_name: pow_emi_by_carrier_yearly
     leg_col: carrier
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -236,7 +236,7 @@ emissions:
     name: Emission (industry sector)
     units: MtCO₂
     graph_type: simple_bar_yearly
-    tab_name: ind_emi_by_carrier_yearly
+    table_name: ind_emi_by_carrier_yearly
     leg_col: carrier
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -249,7 +249,7 @@ costs:
     name: CAPEX by type (power sector)
     units: mUSD
     graph_type: simple_bar_yearly
-    tab_name: pow_capex_by_type_yearly
+    table_name: pow_capex_by_type_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -261,7 +261,7 @@ costs:
     name: Overnight investment by type (power sector)
     units: mUSD
     graph_type: simple_bar_yearly
-    tab_name: pow_overnight_inv_by_type_yearly
+    table_name: pow_overnight_inv_by_type_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -273,7 +273,7 @@ costs:
     name: CAPEX by type (industry sector)
     units: mUSD
     graph_type: simple_bar_yearly
-    tab_name: ind_capex_by_type_by_carrier_yearly
+    table_name: ind_capex_by_type_by_carrier_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -285,7 +285,7 @@ costs:
     name: CAPEX by type (transport sector)
     units: mUSD
     graph_type: simple_bar_yearly
-    tab_name: tran_capex_by_type_yearly
+    table_name: tran_capex_by_type_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -297,7 +297,7 @@ costs:
     name: CAPEX by Type (all energy sectors)
     units: mUSD
     graph_type: simple_bar_yearly
-    tab_name: ene_capex_by_type_by_carrier_yearly
+    table_name: ene_capex_by_type_by_carrier_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -309,7 +309,7 @@ costs:
     name: CAPEX and OPEX (all energy sectors)
     units: mUSD
     graph_type: simple_bar_yearly
-    tab_name: ene_costs_opex_capex_yearly
+    table_name: ene_costs_opex_capex_yearly
     leg_col: finance
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -321,7 +321,7 @@ costs:
     name: Average fuel costs (all energy sectors)
     units: USD/MWh_th
     graph_type: simple_line_yearly
-    tab_name: ene_avg_fuel_costs_fuel_yearly
+    table_name: ene_avg_fuel_costs_fuel_yearly
     leg_col: carrier
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0

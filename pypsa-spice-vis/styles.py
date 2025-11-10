@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# coding: utf-8
+"""Define styles for all pages inside pypsa-spice-vis app."""
 
 import base64
 import os
@@ -12,9 +11,7 @@ import streamlit as st
 
 
 def use_flexo():
-    """
-    Apply Flexo font throughout
-    """
+    """Apply Flexo font throughout the app."""
     font_extensions = [".woff2", ".woff", ".ttf"]
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -31,7 +28,8 @@ def use_flexo():
                     # directly into the custom CSS
                     font_data = base64.b64encode(f.read()).decode("utf-8")
 
-                # Establish a MIME type to ensure the correct type is used by the browser
+                # Establish a MIME type to ensure that the correct type is used by
+                # the browser
                 mime_type = {
                     ".woff2": "font/woff2",
                     ".woff": "font/woff",
@@ -43,12 +41,14 @@ def use_flexo():
                     <style>
                     @font-face {{
                         font-family: 'Flexo';
-                        src: url(data:{mime_type};base64,{font_data}) format('{ext[1:]}');
+                        src: url(data:{mime_type};base64,{font_data})
+                             format('{ext[1:]}');
                         font-weight: normal;
                         font-style: normal;
                     }}
 
-                    body, p, div, span, pre, .stMarkdown, .stTitle, .stText {{
+                    body, p, div, span, pre, .stMarkdown, .stTitle,
+                    .stText {{
                         font-family: 'Flexo', sans-serif;
                     }}
 
@@ -64,14 +64,12 @@ def use_flexo():
                     unsafe_allow_html=True,
                 )
 
-            except Exception as e:
-                st.Error(f"Error loading font: {e}")
+            except (OSError, UnicodeDecodeError) as e:
+                st.error(f"Error loading font: {e}")
 
 
 def apply_sidebar_styles():
-    """
-    Style the Page navigation and Parameters part of the sidebar
-    """
+    """Style the Page navigation and Parameters part of the sidebar."""
     st.markdown(
         """
         <style>
@@ -96,9 +94,7 @@ def apply_sidebar_styles():
 
 
 def apply_sidebar_chart_nav_styles():
-    """
-    Style the Chart navigation part of the sidebar
-    """
+    """Style the Chart navigation part of the sidebar."""
     st.markdown(
         """
             <p style='font-size: 1.2em; font-weight: 600; margin-bottom: -4px;'>
@@ -143,22 +139,24 @@ def apply_sidebar_chart_nav_styles():
 
 
 def apply_radio_menu_styles():
+    """Style radio buttons and button groups to be centred in the app."""
     st.markdown(
         """
         <style>
         /* Centre radio buttons (for bar_with_filter) */
-        div[data-testid="stVerticalBlockBorderWrapper"] div.stRadio > div[role="radiogroup"] {
+        div[
+        data-testid="stVerticalBlockBorderWrapper"] div.stRadio > div[role="radiogroup"
+        ] {
             display: flex;
             justify-content: center;
             gap: 1rem;
         }
-        /* Centre date filter elements (for graphs with date filters) */
-        div[data-testid="stElementContainer"] {
-            display: flex;
-            justify-content: center;
-        }
+        /* Centre button group elements */
+        /* This will centre the date and country filters for graphs that have them */
         div.stButtonGroup {
             width: auto;
+            display: flex;
+            justify-content: center;
         }
         </style>
         """,

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -35,6 +35,7 @@ from _helpers import (
     get_storage_units_inflows,
     get_store_min_availabilities,
     get_time_series_demands,
+    load_scenario_config,
     update_ev_char_parameters,
     update_ev_store_parameters,
     update_storage_costs,
@@ -46,7 +47,9 @@ idx = pd.IndexSlice
 logger = logging.getLogger(__name__)
 
 
-def add_brownfield(n: pypsa.Network, year: int, threshold: float):
+def add_brownfield(
+    n: pypsa.Network, year: int, threshold: float, scenario_configs: dict
+):
     """Import the solved network from previous year and update brownfield capacities.
 
     Parameters
@@ -57,6 +60,8 @@ def add_brownfield(n: pypsa.Network, year: int, threshold: float):
         Current model year
     threshold : float
         Capacity threshold below which assets are removed to avoid numerical issues
+    scenario_configs : dict
+        Scenario configurations from the config file
     """
     # remove all loads
     n.remove("Load", n.loads.index)
@@ -87,14 +92,14 @@ def add_brownfield(n: pypsa.Network, year: int, threshold: float):
             # subtract co2 price from marginal cost of previous year fossil links
             if (
                 c.name == "Link"
-                and snakemake.params.co2_management[country]["option"] == "co2_price"
+                and scenario_configs["co2_management"][country]["option"] == "co2_price"
             ):
                 years = snakemake.params.years
                 i = years.index(year)
                 year_previous = years[i - 1]
-                co2_price_previous = snakemake.params.co2_management[country]["value"][
-                    year_previous
-                ]
+                co2_price_previous = scenario_configs["co2_management"][country][
+                    "value"
+                ][year_previous]
                 emit_links = c.df[c.df.bus2 == f"{country}_ATMP"].index
                 c.df.loc[emit_links, "marginal_cost"] = c.df.loc[
                     emit_links, "marginal_cost"
@@ -125,6 +130,7 @@ def add_brownfield(n: pypsa.Network, year: int, threshold: float):
 def update_decommission_base_assets(
     n: pypsa.Network,
     year: int,
+    currency: str,
     pow_decom: FilePath,
     ind_decom: FilePath,
     sm_country_region: dict,
@@ -141,6 +147,8 @@ def update_decommission_base_assets(
         Pypsa network after adding brownfield
     year : int
         current model year
+    currency: str
+        Currency from the config file
     pow_decom : FilePath
         Path to the `decommission_capacity.csv` in the power folder
     ind_decom : FilePath
@@ -155,6 +163,7 @@ def update_decommission_base_assets(
         df=decap_df.reset_index(),
         column="name",
         country_region=sm_country_region,
+        currency=str(currency).lower(),
     ).set_index("name")
     for col in decap_df.columns:
         if col in ["country", "class"]:
@@ -231,7 +240,7 @@ def update_fuel_data(
     hubs_df.index = hubs_df["country"] + "_" + hubs_df["supply_plant"]
     tgen = n.generators[n.generators.type.str.contains("SUPPLY")].index
     n.generators.loc[tgen, "marginal_cost"] = hubs_df.loc[
-        tgen, f"fuel_cost [{currency}/MWh]"
+        tgen, f"fuel_cost__{str(currency).lower()}_mwh"
     ].reindex(tgen)
 
 
@@ -305,7 +314,9 @@ def update_brownfield_snapshots(
 class AddFutureAssets:
     """Add future assets to the brownfield network for the current year."""
 
-    def __init__(self, network: pypsa.Network, year: int, red_hours: list):
+    def __init__(
+        self, network: pypsa.Network, year: int, red_hours: list, scenario_configs: dict
+    ):
         """Initialize the AddFutureAssets class.
 
         Parameters
@@ -316,6 +327,8 @@ class AddFutureAssets:
             Current model year
         red_hours : list
             List of reduced hours from previous year network
+        scenario_configs : dict
+            Scenario configurations from the config file
         """
         self.network = network
         self.year = year
@@ -324,13 +337,14 @@ class AddFutureAssets:
         self.red_hours = red_hours
         # Getting path for all database files
         self.technologies_dir = snakemake.input.powerplant_type
-        self.tech_cost_dir = snakemake.input.powerplant_costs
+        self.tech_cost_dir = snakemake.input.power_plant_costs
         self.storage_cost_path = snakemake.input.storage_costs
         self.dmd_profile_path = snakemake.input.dmd_profiles
         self.availability_dir = snakemake.input.pp_availability
         self.inflows_path = snakemake.input.stor_inflows
-        self.interest = snakemake.params.interest
         self.currency = snakemake.params.currency
+        self.scenario_configs = scenario_configs
+        self.interest = self.scenario_configs["scenario_configs"]["interest"]
 
     # ========================== ADDING future interconnectors =========================
 
@@ -341,6 +355,7 @@ class AddFutureAssets:
             df=interconnectors,
             column="link",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         ).set_index("link")
         p_nom_max_min_columns = [
             x for x in interconnectors.columns if "p_nom_max" in x or "p_nom_min" in x
@@ -348,10 +363,10 @@ class AddFutureAssets:
         interconnectors[p_nom_max_min_columns] = interconnectors[
             p_nom_max_min_columns
         ].astype("float64")
-        interconnectors["LIFE"] = (
+        interconnectors["life__years"] = (
             50  # assuming lifetime of 50 years for interconnectors
         )
-        interconnectors[f"CAP[{self.currency}/MW]"] = get_capital_cost(
+        interconnectors[f"cap__{str(self.currency).lower()}_mw"] = get_capital_cost(
             plant_type="ITCN",
             tech_costs=interconnectors.set_index("type"),
             interest=self.interest,
@@ -385,9 +400,9 @@ class AddFutureAssets:
             p_nom_max=interconnectors[f"p_nom_max_{self.year}"],
             p_nom_min=interconnectors[f"p_nom_min_{self.year}"],
             p_nom_extendable=True,
-            capital_cost=interconnectors[f"CAP[{self.currency}/MW]"],
+            capital_cost=interconnectors[f"cap__{str(self.currency).lower()}_mw"],
             build_year=self.year,
-            lifetime=interconnectors["LIFE"],
+            lifetime=interconnectors["life__years"],
             country=interconnectors["country"],
         )
 
@@ -407,6 +422,7 @@ class AddFutureAssets:
             df=storage_capacity,
             column="node",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         )
         storage_capacity = update_tech_fact_table(
             tech_table=storage_capacity,
@@ -569,6 +585,7 @@ class AddFutureAssets:
             df=storage_energy_raw.reset_index(),
             column="store",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         ).set_index("store")
         storage_energy_raw["cyclic"] = storage_energy_raw["type"].apply(
             lambda x: x != "CO2STOR"
@@ -582,7 +599,7 @@ class AddFutureAssets:
         )
 
         storage_energy = storage_energy[
-            (storage_energy["e_nom_extendable [True/False]"])
+            (storage_energy["e_nom_extendable"])
             | (storage_energy_raw["type"] == "CO2STOR")
         ]
         storage_energy.index = [s + f"_{str(self.year)}" for s in storage_energy.index]
@@ -595,9 +612,9 @@ class AddFutureAssets:
             carrier=storage_energy["carrier"],
             capital_cost=storage_energy["capital_cost"],
             marginal_cost=storage_energy["marginal_cost"],
-            e_nom=storage_energy["e_nom [MWh]"],
+            e_nom=storage_energy["e_nom"],
             e_nom_extendable=False,
-            standing_loss=storage_energy["standing_loss [%/hour]"],
+            standing_loss=storage_energy["standing_loss"],
             e_cyclic=storage_energy["cyclic"],
             build_year=self.year,
             lifetime=np.inf,
@@ -620,6 +637,7 @@ class AddFutureAssets:
             df=pd.read_csv(loads),
             column="node",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         )
         final_load = get_time_series_demands(load_df, self.dmd_profile_path, self.year)
         final_load.reset_index(["country", "bus", "carrier", "node"], inplace=True)
@@ -658,6 +676,7 @@ class AddFutureAssets:
             df=clean_pps,
             column="node",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         )
         clean_pps = update_tech_fact_table(
             tech_table=clean_pps,
@@ -726,6 +745,7 @@ class AddFutureAssets:
             df=raw_links_df,
             column="link",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         )
         links_df = update_tech_fact_table(
             tech_table=links_df,
@@ -790,7 +810,7 @@ class AddFutureAssets:
     def add_ev_chargers(self):
         """Add new PEV chargers to the PyPSA network."""
         ev_links_df = pd.read_csv(snakemake.input.tra_pev_chargers).set_index("link")
-        tech_cost_df = pd.read_csv(snakemake.input.powerplant_costs)
+        tech_cost_df = pd.read_csv(snakemake.input.power_plant_costs)
         tech_cost_df = tech_cost_df[
             (tech_cost_df["country"].str.contains("|".join(self.country)))
         ].set_index(["powerplant_type", "country"])
@@ -798,6 +818,7 @@ class AddFutureAssets:
             df=ev_links_df.reset_index(),
             column="link",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         ).set_index("link")
         ev_links = update_ev_char_parameters(
             tech_df=ev_links_df,
@@ -848,6 +869,7 @@ class AddFutureAssets:
             df=ev_storages,
             column="node",
             country_region=self.country_region,
+            currency=str(self.currency).lower(),
         ).set_index("name")
         ev_storages = update_ev_store_parameters(
             tech_table=ev_storages,
@@ -883,11 +905,13 @@ class AddFutureAssets:
     def add_co2_option(self):
         """Add CO2 management options."""
         for country in self.country:
-            co2_option = snakemake.params.co2_management[country]["option"]
+            co2_option = self.scenario_configs["co2_management"][country]["option"]
             if co2_option == "co2_price":
                 # assign co2 price to marginal cost of all links with bus 2
                 # attached to ATMP bus (meaning emitting co2)
-                co2price = snakemake.params.co2_management[country]["value"][self.year]
+                co2price = self.scenario_configs["co2_management"][country]["value"][
+                    self.year
+                ]
                 print(
                     f"Adding CO2 Price as {co2price}{self.currency}/tCO2 for {country}"
                 )
@@ -906,9 +930,17 @@ if __name__ == "__main__":
     if snakemake is None:
         from _helpers import mock_snakemake  # pylint: disable=ungrouped-imports
 
-        snakemake = mock_snakemake("add_brownfield", sector="p-i-t", years=2040)
+        snakemake = mock_snakemake("add_brownfield", sector="p-i-t", years=2030)
     configure_logging(snakemake)
-    sm_threshold = snakemake.params.remove_threshold
+    scenario_configs = load_scenario_config(
+        "data/"
+        + snakemake.config["path_configs"]["data_folder_name"]
+        + "/"
+        + snakemake.config["path_configs"]["project_name"]
+        + "/input/"
+        + snakemake.config["path_configs"]["input_scenario_name"]
+    )
+    sm_threshold = scenario_configs["scenario_configs"]["remove_threshold"]
     sm_currency = snakemake.params.currency
     sm_year = int(snakemake.wildcards.years)
     sm_country_region = snakemake.params.country_region
@@ -925,10 +957,11 @@ if __name__ == "__main__":
     )
     sm_n.name = f"network_{snakemake.wildcards.sector}_{sm_year}"
     sm_red_hours, sm_weights = get_previous_year_red_hours(sm_n)
-    add_brownfield(sm_n, sm_year, sm_threshold)
+    add_brownfield(sm_n, sm_year, sm_threshold, scenario_configs)
     update_decommission_base_assets(
         sm_n,
         sm_year,
+        sm_currency,
         snakemake.input.pow_decom,
         snakemake.input.ind_decom,
         sm_country_region,
@@ -937,7 +970,12 @@ if __name__ == "__main__":
         sm_n, snakemake.input.fuel_supplies, sm_year, sm_currency, sm_country_region
     )
     # Executing each add functions
-    sm_c = AddFutureAssets(network=sm_n, year=sm_year, red_hours=sm_red_hours)
+    sm_c = AddFutureAssets(
+        network=sm_n,
+        year=sm_year,
+        red_hours=sm_red_hours,
+        scenario_configs=scenario_configs,
+    )
     sm_c.add_interconnectors()
     sm_c.add_storage_capacity(
         storage_capacity_dir=snakemake.input.elec_storage_capacity

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,16 +9,20 @@ It creates templates for buses, generators, storage, loads, interconnectors,
 and converter links for power, industry and transport sectors.
 """
 
+import glob
 import itertools
 import os
 import shutil
 import warnings
 from itertools import combinations
+from typing import Any
 
 import numpy as np
 import pandas as pd
-import yaml
-from _helpers import FilePath
+from _helpers import (
+    FilePath,
+    configure_logging,
+)
 from pandas.errors import SettingWithCopyWarning
 
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
@@ -59,6 +63,16 @@ INDUSTRY_STORAGE_TECHNOLOGIES = ["INLHSTOR"]
 # Transport bus types and technologies
 TRANSPORT_BUS_TYPES = ["TRAN-PUB", "TRAN-PRV"]
 TRANSPORT_TECHNOLOGIES = ["EVST-PUB", "EVST-PRV"]
+
+# Demand profile types mapping
+PROFILE_MAPPING = {
+    "HVELEC": "HV_LOAD",
+    "LVELEC": "LV_LOAD",
+    "IND-LH": "IND_LOAD",
+    "IND-HH": "IND_LOAD",
+    "TRAN-PUB": "HPV_LOAD",
+    "TRAN-PRV": "LPV_LOAD",
+}
 
 
 def get_carrier(bus_type: str) -> str:
@@ -305,8 +319,8 @@ def create_fuel_supplies(
         temp["bus_type"] = fuel_types * len(countries)
         temp["supply_plant"] = temp["bus_type"].apply(lambda x: f"TGEN_{x}")
         temp["carrier"] = temp["bus_type"].apply(get_carrier)
-        temp["max_supply [MWh/year]"] = "Please fill here"
-        temp[f"fuel_cost [{currency}/MWh]"] = "Please fill here"
+        temp["max_supply__mwh_year"] = "Please fill here"
+        temp[f"fuel_cost__{str(currency).lower()}_mwh"] = "Please fill here"
         temp["year"] = year
         temp["country"] = temp["bus"].apply(lambda x: x.split("_")[0])
         temp = temp.drop("bus_type", axis=1)
@@ -324,7 +338,7 @@ def create_storage_energy(
 ) -> pd.DataFrame:
     """Create a template DataFrame for storage energy assets in the specified sector.
 
-    For the given sector ("Power" or "Industry"), this function generates a table of
+    For the given sector ("power" or "industry"), this function generates a table of
     storage assets (buses), with columns for storage type, carrier, standing loss,
     extendability, nominal energy, and placeholders for maximum storage per year.
     The resulting DataFrame is saved in the provided file_path.
@@ -339,7 +353,7 @@ def create_storage_energy(
     year_list : list
         List of years (e.g., [2020, 2030, 2040, 2050])
     sector : str
-        Sector for which to create storage energy ("Power" or "Industry").
+        Sector for which to create storage energy ("power" or "industry").
     file_path : FilePath (str or path object)
         Path to save the CSV.
 
@@ -351,10 +365,10 @@ def create_storage_energy(
     Raises
     ------
     ValueError
-        If sector is not "Power" or "Industry".
+        If sector is not "power" or "industry".
     """
     # Determine storage buses by sector
-    if sector.capitalize() == "Power":
+    if sector.lower() == "power":
         # Global storage buses (country-level, e.g., hydrogen, CO2 storage)
         country_storage_buses = []
         for country in countries:
@@ -368,11 +382,11 @@ def create_storage_energy(
             for node, bus_type in itertools.product(nodes, ["BATSN", "HHBSN", "HPHSN"])
         ]
         all_storage_buses = country_storage_buses + node_storage_buses
-    elif sector.capitalize() == "Industry":
+    elif sector.lower() == "industry":
         # Only low-heat industry storage (node-level)
         all_storage_buses = [f"{node}_INLHSTORN" for node in nodes]
     else:
-        raise ValueError("Sector must be 'Power' or 'Industry'.")
+        raise ValueError("Sector must be 'power' or 'industry'.")
 
     # Build DataFrame
     storage_df = pd.DataFrame()
@@ -382,9 +396,9 @@ def create_storage_energy(
     # Remove trailing 'N' from bus_type for type (e.g., BATSN -> BATS)
     storage_df["type"] = storage_df["bus_type"].apply(lambda x: x[:-1])
     storage_df["carrier"] = storage_df["bus_type"].apply(get_carrier)
-    storage_df["standing_loss [%/hour]"] = "Please fill here"
-    storage_df["e_nom_extendable [True/False]"] = "Please fill here"
-    storage_df["e_nom [MWh]"] = "Please fill here"
+    storage_df["standing_loss"] = "Please fill here"
+    storage_df["e_nom_extendable"] = "Please fill here"
+    storage_df["e_nom"] = "Please fill here"
     storage_df["country"] = storage_df["bus"].apply(lambda x: x.split("_")[0])
     # Add columns for each year
     for year in years:
@@ -414,7 +428,7 @@ def create_storage_capacity(
     - Battery (BATS) and pumped hydro (HPHS) storage on high-voltage electricity buses
     - Household battery storage (HHBS) on low-voltage electricity buses
 
-    For the "Industry" sector, this includes:
+    For the "industry" sector, this includes:
     - Low-heat industry storage (INLHSTOR) on low-heat industry buses
 
     Parameters
@@ -424,7 +438,7 @@ def create_storage_capacity(
     year_list : list
         List of years (e.g., [2020, 2030, 2040, 2050])
     sector : str
-        Either "Power" or "Industry".
+        Either "power" or "industry".
     file_path : FilePath (str or path object)
         Path to save the resulting CSV file.
     elec_buses : pd.DataFrame
@@ -440,12 +454,12 @@ def create_storage_capacity(
     Raises
     ------
     ValueError
-        If sector is not "Power" or "Industry".
+        If sector is not "power" or "industry".
     """
     # Combine all buses for lookup
     all_buses = pd.concat([elec_buses, ind_buses], axis=0)
 
-    if sector.capitalize() == "Power":
+    if sector.lower() == "power":
         # Get high-voltage and low-voltage electricity buses
         hv_buses = all_buses[all_buses.bus_type.str.contains("HVELEC")]["bus"].to_list()
         lv_buses = all_buses[all_buses.bus_type.str.contains("LVELEC")]["bus"].to_list()
@@ -491,7 +505,7 @@ def create_storage_capacity(
             ["type", "node", "carrier", "bus"]
         ]
 
-    elif sector.capitalize() == "Industry":
+    elif sector.lower() == "industry":
         # Low-heat industry storage (INLHSTOR) on low-heat industry buses
         lh_buses = all_buses[all_buses.bus_type.str.contains("IND-LH")]["bus"].to_list()
         storage_capacity_df = pd.DataFrame(
@@ -504,7 +518,7 @@ def create_storage_capacity(
         )[["type", "node", "carrier", "bus"]]
 
     else:
-        raise ValueError("Sector must be 'Power' or 'Industry'.")
+        raise ValueError("Sector must be 'power' or 'industry'.")
 
     # Add name and country columns
     storage_capacity_df["name"] = (
@@ -551,32 +565,26 @@ def create_loads(
     pd.DataFrame
         DataFrame of loads.
     """
-    profile_map = {
-        "HVELEC": "HV_LOAD",
-        "LVELEC": "LV_LOAD",
-        "IND-LH": "IND_LOAD",
-        "IND-HH": "IND_LOAD",
-        "TRAN-PUB": "HPV_LOAD",
-        "TRAN-PRV": "LPV_LOAD",
-    }
     load_df = bus_df[
         bus_df["bus_type"].isin(
             ["HVELEC", "LVELEC", "IND-LH", "IND-HH", "TRAN-PUB", "TRAN-PRV"]
         )
     ].copy()
     load_df["profile_type"] = load_df["bus_type"].apply(
-        lambda x: profile_map.get(
+        lambda x: PROFILE_MAPPING.get(
             x, f"{x}'s profile is not assigned. Please add manually"
         )
     )
-    load_df["total_load"] = "Please fill here"
+    load_df["total_load__mwh"] = "Please fill here"
     temp = pd.DataFrame()
     for year in years:
         load_df["year"] = year
         temp = pd.concat([temp, load_df], axis=0)
     load_df = temp
     load_df["name"] = load_df["bus"] + "_" + load_df["profile_type"]
-    load_df = load_df[["bus", "profile_type", "name", "total_load", "carrier", "year"]]
+    load_df = load_df[
+        ["bus", "profile_type", "name", "total_load__mwh", "carrier", "year"]
+    ]
     load_df = load_df.sort_values(by=["node", "year"])
     load_df.to_csv(file_path)
 
@@ -701,8 +709,8 @@ def create_interconnector(
         [
             "p_nom",
             "p_nom_extendable",
-            f"CAP[{currency}/MW]",
-            f"FOM[{currency}/MWa]",
+            f"cap__{str(currency).lower()}_mw",
+            f"fom__{str(currency).lower()}_mwa",
             "marginal_cost",
         ]
         + [f"p_nom_max_{year}" for year in years]
@@ -1010,7 +1018,7 @@ def create_fuel_conversion_links(
     elec_buses : pd.DataFrame
         Electricity sector buses.
     ind_buses : pd.DataFrame
-        Industry sector buses.
+        industry sector buses.
 
     Returns
     -------
@@ -1361,13 +1369,266 @@ def create_decom_csv(years: list, file_path: FilePath) -> pd.DataFrame:
     """
     # Only include years after the first year for decommissioning columns
     year_columns = [year for year in years if year != years[0]]
-    columns = ["name", "class"] + year_columns
+    columns = ["country", "name", "class"] + year_columns
     decom_df = pd.DataFrame(columns=columns)
     decom_df.to_csv(file_path, index=False)
     return decom_df
 
 
-def create_folders(save_path: FilePath):
+def update_ev_param(
+    save_path: FilePath,
+    countries: list,
+):
+    """Add countries into the ev_parameters csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    countries : list
+        List of country names
+    """
+    ev_param = pd.read_csv(save_path)
+    final_ev_df = pd.DataFrame()
+    for country in countries:
+        country_ev_df = ev_param.copy()
+        country_ev_df["country"] = [country] * len(ev_param)
+        final_ev_df = pd.concat([final_ev_df, country_ev_df], axis=0)
+
+    final_ev_df.to_csv(save_path, index=False)
+
+
+def update_availability(
+    save_path: FilePath,
+    countries: list,
+    nodes: list,
+):
+    """Add countries and nodes into the availability csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    countries : list
+        List of country names
+    nodes : list
+        List of node names with this format: "country_region"
+    """
+    availability_df = pd.read_csv(save_path)
+
+    for country in countries:
+        node_tech_list = [
+            "EVST-PRV",
+            "EVST-PUB",
+            "EVCH-PUB",
+            "EVCH-PRV",
+        ]
+        country_availability_df = pd.DataFrame(columns=availability_df.columns)
+        country_availability_df["country"] = [country] * len(node_tech_list)
+        country_availability_df["node"] = [country] * len(node_tech_list)
+        country_availability_df["technology"] = node_tech_list
+        availability_df = pd.concat([country_availability_df, availability_df], axis=0)
+
+    for node in nodes:
+        node_tech_list = ["PHOT", "WTON", "RTPV", "WTOF", "CSP", "SWHT", "HROR"]
+        country_availability_df = pd.DataFrame(columns=availability_df.columns)
+        country_availability_df["node"] = [node] * len(node_tech_list)
+        country_availability_df["country"] = country_availability_df["node"].apply(
+            lambda x: x.split("_")[0]
+        )
+        country_availability_df["technology"] = node_tech_list
+        availability_df = pd.concat([country_availability_df, availability_df], axis=0)
+
+    availability_df = availability_df.fillna("Please fill here")
+    availability_df.to_csv(save_path, index=False)
+
+
+def update_demand_profiles(
+    save_path: FilePath,
+    countries: list,
+    nodes: list,
+):
+    """Add countries and nodes into the demand_profile csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    countries : list
+        List of country names
+    nodes : list
+        List of node names with this format: "country_region"
+    """
+    demand_df = pd.read_csv(save_path)
+    final_demand_df = pd.DataFrame()
+    for country in countries:
+        profile_list = ["IND_LOAD", "HPV_LOAD", "LPV_LOAD"]
+        country_demand_df = demand_df.copy()
+        country_demand_df["country"] = [country] * len(profile_list)
+        country_demand_df["node"] = [country] * len(profile_list)
+        country_demand_df["profile_type"] = profile_list
+        final_demand_df = pd.concat([final_demand_df, country_demand_df], axis=0)
+
+    for node in nodes:
+        profile_list = ["HV_LOAD", "LV_LOAD"]
+        node_demand_df = demand_df.copy()
+        node_demand_df["node"] = [node] * len(profile_list)
+        node_demand_df["country"] = node_demand_df["node"].apply(
+            lambda x: x.split("_")[0]
+        )
+        node_demand_df["profile_type"] = profile_list
+        final_demand_df = pd.concat([final_demand_df, node_demand_df], axis=0)
+
+    final_demand_df = final_demand_df.fillna("Please fill here")
+    final_demand_df.to_csv(save_path, index=False)
+
+
+def update_power_plant_costs(save_path: FilePath, countries: list, currency: str):
+    """Add countries into the power_plant_costs csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    countries : list
+        List of country names
+    currency : str
+        Currency for costs (e.g., "EUR", "USD").
+    """
+    power_plant_df = pd.read_csv(save_path)
+    final_power_plant_df = pd.DataFrame()
+    currency = str(currency).lower()
+    for country in countries:
+        country_power_plant_df = power_plant_df.copy()
+        country_power_plant_df["country"] = country
+        country_power_plant_df[f"cap__{currency}_mw"] = "Please fill here"
+        country_power_plant_df[f"fom__{currency}_mwa"] = "Please fill here"
+        country_power_plant_df[f"vom__{currency}_mwh"] = "Please fill here"
+        country_power_plant_df["life__years"] = "Please fill here"
+        final_power_plant_df = pd.concat(
+            [final_power_plant_df, country_power_plant_df], axis=0
+        )
+
+    final_power_plant_df.to_csv(save_path, index=False)
+
+
+def update_technical_potentials(
+    save_path: FilePath,
+    nodes: list,
+):
+    """Add nodes into the renewables_technical_potential csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    nodes : list
+        List of node names with this format: "country_region"
+    """
+    potentials_df = pd.read_csv(save_path)
+
+    for node in nodes:
+        node_tech_list = ["PHOT", "WTON", "RTPV", "WTOF", "HROR"]
+        country_potentials_df = pd.DataFrame(columns=potentials_df.columns)
+        country_potentials_df["class"] = ["Generator"] * len(node_tech_list)
+        country_potentials_df["node"] = [node] * len(node_tech_list)
+        country_potentials_df["country"] = country_potentials_df["node"].apply(
+            lambda x: x.split("_")[0]
+        )
+        country_potentials_df["type"] = node_tech_list
+        country_potentials_df["bus"] = country_potentials_df["node"] + "_HVELEC"
+        country_potentials_df["name"] = (
+            country_potentials_df["bus"] + "_" + country_potentials_df["type"]
+        )
+        potentials_df = pd.concat([potentials_df, country_potentials_df], axis=0)
+
+    potentials_df = potentials_df.fillna("Please fill here")
+    potentials_df.to_csv(save_path, index=False)
+
+
+def update_storage_costs(save_path: FilePath, countries: list, currency: str):
+    """Add countries into the storage_costs csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    countries : list
+        List of country names
+    currency : str
+        Currency for costs (e.g., "EUR", "USD").
+    """
+    storage_cost_df = pd.read_csv(save_path)
+    final_storage_cost_df = pd.DataFrame()
+    currency = str(currency).lower()
+    for country in countries:
+        country_storage_cost_df = storage_cost_df.copy()
+        country_storage_cost_df["country"] = country
+        country_storage_cost_df[f"cap__{currency}_mwh"] = "Please fill here"
+        country_storage_cost_df[f"fom__{currency}_mwh"] = "Please fill here"
+        country_storage_cost_df[f"vom__{currency}_mwh"] = "Please fill here"
+        country_storage_cost_df["life__years"] = "Please fill here"
+        final_storage_cost_df = pd.concat(
+            [final_storage_cost_df, country_storage_cost_df], axis=0
+        )
+
+    final_storage_cost_df.to_csv(save_path, index=False)
+
+
+def update_storage_inflows(
+    save_path: FilePath,
+    nodes: list,
+):
+    """Add countries and nodes into the storage_inflows csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    nodes : list
+        List of node names with this format: "country_region"
+    """
+    inflows_df = pd.read_csv(save_path)
+
+    for node in nodes:
+        country_inflows_df = pd.DataFrame(columns=inflows_df.columns)
+        country_inflows_df["node"] = [node]
+        country_inflows_df["country"] = country_inflows_df["node"].apply(
+            lambda x: x.split("_")[0]
+        )
+        country_inflows_df["technology"] = ["HDAM"]
+        inflows_df = pd.concat([inflows_df, country_inflows_df], axis=0)
+
+    inflows_df = inflows_df.fillna("Please fill here")
+    inflows_df.to_csv(save_path, index=False)
+
+
+def update_technologies(
+    save_path: FilePath,
+    countries: list,
+):
+    """Add countries into the technologies csv.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    countries : list
+        List of country names
+    """
+    technologies = pd.read_csv(save_path)
+    final_technologies = pd.DataFrame()
+    for country in countries:
+        country_technologies = technologies.copy()
+        country_technologies["country"] = country
+        final_technologies = pd.concat(
+            [final_technologies, country_technologies], axis=0
+        )
+
+    final_technologies.to_csv(save_path, index=False)
+
+
+def create_folders(save_path: FilePath, sector_folder: bool = False):
     """Create the main output directory and subdirectories for each sector.
 
     If the directory already exists, it will be deleted and recreated.
@@ -1376,25 +1637,54 @@ def create_folders(save_path: FilePath):
     ----------
     save_path : FilePath (str or path object)
         Root directory to create.
+    sector_folder : bool, optional
+        Whether to create subfolders for each sector. Default is False.
     """
-    # Remove existing directory if present, then create a fresh one
-    if os.path.exists(save_path):
-        shutil.rmtree(save_path)
-    os.makedirs(save_path, exist_ok=True)
     # Create subfolders for each sector
-    for sector in ["Power", "Industry", "Transport"]:
-        os.makedirs(os.path.join(save_path, sector), exist_ok=True)
+    if sector_folder:
+        for sector in ["power", "industry", "transport"]:
+            os.makedirs(os.path.join(save_path, sector), exist_ok=True)
+    else:  # general input folder structure
+        # Remove existing directory if present, then create a fresh one
+        if os.path.exists(save_path):
+            shutil.rmtree(save_path)
+        os.makedirs(save_path, exist_ok=True)
+        os.makedirs(os.path.join(save_path, "input"), exist_ok=True)
+        os.makedirs(os.path.join(save_path, "input", "global_input"), exist_ok=True)
+
+
+def check_and_create_global_template_csv(
+    save_path: FilePath, global_template_path: FilePath
+):
+    """Compare or clone each global template csv in the targeted folder.
+
+    Parameters
+    ----------
+    save_path : FilePath (str or path object)
+        Root directory to check or create.
+    global_template_path : FilePath (str or path object)
+        Root directory of global csv templates.
+    """
+    for filename in os.listdir(global_template_path):
+        if filename.endswith(".csv"):
+            source_path = os.path.join(global_template_path, filename)
+            target_path = os.path.join(save_path, filename)
+            if not os.path.exists(target_path):
+                shutil.copy2(source_path, target_path)
 
 
 if __name__ == "__main__":
-    CONFIG_FILE = "config.yaml"
+    snakemake: Any = globals().get("snakemake")
+    if snakemake is None:
+        from _helpers import mock_snakemake  # pylint: disable=ungrouped-imports
 
-    # Reading the config file
-    with open(CONFIG_FILE, encoding="utf-8") as file:
-        configurations = yaml.safe_load(file)
+        snakemake = mock_snakemake("build_skeleton")
+    # Getting global config params
+    configure_logging(snakemake)
+    configurations = snakemake.params.config
 
     # Country names from the configuration file
-    cfg_countries = configurations["base_configs"]["countries"]
+    cfg_countries = configurations["base_configs"]["regions"].keys()
     cfg_nodes = []
     for cfg_country in cfg_countries:
         # List of regions based on the given inputs in the configuration file
@@ -1404,46 +1694,128 @@ if __name__ == "__main__":
         cfg_nodes += cfg_country_node_list
     # List of years
     cfg_years = configurations["base_configs"]["years"]
-    # Skeleton input folder path
-    output_path = (
-        configurations["path_configs"]["input_dir"]
-        + configurations["path_configs"]["project_name"]
+    global_csv_skeletons_path = "data/global_input_template"
+
+    # Skeleton porject folder path
+    project_folder_path = (
+        "data/"
+        + configurations["path_configs"]["data_folder_name"]
         + "/"
-        + configurations["path_configs"]["scenario_name"]
+        + configurations["path_configs"]["project_name"]
     )
 
+    # create_skeleton_inputs
+    global_input_path = project_folder_path + "/input/global_input/"
+    create_folders(save_path=project_folder_path)
+    check_and_create_global_template_csv(
+        save_path=global_input_path,
+        global_template_path=global_csv_skeletons_path,
+    )
+
+    # Skeleton input scenario folder path
+    input_scenario_folder_path = (
+        project_folder_path
+        + "/input/"
+        + configurations["path_configs"]["input_scenario_name"]
+    )
     cfg_currency = configurations["base_configs"]["currency"]
 
+    # output paths for global templates csvs
+    path_availability = global_input_path + "/availability.csv"
+    path_demand_profiles = global_input_path + "/demand_profile.csv"
+    path_ev_params = global_input_path + "/ev_parameters.csv"
+    path_power_plant_cost = global_input_path + "/power_plant_costs.csv"
+    path_potentials = global_input_path + "/renewables_technical_potential.csv"
+    path_storage_costs = global_input_path + "/storage_costs.csv"
+    path_storage_inflows = global_input_path + "/storage_inflows.csv"
+    path_technologies = global_input_path + "/technologies.csv"
+
+    # # Creating global template CSVs and save to defined output paths
+    update_availability(
+        save_path=path_availability,
+        countries=cfg_countries,
+        nodes=cfg_nodes,
+    )
+    update_demand_profiles(
+        save_path=path_demand_profiles,
+        countries=cfg_countries,
+        nodes=cfg_nodes,
+    )
+    update_ev_param(
+        save_path=path_ev_params,
+        countries=cfg_countries,
+    )
+    update_power_plant_costs(
+        save_path=path_power_plant_cost,
+        countries=cfg_countries,
+        currency=cfg_currency,
+    )
+    update_technical_potentials(
+        save_path=path_potentials,
+        nodes=cfg_nodes,
+    )
+    update_storage_costs(
+        save_path=path_storage_costs,
+        countries=cfg_countries,
+        currency=cfg_currency,
+    )
+    update_storage_inflows(
+        save_path=path_storage_inflows,
+        nodes=cfg_nodes,
+    )
+    update_technologies(
+        save_path=path_technologies,
+        countries=cfg_countries,
+    )
+
     # create_skeleton_inputs
-    create_folders(save_path=output_path)
+    create_folders(save_path=input_scenario_folder_path, sector_folder=True)
 
-    # output paths
-    path_p_buses = output_path + "/Power/buses.csv"
-    path_p_fuel_supplies = output_path + "/Power/fuel_supplies.csv"
-    path_p_storage_energy = output_path + "/Power/storage_energy.csv"
-    path_p_loads = output_path + "/Power/loads.csv"
-    path_p_generators = output_path + "/Power/power_generators.csv"
-    path_p_storage_capacity = output_path + "/Power/storage_capacity.csv"
-    path_p_interconnector = output_path + "/Power/interconnector.csv"
-    path_p_links = output_path + "/Power/power_links.csv"
-    path_p_decom_capacity = output_path + "/Power/decomission_capacity.csv"
+    # create a scenario_config.yaml template file
+    yaml_files = glob.glob(f"{input_scenario_folder_path}/*.yaml")
+    if len(yaml_files) == 0:
+        shutil.copyfile(
+            "data/scenario_config_template/scenario_config.default.yaml",
+            f"{input_scenario_folder_path}/scenario_config.yaml",
+        )
 
-    path_i_buses = output_path + "/Industry/buses.csv"
-    path_i_storage_energy = output_path + "/Industry/storage_energy.csv"
-    path_i_loads = output_path + "/Industry/loads.csv"
-    path_i_heat_generators = output_path + "/Industry/heat_generators.csv"
-    path_i_storage_capacity = output_path + "/Industry/storage_capacity.csv"
-    path_i_heat_links = output_path + "/Industry/heat_links.csv"
-    path_i_fuel_conversion = output_path + "/Industry/fuel_conversion.csv"
-    path_i_dac = output_path + "/Industry/direct_air_capture.csv"
-    path_i_decom_capacity = output_path + "/Industry/decomission_capacity.csv"
+    # output paths for regional templates csvs
+    path_p_buses = input_scenario_folder_path + "/power/buses.csv"
+    path_p_fuel_supplies = input_scenario_folder_path + "/power/fuel_supplies.csv"
+    path_p_storage_energy = input_scenario_folder_path + "/power/storage_energy.csv"
+    path_p_loads = input_scenario_folder_path + "/power/loads.csv"
+    path_p_generators = input_scenario_folder_path + "/power/power_generators.csv"
+    path_p_storage_capacity = input_scenario_folder_path + "/power/storage_capacity.csv"
+    path_p_interconnector = input_scenario_folder_path + "/power/interconnector.csv"
+    path_p_links = input_scenario_folder_path + "/power/power_links.csv"
+    path_p_decom_capacity = (
+        input_scenario_folder_path + "/power/decomission_capacity.csv"
+    )
 
-    path_t_buses = output_path + "/Transport/buses.csv"
-    path_t_loads = output_path + "/Transport/loads.csv"
-    path_t_pev_storages = output_path + "/Transport/pev_storages.csv"
-    path_t_pev_chargers = output_path + "/Transport/pev_chargers.csv"
+    path_i_buses = input_scenario_folder_path + "/industry/buses.csv"
+    path_i_storage_energy = input_scenario_folder_path + "/industry/storage_energy.csv"
+    path_i_loads = input_scenario_folder_path + "/industry/loads.csv"
+    path_i_heat_generators = (
+        input_scenario_folder_path + "/industry/heat_generators.csv"
+    )
+    path_i_storage_capacity = (
+        input_scenario_folder_path + "/industry/storage_capacity.csv"
+    )
+    path_i_heat_links = input_scenario_folder_path + "/industry/heat_links.csv"
+    path_i_fuel_conversion = (
+        input_scenario_folder_path + "/industry/fuel_conversion.csv"
+    )
+    path_i_dac = input_scenario_folder_path + "/industry/direct_air_capture.csv"
+    path_i_decom_capacity = (
+        input_scenario_folder_path + "/industry/decomission_capacity.csv"
+    )
 
-    # Creating template CSVs and save to defined output paths
+    path_t_buses = input_scenario_folder_path + "/transport/buses.csv"
+    path_t_loads = input_scenario_folder_path + "/transport/loads.csv"
+    path_t_pev_storages = input_scenario_folder_path + "/transport/pev_storages.csv"
+    path_t_pev_chargers = input_scenario_folder_path + "/transport/pev_chargers.csv"
+
+    # Creating regional template CSVs and save to defined output paths
     # ====================================== Power =====================================
     elec_buses_df = create_buses(
         countries=cfg_countries,
@@ -1527,13 +1899,13 @@ if __name__ == "__main__":
         countries=cfg_countries,
         nodes=cfg_nodes,
         years=cfg_years,
-        sector="Industry",
+        sector="industry",
         file_path=path_i_storage_energy,
     )
     create_storage_capacity(
         nodes=cfg_nodes,
         years=cfg_years,
-        sector="Industry",
+        sector="industry",
         file_path=path_i_storage_capacity,
         elec_buses=elec_buses_df,
         ind_buses=ind_buses_df,
@@ -1580,7 +1952,7 @@ if __name__ == "__main__":
 
     # ==================================== Transport ===================================
 
-    create_buses(
+    bus_df = create_buses(
         countries=cfg_countries,
         nodes=cfg_nodes,
         bus_types=TRANSPORT_BUS_TYPES,
@@ -1588,7 +1960,12 @@ if __name__ == "__main__":
     )
     create_loads(
         years=cfg_years,
-        bus_df=create_buses(bus_types=TRANSPORT_BUS_TYPES, return_df=True),
+        bus_df=create_buses(
+            countries=cfg_countries,
+            nodes=cfg_nodes,
+            bus_types=TRANSPORT_BUS_TYPES,
+            return_df=True,
+        ),
         file_path=path_t_loads,
     )
     create_ev_storages(

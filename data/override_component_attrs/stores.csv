@@ -1,5 +1,0 @@
-attribute,type,unit,default,description,status
-node,string,n/a,n/a,node,Input (optional)
-country,string,n/a,n/a,country,Input (optional)
-inv_cost,float,currency/MWh,0,investment cost,Input (optional)
-fom_cost,float,currency/MWh,0,fix operational cost,Input (optional)
