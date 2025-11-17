@@ -22,7 +22,7 @@
     
     
       
-        <title>Transport Sector - PyPSA-SPICE Model Builder Documentation</title>
+        <title>Transport sector - PyPSA-SPICE Model Builder Documentation</title>
       
     
     
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Transport Sector
+              Transport sector
             
           </span>
         </div>
@@ -316,7 +316,7 @@
   
   
   <span class="md-ellipsis">
-    📖 User Guide
+    📖 User guide
     
   </span>
   
@@ -327,7 +327,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            📖 User Guide
+            📖 User guide
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -343,7 +343,7 @@
   
   
   <span class="md-ellipsis">
-    Model Builder Methodology
+    Model builder methodology
     
   </span>
   
@@ -366,7 +366,7 @@
   
   
   <span class="md-ellipsis">
-    Power Sector
+    Power sector
     
   </span>
   
@@ -389,7 +389,7 @@
   
   
   <span class="md-ellipsis">
-    Industry Sector
+    Industry sector
     
   </span>
   
@@ -421,7 +421,7 @@
   
   
   <span class="md-ellipsis">
-    Transport Sector
+    Transport sector
     
   </span>
   
@@ -434,7 +434,7 @@
   
   
   <span class="md-ellipsis">
-    Transport Sector
+    Transport sector
     
   </span>
   
@@ -459,7 +459,7 @@
         <li class="md-nav__item">
   <a href="#key-features" class="md-nav__link">
     <span class="md-ellipsis">
-      Key Features
+      Key features
     </span>
   </a>
   
@@ -468,7 +468,7 @@
         <li class="md-nav__item">
   <a href="#electric-vehicle-chargers" class="md-nav__link">
     <span class="md-ellipsis">
-      Electric Vehicle Chargers
+      Electric vehicle chargers
     </span>
   </a>
   
@@ -477,7 +477,7 @@
         <li class="md-nav__item">
   <a href="#electric-vehicle-storage" class="md-nav__link">
     <span class="md-ellipsis">
-      Electric Vehicle Storage
+      Electric vehicle storage
     </span>
   </a>
   
@@ -504,7 +504,7 @@
         <li class="md-nav__item">
   <a href="#other-components" class="md-nav__link">
     <span class="md-ellipsis">
-      Other Components
+      Other components
     </span>
   </a>
   
@@ -513,7 +513,7 @@
         <li class="md-nav__item">
   <a href="#custom-constraints-defined-in-the-configyaml-file" class="md-nav__link">
     <span class="md-ellipsis">
-      Custom Constraints (Defined in the config.yaml File)
+      Custom constraints (defined in the config.yaml file)
     </span>
   </a>
   
@@ -540,7 +540,7 @@
   
   
   <span class="md-ellipsis">
-    Post Analysis
+    Post analysis
     
   </span>
   
@@ -616,7 +616,7 @@
   
   
   <span class="md-ellipsis">
-    🚀 Getting Started
+    🚀 Getting started
     
   </span>
   
@@ -718,7 +718,7 @@
   
   
   <span class="md-ellipsis">
-    📚 Tutorials and Examples
+    📚 Tutorials and examples
     
   </span>
   
@@ -851,8 +851,8 @@
   
 
 
-<div><h1 id="transport-sector">Transport Sector<a class="headerlink" href="#transport-sector" title="Permanent link">¶</a></h1>
-<h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">¶</a></h2>
+<div><h1 id="transport-sector">Transport sector<a class="headerlink" href="#transport-sector" title="Permanent link">¶</a></h1>
+<h2 id="key-features">Key features<a class="headerlink" href="#key-features" title="Permanent link">¶</a></h2>
 <ul>
 <li>Optimal charging of electric vehicles (EVs), taking into account availability and charging constraints.</li>
 <li>Supply of fuels for transport.</li>
@@ -863,7 +863,7 @@
 <p class="admonition-title">Tip</p>
 <p>In the transport sector, PyPSA-SPICE separated the demand and energy flow into two categories: private and public sector. The public sector (<code>PUB</code>) encompasses public transportation services, while the private sector (<code>PRV</code>) refers to personally owned vehicles.</p>
 </div>
-<h2 id="electric-vehicle-chargers">Electric Vehicle Chargers<a class="headerlink" href="#electric-vehicle-chargers" title="Permanent link">¶</a></h2>
+<h2 id="electric-vehicle-chargers">Electric vehicle chargers<a class="headerlink" href="#electric-vehicle-chargers" title="Permanent link">¶</a></h2>
 <p>All the listed components are defined as <code>Link</code> in PyPSA.</p>
 <table>
 <thead>
@@ -883,12 +883,12 @@
 </tr>
 </tbody>
 </table>
-<h2 id="electric-vehicle-storage">Electric Vehicle Storage<a class="headerlink" href="#electric-vehicle-storage" title="Permanent link">¶</a></h2>
+<h2 id="electric-vehicle-storage">Electric vehicle storage<a class="headerlink" href="#electric-vehicle-storage" title="Permanent link">¶</a></h2>
 <p>All the listed components are defined as <code>Store</code> in PyPSA.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>In PyPSA components, <code>Store</code> is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of <code>store</code> + 2 <code>links</code>. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
-In the transport sector of PyPSA-SPICE model builder, technologies that are defined as storage energy, their links of charging and discharging links are defined in <a href="./#electric-vehicle-chargers">Electric Vehicle Chargers</a>.<br><br>
+<p>In PyPSA components, <code>Store</code> is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of <code>Store</code> + 2 <code>Links</code>. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
+In the transport sector of PyPSA-SPICE model builder, technologies that are defined as storage energy, their links of charging and discharging links are defined in <a href="./#electric-vehicle-chargers">Electric vehicle chargers</a>.<br><br>
 Detailed information and example can be found in <a href="https://docs.pypsa.org/latest/user-guide/components/stores/" target="_blank">PyPSA Components - Store</a> and <a href="https://docs.pypsa.org/latest/examples/replace-generator-storage-units-with-store/" target="_blank">Replace StorageUnits with fundamental Links and Stores</a>.</p>
 </div>
 <table>
@@ -951,7 +951,7 @@ Detailed information and example can be found in <a href="https://docs.pypsa.org
 </tr>
 </tbody>
 </table>
-<h2 id="other-components">Other Components<a class="headerlink" href="#other-components" title="Permanent link">¶</a></h2>
+<h2 id="other-components">Other components<a class="headerlink" href="#other-components" title="Permanent link">¶</a></h2>
 <table>
 <thead>
 <tr>
@@ -962,7 +962,7 @@ Detailed information and example can be found in <a href="https://docs.pypsa.org
 <tbody>
 <tr>
 <td><code>HPV_LOAD</code></td>
-<td>Transport load (High voltage level)</td>
+<td>Transport load (high voltage level)</td>
 </tr>
 <tr>
 <td><code>LPV_LOAD</code></td>
@@ -970,9 +970,9 @@ Detailed information and example can be found in <a href="https://docs.pypsa.org
 </tr>
 </tbody>
 </table>
-<h2 id="custom-constraints-defined-in-the-configyaml-file">Custom Constraints (Defined in the <code>config.yaml</code> File)<a class="headerlink" href="#custom-constraints-defined-in-the-configyaml-file" title="Permanent link">¶</a></h2>
+<h2 id="custom-constraints-defined-in-the-configyaml-file">Custom constraints (defined in the <code>config.yaml</code> file)<a class="headerlink" href="#custom-constraints-defined-in-the-configyaml-file" title="Permanent link">¶</a></h2>
 <ul>
-<li>Coming soon...</li>
+<li>coming soon...</li>
 </ul></div>
 
 
@@ -1009,7 +1009,7 @@ Detailed information and example can be found in <a href="https://docs.pypsa.org
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../industry_sector/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Industry Sector">
+          <a href="../industry_sector/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Industry sector">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1019,20 +1019,20 @@ Detailed information and example can be found in <a href="https://docs.pypsa.org
                 Previous
               </span>
               <div class="md-ellipsis">
-                Industry Sector
+                Industry sector
               </div>
             </div>
           </a>
         
         
           
-          <a href="../post-analysis/" class="md-footer__link md-footer__link--next" aria-label="Next: Post Analysis">
+          <a href="../post-analysis/" class="md-footer__link md-footer__link--next" aria-label="Next: Post analysis">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Post Analysis
+                Post analysis
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -316,7 +316,7 @@
   
   
   <span class="md-ellipsis">
-    📖 User Guide
+    📖 User guide
     
   </span>
   
@@ -367,7 +367,7 @@
   
   
   <span class="md-ellipsis">
-    🚀 Getting Started
+    🚀 Getting started
     
   </span>
   
@@ -378,7 +378,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            🚀 Getting Started
+            🚀 Getting started
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -467,7 +467,7 @@
   
   
   <span class="md-ellipsis">
-    Input Data
+    Input data
     
   </span>
   
@@ -478,7 +478,7 @@
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3_3">
             <span class="md-nav__icon md-icon"></span>
-            Input Data
+            Input data
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -494,7 +494,7 @@
   
   
   <span class="md-ellipsis">
-    Defining a New Model
+    Defining a new model
     
   </span>
   
@@ -517,7 +517,7 @@
   
   
   <span class="md-ellipsis">
-    Global CSV Template
+    Global CSV template
     
   </span>
   
@@ -540,7 +540,7 @@
   
   
   <span class="md-ellipsis">
-    Regional CSV Template
+    Regional CSV template
     
   </span>
   
@@ -642,7 +642,7 @@
         <li class="md-nav__item">
   <a href="#rules-and-functions" class="md-nav__link">
     <span class="md-ellipsis">
-      Rules and Functions
+      Rules and functions
     </span>
   </a>
   
@@ -651,17 +651,17 @@
         <li class="md-nav__item">
   <a href="#running-the-model-builder" class="md-nav__link">
     <span class="md-ellipsis">
-      Running the Model Builder
+      Running the model builder
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Running the Model Builder">
+    <nav class="md-nav" aria-label="Running the model builder">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#run-the-entire-workflow-at-once" class="md-nav__link">
     <span class="md-ellipsis">
-      Run the Entire Workflow at Once
+      Run the entire workflow at once
     </span>
   </a>
   
@@ -670,7 +670,7 @@
           <li class="md-nav__item">
   <a href="#run-a-single-year" class="md-nav__link">
     <span class="md-ellipsis">
-      Run a Single Year
+      Run a single year
     </span>
   </a>
   
@@ -791,7 +791,7 @@
   
   
   <span class="md-ellipsis">
-    📚 Tutorials and Examples
+    📚 Tutorials and examples
     
   </span>
   
@@ -924,12 +924,12 @@
   
 
 
-<div><h1 id="input-data-model-execution">Input Data: Model Execution<a class="headerlink" href="#input-data-model-execution" title="Permanent link">¶</a></h1>
+<div><h1 id="input-data-model-execution">Input data: model execution<a class="headerlink" href="#input-data-model-execution" title="Permanent link">¶</a></h1>
 <p>The execution of the model is orchestrated using <a href="https://snakemake.readthedocs.io/en/stable/" target="_blank">Snakemake</a>, as defined in the project’s <code>Snakefile</code> located in the root directory. Snakemake acts as the workflow engine, coordinating individual rules and chaining them into a single, automated execution process. This allows for scalable, parallel computation across multiple cores or threads.</p>
 <h2 id="execution-of-snakemake-workflow">Execution of Snakemake workflow<a class="headerlink" href="#execution-of-snakemake-workflow" title="Permanent link">¶</a></h2>
 <p>Below is a simplified representation, showing the workflow for the years 2025-2050 with the power sector only.</p>
 <p><img alt="PyPSA-SPICE_snakemake_workflow_DAG" src="../../../assets/images/snakemake_workflow_dag.jpg"></p>
-<h2 id="rules-and-functions">Rules and Functions<a class="headerlink" href="#rules-and-functions" title="Permanent link">¶</a></h2>
+<h2 id="rules-and-functions">Rules and functions<a class="headerlink" href="#rules-and-functions" title="Permanent link">¶</a></h2>
 <p>The table below explains the main Snakemake rules and helper functions used in the PyPSA-SPICE workflow:</p>
 <table>
 <thead>
@@ -963,7 +963,7 @@
 <tr>
 <td><code>solve_network</code></td>
 <td>Snakemake rule</td>
-<td>Solves the model builder for a specific year. This rule is only triggered after either <code>add_baseyear</code> or <code>add_brownfield</code>. Optimization settings are defined in <code>config.yaml</code> (see <a href="../model-builder-configuration/">model-builder-configuration</a>).</td>
+<td>Solves the model builder for a specific year. This rule is only triggered after either <code>add_baseyear</code> or <code>add_brownfield</code>. Optimisation settings are defined in <code>config.yaml</code> (see <a href="../model-builder-configuration/">model-builder-configuration</a>).</td>
 </tr>
 <tr>
 <td><code>solve_all_networks</code></td>
@@ -982,18 +982,18 @@
 </tr>
 </tbody>
 </table>
-<h2 id="running-the-model-builder">Running the Model Builder<a class="headerlink" href="#running-the-model-builder" title="Permanent link">¶</a></h2>
-<h3 id="run-the-entire-workflow-at-once">Run the Entire Workflow at Once<a class="headerlink" href="#run-the-entire-workflow-at-once" title="Permanent link">¶</a></h3>
+<h2 id="running-the-model-builder">Running the model builder<a class="headerlink" href="#running-the-model-builder" title="Permanent link">¶</a></h2>
+<h3 id="run-the-entire-workflow-at-once">Run the entire workflow at once<a class="headerlink" href="#run-the-entire-workflow-at-once" title="Permanent link">¶</a></h3>
 <p>To execute the entire workflow, modify the <code>configfile</code> parameter in the snakemake to point to your scenario <code>config_scenario.yaml</code> file. After this, you can run the whole workflow using:</p>
 <div class="language-bash highlight"><span class="filename">Run the entire model builder workflow at once.</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>snakemake<span class="w"> </span>-j1<span class="w"> </span>-c4<span class="w"> </span>solve_all_networks<span class="w"> </span><span class="c1">#(1)!</span>
 </span></code></pre></div>
 <ol>
-<li><code>-j1</code> means running only 1 job in parallel at a time and <code>-c4</code> means allowing each job to use up to 4 CPU threads. See the <a href="https://snakemake.readthedocs.io/en/stable/executing/cli.html" target="_blank">Snakemake CLI documentation</a> to customize cores, threads, and parallel execution.</li>
+<li><code>-j1</code> means running only 1 job in parallel at a time and <code>-c4</code> means allowing each job to use up to 4 CPU threads. See the <a href="https://snakemake.readthedocs.io/en/stable/executing/cli.html" target="_blank">Snakemake CLI documentation</a> to customise cores, threads, and parallel execution.</li>
 </ol>
 <p>or</p>
 <div class="language-bash highlight"><span class="filename">Running the entire model builder workflow using this call command</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>snakemake<span class="w"> </span>-call
 </span></code></pre></div>
-<h3 id="run-a-single-year">Run a Single Year<a class="headerlink" href="#run-a-single-year" title="Permanent link">¶</a></h3>
+<h3 id="run-a-single-year">Run a single year<a class="headerlink" href="#run-a-single-year" title="Permanent link">¶</a></h3>
 <p>If you want to run a specific year instead of running multiple years, You can do it using the following command:</p>
 <div class="language-bash highlight"><span class="filename">Option 2: Run a single output file.</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>snakemake<span class="w"> </span>-j1<span class="w"> </span>-c4<span class="w"> </span>post-solve/elec_<span class="o">{</span>SECTOR<span class="o">}</span>_<span class="o">{</span>YEAR<span class="o">}</span>.nc
 </span></code></pre></div>

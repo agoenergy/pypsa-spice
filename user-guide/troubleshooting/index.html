@@ -316,7 +316,7 @@
   
   
   <span class="md-ellipsis">
-    📖 User Guide
+    📖 User guide
     
   </span>
   
@@ -327,7 +327,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            📖 User Guide
+            📖 User guide
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -343,7 +343,7 @@
   
   
   <span class="md-ellipsis">
-    Model Builder Methodology
+    Model builder methodology
     
   </span>
   
@@ -366,7 +366,7 @@
   
   
   <span class="md-ellipsis">
-    Power Sector
+    Power sector
     
   </span>
   
@@ -389,7 +389,7 @@
   
   
   <span class="md-ellipsis">
-    Industry Sector
+    Industry sector
     
   </span>
   
@@ -412,7 +412,7 @@
   
   
   <span class="md-ellipsis">
-    Transport Sector
+    Transport sector
     
   </span>
   
@@ -435,7 +435,7 @@
   
   
   <span class="md-ellipsis">
-    Post Analysis
+    Post analysis
     
   </span>
   
@@ -505,7 +505,7 @@
         <li class="md-nav__item">
   <a href="#setup-debugger" class="md-nav__link">
     <span class="md-ellipsis">
-      Setup Debugger
+      Setup debugger
     </span>
   </a>
   
@@ -514,7 +514,7 @@
         <li class="md-nav__item">
   <a href="#infeasibility-issues" class="md-nav__link">
     <span class="md-ellipsis">
-      Infeasibility Issues
+      Infeasibility issues
     </span>
   </a>
   
@@ -523,16 +523,16 @@
         <li class="md-nav__item">
   <a href="#tips-for-diagnosing-the-problem" class="md-nav__link">
     <span class="md-ellipsis">
-      Tips for Diagnosing the Problem
+      Tips for diagnosing the problem
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#more-detailedinformation" class="md-nav__link">
+  <a href="#more-detailed-information" class="md-nav__link">
     <span class="md-ellipsis">
-      More detailedinformation
+      More detailed information
     </span>
   </a>
   
@@ -589,7 +589,7 @@
   
   
   <span class="md-ellipsis">
-    🚀 Getting Started
+    🚀 Getting started
     
   </span>
   
@@ -691,7 +691,7 @@
   
   
   <span class="md-ellipsis">
-    📚 Tutorials and Examples
+    📚 Tutorials and examples
     
   </span>
   
@@ -825,7 +825,7 @@
 
 
 <div><h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h1>
-<h2 id="setup-debugger">Setup Debugger<a class="headerlink" href="#setup-debugger" title="Permanent link">¶</a></h2>
+<h2 id="setup-debugger">Setup debugger<a class="headerlink" href="#setup-debugger" title="Permanent link">¶</a></h2>
 <p>To test the workflow using Snakemake rules, a configuration file <code>launch.json</code> with the following content is required:</p>
 <div class="language-json highlight"><span class="filename">Debugger configurations</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.2.0"</span><span class="p">,</span>
@@ -843,7 +843,7 @@
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="p">}</span>
 </span></code></pre></div>
 <p>Once this file is set up, you can easily run any Python file in the <code>scripts</code> folder under debugger mode for testing.</p>
-<h2 id="infeasibility-issues">Infeasibility Issues<a class="headerlink" href="#infeasibility-issues" title="Permanent link">¶</a></h2>
+<h2 id="infeasibility-issues">Infeasibility issues<a class="headerlink" href="#infeasibility-issues" title="Permanent link">¶</a></h2>
 <p>If your model is <strong>infeasible</strong> or <strong>unbounded</strong>, it often means that your input settings are leading to a situation where PyPSA can’t solve one or more objective functions. Common causes are:</p>
 <ul>
 <li>Insufficient generator capacity at a bus to meet the load across all snapshots.</li>
@@ -852,7 +852,7 @@
 <li>Maximum capacity (<code>p_nom_max</code>) is smaller than minimum capacity (<code>p_nom_min</code>).</li>
 <li>Storage units has inflow and cyclic charging (<code>cyclic_state_of_charge = True</code>) but no discharging capability.</li>
 </ul>
-<h2 id="tips-for-diagnosing-the-problem">Tips for Diagnosing the Problem<a class="headerlink" href="#tips-for-diagnosing-the-problem" title="Permanent link">¶</a></h2>
+<h2 id="tips-for-diagnosing-the-problem">Tips for diagnosing the problem<a class="headerlink" href="#tips-for-diagnosing-the-problem" title="Permanent link">¶</a></h2>
 <p>Try the following steps to identify and fix the issue:</p>
 <ul>
 <li>Run <code>pypsa.network.consistency_check()</code> to check if any warnings appear.</li>
@@ -868,7 +868,7 @@
 </ul>
 </li>
 </ul>
-<h2 id="more-detailedinformation">More detailedinformation<a class="headerlink" href="#more-detailedinformation" title="Permanent link">¶</a></h2>
+<h2 id="more-detailed-information">More detailed information<a class="headerlink" href="#more-detailed-information" title="Permanent link">¶</a></h2>
 <p><a href="https://pypsa--1250.org.readthedocs.build/en/1250/user-guide/troubleshooting/#optimisation-convergence-infeasibility">PyPSA</a> also provides official guidance on solving infeasiblity issues. You can also explore the link to seek for a good solution.</p></div>
 
 
@@ -905,7 +905,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../post-analysis/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Post Analysis">
+          <a href="../post-analysis/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Post analysis">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -915,7 +915,7 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Post Analysis
+                Post analysis
               </div>
             </div>
           </a>

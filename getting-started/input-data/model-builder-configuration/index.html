@@ -316,7 +316,7 @@
   
   
   <span class="md-ellipsis">
-    📖 User Guide
+    📖 User guide
     
   </span>
   
@@ -367,7 +367,7 @@
   
   
   <span class="md-ellipsis">
-    🚀 Getting Started
+    🚀 Getting started
     
   </span>
   
@@ -378,7 +378,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            🚀 Getting Started
+            🚀 Getting started
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -467,7 +467,7 @@
   
   
   <span class="md-ellipsis">
-    Input Data
+    Input data
     
   </span>
   
@@ -478,7 +478,7 @@
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3_3">
             <span class="md-nav__icon md-icon"></span>
-            Input Data
+            Input data
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -494,7 +494,7 @@
   
   
   <span class="md-ellipsis">
-    Defining a New Model
+    Defining a new model
     
   </span>
   
@@ -517,7 +517,7 @@
   
   
   <span class="md-ellipsis">
-    Global CSV Template
+    Global CSV template
     
   </span>
   
@@ -540,7 +540,7 @@
   
   
   <span class="md-ellipsis">
-    Regional CSV Template
+    Regional CSV template
     
   </span>
   
@@ -647,7 +647,7 @@
           <li class="md-nav__item">
   <a href="#energy-independence-mathematical-formulation" class="md-nav__link">
     <span class="md-ellipsis">
-      Energy Independence: Mathematical Formulation
+      Energy independence: mathematical formulation
     </span>
   </a>
   
@@ -656,7 +656,7 @@
           <li class="md-nav__item">
   <a href="#reserve-margin-mathematical-formulation" class="md-nav__link">
     <span class="md-ellipsis">
-      Reserve Margin: Mathematical Formulation
+      Reserve margin: mathematical formulation
     </span>
   </a>
   
@@ -809,7 +809,7 @@
   
   
   <span class="md-ellipsis">
-    📚 Tutorials and Examples
+    📚 Tutorials and examples
     
   </span>
   
@@ -960,7 +960,7 @@ SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
-</head><body><h1 id="input-data-model-builder-configuration">Input Data: Model Builder Configuration<a class="headerlink" href="#input-data-model-builder-configuration" title="Permanent link">¶</a></h1>
+</head><body><h1 id="input-data-model-builder-configuration">Input data: model builder configuration<a class="headerlink" href="#input-data-model-builder-configuration" title="Permanent link">¶</a></h1>
 <p>PyPSA-SPICE requires two configuration files:</p>
 <ol>
 <li>
@@ -986,7 +986,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 </ol>
 <p>The path for the skeleton folder follows the pattern: <code>data_folder_name</code>/<code>project_name</code>/input/<code>input_scenario_name</code>.
 The path for the output folder follows the pattern: <code>data_folder_name</code>/<code>project_name</code>/results/<code>output_scenario_name</code>.</p>
-<p>This config file is used for both creating a new model via <code>snakemake -c1 build_skeleton</code> (see the section on <a href="../new-model/">defining a new model</a>) and used for running different instances of the model.</p>
+<p>This config file is used for both creating a new model via <code>snakemake -c1 build_skeleton</code> (see the section on <a href="../new-model/">Defining a new model</a>) and used for running different instances of the model.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Make sure your snakemake file points to correct config file. To run different scenarios, you just need to change the snakemake file to the corresponding scenario config file.</p>
@@ -1020,13 +1020,13 @@ The path for the output folder follows the pattern: <code>data_folder_name</code
 </span></code></pre></div>
 <ol>
 <li>Defines the start and end dates for the model’s time period. Dates are in <strong>"YYYY-MM-DD"</strong> format.</li>
-<li>The model performs optimization on a yearly basis, with each modeling year defined as 8760 hours for hourly resolution. If the selected base year is a leap year, it is recommended to set the end date to <code>-12-31</code> of that year.</li>
+<li>The model performs optimisation on a yearly basis, with each modelling year defined as 8,760 hours for hourly resolution. If the selected base year is a leap year, it is recommended to set the end date to <code>-12-31</code> of that year.</li>
 <li>Defines which side of the selected snapshot should be included in the model builder. In the given example, if this parameter is set to <code>left</code>, the zeroth hour of the start time snapshot i.e. <code>2025-01-01 00:00</code> will be included in the model while the <code>2026-01-01 00:00</code> will not be included. We recommend to leave this as is.</li>
 <li>Determines the method used by the model to deal with the time steps. For testing this reduces the compute time. Available options are <code>nth_hour</code> (recommended) and <code>clustered</code>. Depending on the selected option, one other parameter in the <code>resolution</code> section should be set.</li>
 <li>If <code>method = "clustered"</code>, the number of representative days should be provided to group time steps and form the model builder timestamps. For example, if <code>number_of_days: 3</code>, the model builder will only solve 72 hours in the entire year.</li>
 <li>This is used when <code>method = "nth_hour"</code>. In this case, the model builder will run at every <strong>n-th</strong> hour. Typical value to use for this would be 25, so every 25th hour is included in the model. To run the model at hourly resolution (the highest temporal resolution in the model builder), then it needs to be set to 1.</li>
 <li>Interest rate in decimal form (e.g., 0.05 represents 5%).</li>
-<li>Removes non expandable assets with a capacity below this threshold (in MW) to avoid numerical issues during optimization.</li>
+<li>Removes non expandable assets with a capacity below this threshold (in MW) to avoid numerical issues during optimisation.</li>
 </ol>
 <h2 id="scenario_configyaml-mandatory-constraints">scenario_config.yaml - mandatory constraints<a class="headerlink" href="#scenario_configyaml-mandatory-constraints" title="Permanent link">¶</a></h2>
 <p>The CO<sub>2</sub> management is the most important and mandatory constraint in the model. The model allows for two different instruments to decrease CO<sub>2</sub> emissions: CO<sub>2</sub> price or CO<sub>2</sub> constraint. You can choose between each of these but not both.
@@ -1053,8 +1053,8 @@ The variables listed below should be filled out for each country individually.</
 </span></code></pre></div>
 <ol>
 <li>Please indicate country/region specific CO<sub>2</sub> management mode: <code>"co2_cap"</code> or <code>"co2_price"</code>.</li>
-<li>Goal is to minimize the CO<sub>2</sub> emissions in each year and target values are given in <strong>mtCO<sub>2</sub></strong>.</li>
-<li>Goal is to minimize the emission price (<code>"co2_price"</code>) in the system and target values are in <strong>$/tCO<sub>2</sub></strong>.</li>
+<li>Goal is to minimise the CO<sub>2</sub> emissions in each year and target values are given in <strong>mtCO<sub>2</sub></strong>.</li>
+<li>Goal is to minimise the emission price (<code>"co2_price"</code>) in the system and target values are in <strong>USD/tCO<sub>2</sub></strong>.</li>
 </ol>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -1115,7 +1115,7 @@ The variables listed below should be filled out for each country individually.</
 <ol>
 <li>The model adds constraints to ensure energy independence. This indicates how much of energy needs are met without relying on imports (by producing enough energy domestically). You can refer to Constraint - Energy Independence for more information.<br>To deactivate it, you can exclude them in the <code>custom_constraints</code>, and the model will identify it as deactivated.</li>
 <li>Primary energy conversion factor (dimensionless) is used to convert electricity generation to <code>primary energy</code> to make renewables comparable to fossil at primary energy level. Different definitions can be used to arrive at the value of these.</li>
-<li><strong>Minimum</strong> energy independence fraction defined as: $$ \frac{\textit{locally produced energy}}{\textit{locally produced energy + imported energy}} $$ For details see <code>Energy Independence constraint</code> below.</li>
+<li><strong>Minimum</strong> energy independence fraction defined as: $$ \frac{\textit{locally produced energy}}{\textit{locally produced energy + imported energy}} $$ For details see <code>Energy independence constraint</code> below.</li>
 <li>Maximum production limit of certain fuels can be defined here. Maximum values for these fuels are defined in <code>Power/fuel_supplies.csv</code>.<br>To deactivate it, you can remove them in the <code>custom_constraints</code>, and the model will identify it as dectivated.</li>
 <li>The model adds reserve margin constraints based on <code>reserve_parameters</code>. See Constraint - Reserve Margin for more information.<br>To deactivate it, you can exclude them in the <code>custom_constraints</code>, and the model will identify it as dectivated.</li>
 <li>Fraction of load considered as reserve.</li>
@@ -1130,7 +1130,7 @@ The variables listed below should be filled out for each country individually.</
 <li>Maximum capacity factor of certain technologies can be defined here.<br>To deactivate it, you can exclude them in the <code>custom_constraints</code>, and the model will identify it as dectivated.</li>
 </ol>
 <p>In the following two sub-sections, we provide more information about the definition of energy independence and reserve margin.</p>
-<h3 id="energy-independence-mathematical-formulation">Energy Independence: Mathematical Formulation<a class="headerlink" href="#energy-independence-mathematical-formulation" title="Permanent link">¶</a></h3>
+<h3 id="energy-independence-mathematical-formulation">Energy independence: mathematical formulation<a class="headerlink" href="#energy-independence-mathematical-formulation" title="Permanent link">¶</a></h3>
 <p>This constraint forces the model to keep the ratio of locally produced power to the sum of locally produced power and imported power to be more than the minimum energy independence factor:</p>
 <p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi>l</mi><mi>o</mi><mi>c</mi></mrow><mrow><mi>i</mi><mi>m</mi><mi>p</mi><mo>+</mo><mi>l</mi><mi>o</mi><mi>c</mi></mrow></mfrac><mo>≥</mo><mi>ϕ</mi><mspace width="2em"></mspace><mo>⟹</mo><mspace width="2em"></mspace><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>ϕ</mi><mo stretchy="false">)</mo><mo>⋅</mo><mi>l</mi><mi>o</mi><mi>c</mi><mo>&gt;</mo><mo>=</mo><mi>ϕ</mi><mo>⋅</mo><mi>i</mi><mi>m</mi><mi>p</mi></mrow><annotation encoding="application/x-tex">
 \frac{loc}{imp + loc} \ge \phi \qquad \Longrightarrow \qquad (1 -\phi) \cdot loc &gt;= \phi \cdot imp
@@ -1167,7 +1167,7 @@ The variables listed below should be filled out for each country individually.</
 </tr>
 </tbody>
 </table>
-<h3 id="reserve-margin-mathematical-formulation">Reserve Margin: Mathematical Formulation<a class="headerlink" href="#reserve-margin-mathematical-formulation" title="Permanent link">¶</a></h3>
+<h3 id="reserve-margin-mathematical-formulation">Reserve margin: mathematical formulation<a class="headerlink" href="#reserve-margin-mathematical-formulation" title="Permanent link">¶</a></h3>
 <p>The reserve margin constraint in PyPSA-SPICE is modeled similarly to the <a href="https://genxproject.github.io/GenX.jl/stable/Model_Reference/core/#Operational-Reserves" target="_blank">GenX</a> approach.</p>
 <p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><munder><mo>∑</mo><mi>g</mi></munder><msub><mi>r</mi><mrow><mi>g</mi><mo separator="true">,</mo><mi>t</mi></mrow></msub><mo>≥</mo><msup><mi>ϵ</mi><mrow><mi>l</mi><mi>o</mi><mi>a</mi><mi>d</mi></mrow></msup><mo>⋅</mo><munder><mo>∑</mo><mi>n</mi></munder><msub><mi>d</mi><mrow><mi>n</mi><mo separator="true">,</mo><mi>t</mi></mrow></msub><mo>+</mo><msup><mi>ϵ</mi><mrow><mi>v</mi><mi>r</mi><mi>e</mi><mi>s</mi></mrow></msup><mo>⋅</mo><munder><mo>∑</mo><mrow><mi>g</mi><mo>∈</mo><msup><mi mathvariant="script">G</mi><mrow><mi>V</mi><mi>R</mi><mi>E</mi><mi>S</mi></mrow></msup></mrow></munder><msub><mover accent="true"><mi>g</mi><mo>ˉ</mo></mover><mrow><mi>g</mi><mo separator="true">,</mo><mi>t</mi></mrow></msub><mo>⋅</mo><msub><mi>G</mi><mi>g</mi></msub><mo>+</mo><mrow><mi>c</mi><mi>o</mi><mi>n</mi><mi>t</mi><mi>i</mi><mi>n</mi><mi>g</mi><mi>e</mi><mi>n</mi><mi>c</mi><mi>y</mi></mrow><mspace width="2em"></mspace><mi mathvariant="normal">∀</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">
 \sum_g r_{g,t} \ge \epsilon^{load} \cdot \sum_n d_{n,t} + \epsilon^{vres} \cdot \sum_{g \in \mathcal{G}^{VRES}} \bar g_{g,t} \cdot G_g + {contingency} \qquad \forall t
@@ -1286,13 +1286,13 @@ The variables listed below should be filled out for each country individually.</
 <ol>
 <li>Compatible solvers are <code>gurobi</code>, <code>cplex</code>, <code>cbc</code>, and <code>highs</code>.</li>
 <li>Depending on the selected solver, specify one of the corresponding options: <code>cbc-default</code>, <code>gurobi-default</code>, <code>gurobi-numeric-focus</code>, <code>cplex-default</code>, <code>highs-default</code>, or <code>highs-simplex</code>.</li>
-<li><code>oetc</code> is a colud computing service provided by <a href="https://openenergytransition.org/" target="_blank">Open Energy Trainsition</a> Organization. To access and activate the service. Please reach out to us for more details.</li>
+<li><code>oetc</code> is a colud computing service provided by <a href="https://openenergytransition.org/" target="_blank">Open Energy Trainsition</a> Organisation. To access and activate the service. Please reach out to us for more details.</li>
 <li>Solver options can be adjusted in the following list. If no value is provided in the <code>solver/option</code> section, the default <code>solver_options</code>, which is empty, will be considered.</li>
 <li>Number of CPU threads to be used by the solver for parallel computation to speed up solving time.</li>
 <li>Cutting planes are typically used to tighten the problem and improve performance (usually beneficial in MIP problems). By disabling them solution will be obtained faster but potentially at the cost of optimality.</li>
 <li>Limits the solver to finding only one solution. The solver will stop once it finds a feasible solution (instead of finding all solutions).</li>
 <li>Specifies that the solver should stop if it finds a solution within 10% of the best possible bound. This is useful for faster solutions when absolute optimality is not required.</li>
-<li>Enabling <code>presolve</code> simplifies the problem before starting the optimization to make it faster and more stable.</li>
+<li>Enabling <code>presolve</code> simplifies the problem before starting the optimisation to make it faster and more stable.</li>
 <li>Sets a time limit for the solver (here 3600 seconds = 1 hour). The solver will stop if it exceeds this limit.</li>
 <li>Number of CPU threads to be used by the solver for parallel computation to speed up solving time.</li>
 <li>Algorithm used to solve continuous models or the initial root relaxation of a MIP model. <code>-1</code> chooses the algorithm automatically and other options are explained in <a href="https://docs.gurobi.com/projects/optimizer/en/current/reference/parameters.html#method" target="_blank">Gurobi documentation</a> for more information.</li>
@@ -1300,7 +1300,7 @@ The variables listed below should be filled out for each country individually.</
 <li>The barrier solver terminates when the relative difference between the primal and dual objective values is less than the specified tolerance. This parameter is in <code>[0, 1]</code> range and the default value is <code>1e-8</code>.</li>
 <li>A parameter that controls the amount of <strong>fill</strong> allowed during the aggregation phase of presolve. <code>AggFill</code> determines how aggressively Gurobi merges constraints during aggregation. Higher values can potentially lead to more simplification but may also introduce numerical instability. <code>-1</code> chooses aggregation fill automatically and <code>0</code> disables it.</li>
 <li>Determines whether the solver should dualize the problem during the presolve phase. Depending on the structure of the model, solving the dual can reduce overall solution time. The default setting (<code>-1</code>) decides about it automatically. Setting <code>0</code> forbids presolve from forming the dual, while setting <code>1</code> forces it to take the dual.</li>
-<li>Sets the threshold for determining when a column in the constraint matrix is considered <strong>dense</strong> during barrier optimization. When the constraint matrix is dense, it means its non-zero elements are more than the <code>GURO_PAR_BARDENSETHRESH</code> value.</li>
+<li>Sets the threshold for determining when a column in the constraint matrix is considered <strong>dense</strong> during barrier optimisation. When the constraint matrix is dense, it means its non-zero elements are more than the <code>GURO_PAR_BARDENSETHRESH</code> value.</li>
 <li>With higher values, the model will spend more time checking the numerical accuracy of intermediate results.</li>
 <li>Algorithm used to solve continuous models or the initial root relaxation of a MIP model. <code>-1</code> chooses the algorithm automatically and other options are explained in <a href="https://docs.gurobi.com/projects/optimizer/en/current/reference/parameters.html#method" target="_blank">Gurobi documentation</a> for more information.</li>
 <li>Barrier crossover strategy. <code>-1</code> chooses strategy automatically and <code>0</code> disables crossover, which will speed up the solution process but might reduce solution quality. Other options are explained in <a href="https://docs.gurobi.com/projects/optimizer/en/current/reference/parameters.html#crossover" target="_blank">Gurobi documentation</a>.</li>
@@ -1310,7 +1310,7 @@ The variables listed below should be filled out for each country individually.</
 <li>This parameter defines how close the solution needs to be to the best possible answer before the solver stops. It is in <code>[1e-9, 1e-2]</code> range and the default value is <code>1e-6</code>.</li>
 <li><strong>Positive values:</strong> divides the objective by the specified value to avoid numerical issues that may result from very large or very small objective coefficients. <strong>Negative values:</strong> uses the maximum coefficient <strong>to the specified power</strong> as the scaling (so ObjScale=-0.5 would scale by the square root of the largest objective coefficient). <strong>Default:</strong> <code>0</code> which means the model decides on the scaling automatically.</li>
 <li>Number of CPU threads to be used by the solver for parallel computation to speed up solving time.</li>
-<li>Fixed <code>Seed</code> values must be set if you want to get the same results (i.e., reproducibility of the optimization process). The value does not matter.</li>
+<li>Fixed <code>Seed</code> values must be set if you want to get the same results (i.e., reproducibility of the optimisation process). The value does not matter.</li>
 <li>Number of CPU threads to be used by the solver for parallel computation to speed up solving time.</li>
 <li>This parameter changes the algorithm and accepts an integer from <code>0</code> to <code>6</code>, where <code>0</code> denotes automatic choice of the algorithm, <code>1</code> is for primal simplex, <code>2</code> is for dual simplex, and <code>4</code> is for barrier.</li>
 <li>Crossover can be turned off with <code>solutiontype=2</code> that instructs CPLEX not to seek a basic solution. This can be useful for a quick insight of the approx. optimal solution, if crossover takes long time.</li>
@@ -1322,10 +1322,10 @@ The variables listed below should be filled out for each country individually.</
 <li>Range: <code>[1e-10, inf]</code>, default: <code>1e-07</code>.</li>
 <li>Range: <code>[1e-10, inf]</code>, default: <code>1e-07</code>.</li>
 <li>Range: <code>[1e-10, inf]</code>, default: <code>1e-07</code>.</li>
-<li>Fixed <code>random_seed</code> values must be set if you want to get the same results (i.e., reproducibility of the optimization process). The value does not matter.</li>
+<li>Fixed <code>random_seed</code> values must be set if you want to get the same results (i.e., reproducibility of the optimisation process). The value does not matter.</li>
 <li>Range: <code>[1e-10, inf]</code>, default: <code>1e-07</code>.</li>
 <li>Range: <code>[1e-12, inf]</code>, default: <code>1e-08</code>.</li>
-<li>Fixed <code>random_seed</code> values must be set if you want to get the same results (i.e., reproducibility of the optimization process). The value does not matter.</li>
+<li>Fixed <code>random_seed</code> values must be set if you want to get the same results (i.e., reproducibility of the optimisation process). The value does not matter.</li>
 </ol></body></html>
 
 
@@ -1362,7 +1362,7 @@ The variables listed below should be filled out for each country individually.</
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../regional_csv_template/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Regional CSV Template">
+          <a href="../regional_csv_template/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Regional CSV template">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1372,7 +1372,7 @@ The variables listed below should be filled out for each country individually.</
                 Previous
               </span>
               <div class="md-ellipsis">
-                Regional CSV Template
+                Regional CSV template
               </div>
             </div>
           </a>

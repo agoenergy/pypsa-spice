@@ -22,7 +22,7 @@
     
     
       
-        <title>Post Analysis - PyPSA-SPICE Model Builder Documentation</title>
+        <title>Post analysis - PyPSA-SPICE Model Builder Documentation</title>
       
     
     
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Post Analysis
+              Post analysis
             
           </span>
         </div>
@@ -316,7 +316,7 @@
   
   
   <span class="md-ellipsis">
-    📖 User Guide
+    📖 User guide
     
   </span>
   
@@ -327,7 +327,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            📖 User Guide
+            📖 User guide
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -343,7 +343,7 @@
   
   
   <span class="md-ellipsis">
-    Model Builder Methodology
+    Model builder methodology
     
   </span>
   
@@ -366,7 +366,7 @@
   
   
   <span class="md-ellipsis">
-    Power Sector
+    Power sector
     
   </span>
   
@@ -389,7 +389,7 @@
   
   
   <span class="md-ellipsis">
-    Industry Sector
+    Industry sector
     
   </span>
   
@@ -412,7 +412,7 @@
   
   
   <span class="md-ellipsis">
-    Transport Sector
+    Transport sector
     
   </span>
   
@@ -444,7 +444,7 @@
   
   
   <span class="md-ellipsis">
-    Post Analysis
+    Post analysis
     
   </span>
   
@@ -457,7 +457,7 @@
   
   
   <span class="md-ellipsis">
-    Post Analysis
+    Post analysis
     
   </span>
   
@@ -482,7 +482,7 @@
         <li class="md-nav__item">
   <a href="#netcdf-files-nc-files" class="md-nav__link">
     <span class="md-ellipsis">
-      NetCDF Files (*.nc Files)
+      NetCDF files (*.nc files)
     </span>
   </a>
   
@@ -491,7 +491,7 @@
         <li class="md-nav__item">
   <a href="#excel-ready-csvs" class="md-nav__link">
     <span class="md-ellipsis">
-      Excel-Ready CSVs
+      Excel-ready CSVs
     </span>
   </a>
   
@@ -507,9 +507,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dynamic-visualization" class="md-nav__link">
+  <a href="#dynamic-visualisation" class="md-nav__link">
     <span class="md-ellipsis">
-      Dynamic Visualization
+      Dynamic visualisation
     </span>
   </a>
   
@@ -589,7 +589,7 @@
   
   
   <span class="md-ellipsis">
-    🚀 Getting Started
+    🚀 Getting started
     
   </span>
   
@@ -691,7 +691,7 @@
   
   
   <span class="md-ellipsis">
-    📚 Tutorials and Examples
+    📚 Tutorials and examples
     
   </span>
   
@@ -824,9 +824,9 @@
   
 
 
-<div><h1 id="standard-output-from-the-snakemake-workflow">Standard Output from the Snakemake Workflow<a class="headerlink" href="#standard-output-from-the-snakemake-workflow" title="Permanent link">¶</a></h1>
+<div><h1 id="standard-output-from-the-snakemake-workflow">Standard output from the Snakemake workflow<a class="headerlink" href="#standard-output-from-the-snakemake-workflow" title="Permanent link">¶</a></h1>
 <p>The following NetCDF files, CSVs, and charts are generated automatically after the whole Snakemake workflow is successfully executed.</p>
-<h2 id="netcdf-files-nc-files">NetCDF Files (<code>*.nc</code> Files)<a class="headerlink" href="#netcdf-files-nc-files" title="Permanent link">¶</a></h2>
+<h2 id="netcdf-files-nc-files">NetCDF files (<code>*.nc</code> files)<a class="headerlink" href="#netcdf-files-nc-files" title="Permanent link">¶</a></h2>
 <p><a href="https://en.wikipedia.org/wiki/NetCDF" target="_blank">NetCDF (Network Common Data Form)</a> is a data format for efficiently storing multi-dimensional arrays. By default, the PyPSA-SPICE model creates:</p>
 <ul>
 <li><strong>Pre-solve networks</strong> in the <code>results/pre-solve</code> directory in the <code>project_name</code> folder.</li>
@@ -834,8 +834,8 @@
 <li><strong>Post networks</strong> in the <code>results/post-solve</code> directory in the <code>project_name</code> folder.</li>
 </ul>
 <p>These <code>*.nc</code> files allow users to examine the model’s structure, inputs, and results before and after optimisation.</p>
-<h2 id="excel-ready-csvs">Excel-Ready CSVs<a class="headerlink" href="#excel-ready-csvs" title="Permanent link">¶</a></h2>
-<p>The following CSV files are created automatically. Each file represents a key indicator, broken down by sector and modeling year or hour, depending on granularity.</p>
+<h2 id="excel-ready-csvs">Excel-ready CSVs<a class="headerlink" href="#excel-ready-csvs" title="Permanent link">¶</a></h2>
+<p>The following CSV files are created automatically. Each file represents a key indicator, broken down by sector and modelling year or hour, depending on granularity.</p>
 <table>
 <thead>
 <tr>
@@ -850,97 +850,97 @@
 <td><code>ene_avg_fuel_costs_fuel_yearly</code></td>
 <td>Energy</td>
 <td>currency/MWh<sub>th</sub></td>
-<td>Average fuel costs by modeling year</td>
+<td>Average fuel costs by modelling year</td>
 </tr>
 <tr>
 <td><code>ene_costs_opex_capex_yearly</code></td>
 <td>Energy</td>
 <td>million currency</td>
-<td>Total CAPEX and OPEX in energy sectors by modeling year</td>
+<td>Total CAPEX and OPEX in energy sectors by modelling year</td>
 </tr>
 <tr>
 <td><code>ene_dmd_by_carrier_yearly</code></td>
 <td>Energy</td>
 <td>TWh</td>
-<td>Energy demand by carrier (e.g., <code>Electricity</code>) by modeling year</td>
+<td>Energy demand by carrier (e.g., <code>Electricity</code>) by modelling year</td>
 </tr>
 <tr>
 <td><code>ene_emi_by_carrier_by_sector_yearly</code></td>
 <td>Energy</td>
 <td>MtCO<sub>2</sub></td>
-<td>Total emissions by carrier and sector by modeling year</td>
+<td>Total emissions by carrier and sector by modelling year</td>
 </tr>
 <tr>
 <td><code>ene_fom_by_type_yearly</code></td>
 <td>Energy</td>
 <td>million currency</td>
-<td>Total fixed operation and maintenance cost by technology (e.g., <code>CCGT</code>) by modeling year</td>
+<td>Total fixed operation and maintenance cost by technology (e.g., <code>CCGT</code>) by modelling year</td>
 </tr>
 <tr>
 <td><code>ene_gen_by_carrier_yearly</code></td>
 <td>Energy</td>
 <td>TWh</td>
-<td>Total generation by carrier (e.g., <code>Electricity</code>) by modeling year</td>
+<td>Total generation by carrier (e.g., <code>Electricity</code>) by modelling year</td>
 </tr>
 <tr>
 <td><code>ene_opex_by_type_yearly</code></td>
 <td>Energy</td>
 <td>million currency</td>
-<td>OPEX in energy sectors by technology (e.g., <code>CCGT</code>) by modeling year</td>
+<td>OPEX in energy sectors by technology (e.g., <code>CCGT</code>) by modelling year</td>
 </tr>
 <tr>
 <td><code>ind_cap_by_carrier_by_region_yearly</code></td>
 <td>Industry</td>
 <td>GW</td>
-<td>Installed capacity in the industry sector by carrier and region/node, and by modeling year</td>
+<td>Installed capacity in the industry sector by carrier and region/node, and by modelling year</td>
 </tr>
 <tr>
 <td><code>ind_cap_by_type_by_carrier_yearly</code></td>
 <td>Industry</td>
 <td>GW</td>
-<td>Installed capacity in the industry sector by technology and carrier, and by modeling year</td>
+<td>Installed capacity in the industry sector by technology and carrier, and by modelling year</td>
 </tr>
 <tr>
 <td><code>ind_emi_by_carrier_yearly</code></td>
 <td>Industry</td>
 <td>MtCO<sub>2</sub></td>
-<td>Emissions in the industry sector by carrier by modeling year</td>
+<td>Emissions in the industry sector by carrier by modelling year</td>
 </tr>
 <tr>
 <td><code>ind_gen_by_carrier_by_region_yearly</code></td>
 <td>Industry</td>
 <td>TWh</td>
-<td>Generation in the industry sector by carrier and region/node, and by modeling year</td>
+<td>Generation in the industry sector by carrier and region/node, and by modelling year</td>
 </tr>
 <tr>
 <td><code>ind_gen_by_type_by_carrier_by_heatgroup_yearly</code></td>
 <td>Industry</td>
 <td>TWh</td>
-<td>Generation in the industry sector by technology and carrier, heating group, and by modeling year</td>
+<td>Generation in the industry sector by technology and carrier, heating group, and by modelling year</td>
 </tr>
 <tr>
 <td><code>ind_gen_by_type_hourly</code></td>
 <td>Industry</td>
 <td>MW</td>
-<td>Generation in the industry sector by technology by modeling year</td>
+<td>Generation in the industry sector by technology by modelling year</td>
 </tr>
 <tr>
 <td><code>ind_hh_gen_by_type_hourly</code></td>
 <td>Industry</td>
 <td>MW</td>
-<td>Generation in the industry sector (high-heat) by technology by modeling year</td>
+<td>Generation in the industry sector (high-heat) by technology by modelling year</td>
 </tr>
 <tr>
 <td><code>ind_lh_gen_by_type_hourly</code></td>
 <td>Industry</td>
 <td>MW</td>
-<td>Generation in the industry sector (low-heat)  by technology by modeling year</td>
+<td>Generation in the industry sector (low-heat)  by technology by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_bats_charging_hourly</code></td>
 <td>Power</td>
 <td>MW</td>
-<td>Hourly battery charging profile by modeling year</td>
+<td>Hourly battery charging profile by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_bats_ep_ratio</code></td>
@@ -952,31 +952,31 @@
 <td><code>pow_battery_flows_by_region_hourly</code></td>
 <td>Power</td>
 <td>MW</td>
-<td>Hourly battery flows between different regions/nodes by modeling year</td>
+<td>Hourly battery flows between different regions/nodes by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_cap_by_region_yearly</code></td>
 <td>Power</td>
 <td>GW</td>
-<td>Installed capacity in the power sector by region/node by modeling year</td>
+<td>Installed capacity in the power sector by region/node by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_cap_by_type_yearly</code></td>
 <td>Power</td>
 <td>GW</td>
-<td>Installed capacity in the power sector by technology (e.g., <code>CCGT</code>) by modeling year</td>
+<td>Installed capacity in the power sector by technology (e.g., <code>CCGT</code>) by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_cap_by_type_by_region_yearly</code></td>
 <td>Power</td>
 <td>GW</td>
-<td>Installed capacity in the power sector by technology (e.g., <code>CCGT</code>) by region/node by modeling year</td>
+<td>Installed capacity in the power sector by technology (e.g., <code>CCGT</code>) by region/node by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_capex_by_type_yearly</code></td>
 <td>Power</td>
 <td>million currency</td>
-<td>CAPEX in the power sector by technology (e.g., <code>CCGT</code>) by modeling year</td>
+<td>CAPEX in the power sector by technology (e.g., <code>CCGT</code>) by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_elec_load_by_sector_hourly</code></td>
@@ -988,25 +988,25 @@
 <td><code>pow_emi_by_carrier_yearly</code></td>
 <td>Power</td>
 <td>MtCO<sub>2</sub></td>
-<td>Emissions in the power sector by carrier (e.g., <code>Gas</code>) by modeling year</td>
+<td>Emissions in the power sector by carrier (e.g., <code>Gas</code>) by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_flh_by_type_yearly</code></td>
 <td>Power</td>
 <td>Hours</td>
-<td>Full load hours by technology (e.g., <code>CCGT</code>) by modeling year</td>
+<td>Full load hours by technology (e.g., <code>CCGT</code>) by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_fom_by_type_yearly</code></td>
 <td>Power</td>
 <td>million currency</td>
-<td>Fixed operation and maintenance cost in the power sector by technology (e.g., <code>CCGT</code>) by modeling year</td>
+<td>Fixed operation and maintenance cost in the power sector by technology (e.g., <code>CCGT</code>) by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_gen_by_category_share_yearly</code></td>
 <td>Power</td>
 <td>%</td>
-<td>Fossil-Renewables share by modeling years</td>
+<td>Fossil-Renewables share by modelling years</td>
 </tr>
 <tr>
 <td><code>pow_gen_by_type_hourly</code></td>
@@ -1018,121 +1018,121 @@
 <td><code>pow_gen_by_type_region_hourly</code></td>
 <td>Power</td>
 <td>TWh</td>
-<td>Hourly generation in the power sector by region/node by modeling year</td>
+<td>Hourly generation in the power sector by region/node by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_gen_by_type_yearly</code></td>
 <td>Power</td>
 <td>TWh</td>
-<td>Generation in the power sector by technology (e.g., <code>CCGT</code>) by modeling year</td>
+<td>Generation in the power sector by technology (e.g., <code>CCGT</code>) by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_hdam_flows_by_region_hourly</code></td>
 <td>Power</td>
 <td>MW</td>
-<td>Hourly hydro dam flow profile by modeling year</td>
+<td>Hourly hydro dam flow profile by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_hphs_flows_by_region_hourly</code></td>
 <td>Power</td>
 <td>MW</td>
-<td>Hourly hydro pumped storage profile by modeling year</td>
+<td>Hourly hydro pumped storage profile by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_inter_cf_by_region_yearly</code></td>
 <td>Power</td>
 <td>-</td>
-<td>Capacity factor of the interconnectors by region/node by modeling year</td>
+<td>Capacity factor of the interconnectors by region/node by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_intercap_by_region_yearly</code></td>
 <td>Power</td>
 <td>GW</td>
-<td>Installed capacity of the interconnectors by region/node by modeling year</td>
+<td>Installed capacity of the interconnectors by region/node by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_marginal_price_by_region_hourly</code></td>
 <td>Power</td>
 <td>currency/MWh</td>
-<td>Hourly marginal price by region/node by modeling year</td>
+<td>Hourly marginal price by region/node by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_nodal_flow_hourly</code></td>
 <td>Power</td>
 <td>MW</td>
-<td>Hourly exchange flow between different regions/nodes by modeling year</td>
+<td>Hourly exchange flow between different regions/nodes by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_opex_by_type_yearly</code></td>
 <td>Power</td>
 <td>million currency</td>
-<td>OPEX in the power sector by technology (e.g., <code>CCGT</code>) by modeling year</td>
+<td>OPEX in the power sector by technology (e.g., <code>CCGT</code>) by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_overnight_inv_by_type_yearly</code></td>
 <td>Power</td>
 <td>million currency</td>
-<td>Overnight investment cost in the power sector by technology (e.g., <code>CCGT</code>) by modeling year</td>
+<td>Overnight investment cost in the power sector by technology (e.g., <code>CCGT</code>) by modelling year</td>
 </tr>
 <tr>
 <td><code>pow_reserve_by_type_hourly</code></td>
 <td>Power</td>
 <td>TWh</td>
-<td>Reserve by technology (e.g., onshore wind) by modeling year</td>
+<td>Reserve by technology (e.g., onshore wind) by modelling year</td>
 </tr>
 <tr>
 <td><code>tran_capex_by_type_yearly</code></td>
 <td>Transport</td>
 <td>million currency</td>
-<td>CAPEX in the transport sector by technology by modeling year</td>
+<td>CAPEX in the transport sector by technology by modelling year</td>
 </tr>
 <tr>
 <td><code>tran_charger_capacity_by_region_yearly</code></td>
 <td>Transport</td>
 <td>GW</td>
-<td>Capacity of the chargers in the transport sector by region by modeling year</td>
+<td>Capacity of the chargers in the transport sector by region by modelling year</td>
 </tr>
 <tr>
 <td><code>tran_charger_capacity_by_type_yearly</code></td>
 <td>Transport</td>
 <td>GW</td>
-<td>Capacity of the chargers in the transport sector by technology by modeling year</td>
+<td>Capacity of the chargers in the transport sector by technology by modelling year</td>
 </tr>
 <tr>
 <td><code>tran_load_charging_all_hourly_by_region</code></td>
 <td>Transport</td>
 <td>MW</td>
-<td>Hourly charging/discharging/load status in the transport sector by region/node by modeling year</td>
+<td>Hourly charging/discharging/load status in the transport sector by region/node by modelling year</td>
 </tr>
 <tr>
 <td><code>tran_load_charging_all_hourly_by_type</code></td>
 <td>Transport</td>
 <td>MW</td>
-<td>Hourly charging/discharging/load status in the transport sector by technology by modeling year</td>
+<td>Hourly charging/discharging/load status in the transport sector by technology by modelling year</td>
 </tr>
 <tr>
 <td><code>tran_load_charging_all_hourly</code></td>
 <td>Transport</td>
 <td>MW</td>
-<td>Hourly charging/discharging/load status in the transport sector by modeling year</td>
+<td>Hourly charging/discharging/load status in the transport sector by modelling year</td>
 </tr>
 <tr>
 <td><code>tran_storage_capacity_by_region_yearly</code></td>
 <td>Transport</td>
 <td>GW</td>
-<td>Capacity of the storage in the transport sector by region by modeling year</td>
+<td>Capacity of the storage in the transport sector by region by modelling year</td>
 </tr>
 <tr>
 <td><code>tran_storage_capacity_by_type_yearly</code></td>
 <td>Transport</td>
 <td>GW</td>
-<td>Capacity of the storage in the transport sector by technology by modeling year</td>
+<td>Capacity of the storage in the transport sector by technology by modelling year</td>
 </tr>
 </tbody>
 </table>
 <h2 id="jupyter-notebook">Jupyter Notebook<a class="headerlink" href="#jupyter-notebook" title="Permanent link">¶</a></h2>
 <p>We provide a <code>post-analysis/post_analysis.ipynb</code> for manual exploration of the pre-solve, pre-solve-brownfield, or post-solve network files.</p>
-<h2 id="dynamic-visualization">Dynamic Visualization<a class="headerlink" href="#dynamic-visualization" title="Permanent link">¶</a></h2>
+<h2 id="dynamic-visualisation">Dynamic visualisation<a class="headerlink" href="#dynamic-visualisation" title="Permanent link">¶</a></h2>
 <p>To make it easier to explore and compare model outputs, we provide an open-source library <a href="../../visualisation-tool/pypsa-spice-vis/">PyPSA-SPICE-Vis</a>, an interactive visualisation library that generates dynamic charts using the outputs listed above.</p></div>
 
 
@@ -1169,7 +1169,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../transport_sector/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Transport Sector">
+          <a href="../transport_sector/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Transport sector">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1179,7 +1179,7 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Transport Sector
+                Transport sector
               </div>
             </div>
           </a>
