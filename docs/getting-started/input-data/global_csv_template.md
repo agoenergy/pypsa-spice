@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 # Input data: global CSV template
 
-Global csvs contain parameters that are typically kept constant accross scenarios. This is to maintain comparability of the scenarios. `global_input_template` folder is used for the purpose of creating skeletons, and thus it can be considered as hidden folder inside the template.
+Global CSVs contain parameters that are typically kept constant accross scenarios. This is to maintain comparability of the scenarios. `global_input_template` folder is used for the purpose of creating skeletons, and thus it can be considered as hidden folder inside the template.
 
 ```text title="Structure of the global CSV template files"
 📦 data
@@ -89,23 +89,23 @@ technologies.csv defines typical technical parameters for each technology used i
 
 Description of all technical parameters:
 
-| Parameter                              | definition                                                                                                                 |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `country`                                | 2-letter country codes according to [ISO 3166](https://www.iso.org/iso-3166-country-codes.html){:target="_blank"} format                                                                                                |
-| `technology`                             | Abbreviations of the technology                                                                                          |
-| `technology_nomenclature`                | Full names of the technology                                                                                             |
-| `carrier`                                | Resources used by the technologies                                                                                        |
-| `class`                                  | Component class as defined in PyPSA                                                                                   |
-| `efficiency`                | Energy conversion efficiency from primary energy to electricity for `Generators`, and to another form of energy for `Links`. For `StorageUnits`, this is the discharge efficiency.                                                                |
-| `efficiency2` | **Positive** values represent emission factor and **negative** values correspond to the efficiency of generating the second product in a plant                                                                                  |
-| `efficiency3`                    | Carbon capture efficiency (for CCS technologies)                                                                      |
-| `efficiency_store`        | Efficiency of charging energy into storage                                                               |
-| `max_hours`               | Maximum charge duration in hours (total storage volume / capacity)                                         |
-| `cyclic_state_of_charge`  | If **True**, the final state of charge equals the initial state of charge                                 |
-| `state_of_charge_initial` | Initial state of charge in MWh before the snapshots in the optimal Power Flow (MWh)                                                       |
-| `p_max_pu`                               | The maximum availability per snapshot per unit of `p_nom`                                                                            |
-| `p_min_pu`                               | The minimum availability per snapshot per unit of `p_nom`                                                                           |
-| `ramp_limit_down`                        | Maximum active power decrease from one snapshot to the next (per unit)                                                     |
-| `ramp_limit_up`                          | Maximum active power increase from one snapshot to the next (per unit)                                                     |
-| `standing_loss`           | Hourly energy loss from storage                                                                              |
-| `r_rating`                               | Contribution of reserve rating (if used)                                                                            |
+| Parameter                 | definition                                                                                                                                                                         |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `country`                 | 2-letter country codes according to [ISO 3166](https://www.iso.org/iso-3166-country-codes.html){:target="_blank"} format                                                           |
+| `technology`              | Abbreviations of the technology                                                                                                                                                    |
+| `technology_nomenclature` | Full names of the technology                                                                                                                                                       |
+| `carrier`                 | Resources used by the technologies                                                                                                                                                 |
+| `class`                   | Component class as defined in PyPSA                                                                                                                                                |
+| `efficiency`              | Energy conversion efficiency from primary energy to electricity for `Generators`, and to another form of energy for `Links`. For `StorageUnits`, this is the discharge efficiency. |
+| `efficiency2`             | **Positive** values represent emission factor and **negative** values correspond to the efficiency of generating the second product in a plant                                     |
+| `efficiency3`             | Carbon capture efficiency (for CCS technologies)                                                                                                                                   |
+| `efficiency_store`        | Efficiency of charging energy into storage                                                                                                                                         |
+| `max_hours`               | Maximum charge duration in hours (total storage volume / capacity)                                                                                                                 |
+| `cyclic_state_of_charge`  | If **True**, the final state of charge equals the initial state of charge                                                                                                          |
+| `state_of_charge_initial` | Initial state of charge in MWh before the snapshots in the optimal Power Flow (MWh)                                                                                                |
+| `p_max_pu`                | The maximum availability per snapshot per unit of `p_nom`                                                                                                                          |
+| `p_min_pu`                | The minimum availability per snapshot per unit of `p_nom`                                                                                                                          |
+| `ramp_limit_down`         | Maximum active power decrease from one snapshot to the next (per unit)                                                                                                             |
+| `ramp_limit_up`           | Maximum active power increase from one snapshot to the next (per unit)                                                                                                             |
+| `standing_loss`           | Hourly energy loss from storage                                                                                                                                                    |
+| `r_rating`                | Contribution of reserve rating (if used)                                                                                                                                           |
