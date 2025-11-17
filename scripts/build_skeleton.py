@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Generate skeleton CSV files for setting up an energy system modeling.
+Generate skeleton CSV files for setting up an energy system modelling.
 
 It creates templates for buses, generators, storage, loads, interconnectors,
 and converter links for power, industry and transport sectors.

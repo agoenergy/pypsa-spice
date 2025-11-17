@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 # Troubleshooting
 
-## Setup Debugger
+## Setup debugger
 
 To test the workflow using Snakemake rules, a configuration file `launch.json` with the following content is required:
 
@@ -29,7 +29,7 @@ To test the workflow using Snakemake rules, a configuration file `launch.json` w
 
 Once this file is set up, you can easily run any Python file in the `scripts` folder under debugger mode for testing.
 
-## Infeasibility Issues
+## Infeasibility issues
 
 If your model is **infeasible** or **unbounded**, it often means that your input settings are leading to a situation where PyPSA can’t solve one or more objective functions. Common causes are:
 
@@ -39,7 +39,7 @@ If your model is **infeasible** or **unbounded**, it often means that your input
 - Maximum capacity (`p_nom_max`) is smaller than minimum capacity (`p_nom_min`).
 - Storage units has inflow and cyclic charging (`cyclic_state_of_charge = True`) but no discharging capability.
 
-## Tips for Diagnosing the Problem
+## Tips for diagnosing the problem
 
 Try the following steps to identify and fix the issue:
 
@@ -54,6 +54,6 @@ Try the following steps to identify and fix the issue:
     - `pypsa.network.{component}.p_nom_max`
     - `pypsa.network.{component}.p_nom_min`
 
-## More detailedinformation
+## More detailed information
 
 [PyPSA](https://pypsa--1250.org.readthedocs.build/en/1250/user-guide/troubleshooting/#optimisation-convergence-infeasibility) also provides official guidance on solving infeasiblity issues. You can also explore the link to seek for a good solution.

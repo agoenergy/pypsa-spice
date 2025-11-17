@@ -4,9 +4,9 @@ SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
-# Transport Sector
+# Transport sector
 
-## Key Features
+## Key features
 
 - Optimal charging of electric vehicles (EVs), taking into account availability and charging constraints.
 - Supply of fuels for transport.
@@ -18,7 +18,7 @@ The structure and function of each component follow the definitions from the [Py
 !!! Tip
     In the transport sector, PyPSA-SPICE separated the demand and energy flow into two categories: private and public sector. The public sector (`PUB`) encompasses public transportation services, while the private sector (`PRV`) refers to personally owned vehicles.
 
-## Electric Vehicle Chargers
+## Electric vehicle chargers
 
 All the listed components are defined as `Link` in PyPSA.
 
@@ -27,13 +27,13 @@ All the listed components are defined as `Link` in PyPSA.
 | `EVCH-PRV`    | Electric vehicle charger (Private) |
 | `EVCH-PUB`    | Electric vehicle charger (Public)  |
 
-## Electric Vehicle Storage
+## Electric vehicle storage
 
 All the listed components are defined as `Store` in PyPSA.
 
 !!! Tip
-    In PyPSA components, `Store` is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of `store` + 2 `links`. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
-    In the transport sector of PyPSA-SPICE model builder, technologies that are defined as storage energy, their links of charging and discharging links are defined in [Electric Vehicle Chargers](transport_sector.md#electric-vehicle-chargers).<br><br>
+    In PyPSA components, `Store` is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of `Store` + 2 `Links`. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
+    In the transport sector of PyPSA-SPICE model builder, technologies that are defined as storage energy, their links of charging and discharging links are defined in [Electric vehicle chargers](transport_sector.md#electric-vehicle-chargers).<br><br>
     Detailed information and example can be found in [PyPSA Components - Store](https://docs.pypsa.org/latest/user-guide/components/stores/){:target="_blank"} and [Replace StorageUnits with fundamental Links and Stores](https://docs.pypsa.org/latest/examples/replace-generator-storage-units-with-store/){:target="_blank"}.
 
 | Abbreviation  | Full Name                          |
@@ -56,13 +56,13 @@ All the listed components are defined as `Store` in PyPSA.
 | `TRAN-PUB`    | Public electric vehicle       |
 | `TRAN-PRV`    | Private electric vehicle      |
 
-## Other Components
+## Other components
 
 | Abbreviation | Full Name                                   |
 | ------------ | ------------------------------------------- |
-| `HPV_LOAD`   | Transport load (High voltage level)         |
+| `HPV_LOAD`   | Transport load (high voltage level)         |
 | `LPV_LOAD`   | Transport load (low/medium voltage level)   |
 
-## Custom Constraints (Defined in the `config.yaml` File)
+## Custom constraints (defined in the `config.yaml` file)
 
-- Coming soon...
+- coming soon...

@@ -4,9 +4,9 @@ SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
-# Model Builder Methodology
+# Model builder methodology
 
-PyPSA-SPICE is a least-cost optimization model builder designed to evaluate long-term national energy scenarios at a nodal network level. Built on the [PyPSA](https://pypsa.org/){:target="_blank"} framework, it adopts a multi-sectoral cost optimization approach with a primary focus on the power system.
+PyPSA-SPICE is a least-cost optimisation model builder designed to evaluate long-term national energy scenarios at a nodal network level. Built on the [PyPSA](https://pypsa.org/){:target="_blank"} framework, it adopts a multi-sectoral cost optimisation approach with a primary focus on the power system.
 
 The diagram below illustrates the energy flows within a single node:
 
