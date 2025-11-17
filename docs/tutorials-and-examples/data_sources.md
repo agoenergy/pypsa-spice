@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
-# Data Sources used in PyPSA-SPICE
+# Data sources used in PyPSA-SPICE
 
 There some several resources which can help you collect the input data:
 

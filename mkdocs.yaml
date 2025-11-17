@@ -74,21 +74,21 @@ theme:
 nav:
   - 🏠 Home: index.md
 
-  - 📖 User Guide:
-    - Model Builder Methodology: user-guide/model-builder-methodology.md
-    - Power Sector: user-guide/power_sector.md
-    - Industry Sector: user-guide/industry_sector.md
-    - Transport Sector: user-guide/transport_sector.md
-    - Post Analysis: user-guide/post-analysis.md
+  - 📖 User guide:
+    - Model builder methodology: user-guide/model-builder-methodology.md
+    - Power sector: user-guide/power_sector.md
+    - Industry sector: user-guide/industry_sector.md
+    - Transport sector: user-guide/transport_sector.md
+    - Post analysis: user-guide/post-analysis.md
     - Troubleshooting: user-guide/troubleshooting.md
   
-  - 🚀 Getting Started:
+  - 🚀 Getting started:
     - Overview: getting-started/overview.md
     - Installation: getting-started/installation.md
-    - Input Data:
-      - Defining a New Model: getting-started/input-data/new-model.md
-      - Global CSV Template: getting-started/input-data/global_csv_template.md
-      - Regional CSV Template: getting-started/input-data/regional_csv_template.md
+    - Input data:
+      - Defining a new model: getting-started/input-data/new-model.md
+      - Global CSV template: getting-started/input-data/global_csv_template.md
+      - Regional CSV template: getting-started/input-data/regional_csv_template.md
       - Configuration: getting-started/input-data/model-builder-configuration.md
       - Execution: getting-started/input-data/model-builder-execution.md
 
@@ -97,14 +97,14 @@ nav:
     - List of charts and sections: visualisation-tool/vis-sections-and-charts.md
     - Deployment: visualisation-tool/deployment.md
 
-  - 📚 Tutorials and Examples:
-    - Training Materials: tutorials-and-examples/training_materials.md
-    - Data Sources: tutorials-and-examples/data_sources.md
+  - 📚 Tutorials and examples:
+    - Training materials: tutorials-and-examples/training_materials.md
+    - Data sources: tutorials-and-examples/data_sources.md
     - Publication: tutorials-and-examples/publication.md
 
   - 🤝 Contributing:
     - Contributing: contributing/contributing.md
-    - Code of Conduct: contributing/code_of_conduct.md
+    - Code of conduct: contributing/code_of_conduct.md
 
   - 🔗 References:
     - License: references/citation_and_license.md
@@ -164,7 +164,7 @@ plugins:
   - search
   - mkdocs-video
   - to-pdf:
-      author: Data and Modelling Team at Agora Think Tanks
+      author: Agora Think Tanks
       copyright: Copyright © PyPSA-SPICE Developers
       toc_level: 3
       cover: true

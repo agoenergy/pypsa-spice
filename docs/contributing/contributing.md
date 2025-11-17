@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
-# How to Contribute
+# How to contribute
 
 PyPSA-SPICE is an open-source repository and thus your contributions are welcome and appreciated!
 
@@ -20,11 +20,11 @@ If your contributions involve code changes, please follow the steps below to for
 2. Clone your fork: `git clone https://github.com/<your-username>/pypsa-spice.git`
 3. Fetch the upstream tags `git fetch --tags https://github.com/agoenergy/pypsa-spice/pypsa-spice.git`
 4. Install with dependencies in editable mode: `pip install -e .[dev]`
-5. Setup linter and formatter, e.g `pre-commit install` (see [Pre-Commit](#pre-commit))
+5. Setup linter and formatter, e.g `pre-commit install` (see [Pre-commit](#pre-commit))
 6. Open a new branch and write your code
 7. Push your changes to your fork and create a pull request on GitHub
 
-## Pre-Commit
+## Pre-commit
 
 We use [pre-commit](https://pre-commit.com/) to maintain consistent code style and catch common errors before commits. The pre-commit package is included in the `pypsa-spice` environment. To enable automatic formatting before each commit (recommended), run this command once:
 

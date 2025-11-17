@@ -4,9 +4,9 @@ SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
-# Input Data: Define a New Model
+# Input data: define a new model
 
-This section explains how to set up a new model for a particular country/region using the PyPSA-SPICE model builder. Once your model is step you can run the model as described in [model execution](model-builder-execution.md).
+This section explains how to set up a new model for a particular country/region using the PyPSA-SPICE model builder. Once your model is step you can run the model as described in [Model execution](model-builder-execution.md).
 
 Steps of setting up a new model:
 
@@ -16,7 +16,7 @@ Steps of setting up a new model:
 
 An example structure created by ``build_skeleton`` is displayed below. The following sections will use this example to explain the settings.
 
-## Step 1: Set up the Base Configuration File
+## Step 1: set up the base configuration file
 
 Setting up the base config requires defining the scope and resolution of the model. Specifically, defining which countries/regions will be represented in the model and for which year the model will be run. While it is possible to change these after initial model is created, it would require significant effort to add new regions/years in the input CSVs.  
 
@@ -46,9 +46,9 @@ base_configs:
 
 The final skeleton folder path will follow this structure:: `data`/`data_folder_name`/`project_name`.
 
-By setting different ``input_scenario_name`` and country or regional settings in the ``base_configs`` section (see details in [Model Configuration](model-builder-configuration.md)), a new skeleton structure under the same `data_folder_name` folder will be created.
+By setting different ``input_scenario_name`` and country or regional settings in the ``base_configs`` section (see details in [Model configuration](model-builder-configuration.md)), a new skeleton structure under the same `data_folder_name` folder will be created.
 
-## Step 2: Build the Skeleton
+## Step 2: build the skeleton
 
 After modifying the configuration file, run the following command in your terminal.
 
@@ -105,15 +105,16 @@ This step creates your skeleton folder and files which can be feed with your dat
 !!! Tip
     Once you’ve created a skeleton data folder for one scenario, you can simply duplicate the scenario folder and rename the folder name to set up additional scenarios. However, we recommend doing this only after you’ve completed filling in the data for the first one.  
 
-## Step 3: Fill in the Skeleton CSVs
+## Step 3: fill in the skeleton CSVs
 
-Once a new skeleton folder is created, project-specific CSV templates will be setup. Each CSV will include placeholders marked with `Please fill here`. These need to be completed with relevant data so the model can perform more accurate optimizations.
+Once a new skeleton folder is created, project-specific CSV templates will be setup. Each CSV will include placeholders marked with `Please fill here`. These need to be completed with relevant data so the model can perform more accurate optimisations.
 
 To help you fill these files:
 
-- Check [Global CSV Template](global_csv_template.md) for default  file descriptions of country-level data.
-- See [Regional CSV Template](regional_csv_template.md) for detailed file descriptions of region-level data.
-Once all the necessary input data is provided, adjust model and solver settings in [Model Configuration](model-builder-configuration.md) and follow [Model Execution](model-builder-execution.md) to understand the model logic and how to run the model.
+- check [Global CSV template](global_csv_template.md) for default  file descriptions of country-level data.
+- see [Regional CSV template](regional_csv_template.md) for detailed file descriptions of region-level data.
+
+Once all the necessary input data is provided, adjust model and solver settings in [Model configuration](model-builder-configuration.md) and follow [Model execution](model-builder-execution.md) to understand the model logic and how to run the model.
 
 !!! Tip
-    By detault, the input structure considers large number of technologies represented in the model. If the particular technologies are not needed in your model, it is good practice to remove the input data for these technologies. You can also define your own technologies and customise the model accordingly.  
+    By default, the input structure considers large number of technologies represented in the model. If the particular technologies are not needed in your model, it is good practice to remove the input data for these technologies. You can also define your own technologies and customise the model accordingly.  
