@@ -835,6 +835,25 @@ def get_storage_units_inflows(
     return storage_inflows
 
 
+def get_crf(interest: float, life_years: float) -> float:
+    """Calculate capital recovery factor.
+
+    Parameters
+    ----------
+    interest : float
+        discounted rate
+    life_years : float
+        lifetime of technology in years
+
+    Returns
+    -------
+    float
+        capital recovery factor
+    """
+    crf = interest * (1 + interest) ** life_years / ((1 + interest) ** life_years - 1)
+    return crf
+
+
 def get_capital_cost(
     plant_type: list[str], tech_costs: pd.DataFrame, interest: float, currency: str
 ) -> float:

@@ -29,7 +29,7 @@ from _helpers import (
     FilePath,
     configure_logging,
     filter_selected_countries_and_regions,
-    get_capital_cost,
+    get_crf,
     get_link_availabilities,
     get_plant_availabilities,
     get_storage_units_inflows,
@@ -363,15 +363,27 @@ class AddFutureAssets:
         interconnectors[p_nom_max_min_columns] = interconnectors[
             p_nom_max_min_columns
         ].astype("float64")
+        # Calculate capital cost for interconnectors
         interconnectors["life__years"] = (
             50  # assuming lifetime of 50 years for interconnectors
         )
-        interconnectors[f"cap__{str(self.currency).lower()}_mw"] = get_capital_cost(
-            plant_type="ITCN",
-            tech_costs=interconnectors.set_index("type"),
-            interest=self.interest,
-            currency=self.currency,
-        ).values  # annualized capital cost
+        # get interest rate for each country
+        interconnectors["interest"] = interconnectors["country"].apply(
+            lambda x: self.interest.get(x)
+        )
+        interconnectors_dict = interconnectors.to_dict("records")
+        crfs = []
+        for row in interconnectors_dict:
+            # calculate crf for each interconnector
+            crf = get_crf(row["interest"], row["life__years"])
+            crfs.append(crf)
+        interconnectors["crf"] = crfs
+        # capital cost = capex * crf + fom
+        interconnectors["capital_cost"] = (
+            interconnectors[f"cap__{str(self.currency).lower()}_mw"]
+            * interconnectors["crf"]
+            + interconnectors[f"fom__{str(self.currency).lower()}_mwa"]
+        )
         # Make distribution grid expandable
         distribution_grid = interconnectors[
             (interconnectors.type == "ITCN")
@@ -400,7 +412,7 @@ class AddFutureAssets:
             p_nom_max=interconnectors[f"p_nom_max_{self.year}"],
             p_nom_min=interconnectors[f"p_nom_min_{self.year}"],
             p_nom_extendable=True,
-            capital_cost=interconnectors[f"cap__{str(self.currency).lower()}_mw"],
+            capital_cost=interconnectors["capital_cost"],
             build_year=self.year,
             lifetime=interconnectors["life__years"],
             country=interconnectors["country"],
