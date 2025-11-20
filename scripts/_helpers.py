@@ -1714,6 +1714,10 @@ def load_scenario_config(path: str) -> dict:
     dict
         dictionary of scenario configuration
     """
+    # strip "/scripts" from path in case of running from scripts folder (for debugger)
+    path = os.path.abspath(path)
+    if "/scripts" in path:
+        path = path.replace("/scripts", "")
     yaml_files = glob.glob(f"{path}/*.yaml")
     with open(yaml_files[0]) as f:
         return yaml.safe_load(f)
