@@ -1721,7 +1721,7 @@ def filter_selected_countries_and_regions(
 
 
 def load_scenario_config(path: str) -> dict:
-    """Open and read scenario configuration from a YAML file.
+    """Open and read scenario configurations from a YAML file.
 
     Parameters
     ----------
