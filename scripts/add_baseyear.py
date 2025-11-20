@@ -197,7 +197,7 @@ class AddBaseNetwork:
             technologies_dir=self.technologies_dir,
             tech_costs_dir=self.tech_cost_dir,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
 
@@ -345,7 +345,7 @@ class AddBaseNetwork:
             storage_energy_raw,
             storage_costs_dir=self.storage_cost_path,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
 
@@ -413,7 +413,7 @@ class AddBaseNetwork:
             technologies_dir=self.technologies_dir,
             tech_costs_dir=self.tech_cost_dir,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
         clean_gen = clean_pps[clean_pps["class"] == "Generator"]
@@ -464,7 +464,7 @@ class AddBaseNetwork:
             technologies_dir=self.technologies_dir,
             tech_costs_dir=self.tech_cost_dir,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
         # ensure all efficiency columns are filled
@@ -525,7 +525,7 @@ class AddBaseNetwork:
             year=self.year,
             ev_param_dir=snakemake.input.ev_parameters,
             cost_df=tech_costs_df,
-            interest_rate=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
         link_p_max_pu = (

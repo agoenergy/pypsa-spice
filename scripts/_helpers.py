@@ -885,7 +885,7 @@ def update_tech_fact_table(
     technologies_dir: FilePath,
     tech_costs_dir: FilePath,
     year: int,
-    interest: float,
+    interest_dict: dict,
     currency: str,
 ) -> pd.DataFrame:
     """Process and add techno-economic columns to plants or links table.
@@ -900,8 +900,8 @@ def update_tech_fact_table(
         directory to database of cost params per technology
     year : int
         year of model run
-    interest : float
-        interest rate
+    interest_dict : dict
+        dict of interest rate
     currency : str
         currency of model run
 
@@ -940,7 +940,11 @@ def update_tech_fact_table(
                 if "p_nom_max_" not in x and "p_nom_min_" not in x
             ]
         ]
-
+        # Retrieve interest rate for given country
+        try:
+            interest = interest_dict[row["country"]]
+        except KeyError:
+            raise KeyError(f'No specific interest rate for {row["country"]} in config.')
         # Processing cost fact columns
         result["capital_cost"] = get_capital_cost(
             plant_type=(row["type"], row["country"]),
@@ -1002,7 +1006,7 @@ def update_storage_costs(
     storage_table: pd.DataFrame,
     storage_costs_dir: FilePath,
     year: int,
-    interest: float,
+    interest_dict: dict,
     currency: str,
 ) -> pd.DataFrame:
     """Update storage cost parameters.
@@ -1020,8 +1024,8 @@ def update_storage_costs(
         'country'].
     year : int
         Model year to filter the storage_costs table.
-    interest : float
-        Discount rate (as a decimal, e.g., 0.07 for 7%).
+    interest_dict : dict
+        dict of interest rate.
     currency : str
         Currency in all uppercase, , ISO4217 format
 
@@ -1041,6 +1045,11 @@ def update_storage_costs(
     dfs = []
     for row in storage_table:
         result = pd.DataFrame([row])
+        # Retrieve interest rate for given country
+        try:
+            interest = interest_dict[row["country"]]
+        except KeyError:
+            raise KeyError(f'No specific interest rate for {row["country"]} in config.')
         # Processing cost fact columns
         result["capital_cost"] = get_capital_cost(
             plant_type=(row["type"], row["country"]),
@@ -1084,7 +1093,7 @@ def update_ev_char_parameters(
     cost_df: pd.DataFrame,
     ev_param_dir: FilePath,
     year: int,
-    interest_rate: float,
+    interest_dict: dict,
     currency: str,
 ) -> pd.DataFrame:
     """Update ev storage and link parameters parameters.
@@ -1099,8 +1108,8 @@ def update_ev_char_parameters(
         directory of EV parameter database
     cost_df : pd.DataFrame
         DataFrame of cost parameters
-    interest_rate : float
-        Discount rate (as a decimal, e.g., 0.07 for 7%).
+    interest_dict : dict
+        dict of interest rate.
     currency : str
         Currency in all uppercase, , ISO4217 format
 
@@ -1123,11 +1132,16 @@ def update_ev_char_parameters(
             print(f'{row["type"]} is not in technology database')
         for column in row.keys():
             result[column] = row[column]
+        # Retrieve interest rate for given country
+        try:
+            interest = interest_dict[row["country"]]
+        except KeyError:
+            raise KeyError(f'No specific interest rate for {row["country"]} in config.')
         # processing costs for chargers
         result["capital_cost"] = get_capital_cost(
             plant_type=(row["type"], row["country"]),
             tech_costs=cost_df_single_year,
-            interest=interest_rate,
+            interest=interest,
             currency=currency,
         )
         result["marginal_cost"] = (

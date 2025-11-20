@@ -429,7 +429,7 @@ class AddFutureAssets:
             technologies_dir=self.technologies_dir,
             tech_costs_dir=self.tech_cost_dir,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
         storage_capacity = storage_capacity[(storage_capacity["p_nom_extendable"])]
@@ -594,7 +594,7 @@ class AddFutureAssets:
             storage_energy_raw,
             storage_costs_dir=self.storage_cost_path,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
 
@@ -683,7 +683,7 @@ class AddFutureAssets:
             technologies_dir=self.technologies_dir,
             tech_costs_dir=self.tech_cost_dir,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
 
@@ -752,7 +752,7 @@ class AddFutureAssets:
             technologies_dir=self.technologies_dir,
             tech_costs_dir=self.tech_cost_dir,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
         links_df = links_df[links_df["p_nom_extendable"]]
@@ -825,7 +825,7 @@ class AddFutureAssets:
             year=self.year,
             ev_param_dir=snakemake.input.ev_parameters,
             cost_df=tech_cost_df,
-            interest_rate=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
         link_p_max_pu = get_link_availabilities(
