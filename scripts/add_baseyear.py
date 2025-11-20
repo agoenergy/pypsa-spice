@@ -343,7 +343,7 @@ class AddBaseNetwork:
         )
         storage_energy = update_storage_costs(
             storage_energy_raw,
-            storage_costs=self.storage_cost_path,
+            storage_costs_dir=self.storage_cost_path,
             year=self.year,
             interest=self.interest,
             currency=self.currency,

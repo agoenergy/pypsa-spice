@@ -862,10 +862,18 @@ def get_capital_cost(
         / ((1 + interest) ** tech_costs.life__years - 1)
     )
 
+    capex_column_name = f"cap__{str(currency).lower()}_mw"
+    fom_column_name = f"fom__{str(currency).lower()}_mwa"
+    # Handling incase of storage technologies with different unit
+    if capex_column_name not in tech_costs.columns:
+        capex_column_name = f"cap__{str(currency).lower()}_mwh"
+    if fom_column_name not in tech_costs.columns:
+        fom_column_name = f"fom__{str(currency).lower()}_mwh"
+
     return (
         (
-            tech_costs[f"cap__{str(currency).lower()}_mw"].astype(float) * crf
-            + tech_costs[f"fom__{str(currency).lower()}_mwa"].astype(float)
+            tech_costs[capex_column_name].astype(float) * crf
+            + tech_costs[fom_column_name].astype(float)
         )
         .fillna(0)
         .loc[plant_type]
@@ -992,7 +1000,7 @@ def update_tech_fact_table(
 
 def update_storage_costs(
     storage_table: pd.DataFrame,
-    storage_costs: FilePath,
+    storage_costs_dir: FilePath,
     year: int,
     interest: float,
     currency: str,
@@ -1024,67 +1032,50 @@ def update_storage_costs(
         'capital_cost', 'marginal_cost', 'lifetime', 'inv_cost', 'fom_cost'.
     """
     # Load and filter storage cost data for the specified year
-    storage_costs_df = pd.read_csv(storage_costs, index_col=["storage_type", "country"])
+    storage_costs_df = pd.read_csv(
+        storage_costs_dir, index_col=["storage_type", "country"]
+    )
     storage_costs_df = storage_costs_df[storage_costs_df.year == year]
 
-    # Calculate capital recovery factor (CRF) for each storage type/country
-    crf = (
-        interest
-        * (1 + interest) ** storage_costs_df.life__years
-        / ((1 + interest) ** storage_costs_df.life__years - 1)
-    )
-
-    def get_cost(row, col):
-        """Fetch a value from storage_costs_df, raise error if not found."""
-        idx = (row["type"], row["country"])
-        if idx not in storage_costs_df.index:
-            raise KeyError(
-                f"Type '{row['type']}' or country '{row['country']}' "
-                "not found in storage_costs_df."
-            )
-        return float(storage_costs_df.loc[idx, col])
-
-    def get_crf(row):
-        """Fetch CRF for a given type/country, raising error if not found."""
-        idx = (row["type"], row["country"])
-        if idx not in crf.index:
-            raise KeyError(
-                f"Type '{row['type']}' or country '{row['country']}' "
-                "not found in CRF index."
-            )
-        return float(crf.loc[idx])
-
-    # Compute capital_cost: (CAPEX * CRF + FOM)
-    storage_table["capital_cost"] = storage_table.apply(
-        lambda row: get_cost(row, f"cap__{str(currency).lower()}_mwh") * get_crf(row)
-        + get_cost(row, f"fom__{str(currency).lower()}_mwh"),
-        axis=1,
-    )
-
-    # Compute marginal_cost: VOM
-    storage_table["marginal_cost"] = storage_table.apply(
-        lambda row: get_cost(row, f"vom__{str(str(currency).lower()).lower()}_mwh"),
-        axis=1,
-    )
-
-    # Compute lifetime: LIFE
-    storage_table["lifetime"] = storage_table.apply(
-        lambda row: get_cost(row, "life__years"),
-        axis=1,
-    )
-
-    # Compute inv_cost: CAPEX
-    storage_table["inv_cost"] = storage_table.apply(
-        lambda row: get_cost(row, f"cap__{str(currency).lower()}_mwh"),
-        axis=1,
-    )
-
-    # Compute fom_cost: FOM
-    storage_table["fom_cost"] = storage_table.apply(
-        lambda row: get_cost(row, f"fom__{str(currency).lower()}_mwh"),
-        axis=1,
-    )
-
+    storage_table = storage_table.reset_index().to_dict("records")
+    dfs = []
+    for row in storage_table:
+        result = pd.DataFrame([row])
+        # Processing cost fact columns
+        result["capital_cost"] = get_capital_cost(
+            plant_type=(row["type"], row["country"]),
+            tech_costs=storage_costs_df,
+            interest=interest,
+            currency=currency,
+        )
+        result["marginal_cost"] = (
+            storage_costs_df[f"vom__{str(currency).lower()}_mwh"]
+            .astype(float)
+            .fillna(0)
+            .loc[(row["type"], row["country"])]
+        )
+        result["fom_cost"] = (
+            storage_costs_df[f"fom__{str(currency).lower()}_mwh"]
+            .astype(float)
+            .fillna(0)
+            .loc[(row["type"], row["country"])]
+        )
+        result["inv_cost"] = (
+            storage_costs_df[f"cap__{str(currency).lower()}_mwh"]
+            .astype(float)
+            .fillna(0)
+            .loc[(row["type"], row["country"])]
+        )
+        result["lifetime"] = (
+            storage_costs_df["life__years"]
+            .astype(float)
+            .fillna(0)
+            .loc[(row["type"], row["country"])]
+        )
+        dfs.append(result)
+    storage_table = pd.concat(dfs)
+    storage_table = storage_table[sorted(storage_table.columns)]
+    storage_table = storage_table.set_index("store")
     return storage_table
 
 
