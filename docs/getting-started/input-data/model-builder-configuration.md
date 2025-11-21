@@ -64,7 +64,9 @@ scenario_configs:
     method: "nth_hour" # (4)!
     number_of_days: 3 # (5)!
     stepsize: 25 # (6)!
-  interest: 0.05  # (7)!
+  interest: # (7)!
+    XY: 0.05
+    YZ: 0.10
   remove_threshold: 0.1 # (8)!
 ```
 
@@ -194,12 +196,12 @@ This constraint forces the model to keep the ratio of locally produced power to 
 
 Where
 
-| parameter  | description                            | mathematical formulation |
-| ---------- | -------------------------------------- | ----- |
-| $`imp`$  | Imported power:  Generation from the theoretical import fuel-based generators | $`\sum_{f \in F} \sum_{t \in T}{G_t^{TGEN-f-import}}`$ |
-| $`loc`$  | Local power generation: Fuel-based generations from local resources + renewable generations x primary energy conversion factor | $`\sum_{f \in F} \sum_{t \in T} {G_t^{TGEN-f-local}} + \alpha_{res}*\sum_{t}G_{res}`$ |
-| $`\phi`$ | minimum energy independence factor  | |
-| $`\alpha_{res}`$ | Primary energy conversion factor used for renewable sources for electricity generation. This value can be 0-1 for renewables, or larger than 1 for other generation sources depending on the energy policy in the country. | |
+| parameter        | description                                                                                                                                                                                                                | mathematical formulation                                                              |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| $`imp`$          | Imported power:  Generation from the theoretical import fuel-based generators                                                                                                                                              | $`\sum_{f \in F} \sum_{t \in T}{G_t^{TGEN-f-import}}`$                                |
+| $`loc`$          | Local power generation: Fuel-based generations from local resources + renewable generations x primary energy conversion factor                                                                                             | $`\sum_{f \in F} \sum_{t \in T} {G_t^{TGEN-f-local}} + \alpha_{res}*\sum_{t}G_{res}`$ |
+| $`\phi`$         | minimum energy independence factor                                                                                                                                                                                         |                                                                                       |
+| $`\alpha_{res}`$ | Primary energy conversion factor used for renewable sources for electricity generation. This value can be 0-1 for renewables, or larger than 1 for other generation sources depending on the energy policy in the country. |                                                                                       |
 
 ### Reserve margin: mathematical formulation
 
@@ -211,16 +213,16 @@ The reserve margin constraint in PyPSA-SPICE is modeled similarly to the [GenX](
 
 Where
 
-| parameter                   | description                                      |
-| ------------------------ | ------------------------------------------------ |
-| $`r_{g,t}`$            | Reserve margin of generator `g` at time `t` |
-| $`\epsilon^{load}`$ | Fraction of load considered for reserve |
-| $`d_{n,t}`$            | Demand at node `n` and time `t` |
-| $`\epsilon^{vres}`$ | Fraction of renewable energy for reserve |
+| parameter              | description                                                                  |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| $`r_{g,t}`$            | Reserve margin of generator `g` at time `t`                                  |
+| $`\epsilon^{load}`$    | Fraction of load considered for reserve                                      |
+| $`d_{n,t}`$            | Demand at node `n` and time `t`                                              |
+| $`\epsilon^{vres}`$    | Fraction of renewable energy for reserve                                     |
 | $`\bar g_{g,t}`$       | Forecasted capacity factor for renewable energy of generator `g` at time `t` |
-| $`G_g`$                | Capacity of generator `g` |
-| $`\mathcal{G}^{VRES}`$ | Set of renewable generators in the system |
-| $`contingency`$ | Fixed contingency |
+| $`G_g`$                | Capacity of generator `g`                                                    |
+| $`\mathcal{G}^{VRES}`$ | Set of renewable generators in the system                                    |
+| $`contingency`$        | Fixed contingency                                                            |
 
 See [Linopy example](https://github.com/PyPSA/pypsa-eur/blob/7ac983e5b31bcaf3ae667ceec4fc9d5d91c18046/scripts/solve_network.py#L387-L454){:target="_blank"} of the reserve constraint implementation for more details.
 

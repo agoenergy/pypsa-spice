@@ -23,7 +23,9 @@ scenario_configs:
     method: "nth_hour" # options: ["nth_hour", "clustered"]
     number_of_days: 3 # the number of representative days (used fo "clustered" method)
     stepsize: 25 # used for "nth_hour" method
-  interest: 0.05  # interest rate in decimals (e.g. 0.05 represents 5%)
+  interest: # interest rate in decimals (e.g. 0.05 represents 5%)
+    XY: 0.05
+    YZ: 0.10
   remove_threshold: 0.1 # unit: MW (remove assests with capacity below this threshold)
 
 
