@@ -37,34 +37,6 @@ jobs:
       - name: Install pre-commit
         run: pip install pre-commit
 
-      # PRs: run pre-commit on files changed between base and HEAD
-      - name: Run pre-commit on changed files (PR)
-        if: github.event_name == 'pull_request'
+      - name: Run pre-commit on all files
         run: |
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "No files changed. Skipping pre-commit."
-            exit 0
-          fi
-
-          echo "Changed files:"
-          echo "$CHANGED_FILES"
-
-          # Run all pre-commit hooks on the changed files (full files, not diffs)
-          echo "$CHANGED_FILES" | xargs pre-commit run --show-diff-on-failure --color always --files
-
-      # Pushes: run pre-commit on files changed in this push
-      - name: Run pre-commit on changed files (push)
-        if: github.event_name == 'push'
-        run: |
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "No files changed. Skipping pre-commit."
-            exit 0
-          fi
-
-          echo "Changed files:"
-          echo "$CHANGED_FILES"
-
-          # Run all pre-commit hooks on the changed files (full files, not diffs)
-          echo "$CHANGED_FILES" | xargs pre-commit run --show-diff-on-failure --color always --files
+          pre-commit run --all-files --show-diff-on-failure --color always
