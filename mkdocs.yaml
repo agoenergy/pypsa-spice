@@ -14,7 +14,7 @@ theme:
     text: Flexo
     code: Roboto Mono
   favicon: assets/favicon/favicon.ico
-  logo: assets/images/logo.png
+  logo: assets/images/pypsa-logo_rgb.png
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -168,7 +168,7 @@ plugins:
       copyright: Copyright © PyPSA-SPICE Developers
       toc_level: 3
       cover: true
-      cover_logo: /assets/images/logo.png
+      cover_logo: /assets/images/pypsa-logo_rgb.png
       cover_title: "PyPSA-SPICE Model Builder"
       cover_subtitle: "Documentation"
       output_path: ../docs/pypsa-spice-documentation.pdf
