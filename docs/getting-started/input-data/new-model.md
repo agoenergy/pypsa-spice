@@ -35,6 +35,7 @@ base_configs:
     YZ: ["NR","CE", "SO"] 
   years: [2025, 2030, 2035, 2040, 2045, 2050] # (5)!
   sector: ["p-i-t"] # (6)!
+  currency: USD # (7)!
 ```
 
 1. This section is for configuring directory structure for storing model inputs and results.
@@ -43,6 +44,7 @@ base_configs:
 4. List of regions or nodes within each country. This defines the network’s nodal structure. The country list contains **2-letter** country codes according to [ISO 3166](https://www.iso.org/iso-3166-country-codes.html){:target="_blank"}.
 5. Modelled years should be provided as a list.
 6. Options: [`p`, `p-i`, `p-t`, `p-i-t`], representing power (`p`), industry (`i`), and transport (`t`) sectors.
+7. Currency usd in the model. The default setting is USD (also used in example data). Format shall be in all uppercases, [ISO4217](https://www.iso.org/iso-4217-currency-codes.html){:target="_blank"} format.
 
 The final skeleton folder path will follow this structure:: `data`/`data_folder_name`/`project_name`.
 
