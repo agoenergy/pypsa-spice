@@ -1027,7 +1027,7 @@ The path for the output folder follows the pattern: <code>data_folder_name</code
 <li>Determines the method used by the model to deal with the time steps. For testing this reduces the compute time. Available options are <code>nth_hour</code> (recommended) and <code>clustered</code>. Depending on the selected option, one other parameter in the <code>resolution</code> section should be set.</li>
 <li>If <code>method = "clustered"</code>, the number of representative days should be provided to group time steps and form the model builder timestamps. For example, if <code>number_of_days: 3</code>, the model builder will only solve 72 hours in the entire year.</li>
 <li>This is used when <code>method = "nth_hour"</code>. In this case, the model builder will run at every <strong>n-th</strong> hour. Typical value to use for this would be 25, so every 25th hour is included in the model. To run the model at hourly resolution (the highest temporal resolution in the model builder), then it needs to be set to 1.</li>
-<li>Interest rate in decimal form (e.g., 0.05 represents 5%).</li>
+<li>Interest rate within each country in decimal form (e.g., 0.05 represents 5%).</li>
 <li>Removes non expandable assets with a capacity below this threshold (in MW) to avoid numerical issues during optimisation.</li>
 </ol>
 <h2 id="scenario_configyaml-mandatory-constraints">scenario_config.yaml - mandatory constraints<a class="headerlink" href="#scenario_configyaml-mandatory-constraints" title="Permanent link">¶</a></h2>
@@ -1117,12 +1117,12 @@ The variables listed below should be filled out for each country individually.</
 <ol>
 <li>The model adds constraints to ensure energy independence. This indicates how much of energy needs are met without relying on imports (by producing enough energy domestically). You can refer to Constraint - Energy Independence for more information.<br>To deactivate it, you can exclude them in the <code>custom_constraints</code>, and the model will identify it as deactivated.</li>
 <li>Primary energy conversion factor (dimensionless) is used to convert electricity generation to <code>primary energy</code> to make renewables comparable to fossil at primary energy level. Different definitions can be used to arrive at the value of these.</li>
-<li><strong>Minimum</strong> energy independence fraction defined as: $$ \frac{\textit{locally produced energy}}{\textit{locally produced energy + imported energy}} $$ For details see <code>Energy independence constraint</code> below.</li>
+<li><strong>Minimum</strong> energy independence fraction, defined as the ratio of locally produced energy to the total energy consumed (the sum of locally produced and imported energy). For details, see the <code>Energy independence constraint</code> section below.</li>
 <li>Maximum production limit of certain fuels can be defined here. Maximum values for these fuels are defined in <code>Power/fuel_supplies.csv</code>.<br>To deactivate it, you can remove them in the <code>custom_constraints</code>, and the model will identify it as dectivated.</li>
 <li>The model adds reserve margin constraints based on <code>reserve_parameters</code>. See Constraint - Reserve Margin for more information.<br>To deactivate it, you can exclude them in the <code>custom_constraints</code>, and the model will identify it as dectivated.</li>
 <li>Fraction of load considered as reserve.</li>
 <li>Contribution of Variable Renewable Energy (VRE) to the reserve.</li>
-<li>Extra contingency in MW. It is under <code>reserve_margin</code>. This is usually taken as a the size of largest individual power plants or defined by country specific regulations. </li>
+<li>Extra contingency in MW. It is under <code>reserve_margin</code>. This is usually taken as a the size of largest individual power plants or defined by country specific regulations.</li>
 <li>Options: <code>static</code> (no VRE) or <code>dynamic</code> (includes VRE). See reserve margin definition below.</li>
 <li>The model adds a constraint on renewable generation as a fraction of total electricity demand.</li>
 <li>Defines the type of renewable constraint. If set to <code>&lt;=</code> it means the fraction of renewable generation from the total electricity demand should be <strong>less than or equal to</strong> the given values or <strong>greater than or equal to</strong> if value set to <code>=&gt;</code></li>
