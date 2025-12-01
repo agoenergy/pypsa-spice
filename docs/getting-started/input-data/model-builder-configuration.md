@@ -76,7 +76,7 @@ scenario_configs:
 4. Determines the method used by the model to deal with the time steps. For testing this reduces the compute time. Available options are `nth_hour` (recommended) and `clustered`. Depending on the selected option, one other parameter in the `resolution` section should be set.
 5. If `method = "clustered"`, the number of representative days should be provided to group time steps and form the model builder timestamps. For example, if `number_of_days: 3`, the model builder will only solve 72 hours in the entire year.
 6. This is used when `method = "nth_hour"`. In this case, the model builder will run at every **n-th** hour. Typical value to use for this would be 25, so every 25th hour is included in the model. To run the model at hourly resolution (the highest temporal resolution in the model builder), then it needs to be set to 1.
-7. Interest rate in decimal form (e.g., 0.05 represents 5%).
+7. Interest rate within each country in decimal form (e.g., 0.05 represents 5%).
 8. Removes non expandable assets with a capacity below this threshold (in MW) to avoid numerical issues during optimisation.
 
 ## scenario_config.yaml - mandatory constraints
@@ -170,12 +170,12 @@ custom_constraints:
 
 1. The model adds constraints to ensure energy independence. This indicates how much of energy needs are met without relying on imports (by producing enough energy domestically). You can refer to Constraint - Energy Independence for more information.<br>To deactivate it, you can exclude them in the `custom_constraints`, and the model will identify it as deactivated.
 2. Primary energy conversion factor (dimensionless) is used to convert electricity generation to `primary energy` to make renewables comparable to fossil at primary energy level. Different definitions can be used to arrive at the value of these.
-3. **Minimum** energy independence fraction defined as: $$ \frac{\textit{locally produced energy}}{\textit{locally produced energy + imported energy}} $$ For details see `Energy independence constraint` below.
+3. **Minimum** energy independence fraction, defined as the ratio of locally produced energy to the total energy consumed (the sum of locally produced and imported energy). For details, see the `Energy independence constraint` section below.
 4. Maximum production limit of certain fuels can be defined here. Maximum values for these fuels are defined in `Power/fuel_supplies.csv`.<br>To deactivate it, you can remove them in the `custom_constraints`, and the model will identify it as dectivated.
 5. The model adds reserve margin constraints based on `reserve_parameters`. See Constraint - Reserve Margin for more information.<br>To deactivate it, you can exclude them in the `custom_constraints`, and the model will identify it as dectivated.
 6. Fraction of load considered as reserve.
 7. Contribution of Variable Renewable Energy (VRE) to the reserve.
-8. Extra contingency in MW. It is under `reserve_margin`. This is usually taken as a the size of largest individual power plants or defined by country specific regulations. 
+8. Extra contingency in MW. It is under `reserve_margin`. This is usually taken as a the size of largest individual power plants or defined by country specific regulations.
 9. Options: `static` (no VRE) or `dynamic` (includes VRE). See reserve margin definition below.
 10. The model adds a constraint on renewable generation as a fraction of total electricity demand.
 11. Defines the type of renewable constraint. If set to `<=` it means the fraction of renewable generation from the total electricity demand should be **less than or equal to** the given values or **greater than or equal to** if value set to `=>`

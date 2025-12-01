@@ -12,27 +12,9 @@ PyPSA-SPICE-Vis is an open-source tool designed to simplify the visualisation an
 
 ## How to use it
 
-### Create initial.yaml
-
-The pypsa-spice-vis folder and its files should be inside the PyPSA-SPICE repository by default. The first step is to enter the pypsa-spice-vis folder and create an `initial.yaml` in the `setting` folder to provide initial settings for the app. This file will be ignored by git and is exclusive to your computer. You can refer to `pypsa-spice-vis/setting/initial_project_01.yaml` as an example, or copy the example file directly:
-
-```bash title="Copying the initial.yaml file"
-cp pypsa-spice-vis/setting/initial_project_01.yaml pypsa-spice-vis/setting/initial.yaml
-```
-
-Structure of the `initial.yaml` is explained as follows:
-
-```yaml title="Explanation of initial.yaml"
-project: "project_01" #(1)!
-sce1: "ref" # (2)!
-sce2: "opt" #(3)!
-```
-
-1. Mandatory input project name. This name is the same as `project_name` from `pypsa-spice/config.yaml`.
-2. Mandatory input name of the first scenario ( the name is usually `ref` from the `output_scenario_name` in `pypsa-spice/config.yaml`).
-3. Optional input name of the first scenario ( the name is usually other scenarios from the `output_scenario_name`  in `pypsa-spice/config.yaml`).
-
 ### Run streamlit app
+
+The pypsa-spice-vis folder and its files should be inside the PyPSA-SPICE repository by default. The output folder that PyPSA-SPICE-Vis will access is defined from the `output_scenario_name` in `pypsa-spice/config.yaml`.
 
 You can run streamlit app with the command below:
 

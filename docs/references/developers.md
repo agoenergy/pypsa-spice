@@ -19,9 +19,9 @@ The following people have contributed significantly towards the development of P
 - Dr. Saeed Sayadi
 - Dr. Jia Loy
 
-### Technische Universität Berlin (TU Berlin)
+### Open Energy Transition (OET)
 
-- Dr. Elisabeth Zeyen
+- Dr. Elisabeth Zeyen (formerly Technische Universität Berlin (TU Berlin))
 
 ### Institute for Climate and Sustainable Cities (ICSC)
 

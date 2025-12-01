@@ -72,7 +72,7 @@ This file defines the buses to be used in the model. All components need to be c
 
 ## Fuel supplies
 
-These are fuel supply generators that provide fuel in the thermal energy unit [MWh_th]. It is possible to put maximum supply constraint over a year for these fuel supplies. See model [schematic diagram](../../user-guide/model-builder-methodology.md/#model-builder-methodology)
+These are fuel supply generators that provide fuel in the thermal energy unit [MWh_th]. It is possible to put maximum supply constraint over a year for these fuel supplies. See model [schematic diagram](../../user-guide/model-builder-methodology.md/#model-builder-methodology).
 
 | Parameter    | definition                                                                     |
 | ------------ | ------------------------------------------------------------------------------ |
