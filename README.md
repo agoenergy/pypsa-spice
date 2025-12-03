@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 <picture align="center">
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/images/pypsa-logo_rgb.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/images/pypsa-logo_rgb_dark.svg">
   <img alt="PyPSA-spice banner" src="docs/assets/images/pypsa-logo_rgb.svg">
 </picture>
 
