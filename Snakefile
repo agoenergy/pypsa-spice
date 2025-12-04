@@ -201,3 +201,7 @@ rule combine_summaries:
         combined_summaries=RDIR + "/csvs/{sector}/all_years/combined_summary.txt",
     script:
         "scripts/combine_summaries.py"
+
+rule pypsa_spice:
+    script:
+        "scripts/spice.py"

@@ -4,7 +4,7 @@
 
 # to preview the documentation website in local server, run `mkdocs serve --config-file mkdocs.yaml` and get the url in the terminal to paste it in the browser
 
-site_name: "PyPSA-SPICE Model Builder Documentation"
+site_name: "Model Builder Documentation"
 site_url: https://agora-energiewende.org
 repo_url: https://github.com/agoenergy/pypsa-spice
 theme:

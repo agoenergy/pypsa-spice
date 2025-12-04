@@ -91,7 +91,7 @@ Please use the citation below:
 
 ## Contributions
 
-We welcome anyone interested in contributing to this project, and please have a look
+We welcome any contributions and additional spice to this project; please have a look
 at [contributing guide](docs/contributing/contributing.md) and our [code of conduct](docs/contributing/code_of_conduct.md).
 If you have any ideas, suggestions or encounter problems, feel free to file issues
 or make pull requests on GitHub.

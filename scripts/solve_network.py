@@ -10,7 +10,30 @@ specified year and sector. It includes functionality for adding custom constrain
 the model. It supports different solvers and can handle scenarios with multiple years
 and countries.
 """
-
+######################################################################################
+#######                                                                                                                                                      
+########                         **********---                       
+########                     ***************---.                     
+########                  *** *************:-----   ---              
+########                **  ****************----                     
+########               ** ******************--                       
+########              *  ***********=                                
+########             ** *********                                    
+########             *  ********                                     
+########            ** ********                       **             
+########            ** *******                        =**            
+########            ** *******                       ****            
+########             **********                     +****            
+########             ***********                   ******            
+########              ***********                *******             
+########               *************          *********              
+########                 *****************************               
+########                   *************************                 
+########                     *********************                    
+########                          ***********                        
+########
+######################################################################################                                                                     
+                                                        
 import logging
 import os
 import pathlib
@@ -206,7 +229,7 @@ def solve_network(
         oetc_settings = None
         oetc_handler = None
 
-    print(f"######## Solving model with {solver_name.capitalize()}")
+    print(f"######## 🌶 Solving model with {solver_name.capitalize()}")
     extra_functionality_linopt_config = partial(
         extra_functionality_linopt, scenario_configs=scenario_configs
     )
@@ -288,7 +311,7 @@ if __name__ == "__main__":
     n = solve_network(n, y, scenario_configs=scenario_configs)
 
     if n.model.status != "warning":
-        print("model feasible!")
+        print("model feasible! 🌶 ")
     else:
         print("model infeasible compute infeasibilites")
         inf_constr = n.model.compute_infeasibilities()

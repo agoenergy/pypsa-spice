@@ -75,7 +75,7 @@ All the listed components are defined as `Store` in PyPSA.
 
 !!! Tip
     In PyPSA components, `Store` is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of `Store` + 2 `Links`. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
-    IIn the industry sector of PyPSA-SPICE model builder, the media `electricity` is replaced by `low-temperature heat` in the storage process. Technologies that are defined as storage energy, **they should also be included in [Storage capacity](power_sector.md#storage-capacity) to describe charging and discharging processes. The links are created automatically, and hence it's not required to add charging and discharging links inside [Heat links](industry_sector.md#heat-links), [Fuel conversion](industry_sector.md#fuel-conversion), or [Direct air capture](industry_sector.md#direct-air-capture).**<br><br>
+    In the industry sector of PyPSA-SPICE model builder, the media `electricity` is replaced by `low-temperature heat` in the storage process. Technologies that are defined as storage energy, **they should also be included in [Storage capacity](power_sector.md#storage-capacity) to describe charging and discharging processes. The links are created automatically, and hence it's not required to add charging and discharging links inside [Heat links](industry_sector.md#heat-links), [Fuel conversion](industry_sector.md#fuel-conversion), or [Direct air capture](industry_sector.md#direct-air-capture).**<br><br>
     Detailed information and example can be found in [PyPSA Components - Store](https://docs.pypsa.org/latest/user-guide/components/stores/){:target="_blank"} and [Replace StorageUnits with fundamental Links and Stores](https://docs.pypsa.org/latest/examples/replace-generator-storage-units-with-store/){:target="_blank"}.
 
 | Abbreviation  | Full Name                                |
@@ -118,4 +118,4 @@ All the listed components are defined as `Store` in PyPSA.
 
 ## Custom constraints (defined in the `config.yaml` file)
 
-- coming soon...
+- coming soon 🌶 ...
