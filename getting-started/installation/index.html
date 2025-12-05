@@ -22,7 +22,7 @@
     
     
       
-        <title>Installation - PyPSA-SPICE Model Builder Documentation</title>
+        <title>Installation - Model Builder Documentation</title>
       
     
     
@@ -92,10 +92,19 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="PyPSA-SPICE Model Builder Documentation" class="md-header__button md-logo" aria-label="PyPSA-SPICE Model Builder Documentation" data-md-component="logo">
+    <a href="../.." title="Model Builder Documentation" class="md-header__button md-logo" aria-label="Model Builder Documentation" data-md-component="logo">
       
-  <img src="../../assets/images/pypsa-logo_rgb.png" alt="logo">
-
+<a href="../.."
+   class="md-header__button md-logo"
+   title="Model Builder Documentation"
+   aria-label="Model Builder Documentation">
+  <img id="logo_light_mode"
+       src="../../assets/images/pypsa-logo_rgb.png"
+       alt="Model Builder Documentation">
+  <img id="logo_dark_mode"
+       src="../../assets/images/pypsa-logo_rgb_dark.png"
+       alt="Model Builder Documentation">
+</a>
     </a>
     <label class="md-header__button md-icon" for="__drawer">
       
@@ -105,7 +114,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            PyPSA-SPICE Model Builder Documentation
+            Model Builder Documentation
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -231,12 +240,21 @@
 
 <nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="PyPSA-SPICE Model Builder Documentation" class="md-nav__button md-logo" aria-label="PyPSA-SPICE Model Builder Documentation" data-md-component="logo">
+    <a href="../.." title="Model Builder Documentation" class="md-nav__button md-logo" aria-label="Model Builder Documentation" data-md-component="logo">
       
-  <img src="../../assets/images/pypsa-logo_rgb.png" alt="logo">
-
+<a href="../.."
+   class="md-header__button md-logo"
+   title="Model Builder Documentation"
+   aria-label="Model Builder Documentation">
+  <img id="logo_light_mode"
+       src="../../assets/images/pypsa-logo_rgb.png"
+       alt="Model Builder Documentation">
+  <img id="logo_dark_mode"
+       src="../../assets/images/pypsa-logo_rgb_dark.png"
+       alt="Model Builder Documentation">
+</a>
     </a>
-    PyPSA-SPICE Model Builder Documentation
+    Model Builder Documentation
   </label>
   
     <div class="md-nav__source">
@@ -821,9 +839,9 @@
 <li>Install Miniforge3 or mamba packages only in the base Conda environment. Installing them in other environments may lead to compatibility issues or unexpected errors.</li>
 <li>Miniforge3 and Mambaforge use different environment paths. If you switch from one to the other, you will need to recreate all Conda environments, as they are not shared between the two setups.</li>
 </ol>
-<p>The required Python packages for PyPSA-SPICE are listed in the <code>environment.yaml</code> (via conda or mamba) and <code>requirements.txt</code> (via pip). You can create and activate the environment (which is called <code>pypsa-spice</code>) using the following commands:</p>
+<p>The required Python packages for PyPSA-SPICE are listed in the <code>environment.yaml</code> (via conda or mamba) and <code>requirements.txt</code> (via pip). You can create and activate the environment (which is called <code>hotpot</code>) using the following commands:</p>
 <div class="language-bash highlight"><span class="filename">Installing and activating the virtual environment</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>mamba<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-f<span class="w"> </span>envs/environment.yaml
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>conda<span class="w"> </span>activate<span class="w"> </span>pypsa-spice
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>conda<span class="w"> </span>activate<span class="w"> </span>hotpot
 </span></code></pre></div>
 <p>Note that the environment activation is local to the currently open terminal session. If you open a new terminal window, you will need to re-run the activation command.</p>
 <h2 id="install-a-solver">Install a solver<a class="headerlink" href="#install-a-solver" title="Permanent link">¶</a></h2>
@@ -878,12 +896,12 @@
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked id="__tabbed_1_1" name="__tabbed_1" type="radio"><input id="__tabbed_1_2" name="__tabbed_1" type="radio"><div class="tabbed-labels"><label for="__tabbed_1_1">on Mac or Linux</label><label for="__tabbed_1_2">on Windows</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>conda<span class="w"> </span>activate<span class="w"> </span>pypsa-spice
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>conda<span class="w"> </span>activate<span class="w"> </span>hotpot
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>ipopt<span class="w"> </span>coincbc
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>conda<span class="w"> </span>activate<span class="w"> </span>pypsa-spice
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>conda<span class="w"> </span>activate<span class="w"> </span>hotpot
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>ipopt<span class="w"> </span>glpk
 </span></code></pre></div>
 </div>

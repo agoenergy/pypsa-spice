@@ -22,7 +22,7 @@
     
     
       
-        <title>Industry sector - PyPSA-SPICE Model Builder Documentation</title>
+        <title>Industry sector - Model Builder Documentation</title>
       
     
     
@@ -92,10 +92,19 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="PyPSA-SPICE Model Builder Documentation" class="md-header__button md-logo" aria-label="PyPSA-SPICE Model Builder Documentation" data-md-component="logo">
+    <a href="../.." title="Model Builder Documentation" class="md-header__button md-logo" aria-label="Model Builder Documentation" data-md-component="logo">
       
-  <img src="../../assets/images/pypsa-logo_rgb.png" alt="logo">
-
+<a href="../.."
+   class="md-header__button md-logo"
+   title="Model Builder Documentation"
+   aria-label="Model Builder Documentation">
+  <img id="logo_light_mode"
+       src="../../assets/images/pypsa-logo_rgb.png"
+       alt="Model Builder Documentation">
+  <img id="logo_dark_mode"
+       src="../../assets/images/pypsa-logo_rgb_dark.png"
+       alt="Model Builder Documentation">
+</a>
     </a>
     <label class="md-header__button md-icon" for="__drawer">
       
@@ -105,7 +114,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            PyPSA-SPICE Model Builder Documentation
+            Model Builder Documentation
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -231,12 +240,21 @@
 
 <nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="PyPSA-SPICE Model Builder Documentation" class="md-nav__button md-logo" aria-label="PyPSA-SPICE Model Builder Documentation" data-md-component="logo">
+    <a href="../.." title="Model Builder Documentation" class="md-nav__button md-logo" aria-label="Model Builder Documentation" data-md-component="logo">
       
-  <img src="../../assets/images/pypsa-logo_rgb.png" alt="logo">
-
+<a href="../.."
+   class="md-header__button md-logo"
+   title="Model Builder Documentation"
+   aria-label="Model Builder Documentation">
+  <img id="logo_light_mode"
+       src="../../assets/images/pypsa-logo_rgb.png"
+       alt="Model Builder Documentation">
+  <img id="logo_dark_mode"
+       src="../../assets/images/pypsa-logo_rgb_dark.png"
+       alt="Model Builder Documentation">
+</a>
     </a>
-    PyPSA-SPICE Model Builder Documentation
+    Model Builder Documentation
   </label>
   
     <div class="md-nav__source">
@@ -1018,7 +1036,7 @@ To model the storage energy separately from the power capacity, <code>Store</cod
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>In PyPSA components, <code>Store</code> is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of <code>Store</code> + 2 <code>Links</code>. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
-IIn the industry sector of PyPSA-SPICE model builder, the media <code>electricity</code> is replaced by <code>low-temperature heat</code> in the storage process. Technologies that are defined as storage energy, <strong>they should also be included in <a href="../power_sector/#storage-capacity">Storage capacity</a> to describe charging and discharging processes. The links are created automatically, and hence it's not required to add charging and discharging links inside <a href="./#heat-links">Heat links</a>, <a href="./#fuel-conversion">Fuel conversion</a>, or <a href="./#direct-air-capture">Direct air capture</a>.</strong><br><br>
+In the industry sector of PyPSA-SPICE model builder, the media <code>electricity</code> is replaced by <code>low-temperature heat</code> in the storage process. Technologies that are defined as storage energy, <strong>they should also be included in <a href="../power_sector/#storage-capacity">Storage capacity</a> to describe charging and discharging processes. The links are created automatically, and hence it's not required to add charging and discharging links inside <a href="./#heat-links">Heat links</a>, <a href="./#fuel-conversion">Fuel conversion</a>, or <a href="./#direct-air-capture">Direct air capture</a>.</strong><br><br>
 Detailed information and example can be found in <a href="https://docs.pypsa.org/latest/user-guide/components/stores/" target="_blank">PyPSA Components - Store</a> and <a href="https://docs.pypsa.org/latest/examples/replace-generator-storage-units-with-store/" target="_blank">Replace StorageUnits with fundamental Links and Stores</a>.</p>
 </div>
 <table>
@@ -1146,7 +1164,7 @@ Detailed information and example can be found in <a href="https://docs.pypsa.org
 </table>
 <h2 id="custom-constraints-defined-in-the-configyaml-file">Custom constraints (defined in the <code>config.yaml</code> file)<a class="headerlink" href="#custom-constraints-defined-in-the-configyaml-file" title="Permanent link">¶</a></h2>
 <ul>
-<li>coming soon...</li>
+<li>coming soon 🌶 ...</li>
 </ul></div>
 
 
