@@ -719,7 +719,7 @@ def create_interconnector(
     for column in fill_columns:
         intercon_df[column] = "Please fill here"
 
-    # ================================ Finalize and save ===============================
+    # ======================== 🌶 Finalize and save 🌶 ===================
     intercon_df = intercon_df.set_index(["country", "link"]).sort_values(
         by=["bus0", "bus1"]
     )

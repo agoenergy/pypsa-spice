@@ -43,11 +43,11 @@ You can switch to any other directory outside the folder you cloned PyPSA-SPICE.
 2. Install Miniforge3 or mamba packages only in the base Conda environment. Installing them in other environments may lead to compatibility issues or unexpected errors.
 3. Miniforge3 and Mambaforge use different environment paths. If you switch from one to the other, you will need to recreate all Conda environments, as they are not shared between the two setups.
 
-The required Python packages for PyPSA-SPICE are listed in the `environment.yaml` (via conda or mamba) and `requirements.txt` (via pip). You can create and activate the environment (which is called `pypsa-spice`) using the following commands:
+The required Python packages for PyPSA-SPICE are listed in the `environment.yaml` (via conda or mamba) and `requirements.txt` (via pip). You can create and activate the environment (which is called `hotpot`) using the following commands:
 
 ```bash title="Installing and activating the virtual environment"
 mamba env create -f envs/environment.yaml
-conda activate pypsa-spice
+conda activate hotpot
 ```
 
 Note that the environment activation is local to the currently open terminal session. If you open a new terminal window, you will need to re-run the activation command.
@@ -71,14 +71,14 @@ Commercial solvers such as Gurobi currently significantly outperform open-source
 === "on Mac or Linux"
 
     ```bash
-    conda activate pypsa-spice
+    conda activate hotpot
     conda install -c conda-forge ipopt coincbc
     ```
 
 === "on Windows"
 
     ```bash
-    conda activate pypsa-spice
+    conda activate hotpot
     conda install -c conda-forge ipopt glpk
     ```
 

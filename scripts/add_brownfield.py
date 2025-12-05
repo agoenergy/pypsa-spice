@@ -936,6 +936,8 @@ class AddFutureAssets:
                     emit_links, "marginal_cost"
                 ] += self.network.links.loc[emit_links, "efficiency2"].mul(co2price)
 
+    # ========================== A̶D̶D̶I̶N̶G̶ ̶S̶P̶I̶C̶E̶ =========================
+
 
 if __name__ == "__main__":
     snakemake: Any = globals().get("snakemake")

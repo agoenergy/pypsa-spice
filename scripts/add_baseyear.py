@@ -818,6 +818,7 @@ if __name__ == "__main__":
     n.set_snapshots(resolution)
     # executing each add functions
     c = AddBaseNetwork(network=n, year=selected_year, scenario_configs=scenario_configs)
+    print("Adding spice...")
     c.add_buses(bus_dir=snakemake.input.elec_buses)
     c.add_atmosphere()
     c.add_interconnectors()

@@ -4,7 +4,7 @@
 
 # to preview the documentation website in local server, run `mkdocs serve --config-file mkdocs.yaml` and get the url in the terminal to paste it in the browser
 
-site_name: "PyPSA-SPICE Model Builder Documentation"
+site_name: "Model Builder Documentation"
 site_url: https://agora-energiewende.org
 repo_url: https://github.com/agoenergy/pypsa-spice
 theme:
@@ -14,7 +14,13 @@ theme:
     text: Flexo
     code: Roboto Mono
   favicon: assets/favicon/favicon.ico
-  logo: assets/images/pypsa-logo_rgb.png
+
+  # use custom logos instead of the single `logo` entry
+  custom_dir: overrides
+  logo_light_mode: assets/images/pypsa-logo_rgb.png
+  logo_dark_mode: assets/images/pypsa-logo_rgb_dark.png
+
+  #logo: assets/images/pypsa-logo_rgb.png
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
