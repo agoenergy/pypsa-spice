@@ -2,7 +2,6 @@
 
 
 def spice():
-    """Print a fun spice ASCII art to the console."""
     print(
         "Spicing up the network...",
         "\n",
