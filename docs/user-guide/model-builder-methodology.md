@@ -10,7 +10,7 @@ PyPSA-SPICE is a least-cost optimisation model builder designed to evaluate long
 
 The diagram below illustrates the energy flows within a single node:
 
-[![PyPSA-SPICE overview schema](../assets/images/pypsa-spice_schema_overview.svg){ .img-center width="100%" }](../assets/images/pypsa-spice_schema_overview.svg){: target="_blank" }
+[![PyPSA-SPICE overview schema](../assets/images/pypsa-spice_schema_overview.jpg){ .img-center width="100%" }](../assets/images/pypsa-spice_schema_overview.jpg){: target="_blank" }
 
 Each component in this model follows the definitions from [PyPSA components](https://docs.pypsa.org/latest/user-guide/design/){:target="_blank"} and the system is structured into three main sectors:
 

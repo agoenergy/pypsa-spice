@@ -14,7 +14,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 PyPSA-SPICE follows the component definitions from [PyPSA components](https://docs.pypsa.org/latest/user-guide/design/){:target="_blank"}. The diagram below illustrates all components involved in energy flows at a single node in the power sector.
 
-[![PyPSA-SPICE power sector energy flow](../assets/images/pypsa-spice_schema_power_sector.svg){ .img-center width="100%" }](../assets/images/pypsa-spice_schema_power_sector.svg){: target="_blank" }
+[![PyPSA-SPICE power sector energy flow](../assets/images/pypsa-spice_schema_power_sector.jpg){ .img-center width="100%" }](../assets/images/pypsa-spice_schema_power_sector.jpg){: target="_blank" }
 
 ## Power generators
 

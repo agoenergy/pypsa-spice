@@ -13,7 +13,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 The structure and function of each component follow the definitions from the [PyPSA components](https://docs.pypsa.org/latest/user-guide/design/){:target="_blank"}. The diagram below illustrates the components and energy flows at a single node in the transport sector.
 
-[![PyPSA-SPICE transport sector energy flow](../assets/images/pypsa-spice_schema_transport_sector.svg){ .img-center width="60%" }](../assets/images/pypsa-spice_schema_transport_sector.svg){: target="_blank" }
+[![PyPSA-SPICE transport sector energy flow](../assets/images/pypsa-spice_schema_transport_sector.jpg){ .img-center width="60%" }](../assets/images/pypsa-spice_schema_transport_sector.jpg){: target="_blank" }
 
 !!! Tip
     In the transport sector, PyPSA-SPICE separated the demand and energy flow into two categories: private and public sector. The public sector (`PUB`) encompasses public transportation services, while the private sector (`PRV`) refers to personally owned vehicles.

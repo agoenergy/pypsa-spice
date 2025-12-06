@@ -15,7 +15,7 @@ Optimisation of industry heat supply at two different temperature levels:
 
 The structure and functionality of components follow the [PyPSA Components](https://docs.pypsa.org/latest/user-guide/design/){:target="_blank"}. The diagram below shows the full set of components involved in energy flows for a single industrial node.
 
-[![PyPSA-SPICE industry sector energy flow](../assets/images/pypsa-spice_schema_industrial_sector.svg){ .img-center width="100%" }](../assets/images/pypsa-spice_schema_industrial_sector.svg){: target="_blank" }
+[![PyPSA-SPICE industry sector energy flow](../assets/images/pypsa-spice_schema_industrial_sector.jpg){ .img-center width="100%" }](../assets/images/pypsa-spice_schema_industrial_sector.jpg){: target="_blank" }
 
 ## Heat generators
 
