@@ -70,10 +70,9 @@ class AddBaseNetwork:
         bus_df = pd.read_csv(bus_dir)
         bus_df = filter_selected_countries_and_regions(
             df=bus_df,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
-            buses_csv=True,
+            filter_column="node",
+            country_regions=self.country_region,
+            filter_by_both_country_n_regions=True,
         )
         bus_df = get_buses(bus_df=bus_df)
         self.network.add(
@@ -132,9 +131,8 @@ class AddBaseNetwork:
         interc = pd.read_csv(snakemake.input.interconnection)
         interc = filter_selected_countries_and_regions(
             df=interc,
-            column="link",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="link",
+            country_regions=self.country_region,
         ).set_index("link")
 
         self.network.add(
@@ -188,9 +186,8 @@ class AddBaseNetwork:
         storage_capacity = pd.read_csv(storage_capacity_dir)
         storage_capacity = filter_selected_countries_and_regions(
             df=storage_capacity,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
         )
         storage_capacity = update_tech_fact_table(
             tech_table=storage_capacity,
@@ -334,9 +331,8 @@ class AddBaseNetwork:
         storage_energy_raw = pd.read_csv(storage_energy_dir).set_index("store")
         storage_energy_raw = filter_selected_countries_and_regions(
             df=storage_energy_raw.reset_index(),
-            column="store",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="store",
+            country_regions=self.country_region,
         ).set_index("store")
         storage_energy_raw["cyclic"] = storage_energy_raw["type"].apply(
             lambda x: x != "CO2STOR"
@@ -373,9 +369,9 @@ class AddBaseNetwork:
         """Add loads of all kind to the PyPSA network."""
         load_df = filter_selected_countries_and_regions(
             df=pd.read_csv(load_dir),
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
+            filter_by_both_country_n_regions=True,
         )
         final_load = get_time_series_demands(load_df, self.dmd_profile_path, self.year)
         final_load.reset_index(["country", "bus", "carrier", "node"], inplace=True)
@@ -404,9 +400,8 @@ class AddBaseNetwork:
         clean_pps = pd.read_csv(plant_dir)
         clean_pps = filter_selected_countries_and_regions(
             df=clean_pps,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
         )
         clean_pps = update_tech_fact_table(
             tech_table=clean_pps,
@@ -455,9 +450,8 @@ class AddBaseNetwork:
         links_df = pd.read_csv(links_dir)
         links_df = filter_selected_countries_and_regions(
             df=links_df,
-            column="link",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="link",
+            country_regions=self.country_region,
         )
         links_df = update_tech_fact_table(
             tech_table=links_df,
@@ -516,9 +510,8 @@ class AddBaseNetwork:
         ].set_index(["powerplant_type", "country"])
         ev_links_df = filter_selected_countries_and_regions(
             df=ev_links_df.reset_index(),
-            column="link",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="link",
+            country_regions=self.country_region,
         ).set_index("link")
         ev_links_df = update_ev_char_parameters(
             tech_df=ev_links_df,
@@ -564,9 +557,8 @@ class AddBaseNetwork:
         ev_storages = pd.read_csv(snakemake.input.tra_pev_storages).set_index("name")
         ev_storages = filter_selected_countries_and_regions(
             df=ev_storages,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
         )
         ev_storages = update_ev_store_parameters(
             tech_table=ev_storages,

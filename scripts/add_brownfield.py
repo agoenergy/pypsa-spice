@@ -161,9 +161,8 @@ def update_decommission_base_assets(
     decap_df = pd.concat([pow_decom_df, ind_decom_df], axis=0)
     decap_df = filter_selected_countries_and_regions(
         df=decap_df.reset_index(),
-        column="name",
-        country_region=sm_country_region,
-        currency=str(currency).lower(),
+        filter_column="name",
+        country_regions=sm_country_region,
     ).set_index("name")
     for col in decap_df.columns:
         if col in ["country", "class"]:
@@ -353,9 +352,8 @@ class AddFutureAssets:
         interconnectors = pd.read_csv(snakemake.input.interconnection)
         interconnectors = filter_selected_countries_and_regions(
             df=interconnectors,
-            column="link",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="link",
+            country_regions=self.country_region,
         ).set_index("link")
         p_nom_max_min_columns = [
             x for x in interconnectors.columns if "p_nom_max" in x or "p_nom_min" in x
@@ -432,9 +430,8 @@ class AddFutureAssets:
         storage_capacity = pd.read_csv(storage_capacity_dir)
         storage_capacity = filter_selected_countries_and_regions(
             df=storage_capacity,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
         )
         storage_capacity = update_tech_fact_table(
             tech_table=storage_capacity,
@@ -595,9 +592,8 @@ class AddFutureAssets:
         storage_energy_raw = pd.read_csv(storage_energy_dir).set_index("store")
         storage_energy_raw = filter_selected_countries_and_regions(
             df=storage_energy_raw.reset_index(),
-            column="store",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="store",
+            country_regions=self.country_region,
         ).set_index("store")
         storage_energy_raw["cyclic"] = storage_energy_raw["type"].apply(
             lambda x: x != "CO2STOR"
@@ -647,9 +643,9 @@ class AddFutureAssets:
         """
         load_df = filter_selected_countries_and_regions(
             df=pd.read_csv(loads),
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
+            filter_by_both_country_n_regions=True,
         )
         final_load = get_time_series_demands(load_df, self.dmd_profile_path, self.year)
         final_load.reset_index(["country", "bus", "carrier", "node"], inplace=True)
@@ -686,9 +682,8 @@ class AddFutureAssets:
         clean_pps = pd.read_csv(plants)
         clean_pps = filter_selected_countries_and_regions(
             df=clean_pps,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
         )
         clean_pps = update_tech_fact_table(
             tech_table=clean_pps,
@@ -755,9 +750,8 @@ class AddFutureAssets:
         raw_links_df = pd.read_csv(links)
         links_df = filter_selected_countries_and_regions(
             df=raw_links_df,
-            column="link",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="link",
+            country_regions=self.country_region,
         )
         links_df = update_tech_fact_table(
             tech_table=links_df,
@@ -828,9 +822,8 @@ class AddFutureAssets:
         ].set_index(["powerplant_type", "country"])
         ev_links_df = filter_selected_countries_and_regions(
             df=ev_links_df.reset_index(),
-            column="link",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="link",
+            country_regions=self.country_region,
         ).set_index("link")
         ev_links = update_ev_char_parameters(
             tech_df=ev_links_df,
@@ -879,9 +872,8 @@ class AddFutureAssets:
         ev_storages = pd.read_csv(snakemake.input.tra_pev_storages)
         ev_storages = filter_selected_countries_and_regions(
             df=ev_storages,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
         ).set_index("name")
         ev_storages = update_ev_store_parameters(
             tech_table=ev_storages,
