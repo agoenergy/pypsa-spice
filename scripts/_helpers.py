@@ -1684,38 +1684,43 @@ def filter_selected_countries_and_regions(
     pd.DataFrame
         Filtered DataFrame
     """
-    final_df = pd.DataFrame()
-    for country, region in country_regions.items():
-        region_pattern = [country + "_" + x for x in region]
-        if include_both_country_n_regional_rows:
-            # filtering table by both country and regional information
-            # e.g. buses, loads where you can have both national and regional nodes
-            country_node_df = df[
-                (df["country"] == country) & (~(df[filter_column].str.contains("_")))
-            ]  # Select only country nodes and ignore nodes with regional info
+    country_patterns = list(country_regions.keys())
+    region_patterns = []
+    for country, regions in country_regions.items():
+        for region in regions:
+            region_patterns.append(f"{country}_{region}")
+    if include_both_country_n_regional_rows:
+        # filtering table by both country and regional information
+        # e.g. buses, loads where you can have both national and regional nodes
+        country_node_df = df[
+            (df["country"].str.contains("|".join(country_patterns)))
+            & (~(df[filter_column].str.contains("_")))
+        ]  # Select only country nodes and ignore nodes with regional info
+        region_node_df = df[(df[filter_column].str.contains("|".join(region_patterns)))]
+        filter_df = pd.concat([country_node_df, region_node_df])
+    else:
+        # for interconnector links
+        # filter only rows with regional information in both bus0 or bus1
+        if filter_column == "link" and set(df.type) == {"ITCN"}:
+            filter_df = df[
+                df["bus0"].str.contains("|".join(region_patterns))
+                & df["bus1"].str.contains("|".join(region_patterns))
+            ]  # make sure regional pattern is in either bus0 or bus1
+        # for storage_energy table
+        # add national "CO2STORN", "HYDN" to the list of regional nodes
+        elif filter_column == "store":
             region_node_df = df[
-                (df[filter_column].str.contains("|".join(region_pattern)))
+                (df[filter_column].str.contains("|".join(region_patterns)))
             ]
-            filter_df = pd.concat([country_node_df, region_node_df])
+            extra_df = df[
+                (df["country"].str.contains("|".join(country_patterns)))
+                & df[filter_column].str.contains("|".join(["CO2STORN", "HYDN"]))
+            ]
+            filter_df = pd.concat([region_node_df, extra_df])
+        # for other components, select only rows with regional information
         else:
-            # for storage_energy table
-            # add national "CO2STORN", "HYDN" to the list of regional nodes
-            if filter_column == "store":
-                region_node_df = df[
-                    (df[filter_column].str.contains("|".join(region_pattern)))
-                ]
-                extra_df = df[
-                    (df["country"].str.contains(country))
-                    & df[filter_column].str.contains("|".join(["CO2STORN", "HYDN"]))
-                ]
-                filter_df = pd.concat([region_node_df, extra_df])
-            # for other components, select only rows with regional information
-            else:
-                filter_df = df[
-                    (df[filter_column].str.contains("|".join(region_pattern)))
-                ]
-        final_df = pd.concat([final_df, filter_df])
-    return final_df
+            filter_df = df[(df[filter_column].str.contains("|".join(region_patterns)))]
+    return filter_df
 
 
 def load_scenario_config(path: str) -> dict:
