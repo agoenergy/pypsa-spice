@@ -1661,7 +1661,7 @@ def filter_selected_countries_and_regions(
     df: pd.DataFrame,
     filter_column: str,
     country_regions: dict,
-    filter_by_both_country_n_regions: bool = False,
+    include_both_country_n_regional_rows: bool = False,
 ) -> pd.DataFrame:
     """Filter selected regions defined in the config.yaml.
 
@@ -1675,8 +1675,9 @@ def filter_selected_countries_and_regions(
         A dictionary with countries regions within those countries to filter by.
     currency: str
         Currency from the config file
-    filter_by_both_country_n_regions : bool
-        If True, include both country nodes and region-filtered nodes.
+    include_both_country_n_regional_rows : bool
+        If True, include both country node (e.g. national loads/buses)
+        and region-filtered rows (regional loads/bueses).
 
     Returns
     -------
@@ -1686,7 +1687,7 @@ def filter_selected_countries_and_regions(
     final_df = pd.DataFrame()
     for country, region in country_regions.items():
         region_pattern = [country + "_" + x for x in region]
-        if filter_by_both_country_n_regions:
+        if include_both_country_n_regional_rows:
             # filtering table by both country and regional information
             # e.g. buses, loads where you can have both national and regional nodes
             country_node_df = df[

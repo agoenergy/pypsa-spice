@@ -645,7 +645,7 @@ class AddFutureAssets:
             df=pd.read_csv(loads),
             filter_column="node",
             country_regions=self.country_region,
-            filter_by_both_country_n_regions=True,
+            include_both_country_n_regional_rows=True,
         )
         final_load = get_time_series_demands(load_df, self.dmd_profile_path, self.year)
         final_load.reset_index(["country", "bus", "carrier", "node"], inplace=True)
