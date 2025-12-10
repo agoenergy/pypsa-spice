@@ -1,10 +1,10 @@
 /* 
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-@font-face {
+ @font-face {
   font-family: 'Flexo';
   src:
     url('../fonts/Flexo-Medium.woff2') format('woff2'),
@@ -29,6 +29,15 @@ body {
 .md-header__title img {
     height: 100px; /* Adjust this value to change the height */
     width: auto;  /* Maintain aspect ratio */
+}
+
+img[alt="AgoraEW"], 
+img[alt="CASE"], 
+img[alt="INETTT"] { 
+  width: 150px; 
+  margin-right: 30px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* Adjust the size of different graphs*/
@@ -74,3 +83,23 @@ img[alt="PyPSA-SPICE_snakemake_workflow_DAG"] {
   font-size: 0.85rem;
 }
 
+/* Default: light logo visible, dark logo hidden */
+#logo_light_mode {
+  display: var(--logo-light-display, block);
+}
+
+#logo_dark_mode {
+  display: var(--logo-dark-display, none);
+}
+
+/* Light scheme = `default` (your first palette) */
+[data-md-color-scheme="default"] {
+  --logo-light-display: block;
+  --logo-dark-display: none;
+}
+
+/* Dark scheme = `slate` (your second palette) */
+[data-md-color-scheme="slate"] {
+  --logo-light-display: none;
+  --logo-dark-display: block;
+}

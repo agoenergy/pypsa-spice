@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -17,7 +17,6 @@ These constraints include:
 - reserve margins,
 - etc.
 """
-
 import colorama
 import numpy as np
 import pandas as pd
@@ -66,7 +65,7 @@ def renewable_potential_constraint(
                     row["name"] + "_" + str(year)
                 )  # construct name of current year asset index
                 avail_potential = row[
-                    "technical potential [MW]"
+                    "technical_potential__mw"
                 ]  # This is the maximum capacity possible per type per carrier
                 if new_asset_index in n.df(c).index:
                     if c == "Link":
@@ -333,48 +332,46 @@ def re_pow_generation_constraint(
     lhs = 0
     for c in ["Generator", "StorageUnit", "Link"]:
         df = n.df(c)
-        p_gen = "p" if c != "StorageUnit" else "p_dispatch"
-        bus_name = "bus1" if c == "Link" else "bus"
-        res_gen = df[
-            (df.country == country)
-            & (
-                df.type.isin(
-                    [
-                        "PHOT",
-                        "FLOT",
-                        "CSP",
-                        "RTPV",
-                        "GEOT",
-                        "GEOT-Retro",
-                        "GEOX",
-                        "WTON",
-                        "WTOF",
-                        "HDAM",
-                        "HROR",
-                        # "HPHS",
-                        # "BATS",
-                        # "BATS-1",
-                        # "BATS-2",
-                        # "BATS-4",
-                        "BIOT",
-                        "BIOT-Retro",
-                        "WSTT",
-                    ]
+        if not df.empty:
+            p_gen = "p" if c != "StorageUnit" else "p_dispatch"
+            bus_name = "bus1" if c == "Link" else "bus"
+            res_gen = df[
+                (df.country == country)
+                & (
+                    df.type.isin(
+                        [
+                            "PHOT",
+                            "FLOT",
+                            "CSP",
+                            "RTPV",
+                            "GEOT",
+                            "GEOT-Retro",
+                            "GEOX",
+                            "WTON",
+                            "WTOF",
+                            "HDAM",
+                            "HROR",
+                            "HPHS",
+                            "BATS",
+                            "BIOT",
+                            "BIOT-Retro",
+                            "WSTT",
+                        ]
+                    )
                 )
-            )
-            & (df[bus_name].str.contains("ELEC"))
-        ].index
-        if not res_gen.empty:
-            # Get var and weights
-            gen_var = get_var(n, c, p_gen).loc[:, res_gen]
-            weight_gen = xr.DataArray(
-                expand_series(n.snapshot_weightings.objective, df.index)
-            )
-            if c == "Link":
-                eff = xr.DataArray(df.loc[res_gen, "efficiency"])
-                lhs += (weight_gen * gen_var.mul(eff)).sum().sum()
-            else:
-                lhs += (weight_gen * gen_var).sum().sum()
+                & (df[bus_name].str.contains("ELEC"))
+            ].index
+            if not res_gen.empty:
+                # Get var and weights
+                gen_var = get_var(n, c, p_gen).loc[:, res_gen]
+                weight_gen = xr.DataArray(
+                    expand_series(n.snapshot_weightings.objective, df.index)
+                )
+                if c == "Link":
+                    eff = xr.DataArray(df.loc[res_gen, "efficiency"])
+                    lhs += (weight_gen * gen_var.mul(eff)).sum().sum()
+                else:
+                    lhs += (weight_gen * gen_var).sum().sum()
     # RHS (Right Hand Side): targeted renewable generation share
     rhs = res_generation_share * (
         n.loads_t.p_set.multiply(n.snapshot_weightings.objective, axis=0)

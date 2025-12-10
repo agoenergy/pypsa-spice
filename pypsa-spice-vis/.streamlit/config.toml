@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 [theme]
 primaryColor="#733e88"
 backgroundColor="#f8f8f8"

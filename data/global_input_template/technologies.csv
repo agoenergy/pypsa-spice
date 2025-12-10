@@ -1,0 +1,44 @@
+﻿country,technology,technology_nomenclature,carrier,class,efficiency,efficiency2,efficiency3,efficiency_store,max_hours,cyclic_state_of_charge,state_of_charge_initial,p_max_pu,p_min_pu,ramp_limit_down,ramp_limit_up,standing_loss,r_rating
+,BATS,Utility Battery storage,Electricity,Store,0.97,0,,0.98,,,,1,-1,1,1,,0.9
+,HHBS,Household Battery storage,Electricity,Store,0.9,0,,0.9,,,,1,-1,1,1,,0
+,BIOT,Biomass power plant ,Bio,Link,0.3,0,0,,,,,1,0,0.71,0.54,,0.9
+,CHP,Biomass CHP plants,Bio,Link,0.27,0,0.28,,,,,1,0,0.71,0.54,,0.9
+,CCGT,Combined cycle gas turbine,Gas,Link,0.52,0.2,0,,,,,1,0,0.75,0.71,,0.9
+,CCGT,Combined cycle gas turbine,Lng,Link,0.52,0.2,0,,,,,1,0,0.75,0.71,,0.9
+,OCGT,Open cycle gas turbine,Gas,Link,0.38,0.2,0,,,,,1,0,0.68,0.63,,0.9
+,OCGT,Open cycle gas turbine,Lng,Link,0.38,0.2,0,,,,,1,0,0.68,0.63,,0.9
+,CSP,Concentrated solar ,Solar,Generator,1,,,,,,,1,0,1,1,,0
+,DAC,Direct air capture,CO2,Link,1,-0.5,,,,,,1,0,1,1,,0
+,GEOT,Geothermal power plant,Geothermal,Generator,1,,,,,,,0.7,0.491,0.42,0.42,,0.9
+,HDAM,Hydro dam,Water,StorageUnit,0.95,,,0,9,FALSE,3,1,0,1,1,0,0.9
+,HPHS,Hydro pumped storage,Electricity,StorageUnit,0.8,0,,0.8,,,,1,-1,1,1,,0.9
+,SubC,subcritical coal power plant,Lig,Link,0.35,0.36,0,,,,,1,0,0.76,0.58,,0.9
+,SubC,subcritical coal power plant,Bit,Link,0.35,0.34,0,,,,,1,0,0.76,0.58,,0.9
+,SubC,subcritical coal power plant,Hrdc,Link,0.35,0.35,0,,,,,1,0,0.76,0.58,,0.9
+,SupC,Supercritical coal power plant,Lig,Link,0.38,0.36,0,,,,,1,0,0.76,0.58,,0.9
+,SupC,Supercritical coal power plant,Bit,Link,0.38,0.34,0,,,,,1,0,0.76,0.58,,0.9
+,SupC,Supercritical coal power plant,Hrdc,Link,0.38,0.35,0,,,,,1,0,0.76,0.58,,0.9
+,HROR,Hydro run-of-river,Water,Generator,1,,,,,,,1,0,1,1,,0.9
+,INLHSTOR,Thermal low Heat Storage,Low_Heat,Store,0.75,0,,0.75,,,,1,-1,1,1,,0
+,IND_BOILER,Industry heat boiler,Hrdc,Link,0.9,0.35,0,,,,,1,0,1,1,,0
+,IND_BOILER,Industry heat boiler,Oil,Link,0.9,0.28,0,,,,,1,0,1,1,,0
+,IND_BOILER,Industry heat boiler,Gas,Link,0.9,0.2,0,,,,,1,0,1,1,,0
+,IND_BOILER,Industry heat boiler,Bio,Link,0.9,0,0,,,,,1,0,1,1,,0
+,IND_BOILER,Industry heat boiler,Hyd,Link,0.9,0,0,,,,,1,0,1,1,,0
+,NUCL,Nuclear,Uranium,Link,0.33,0,0,,,,,0.7,0.498,0.72,0.54,,0.9
+,OCHT,Open cycle hydrogen turbine,Hyd,Link,0.38,0,0,,,,,1,0,0.68,0.63,,0.9
+,OILT,Oil turbine power plant,Oil,Link,0.33,0.28,0,,,,,1,0,0.77,0.65,,0.9
+,PHOT,Solar PV,Solar,Generator,1,,,,,,,,0,1,1,,0.6
+,RTPV,Roof top PV,Solar,Generator,1,,,,,,,,0,1,1,,0.6
+,SWHT,Solar hot water heater,Solar,Generator,1,,,,,,,,0,1,1,,0
+,WSTT,Waste turbine,Waste,Link,0.32,0.36,0,,,,,1,0.21,0.69,0.53,,0.9
+,WTOF,Offshore Wind,Wind,Generator,1,,,,,,,,0,1,1,,0.2
+,WTON,Onshore Wind,Wind,Generator,1,,,,,,,,0,1,1,,0.2
+,EDLH,Dielectric heating technology,Electricity,Link,0.55,0,,,,,,1,0,1,1,,0
+,EHPP,Industry heat pump,Electricity,Link,0.75,0,,,,,,1,0,1,1,,0
+,EIDT,Induction heat boiler,Electricity,Link,4,0,,,,,,1,0,1,1,,0
+,EERH,Electric resistance heater,Electricity,Link,1,0,,,,,,1,0,1,1,,0
+,PEVCH,PEV charger,Electricity,Link,1,0,,,,,,1,0,1,1,,0
+,ELTZ,Electrolyser for hydrogen production,Hyd,Link,0.8,0,,,,,,1,0,1,1,,0
+,FITR,Fischer Tropsch,Hyd,Link,0.65,-0.18,,,,,,1,0,1,1,,0
+,METH,Methanation,Hyd,Link,0.8,-0.16,,,,,,1,0,1,1,,0

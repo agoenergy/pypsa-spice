@@ -1,4 +1,0 @@
-input_data_folder: "..\\pypsa-spice-data-ph"
-project: "PH" # initial project setting.
-sce1: "ref" # initial scenario 1 setting.
-sce2: "" # initial scenario 2.

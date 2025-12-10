@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -225,6 +225,7 @@ class OutputTables(Plots):
         self,
         network_list: list,
         config: dict,
+        scenario_configs: dict,
     ):
         """Initialize OutputTables class.
 
@@ -233,11 +234,14 @@ class OutputTables(Plots):
         network_list : list
             list of networks
         config : dict
-            dictionary containing network elements
+            dictionary containing base settings
+        scenario_configs : dict
+            dictionary containing scenario related settings
         """
         self.networks = network_list
         self.network_dict = self.get_network_dict()
         self.config = config
+        self.scenario_configs = scenario_configs
         self.countries = list(self.config["base_configs"]["regions"].keys())
 
     def get_network_dict(self) -> dict:
@@ -285,7 +289,7 @@ class OutputTables(Plots):
                 [final_df, demand], axis=0
             )  # return demand for all year
         final_df.index.names = ["country", "carrier"]
-        final_df = scaling_conversion(df=final_df, scaling_number=1e6, decimals=1)
+        final_df = scaling_conversion(input_df=final_df, scaling_number=1e6, decimals=1)
 
         return final_df
 
@@ -325,7 +329,7 @@ class OutputTables(Plots):
                 [final_df, capex_val], axis=0
             )  # return cost mix for a all years
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -380,12 +384,13 @@ class OutputTables(Plots):
                 [final_df, capex_val], axis=0
             )  # return cost mix for a all years
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
         final_df = final_df.loc[final_df.value != 0]
         final_df = final_df.reset_index().rename(columns={"type": "technology"})
+        final_df["country"] = final_df["country"].str[:2]
         final_df = (
             final_df.groupby(["country", "technology", "carrier", "year"])
             .sum()
@@ -435,12 +440,13 @@ class OutputTables(Plots):
                 [final_df, opex_val], axis=0
             )  # return cost mix for a all years
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
         final_df = final_df.loc[final_df.value != 0]
         final_df = final_df.reset_index().rename(columns={"type": "technology"})
+        final_df["country"] = final_df["country"].str[:2]
         final_df = (
             final_df.groupby(["country", "technology", "carrier", "year"])
             .sum()
@@ -507,7 +513,10 @@ class OutputTables(Plots):
         """
         df_all = pd.DataFrame()
         for country in self.countries:
-            if self.config["co2_management"][country]["option"] != "co2_price":
+            if (
+                self.scenario_configs["co2_management"][country]["option"]
+                != "co2_price"
+            ):
                 continue  # skip if no CO2 price is applied
             pow_emi_cost_df = (
                 self.pow_emi_cost_by_carrier_yearly()
@@ -641,9 +650,9 @@ class OutputTables(Plots):
         """
         df_all = pd.DataFrame()
         for country in self.countries:
-            if country not in self.config.get("custom_constraints", {}):
+            if country not in self.scenario_configs.get("custom_constraints", {}):
                 continue
-            if not self.config["custom_constraints"][country].get(
+            if not self.scenario_configs["custom_constraints"][country].get(
                 "energy_independence", False
             ):
                 continue
@@ -798,7 +807,7 @@ class OutputTables(Plots):
             ~final_df.index.get_level_values("technology").isin(["ITCN", "LSLO"])
         ]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e3,
             decimals=2,
         )
@@ -881,7 +890,7 @@ class OutputTables(Plots):
             )
         ]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -982,9 +991,10 @@ class OutputTables(Plots):
         final_df.index.names = ["country", "technology"]
         final_df = final_df.loc[
             ~final_df.index.get_level_values("technology").isin(["LSLO"])
-        ]
+        ].reset_index()
+        final_df["country"] = final_df["country"].str[:2]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -1044,7 +1054,7 @@ class OutputTables(Plots):
             ~final_df.index.get_level_values("technology").isin(["LSLO"])
         ]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -1141,7 +1151,7 @@ class OutputTables(Plots):
             ~final_df.index.get_level_values("technology").isin(["LSLO"])
         ]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -1191,7 +1201,7 @@ class OutputTables(Plots):
         final_df.index.names = ["country", "technology"]
         final_df = final_df.fillna(0)
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -1595,7 +1605,7 @@ class OutputTables(Plots):
             )  # return cap mix for all years
         final_df = final_df.fillna(0)
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e3,
             decimals=2,
         )
@@ -1684,7 +1694,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.name = "region"
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -2196,7 +2206,7 @@ class OutputTables(Plots):
         final_df.index.names = ["country", "carrier"]
         final_df = final_df.fillna(0)
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -2215,11 +2225,16 @@ class OutputTables(Plots):
         """
         df_all = pd.DataFrame()
         for country in self.countries:
-            if self.config["co2_management"][country]["option"] != "co2_price":
+            if (
+                self.scenario_configs["co2_management"][country]["option"]
+                != "co2_price"
+            ):
                 continue
             df_country = pd.DataFrame()
             for year in self.network_dict:
-                co2_price = self.config["co2_management"][country]["value"][year]
+                co2_price = self.scenario_configs["co2_management"][country]["value"][
+                    year
+                ]
                 emi = (
                     self.pow_emi_by_carrier_yearly()
                     .loc[country]
@@ -2276,7 +2291,7 @@ class OutputTables(Plots):
         final_df = final_df.groupby(["country", "from", "to", "year"], as_index=False).agg({"value": "sum"})
 
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e3,
             decimals=2,
         )
@@ -2393,7 +2408,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "region", "technology"]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e3,
             decimals=2,
         )
@@ -2437,7 +2452,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "carrier"]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -2456,11 +2471,16 @@ class OutputTables(Plots):
         """
         df_all = pd.DataFrame()
         for country in self.countries:
-            if self.config["co2_management"][country]["option"] != "co2_price":
+            if (
+                self.scenario_configs["co2_management"][country]["option"]
+                != "co2_price"
+            ):
                 continue
             df_country = pd.DataFrame()
             for year in self.network_dict:
-                co2_price = self.config["co2_management"][country]["value"][year]
+                co2_price = self.scenario_configs["co2_management"][country]["value"][
+                    year
+                ]
                 emi = (
                     self.ind_emi_by_carrier_yearly()
                     .loc[country]
@@ -2568,7 +2588,7 @@ class OutputTables(Plots):
             )
         ]  # remove store and discharge, since we only consider generation
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=4,
         )
@@ -2642,7 +2662,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "carrier", "region", "heat_type"]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e3,
             decimals=2,
         )
@@ -2750,7 +2770,7 @@ class OutputTables(Plots):
             )  # return gen mix for all years
         final_df = final_df.fillna(0)
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -2818,7 +2838,7 @@ class OutputTables(Plots):
             ~final_df.index.get_level_values("technology").str.contains("ITCN|LSLO")
         ]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e3,
             decimals=2,
         )
@@ -2995,7 +3015,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "technology", "carrier"]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -3053,7 +3073,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "technology", "carrier"]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -3156,7 +3176,7 @@ class OutputTables(Plots):
         final_df.index.names = ["country", "technology", "carrier"]
 
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -3366,7 +3386,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "technology"]
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -3841,7 +3861,7 @@ class OutputTables(Plots):
         final_df.index.name = "carrier"
         final_df = final_df.fillna(0)
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -3874,7 +3894,7 @@ class OutputTables(Plots):
         final_df.index.name = "carrier"
         final_df = final_df.fillna(0)
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -3927,7 +3947,7 @@ class OutputTables(Plots):
         final_df = final_df[final_df.carrier != 'ENS']
 
         final_df = scaling_conversion(
-            df=final_df.loc[(final_df != 0).all(axis=1), :],
+            input_df=final_df.loc[(final_df != 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -3959,7 +3979,7 @@ class OutputTables(Plots):
         final_df = final_df.loc[final_df.value != 0].reset_index()
 
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )
@@ -4077,7 +4097,7 @@ class OutputTables(Plots):
             final_df = pd.concat([final_df, year_df], axis=0)
 
         final_df = scaling_conversion(
-            df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
             scaling_number=1e6,
             decimals=2,
         )

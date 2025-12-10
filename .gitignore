@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # General untracked file formats
 *.exe
 *.pyc
@@ -8,14 +12,8 @@
 .history
 
 # Untracked folders (and files within)
-/results
 /logs
 /benchmarks
-/mod-data-vn-pdp8/
-/mod-data-th-ltes/
-/mod-data-ph-ltes/
-/mod-data-th-pdp/
-/mod-data-kz-ltes/
 /test/
 /site/
 /envs/.env
@@ -32,4 +30,7 @@ docs/*.vscode/settings.json
 
 # Untrack files
 gurobi.log
-config.yaml
+
+node_modules/
+package-lock.json
+package.json

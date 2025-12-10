@@ -1,6 +1,6 @@
 <!--
 -*- coding: utf-8 -*-
-SPDX-FileCopyrightText: 2020-2025 PyPSA-SPICE Developers
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
@@ -14,8 +14,8 @@ The list of sections and available charts can be adjusted by `pypsa-spice-vis/se
 | ------------------ | ---- | ----------- |
 | Capacity by type   | GW   | Installed capacity in the power sector by technology by modelling year |
 | Capacity by region | GW   | Installed capacity in the power sector by region by modelling year |
-| Generation by type | TWh  | Power Generation by technology by modelling year |
-| Share category     | %    | Power Generation share by renewables & fossil fuels by modelling year |
+| Generation by type | TWh  | Power generation by technology by modelling year |
+| Share category     | %    | Power generation share by renewables & fossil fuels by modelling year |
 | Transmission capacity between regions | GW | Capacity of transmission lines between different regions by modelling year |
 | Hourly generation | MW | Hourly electricity generation by technology by modelling year |
 | Regional hourly generation | MW | Hourly electricity generation by region by modelling year |
@@ -23,7 +23,7 @@ The list of sections and available charts can be adjusted by `pypsa-spice-vis/se
 | Hourly demand | MW | Hourly electricity demand by sector by modelling year |
 | Hourly elec price | currency/MWh | Hourly marginal electricity price by region by modelling year |
 | Hourly nodal flow between regions | MW | Hourly nodal exchange flow between regions by modelling year |
-| Battery's E/P ratio | N/A | Hourly Energy-to-Power ratio of batteries by modelling year |
+| Battery's E/P ratio | N/A | Hourly energy-to-power ratio of batteries by modelling year |
 | Battery's charging profile | GW | Hourly charing/discharing status of batteries by modelling year |
 
 ## Industry
@@ -57,7 +57,7 @@ The list of sections and available charts can be adjusted by `pypsa-spice-vis/se
 | CAPEX by type (industry sector) | million currency | Capital Expenditure (CAPEX) in the industry sector by technology by modelling year |
 | CAPEX by type (transport sector) | million currency | Capital Expenditure (CAPEX) in the transport sector by technology by modelling year |
 | CAPEX by type (all energy sectors) | million currency | Capital Expenditure (CAPEX) in all sectors by technology by modelling year |
-| CAPEX and OPEX (all energy sectors) | million currency | Capital Expenditure (CAPEX) and Operational Expenditure in all sectors by modelling year |
+| CAPEX and OPEX (all energy sectors) | million currency | Capital Expenditure (CAPEX) and Operational Expenditure (OPEX) in all sectors by modelling year |
 | Average fuel costs (all energy sectors) | million currency/MWh<sub>thermal</sub> | Average fuel costs (thermal units) in all sectors by modelling year |
 
 ## Info
