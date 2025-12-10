@@ -24,7 +24,7 @@ dependencies:
   - pre-commit==4.3.0
   - progressbar2==4.5.0
   - pycountry==24.6.1
-  - pypsa==0.35.2
+  - pypsa==1.0.5
   - python==3.12.11
   - python-dotenv==1.0.1
   - snakemake-minimal==9.9.0
