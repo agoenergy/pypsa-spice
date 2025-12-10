@@ -23,9 +23,7 @@ import pandas as pd
 import pypsa
 import xarray as xr
 from _helpers import FilePath
-from pypsa.descriptors import expand_series
 from pypsa.descriptors import get_switchable_as_dense as get_as_dense
-from pypsa.optimization.compat import define_constraints, get_var
 
 
 def renewable_potential_constraint(
@@ -303,7 +301,7 @@ def thermal_must_run_constraint(
             if c == "Link":
                 gen_var = gen_var.mul(eff)
             # get dispatch variable sum
-            lhs += gen_var.sum(c)
+            lhs += gen_var.sum("name")
     # define constraint ------------------------------------------------------
     print(
         f"....add minimum thermal must run as {round(min_must_run_ratio*100)}% "
@@ -361,9 +359,9 @@ def re_pow_generation_constraint(
             ].index
             if not res_gen.empty:
                 # Get var and weights
-                gen_var = get_var(n, c, p_gen).loc[:, res_gen]
-                weight_gen = xr.DataArray(
-                    expand_series(n.snapshot_weightings.objective, df.index)
+                gen_var = n.model[f"{c}-{p_gen}"].loc[:, res_gen]
+                weight_gen = (
+                    n.snapshot_weightings["objective"].reindex(df.index).to_xarray()
                 )
                 if c == "Link":
                     eff = xr.DataArray(df.loc[res_gen, "efficiency"])
@@ -382,11 +380,18 @@ def re_pow_generation_constraint(
         f"....add minimum renewable generation as: {round(res_generation_share*100)}% "
         f"of total power load in {country}"
     )
-    define_constraints(
-        n,
-        lhs,
-        math_symbol,
-        rhs,
+    # --- Build constraint expression ----------------------------------------
+    if math_symbol == ">=":
+        expr = lhs >= rhs
+    elif math_symbol == "<=":
+        expr = lhs <= rhs
+    elif math_symbol in ("==", "="):
+        expr = lhs == rhs
+    else:
+        raise ValueError("math_symbol must be one of '>=', '<=', '=='.")
+
+    n.model.add_constraints(
+        expr,
         f"RE share of {round(res_generation_share*100)}% in {country}",
     )
 
@@ -412,7 +417,7 @@ def fuel_supply_constraint(n: pypsa.Network, country: str, supply_limits: dict):
             n.model["Generator-p"]
             .loc[:, supply_gen]
             .mul(n.snapshot_weightings.generators)
-            .sum("Generator")
+            .sum("name")
             .sum()
         )
         print(f"....add a supply limit for {carrier} in {country}")
@@ -449,9 +454,9 @@ def add_energy_independence_constraint(
     fs_loc_gen = [ele for ele in fs_gen if ele not in fs_imp_gen]  # local generators
 
     # Get var and weights
-    gen_var = get_var(n, "Generator", "p")
-    weight_gen = xr.DataArray(
-        expand_series(n.snapshot_weightings.objective, n.generators.index)
+    gen_var = n.model["Generator-p"]
+    weight_gen = (
+        n.snapshot_weightings["objective"].reindex(n.generators.index).to_xarray()
     )
     # Primary energy import (for imported fossil generators)
     gen_var_imp = gen_var.loc[:, fs_imp_gen]
@@ -466,10 +471,8 @@ def add_energy_independence_constraint(
         df = n.df(c)
         p_gen = "p" if c != "StorageUnit" else "p_dispatch"
         # Get var and weights
-        gen_var = get_var(n, c, p_gen)
-        weight_gen = xr.DataArray(
-            expand_series(n.snapshot_weightings.objective, df.index)
-        )
+        gen_var = n.model[f"{c}-{p_gen}"]
+        weight_gen = n.snapshot_weightings["objective"].reindex(df.index).to_xarray()
         for res in ["Solar", "Wind", "Geothermal", "Water"]:
             # Local generators
             res_gen_loc = df[
@@ -503,11 +506,8 @@ def add_energy_independence_constraint(
     lhs = (1 - ei_frac) * pe_loc - ei_frac * pe_imp
     rhs = 0
 
-    define_constraints(
-        n,
-        lhs,
-        ">=",
-        rhs,
+    n.model.add_constraints(
+        lhs >= rhs,
         f"Energy Independence Constraint of >= {ei_frac} for {country}",
     )
 
