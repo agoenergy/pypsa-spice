@@ -676,7 +676,7 @@ def _add_reserve_margin_dynamic(
         )
         assets_reserve = n.model[f"{c}-r"].loc[:, reserve_asset_indexes]
         r_rating = xr.DataArray(df.loc[reserve_asset_indexes, "r_rating"])
-        assets_sumed_reserve = (assets_reserve * r_rating).sum(f"{c}")
+        assets_sumed_reserve = (assets_reserve * r_rating).sum("name")
         # add total reserve of the component to the lhs
         lhs += assets_sumed_reserve
     # subtract share of extendable renewable capacities
@@ -687,15 +687,24 @@ def _add_reserve_margin_dynamic(
         n.generators_t.p_max_pu.columns
     )
     if not ext_i.empty and not vres_i.empty:
-        # capacity factor CF
-        capacity_factor_ext = n.generators_t.p_max_pu[vres_i.intersection(ext_i)]
-        # capacities of VRES
-        p_nom_vres = (
-            n.model["Generator-p_nom"]
-            .loc[vres_i.intersection(ext_i)]
-            .rename({"Generator-ext": "Generator"})
-        )
-        lhs += (p_nom_vres * (-ep_vre * capacity_factor_ext)).sum("Generator")
+        # intersection of VRES and extendable generators
+        vres_ext = vres_i.intersection(ext_i)
+
+        if not vres_ext.empty:
+            # capacity factor CF: DataFrame (snapshots x generators)
+            # -> DataArray (snapshot, name)
+            cf_df = n.generators_t.p_max_pu[vres_ext]  # pandas DataFrame
+            capacity_factor_ext = xr.DataArray(
+                cf_df.values,
+                coords={"snapshot": cf_df.index, "name": cf_df.columns},
+                dims=("snapshot", "name"),
+            )
+
+            # capacities of VRES: linopy/xarray variable with dim "name"
+            p_nom_vres = n.model["Generator-p_nom"].sel(name=vres_ext)
+
+            # broadcast over snapshot, sum over generators
+            lhs += (p_nom_vres * (-ep_vre * capacity_factor_ext)).sum("name")
 
     # minus the electricity going to storage
     store_links = n.links[
@@ -710,10 +719,10 @@ def _add_reserve_margin_dynamic(
     if not store_links.empty:
         storage_load = n.model["Link-p"].loc[:, store_links]
         store_eff = xr.DataArray(n.links.loc[store_links, "efficiency"])
-        lhs += (-storage_load.mul(store_eff)).sum("Link")
+        lhs += (-storage_load.mul(store_eff)).sum("name")
     if not storageunits_id.empty:
         SU_store = n.model["StorageUnit-p_store"].loc[:, storageunits_id]
-        lhs += (-SU_store).sum("StorageUnit")
+        lhs += (-SU_store).sum("name")
 
     # ------------- RHS -------------------------------------------------
     # ------------- Generators
@@ -753,13 +762,15 @@ def _update_capacity_constraint_non_link(n: pypsa.Network, country: str):
         reserve = n.model[f"{c}-r"].loc[:, reserve_asset_indices]
         # Get p_max_pu
         p_max_pu = get_as_dense(n, c, "p_max_pu")
+
         if not ext_i.empty:
-            # variable assets
-            capacity_variable = n.model[f"{c}-p_nom"].rename({f"{c}-ext": c}).loc[ext_i]
+            capacity_variable = n.model[f"{c}-p_nom"].sel(name=ext_i)
+
+            # align everything on axis=1 (asset name)
             lhs = (
                 dispatch.loc[:, ext_i]
                 + reserve.loc[:, ext_i]
-                - capacity_variable.mul(p_max_pu.loc[:, ext_i])
+                - (p_max_pu.loc[:, ext_i] * capacity_variable)
             )
             # variable assets constraint
             n.model.add_constraints(
@@ -799,14 +810,16 @@ def _update_capacity_constraint_links(n: pypsa.Network, country: str):
     dispatch = n.model["Link-p"].loc[:, reserve_asset_indices]
     reserve = n.model["Link-r"].loc[:, reserve_asset_indices]
     # Get r_rating and efficiencies of links
-    eff = xr.DataArray(df.loc[reserve_asset_indices, "efficiency"])
+    eff = xr.DataArray(
+        df.loc[reserve_asset_indices, "efficiency"],
+        coords={"name": reserve_asset_indices},
+        dims=["name"],
+    )
     # Get p_max_pu
     p_max_pu = get_as_dense(n, "Link", "p_max_pu")
     if not ext_i.empty:
         # variable assets
-        capacity_variable = (
-            n.model["Link-p_nom"].rename({"Link-ext": "Link"}).loc[ext_i]
-        )
+        capacity_variable = n.model["Link-p_nom"].sel(name=ext_i)
         lhs = (
             dispatch.loc[:, ext_i].mul(eff.loc[ext_i])
             + reserve.loc[:, ext_i]
@@ -876,7 +889,7 @@ def _update_storage_reserve_constraint(n: pypsa.Network, country: str):
         ].index
         store_asset_soc = (
             n.model["Store-e"]
-            .sel({"Store": store_asset_indexes})
+            .sel(name=store_asset_indexes)
             .groupby(n.stores.loc[store_asset_indexes, "bus"].to_xarray())
             .sum()
         )
