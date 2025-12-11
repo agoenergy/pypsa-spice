@@ -133,7 +133,7 @@ def add_storage_constraints(n: pypsa.Network):
         - n.model["Link-p_nom"].loc[dischargers_ext] * eff
     )
 
-    n.model.add_constraints(lhs == 0, name="Link-charger_ratio")
+    n.model.add_constraints(lhs, "==", 0, name="Link-charger_ratio")
 
 
 def co2_cap_constraint(n: pypsa.Network, country: str, co2_cap: float):
@@ -158,7 +158,7 @@ def co2_cap_constraint(n: pypsa.Network, country: str, co2_cap: float):
     rhs = co2_cap * 1e6
     lhs = n.model["Store-e"].loc[n.snapshots[-1], stores]
     print(f"Adding CO2 Cap of {co2_cap}mtCO2 for {country}")
-    n.model.add_constraints(lhs <= rhs, name=f"co2_cap_{country}")
+    n.model.add_constraints(lhs, "<=", rhs, name=f"co2_cap_{country}")
 
 
 def capacity_factor_constraint(n: pypsa.Network, cf_dict: dict):
@@ -190,7 +190,7 @@ def capacity_factor_constraint(n: pypsa.Network, cf_dict: dict):
                 dispatch = n.model[f"{c}-{p_gen}"]
                 if not ext_i.empty:
                     capacity_variable = (
-                        n.model[f"{c}-p_nom"].rename({f"{c}-ext": c}).loc[ext_i]
+                        n.model[f"{c}-p_nom"].sel(name=ext_i).rename({"name": c})
                     )
                     # LHS
                     if c == "Link":
@@ -212,7 +212,9 @@ def capacity_factor_constraint(n: pypsa.Network, cf_dict: dict):
                             .sum()
                         )
                     n.model.add_constraints(
-                        lhs <= 0,
+                        lhs,
+                        "<=",
+                        0,
                         name=f"updated_capacity_factor_{gen_type}_constraint_ext",
                     )
                 if not fix_i.empty:
@@ -242,7 +244,9 @@ def capacity_factor_constraint(n: pypsa.Network, cf_dict: dict):
                             .sum()
                         )
                     n.model.add_constraints(
-                        lhs <= rhs,
+                        lhs,
+                        "<=",
+                        rhs,
                         name=f"updated_capacity_factor_{gen_type}_constraint_fix",
                     )
 
@@ -307,7 +311,7 @@ def thermal_must_run_constraint(
         f"....add minimum thermal must run as {round(min_must_run_ratio*100)}% "
         f"of power load per snapshot for {country}"
     )
-    n.model.add_constraints(lhs >= rhs, name=f"thermal_must_run_limit_{country}")
+    n.model.add_constraints(lhs, ">=", rhs, name=f"thermal_must_run_limit_{country}")
 
 
 def re_pow_generation_constraint(
@@ -380,19 +384,12 @@ def re_pow_generation_constraint(
         f"....add minimum renewable generation as: {round(res_generation_share*100)}% "
         f"of total power load in {country}"
     )
-    # --- Build constraint expression ----------------------------------------
-    if math_symbol == ">=":
-        expr = lhs >= rhs
-    elif math_symbol == "<=":
-        expr = lhs <= rhs
-    elif math_symbol in ("==", "="):
-        expr = lhs == rhs
-    else:
-        raise ValueError("math_symbol must be one of '>=', '<=', '=='.")
 
     n.model.add_constraints(
-        expr,
-        f"RE share of {round(res_generation_share*100)}% in {country}",
+        lhs,
+        math_symbol,
+        rhs,
+        name=f"RE share of {round(res_generation_share*100)}% in {country}",
     )
 
 
@@ -507,7 +504,9 @@ def add_energy_independence_constraint(
     rhs = 0
 
     n.model.add_constraints(
-        lhs >= rhs,
+        lhs,
+        ">=",
+        rhs,
         f"Energy Independence Constraint of >= {ei_frac} for {country}",
     )
 
@@ -619,13 +618,15 @@ def _add_reserve_margin_static(n: pypsa.Network, ep_load: float, country: str):
             eff = None
             if c == "Link":
                 eff = xr.DataArray(
-                    n.df(c).loc[ext_i, "efficiency"].rename({f"{c}": f"{c}-ext"})
+                    n.df(c).loc[ext_i, "efficiency"],
+                    coords={"name": ext_i},
+                    dims=["name"],
                 )
             lhs += (
-                n.model.variables[f"{c}-p_nom"].sel({f"{c}-ext": ext_i})
+                n.model.variables[f"{c}-p_nom"].sel(name=ext_i)
                 * r_rating
                 * (eff if eff is not None else 1)
-            ).sum(f"{c}-ext")
+            ).sum("name")
 
     # rhs = (1+ep_load) * peak load - fix_cap
     load_id = n.loads[
@@ -729,7 +730,7 @@ def _add_reserve_margin_dynamic(
     renewable_capacity_fix = n.generators.p_nom[vres_i.difference(ext_i)]
     potential = (capacity_factor_fix * renewable_capacity_fix).sum(axis=1)
     rhs = ep_load * demand + ep_vre * potential + cont
-    n.model.add_constraints(lhs >= rhs, name=f"dynamic_reserve_margin_{country}")
+    n.model.add_constraints(lhs, ">=", rhs, name=f"dynamic_reserve_margin_{country}")
 
 
 def _update_capacity_constraint_non_link(n: pypsa.Network, country: str):
@@ -762,7 +763,10 @@ def _update_capacity_constraint_non_link(n: pypsa.Network, country: str):
             )
             # variable assets constraint
             n.model.add_constraints(
-                lhs <= 0, name=f"updated_capacity_constraint_{c.lower()}s_ext_{country}"
+                lhs,
+                "<=",
+                0,
+                name=f"updated_capacity_constraint_{c.lower()}s_ext_{country}",
             )
         if not fix_i.empty:
             # fix assets
@@ -771,7 +775,9 @@ def _update_capacity_constraint_non_link(n: pypsa.Network, country: str):
             rhs = p_max_pu.loc[:, fix_i].mul(capacity_fixed)
             # fix assets constraint
             n.model.add_constraints(
-                lhs <= rhs,
+                lhs,
+                "<=",
+                rhs,
                 name=f"updated_capacity_constraint_{c.lower()}s_fix_{country}",
             )
 
@@ -808,7 +814,7 @@ def _update_capacity_constraint_links(n: pypsa.Network, country: str):
         )
         # variable assets constraint
         n.model.add_constraints(
-            lhs <= 0, name=f"updated_capacity_constraint_links_ext_{country}"
+            lhs, "<=", 0, name=f"updated_capacity_constraint_links_ext_{country}"
         )
     if not fix_i.empty:  # fix assets
         capacity_fixed = df["p_nom"].loc[fix_i]
@@ -816,7 +822,7 @@ def _update_capacity_constraint_links(n: pypsa.Network, country: str):
         rhs = p_max_pu.loc[:, fix_i].mul(capacity_fixed).mul(eff.loc[fix_i])
         # fix assets constraint
         n.model.add_constraints(
-            lhs <= rhs, name=f"updated_capacity_constraint_links_fix_{country}"
+            lhs, "<=", rhs, name=f"updated_capacity_constraint_links_fix_{country}"
         )
 
 
@@ -845,7 +851,7 @@ def _update_storage_reserve_constraint(n: pypsa.Network, country: str):
         # - (0.25 * state of charge of asset g at time t)
         lhs = assets_reserve - assets_soc.mul(0.25)
         n.model.add_constraints(
-            lhs <= 0, name=f"updated_soc_constraint_storage_units_{country}"
+            lhs, "<=", 0, name=f"updated_soc_constraint_storage_units_{country}"
         )
 
     # constraining soc for links plus store buses
@@ -878,7 +884,7 @@ def _update_storage_reserve_constraint(n: pypsa.Network, country: str):
         # - (0.25 * sum_s,h soc(s,h,t) of store s at bus h)
         lhs = bus_reserve - store_asset_soc.mul(0.25)
         n.model.add_constraints(
-            lhs <= 0, name=f"updated_soc_constraint_storage_links_{country}"
+            lhs, "<=", 0, name=f"updated_soc_constraint_storage_links_{country}"
         )
 
 
