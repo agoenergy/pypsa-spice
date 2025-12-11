@@ -70,23 +70,26 @@ def add_brownfield(
     co2_store = n.stores[n.stores.bus.str.contains("CO2STORN")].index
     n.remove("Store", co2_store)
 
-    for c in n.iterate_components(["Link", "Generator", "Store", "StorageUnit"]):
+    for c in n.components:
+        if c.name not in ["Link", "Generator", "Store", "StorageUnit"]:
+            continue
         attr = "e" if c.name == "Store" else "p"
         # fix capacities from older assets
-        c.df[attr + "_nom"] = c.df[attr + "_nom_opt"]
-        c.df[attr + "_nom_extendable"] = False
+        c.static[attr + "_nom"] = c.static[attr + "_nom_opt"]
+        c.static[attr + "_nom_extendable"] = False
 
         # re-enable theoretical store
         if c.name == "Store":
-            tstor = c.df[
-                (c.df.carrier.isin(["CO2"])) | (c.df.type.str.contains("_STORE"))
+            tstor = c.static[
+                (c.static.carrier.isin(["CO2"]))
+                | (c.static.type.str.contains("_STORE"))
             ].index
-            c.df.loc[tstor, attr + "_nom_extendable"] = True
+            c.static.loc[tstor, attr + "_nom_extendable"] = True
 
         # re-enable theoretical generators
         if c.name == "Generator":
-            tgen = c.df[c.df.type.str.contains("SUPPLY")].index
-            c.df.loc[tgen, attr + "_nom_extendable"] = True
+            tgen = c.static[c.static.type.str.contains("SUPPLY")].index
+            c.static.loc[tgen, attr + "_nom_extendable"] = True
 
         for country in snakemake.params.country_region:
             # subtract co2 price from marginal cost of previous year fossil links
@@ -100,13 +103,15 @@ def add_brownfield(
                 co2_price_previous = scenario_configs["co2_management"][country][
                     "value"
                 ][year_previous]
-                emit_links = c.df[c.df.bus2 == f"{country}_ATMP"].index
-                c.df.loc[emit_links, "marginal_cost"] = c.df.loc[
+                emit_links = c.static[c.static.bus2 == f"{country}_ATMP"].index
+                c.static.loc[emit_links, "marginal_cost"] = c.static.loc[
                     emit_links, "marginal_cost"
-                ] - c.df.loc[emit_links, "efficiency2"].mul(co2_price_previous)
+                ] - c.static.loc[emit_links, "efficiency2"].mul(co2_price_previous)
 
         # remove assets whose build_year + lifetime < year
-        assets_phased_out = c.df.index[c.df.build_year + c.df.lifetime < year]
+        assets_phased_out = c.static.index[
+            c.static.build_year + c.static.lifetime < year
+        ]
 
         n.remove(c.name, assets_phased_out)
 
@@ -119,8 +124,9 @@ def add_brownfield(
 
         # remove capacities below a certain threshold (this is mainly to avoid
         # numerical issues)
-        assets_below_threshold = c.df.index[
-            (c.df[attr + "_nom_opt"] < threshold) & ~(c.df[attr + "_nom_extendable"])
+        assets_below_threshold = c.static.index[
+            (c.static[attr + "_nom_opt"] < threshold)
+            & ~(c.static[attr + "_nom_extendable"])
         ]
         n.remove(c.name, assets_below_threshold)
 
@@ -170,28 +176,28 @@ def update_decommission_base_assets(
             decap_df[col] = decap_df[col].astype(str)
         else:
             decap_df[col] = decap_df[col].astype(float).fillna(0)
-    for c in n.iterate_components(
-        [
+    for c in n.components:
+        if c.name not in [
             "Store",
             "StorageUnit",
             "Link",
             "Generator",
-        ]
-    ):
+        ]:
+            continue
         decap = decap_df[decap_df["class"] == c.name][str(year)]
         if len(decap) == 0:
             print(f"No decommissioning for {c.name}")
             continue
         attr = "e" if c.name == "Store" else "p"
         for plant in decap.index:
-            if plant in c.df.index:
+            if plant in c.static.index:
                 if c.name == "Link":
-                    c.df.loc[plant, f"{attr}_nom"] = c.df.loc[plant, f"{attr}_nom"] - (
-                        decap.loc[plant] / c.df.loc[plant, "efficiency"]
-                    )
+                    c.static.loc[plant, f"{attr}_nom"] = c.static.loc[
+                        plant, f"{attr}_nom"
+                    ] - (decap.loc[plant] / c.static.loc[plant, "efficiency"])
                 else:
-                    c.df.loc[plant, f"{attr}_nom"] = (
-                        c.df.loc[plant, f"{attr}_nom"] - decap.loc[plant]
+                    c.static.loc[plant, f"{attr}_nom"] = (
+                        c.static.loc[plant, f"{attr}_nom"] - decap.loc[plant]
                     )
         # Ensure nominal 'p' or 'e' never goes below 0.
         # If this check is not implemented, some solvers such as HiGHS won't be able to
@@ -199,18 +205,18 @@ def update_decommission_base_assets(
         # constraints (i.e., nominal values are set to be non-negative in a different
         # constraint, but their values might become negative after decommissioning in
         # these constraints)
-        negative_capacities = c.df[f"{attr}_nom"] < 0
+        negative_capacities = c.static[f"{attr}_nom"] < 0
         if negative_capacities.any():
-            affected = c.df.index[negative_capacities].tolist()
+            affected = c.static.index[negative_capacities].tolist()
             for asset in affected:
-                negative_capacity = c.df.loc[asset, f"{attr}_nom"]
+                negative_capacity = c.static.loc[asset, f"{attr}_nom"]
                 print(
                     f"[WARNING] Decommissioning set negative capacity to component "
                     f"'{asset}' (value: {negative_capacity:.2f}), which was clipped to "
                     "0 to avoid infeasibility. Please correct your input data.",
                     f"{asset} - {negative_capacity:.2f}",
                 )
-            c.df[f"{attr}_nom"] = c.df[f"{attr}_nom"].clip(lower=0.0)
+            c.static[f"{attr}_nom"] = c.static[f"{attr}_nom"].clip(lower=0.0)
 
 
 def update_fuel_data(
@@ -300,14 +306,16 @@ def update_brownfield_snapshots(
     )
     n.set_snapshots(reduced_year_hours)
     n.snapshot_weightings = weights.set_index(n.snapshots)
-    for c in n_p.iterate_components(["Link", "Generator", "Store", "StorageUnit"]):
+    for c in n_p.components:
+        if c.name not in ["Link", "Generator", "Store", "StorageUnit"]:
+            continue
         # copy time-dependent
         selection = n.component_attrs[c.name].type.str.contains(
             "series"
         ) & n.component_attrs[c.name].status.str.contains("Input")
         for tattr in n.component_attrs[c.name].index[selection]:
             n.import_series_from_dataframe(
-                c.pnl[tattr].set_index(n.snapshots), c.name, tattr
+                c.dynamic[tattr].set_index(n.snapshots), c.name, tattr
             )
 
 

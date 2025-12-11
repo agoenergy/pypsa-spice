@@ -616,26 +616,29 @@ class AddBaseNetwork:
 
     def add_noisy_cost(self):
         """Add noisy cost for faster solving time."""
-        for t in self.network.iterate_components(self.network.one_port_components):
-            non_co2_assets = t.df[t.df.carrier != "CO2"].index
-            if "marginal_cost" in t.df:
-                t.df.loc[non_co2_assets, "marginal_cost"] += 1e-2 + 2e-3 * (
-                    np.random.random(len(t.df.loc[non_co2_assets])) - 0.5
+        for t in self.network.components:
+            if t.name not in self.network.one_port_components:
+                continue
+            non_co2_assets = t.static[t.static.carrier != "CO2"].index
+            if "marginal_cost" in t.static:
+                t.static.loc[non_co2_assets, "marginal_cost"] += 1e-2 + 2e-3 * (
+                    np.random.random(len(t.static.loc[non_co2_assets])) - 0.5
                 )
-            if "capital_cost" in t.df:
-                t.df.loc[non_co2_assets, "capital_cost"] += 1e-1 + 2e-2 * (
-                    np.random.random(len(t.df.loc[non_co2_assets])) - 0.5
+            if "capital_cost" in t.static:
+                t.static.loc[non_co2_assets, "capital_cost"] += 1e-1 + 2e-2 * (
+                    np.random.random(len(t.static.loc[non_co2_assets])) - 0.5
                 )
 
     def remove_abundant_components(self):
         """Remove components with 0 capacities and non extendable status."""
-        for comp in self.network.iterate_components(
-            ["Link", "Generator", "Store", "StorageUnit"]
-        ):
+        for comp in self.network.components:
+            if comp.name not in ["Link", "Generator", "Store", "StorageUnit"]:
+                continue
             attr = "e" if comp.name == "Store" else "p"
             # remove asset with capacity = 0 and non extendable
-            assets_below_threshold = comp.df.index[
-                (comp.df[attr + "_nom"] < 0.1) & ~(comp.df[attr + "_nom_extendable"])
+            assets_below_threshold = comp.static.index[
+                (comp.static[attr + "_nom"] < 0.1)
+                & ~(comp.static[attr + "_nom_extendable"])
             ]
             self.network.remove(comp.name, assets_below_threshold)
 
@@ -654,8 +657,8 @@ class AddBaseNetwork:
             # Get all time-dependent data
             dfs = [
                 pnl
-                for c in self.network.iterate_components()
-                for attr, pnl in c.pnl.items()
+                for c in self.network.components
+                for attr, pnl in c.dynamic.items()
                 if not pnl.empty and attr != "e_min_pu"
             ]
             df = pd.concat(dfs, axis=1)
@@ -736,7 +739,7 @@ class AddBaseNetwork:
             self.network.cluster = map_snapshots_to_periods
             self.network.set_snapshots(new_snapshots.index)
             # Aggregation all time-varying data.
-            for comp in self.network.iterate_components():
+            for comp in self.network.components:
                 pnl = getattr(self.network, comp.list_name + "_t")
                 for k, df in comp.pnl.items():
                     if not df.empty:
