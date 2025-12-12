@@ -9,7 +9,7 @@ energy:
     name: Total Primary Energy Supply (TPES)
     units: TWh
     graph_type: simple_bar_yearly
-    tab_name: ene_total_primary_supply
+    table_name: ene_total_primary_supply
     leg_col: source
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -20,7 +20,7 @@ energy:
     name: Total Primary Energy Supply (TPES)
     units: TWh
     graph_type: simple_bar_yearly
-    tab_name: ene_total_primary_supply
+    table_name: ene_total_primary_supply
     leg_col: carrier
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -31,7 +31,7 @@ energy:
     name: Total Primary Energy Supply (TPES) by source
     units: TWh
     graph_type: bar_with_filter
-    tab_name: ene_total_primary_supply
+    table_name: ene_total_primary_supply
     leg_col: carrier
     fil_col: source
     yaxis_scale:
@@ -44,7 +44,7 @@ energy:
     name: Total Final Energy Consumption (TFEC)
     units: TWh
     graph_type: simple_bar_yearly
-    tab_name: ene_total_final_consumption
+    table_name: ene_total_final_consumption
     leg_col: final_energy
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -55,7 +55,7 @@ energy:
     name: Total Final Energy Consumption (TFEC)
     units: TWh
     graph_type: simple_bar_yearly
-    tab_name: ene_total_final_consumption
+    table_name: ene_total_final_consumption
     leg_col: carrier
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -66,7 +66,7 @@ energy:
     name: Total Final Energy Consumption (TFEC) by sector
     units: TWh
     graph_type: bar_with_filter
-    tab_name: ene_total_final_consumption
+    table_name: ene_total_final_consumption
     leg_col: carrier
     fil_col: final_energy
     yaxis_scale:
@@ -79,7 +79,7 @@ energy:
     name: Total Final Energy Consumption (TFEC) - Resulting
     units: TWh
     graph_type: simple_bar_yearly
-    tab_name: ene_dmd_by_carrier_yearly
+    table_name: ene_dmd_by_carrier_yearly
     leg_col: carrier
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -90,7 +90,7 @@ energy:
     name: Energy Independence
     units: TWh
     graph_type: simple_bar_yearly
-    tab_name: ene_pe_import_local_ei_yearly
+    table_name: ene_pe_import_local_ei_yearly
     leg_col: type
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
@@ -101,19 +101,19 @@ energy:
     name: Energy not served
     units: GWh
     graph_type: simple_bar_yearly
-    tab_name: ene_not_served_warning
+    table_name: ene_not_served_warning
     leg_col: bus
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
       max: max
     download_id: '{}_ene_not_served_warning'
 
-  # e9:
-  #   name: Sankey Diagram
-  #   graph_type: sankey_diagram
-  #   tab_name: ene_sankey_diagram
-  #   leg_col: source
-  #   download_id: '{}_ene_sankey_diagram'
+  e9:
+    name: Sankey Diagram
+    graph_type: sankey_diagram
+    table_name: ene_sankey_diagram
+    leg_col: source
+    download_id: '{}_ene_sankey_diagram'
 
 
 power:
@@ -207,15 +207,15 @@ power:
     slider_id: 'Gen: ({}):'
     download_id: '{}_down_pow_gen_by_type_hourly'
 
-  p9:
-    name: Regional hourly generation
-    units: MW
-    graph_type: filtered_bar_hourly
-    table_name: pow_gen_by_type_region_hourly
-    leg_col: type_and_flow
-    fil_col: "region"
-    slider_id: "NodalFlow: {}"
-    download_id: '{}_down_gen_by_type_region_hourly'
+  # p9:
+  #   name: Regional hourly generation
+  #   units: MW
+  #   graph_type: filtered_bar_hourly
+  #   table_name: pow_gen_by_type_region_hourly
+  #   leg_col: type_and_flow
+  #   fil_col: "region"
+  #   slider_id: "NodalFlow: {}"
+  #   download_id: '{}_down_gen_by_type_region_hourly'
 
   p10:
     name: Energy demand by carrier
@@ -302,7 +302,7 @@ power:
   #   slider_id: 'pow_gen_reserve_by_type_hourly_{}'
   #   download_id: '{}_pow_gen_reserve_by_type_hourly'
 
-  p19: #largest and hardest to load, put it at the end
+  p9: #largest and hardest to load, put it at the end
     name: Regional hourly generation
     units: MW
     graph_type: filtered_bar_hourly

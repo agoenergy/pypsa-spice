@@ -28,6 +28,7 @@ from scripts.plot_settings import (
     simple_bar_yearly,
     simple_line_hourly,
     simple_line_yearly,
+    sankey_diagram
 )
 
 use_flexo()
@@ -136,11 +137,20 @@ def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None)
             scenario_text = st.session_state.sce1  # noqa: F841
 
         slider_id = config_plot["table_name"]
+        graph_type = config_plot["graph_type"]
         if "shared_country" in config_plot:
             country_id = config_plot["shared_country"]
         else:
             country_id = "all"
-        key = f"shared_country_{country_id}_{scenario_tag}_{slider_id}"
+        if "fil_col" in config_plot:
+            filter_id = config_plot["fil_col"]
+        else:
+            filter_id = "all"
+        if "leg_col" in config_plot:
+            legend_id = config_plot["leg_col"]
+        else:
+            legend_id = "all"
+        key = f"shared_country_{country_id}_{scenario_tag}_{slider_id}_{graph_type}_{filter_id}_{legend_id}"
         label = f"{slider_id} Select country:"
 
         # Pills widget for the country selection element
@@ -828,6 +838,7 @@ def map_chart_to_plot_function(func_name: str = None):
         "simple_line_hourly": simple_line_hourly,
         "filtered_bar_hourly": filtered_bar_hourly,
         "line_with_secondary_y_hourly": line_with_secondary_y_hourly,
+        "sankey_diagram": sankey_diagram,
     }
     func = mapping.get(func_name)
     if func is None:

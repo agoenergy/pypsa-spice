@@ -161,7 +161,7 @@ in_p_demand_page = st.Page(
 pages_list = {
     "General": [info_page],  # in_setting_page
     "Input": [in_p_supply_page, in_p_demand_page],
-    "Results":[p_page, i_page, t_page, e_page, c_page],
+    "Results":[p_page, ene_page, i_page, t_page, e_page, c_page],
 }
 
 if "i" not in st.session_state.sector:

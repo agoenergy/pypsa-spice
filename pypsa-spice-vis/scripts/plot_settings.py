@@ -1040,3 +1040,116 @@ def line_with_secondary_y_hourly(scenario_name: str, graph_config: dict):
             use_container_width=True,
             key=f"plotly_chart_{scenario_name}_{table_name}",
         )
+
+
+@st.fragment
+def sankey_diagram(
+    scenario_name: str,
+    graph_config: dict
+):
+
+    table_name = graph_config['table_name']
+    years = graph_config['years']
+
+    
+    # Read data from file
+    st.text("year:")
+    year = st.radio(
+        "Select Year ({})".format(scenario_name) + ":",
+        options=years,
+        horizontal=True,
+        label_visibility="collapsed",
+        key=table_name + "_" + scenario_name + "_year",
+    )
+
+    file_path = os.path.abspath(
+        st.session_state.result_path
+        + "/"
+        + scenario_name
+        + "/csvs/"
+        + st.session_state.sector
+        + "/"
+        + str(year)
+        + "/"
+        + table_name
+        + ".csv"
+    )
+
+    try:
+        df = pd.read_csv(os.path.abspath(file_path))
+        df = df[df['year']==year] 
+    except FileNotFoundError:
+        with st.container(height=450, border=True):
+            st.write(":material/warning: File not found: {}".format(file_path))
+            return None
+
+    # Prepare the unique source and target mapping
+    unique_source_target = list(pd.unique(df[['source', 'target']].values.ravel('K')))
+    mapping_dict = {k: v for v, k in enumerate(unique_source_target)}
+
+    # Map the source and target to unique numbers
+    df['source'] = df['source'].map(mapping_dict)
+    df['target'] = df['target'].map(mapping_dict)
+
+    # Convert the DataFrame to a dictionary for Plotly
+    links_dict = df.to_dict(orient='list')
+
+    # Function to convert HEX color to RGBA with a given opacity
+    def hex_to_rgba(hex_color, opacity=0.9):
+        hex_color = hex_color.lstrip('#')
+        rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+        return f'rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, {opacity})'
+
+    # Apply the opacity change to all link colors
+    link_colors_with_opacity = [hex_to_rgba(color) for color in links_dict.get('color', [])]
+
+    color_map = {
+        "Indigenous": "#F2D7A6",
+        "Imported": "#2C3E50",
+        "Bio": "#8b737f",
+        "Bit": "#163c47",
+        "ENS": "#A9A9A9",
+        "Gas": "#ff7967",
+        "Geothermal": "#c0d88d",
+        "Oil": "#b45340",
+        "Solar": "#ffae63",
+        "Uranium": "#967bb6",
+        "Waste": "#8b737f",
+        "Water": "#1d6897",
+        "Wind": "#42b2b7",
+        "Low_Heat": "#F2D7A6",
+        "Electricity": "#4682b4",
+        "Agriculture": "#4682b4",
+        "Commercial": "#4682b4",
+        "Industries": "#4682b4",
+        "Non-Energy Use": "#4682b4",
+        "Residential": "#4682b4",
+        "Transportation": "#4682b4",
+        "Hyd": "#5CC9F5",
+        "Other": "#FFFFFF",
+        }
+    
+    # Create the Sankey diagram figure
+    fig = go.Figure(data=[go.Sankey(
+        arrangement='snap',
+        valuesuffix = "TWh",
+        node=dict(
+            label=unique_source_target,
+            pad=10,  # Increase padding to reduce overlap
+            thickness=20,
+            color=[color_map[x] for x in unique_source_target],
+            align='justify'
+        ),
+        link=dict(
+            source=links_dict["source"],
+            target=links_dict["target"],
+            value=links_dict["value"],
+            color=link_colors_with_opacity,  # Set the new colors with opacity
+        )
+    )])
+
+    # Update layout settings
+    fig.update_layout(font_size=10, width=800, height=600)
+
+    # Streamlit app
+    st.plotly_chart(fig, use_container_width=True, key=f"sankey_diagram_{scenario_name}_{table_name}")
