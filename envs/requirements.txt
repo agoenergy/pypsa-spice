@@ -5,3 +5,4 @@
 markdown-katex==202406.1035
 mkdocs-to-pdf==0.10.1     
 streamlit-js-eval==0.1.7
+ruamel-yaml==0.18.17

@@ -16,7 +16,7 @@ logging:
 scenario_configs:
   snapshots:
     start: "2025-01-01"
-    end: "2026-01-01"   #should be "12-31" if base year is a leap year
+    end: "2026-01-01"   # should be "12-31" if base year is a leap year
     inclusive: "left"
   resolution:
     method: "nth_hour" # options: ["nth_hour", "clustered"]
