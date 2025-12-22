@@ -38,6 +38,13 @@ rule build_skeleton:
         "scripts/build_skeleton.py"
 
 
+rule build_scenario_config:
+    params:
+        config=config,
+    script:
+        "scripts/build_scenario_config.py"
+
+
 rule add_baseyear:
     input:
         fuel_supplies=SDIR + "/power/fuel_supplies.csv",

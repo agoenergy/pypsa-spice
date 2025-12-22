@@ -9,7 +9,6 @@ It creates templates for buses, generators, storage, loads, interconnectors,
 and converter links for power, industry and transport sectors.
 """
 
-import glob
 import itertools
 import os
 import shutil
@@ -1770,14 +1769,6 @@ if __name__ == "__main__":
 
     # create_skeleton_inputs
     create_folders(save_path=input_scenario_folder_path, sector_folder=True)
-
-    # create a scenario_config.yaml template file
-    yaml_files = glob.glob(f"{input_scenario_folder_path}/*.yaml")
-    if len(yaml_files) == 0:
-        shutil.copyfile(
-            "data/scenario_config_template/scenario_config.default.yaml",
-            f"{input_scenario_folder_path}/scenario_config.yaml",
-        )
 
     # output paths for regional templates csvs
     path_p_buses = input_scenario_folder_path + "/power/buses.csv"
