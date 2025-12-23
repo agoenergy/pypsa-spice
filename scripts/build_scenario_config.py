@@ -118,9 +118,207 @@ solving:
 """
 
 
-def add_please_fill_here_comments(list_of_targeted_dict: dict):
+def add_activate_comments(list_of_targeted_dict: dict):
+    """Add comments to all targeted 'activate' values in the given dictionary.
+
+    Parameters
+    ----------
+    list_of_targeted_dict : dict
+        targeted dictionary to add comments to
+    """
     for targeted_value in list_of_targeted_dict.keys():
+        if targeted_value == "activate":
+            list_of_targeted_dict.yaml_add_eol_comment(
+                "Change this to true for activating this constraint", targeted_value
+            )
+
+
+def add_please_fill_here_comments(
+    list_of_targeted_dict: dict, exception_list: list = None
+):
+    """Add "Please fill here" comments to all targeted values in the given dictionary.
+
+    Parameters
+    ----------
+    list_of_targeted_dict : dict
+        targeted dictionary to add comments to
+    exception_list : list, optional
+        list of keys to exclude from adding comments, by default []
+    """
+    if exception_list:
+        final_targeted_keys_list = [
+            item for item in list_of_targeted_dict.keys() if item not in exception_list
+        ]
+    else:
+        final_targeted_keys_list = list_of_targeted_dict.keys()
+
+    for targeted_value in final_targeted_keys_list:
         list_of_targeted_dict.yaml_add_eol_comment("Please fill here", targeted_value)
+
+
+def add_country_specific_constraints(data: YAML, configurations: dict):
+    """Add country specific constraints to the scenario configuration data.
+
+    Parameters
+    ----------
+    data : YAML
+        YAML data to add country specific constraints to
+    configurations : dict
+        configurations containing country/region information
+    """
+    # Add country specific inputs
+    for country in configurations["base_configs"]["regions"].keys():
+        # Create a new list for each loop to solve YAML anchors (&id001) issue
+        fuels_list = CommentedSeq(
+            [
+                DoubleQuotedScalarString("Bio"),
+                DoubleQuotedScalarString("Bit"),
+                DoubleQuotedScalarString("Gas"),
+                DoubleQuotedScalarString("Oil"),
+            ]
+        )
+        fuels_list.fa.set_flow_style()  # Force inline style [a, b, c]
+
+        data["scenario_configs"]["interest"][country] = None
+        data["scenario_configs"]["interest"].yaml_add_eol_comment(
+            "Please fill here", country
+        )
+        data["co2_management"][country] = CommentedMap(
+            {
+                "option": DoubleQuotedScalarString("co2_cap"),
+                "value": CommentedMap(
+                    {
+                        2025: None,
+                        2030: None,
+                        2035: None,
+                        2040: None,
+                        2045: None,
+                        2050: None,
+                    }
+                ),
+            }
+        )
+        add_please_fill_here_comments(data["co2_management"][country]["value"])
+
+        data["custom_constraints"][country] = CommentedMap(
+            {
+                "energy_independence": CommentedMap(
+                    {
+                        "activate": False,
+                        "pe_conv_fraction": CommentedMap(
+                            {
+                                "Solar": None,
+                                "Wind": None,
+                                "Geothermal": None,
+                                "Water": None,
+                            }
+                        ),
+                        "ei_fraction": CommentedMap(
+                            {
+                                2025: None,
+                                2030: None,
+                                2035: None,
+                                2040: None,
+                                2045: None,
+                                2050: None,
+                            }
+                        ),
+                    }
+                ),
+                "production_constraint_fuels": CommentedMap(
+                    {
+                        "activate": False,
+                        "fuels": fuels_list,
+                    }
+                ),
+                "reserve_margin": CommentedMap(
+                    {
+                        "activate": False,
+                        "epsilon_load": None,
+                        "epsilon_vre": None,
+                        "contingency": None,
+                        "method": DoubleQuotedScalarString("static"),
+                    }
+                ),
+                "res_generation": CommentedMap(
+                    {
+                        "activate": False,
+                        "math_symbol": DoubleQuotedScalarString("<="),
+                        "res_generation_share": CommentedMap(
+                            {
+                                2030: None,
+                                2035: None,
+                                2040: None,
+                                2045: None,
+                                2050: None,
+                            }
+                        ),
+                    }
+                ),
+                "thermal_must_run": CommentedMap(
+                    {
+                        "activate": False,
+                        "min_must_run_ratio": None,
+                    }
+                ),
+                "capacity_factor_constraint": CommentedMap(
+                    {
+                        "activate": False,
+                        "values": CommentedMap(
+                            {
+                                DoubleQuotedScalarString("SubC"): None,
+                                DoubleQuotedScalarString("SupC"): None,
+                                DoubleQuotedScalarString("HDAM"): None,
+                            }
+                        ),
+                    }
+                ),
+            }
+        )
+
+        add_activate_comments(
+            data["custom_constraints"][country]["energy_independence"]
+        )
+        add_please_fill_here_comments(
+            data["custom_constraints"][country]["energy_independence"][
+                "pe_conv_fraction"
+            ]
+        )
+        add_please_fill_here_comments(
+            data["custom_constraints"][country]["energy_independence"]["ei_fraction"]
+        )
+
+        add_activate_comments(
+            data["custom_constraints"][country]["production_constraint_fuels"],
+        )
+
+        add_activate_comments(
+            data["custom_constraints"][country]["reserve_margin"],
+        )
+        add_please_fill_here_comments(
+            data["custom_constraints"][country]["reserve_margin"],
+            exception_list=["activate", "method"],
+        )
+
+        add_activate_comments(data["custom_constraints"][country]["res_generation"])
+        add_please_fill_here_comments(
+            data["custom_constraints"][country]["res_generation"][
+                "res_generation_share"
+            ]
+        )
+
+        add_activate_comments(data["custom_constraints"][country]["thermal_must_run"])
+        add_please_fill_here_comments(
+            data["custom_constraints"][country]["thermal_must_run"],
+            exception_list=["activate"],
+        )
+
+        add_activate_comments(
+            data["custom_constraints"][country]["capacity_factor_constraint"]
+        )
+        add_please_fill_here_comments(
+            data["custom_constraints"][country]["capacity_factor_constraint"]["values"]
+        )
 
 
 if __name__ == "__main__":
@@ -141,8 +339,10 @@ if __name__ == "__main__":
         + configurations["path_configs"]["project_name"]
     )
 
+    input_scenario_name = configurations["path_configs"]["input_scenario_name"]
+
     # Skeleton input scenario folder path
-    input_folder_path = project_folder_path + "/input/"
+    input_folder_path = project_folder_path + "/input"
 
     if not os.path.exists(input_folder_path):
         raise FileNotFoundError(
@@ -207,146 +407,34 @@ if __name__ == "__main__":
         "custom_constraints", after=CUSTOM_CONSTRAINTS_COMMENT_TEXT
     )
 
-    # Add country specific inputs
-    for country in configurations["base_configs"]["regions"].keys():
-        # Create a new list for each loop to solve YAML anchors (&id001) issue
-        fuels_list = CommentedSeq(
-            [
-                DoubleQuotedScalarString("Bio"),
-                DoubleQuotedScalarString("Bit"),
-                DoubleQuotedScalarString("Gas"),
-                DoubleQuotedScalarString("Oil"),
-            ]
-        )
-        fuels_list.fa.set_flow_style()  # Force inline style [a, b, c]
+    add_country_specific_constraints(data, configurations)
 
-        data["scenario_configs"]["interest"][country] = None
-        data["scenario_configs"]["interest"].yaml_add_eol_comment(
-            "Please fill here", country
-        )
-        data["co2_management"][country] = CommentedMap(
-            {
-                "option": DoubleQuotedScalarString("co2_cap"),
-                "value": CommentedMap(
-                    {
-                        2025: None,
-                        2030: None,
-                        2035: None,
-                        2040: None,
-                        2045: None,
-                        2050: None,
-                    }
-                ),
-            }
-        )
-        add_please_fill_here_comments(data["co2_management"][country]["value"])
-
-        data["custom_constraints"][country] = CommentedMap(
-            {
-                "energy_independence": {
-                    "activate": False,
-                    "pe_conv_fraction": CommentedMap(
-                        {
-                            "Solar": None,
-                            "Wind": None,
-                            "Geothermal": None,
-                            "Water": None,
-                        }
-                    ),
-                    "ei_fraction": CommentedMap(
-                        {
-                            2025: None,
-                            2030: None,
-                            2035: None,
-                            2040: None,
-                            2045: None,
-                            2050: None,
-                        }
-                    ),
-                },
-                "production_constraint_fuels": {
-                    "activate": False,
-                    "fuels": fuels_list,
-                },
-                "reserve_margin": CommentedMap(
-                    {
-                        "activate": False,
-                        "epsilon_load": None,
-                        "epsilon_vre": None,
-                        "contingency": None,
-                        "method": DoubleQuotedScalarString("static"),
-                    }
-                ),
-                "res_generation": {
-                    "activate": False,
-                    "math_symbol": DoubleQuotedScalarString("<="),
-                    "res_generation_share": CommentedMap(
-                        {
-                            2030: None,
-                            2035: None,
-                            2040: None,
-                            2045: None,
-                            2050: None,
-                        }
-                    ),
-                },
-                "thermal_must_run": CommentedMap(
-                    {
-                        "activate": False,
-                        "min_must_run_ratio": None,
-                    }
-                ),
-                "capacity_factor_constraint": {
-                    "activate": False,
-                    "values": CommentedMap(
-                        {
-                            DoubleQuotedScalarString("SubC"): None,
-                            DoubleQuotedScalarString("SupC"): None,
-                            DoubleQuotedScalarString("HDAM"): None,
-                        }
-                    ),
-                },
-            }
-        )
-
-        add_please_fill_here_comments(
-            data["custom_constraints"][country]["energy_independence"][
-                "pe_conv_fraction"
-            ]
-        )
-
-        add_please_fill_here_comments(
-            data["custom_constraints"][country]["energy_independence"]["ei_fraction"]
-        )
-
-        add_please_fill_here_comments(
-            data["custom_constraints"][country]["reserve_margin"]
-        )
-
-        add_please_fill_here_comments(
-            data["custom_constraints"][country]["res_generation"][
-                "res_generation_share"
-            ]
-        )
-        add_please_fill_here_comments(
-            data["custom_constraints"][country]["thermal_must_run"]
-        )
-
-        add_please_fill_here_comments(
-            data["custom_constraints"][country]["capacity_factor_constraint"]["values"]
-        )
-
-    # create a scenario_config.yaml template file
-    yaml_files = glob.glob(f"{input_folder_path}/*.yaml")
+    # Create a scenario_config.yaml template file
+    yaml_files = glob.glob(f"{input_folder_path}/{input_scenario_name}/*.yaml")
     if len(yaml_files) == 0:
         with open(
-            f"{input_folder_path}/scenario_config.yaml", "w", encoding="utf-8"
+            f"{input_folder_path}/{input_scenario_name}/scenario_config.yaml",
+            "w",
+            encoding="utf-8",
         ) as f:
             f.write(HEADER)
             yaml.dump(
                 data,
                 f,
-                # sort_keys=False, default_flow_style=False, indent=2
             )
 
-        print("YAML file generated successfully.")
+        print(
+            "scenario_config.yaml file is generated successfully in "
+            f"{input_folder_path}/{input_scenario_name}. "
+            "Please fill in the required fields."
+        )
+    else:
+        raise (
+            FileExistsError(
+                "scenario_config.yaml file already exists in the "
+                f"{input_folder_path}/{input_scenario_name}. "
+                "Please check the folder or adjust path settings in the "
+                "based_config.yaml if you want to generate a "
+                "new scenario_config.yaml file."
+            )
+        )
