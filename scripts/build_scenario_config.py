@@ -24,14 +24,11 @@ HEADER = """
 
 # coding: utf-8
 
-# Scenario configuration includes:
-# scenario settings,
-# model constraints,
-# and solver settings.
+# Scenario configuration includes model constraints, scenario and solver settings.
 
 """
 
-SCENAIOR_CONFIGS = """
+SCENAIOR_DEFAULT_CONFIGS = """
 version: 0.1.0
 
 logging:
@@ -120,6 +117,12 @@ solving:
       random_seed: 123
 """
 
+
+def add_please_fill_here_comments(list_of_targeted_dict: dict):
+    for targeted_value in list_of_targeted_dict.keys():
+        list_of_targeted_dict.yaml_add_eol_comment("Please fill here", targeted_value)
+
+
 if __name__ == "__main__":
     snakemake: Any = globals().get("snakemake")
     if snakemake is None:
@@ -154,7 +157,7 @@ if __name__ == "__main__":
     yaml.default_flow_style = False
     yaml.width = 4096  # Prevent line wrapping
 
-    data = yaml.load(SCENAIOR_CONFIGS)
+    data = yaml.load(SCENAIOR_DEFAULT_CONFIGS)
 
     # Initialize certain keys as a dictionary if it is None
     if data["scenario_configs"].get("snapshots") is None:
@@ -170,18 +173,18 @@ if __name__ == "__main__":
 
     start_year = configurations["base_configs"]["years"][0]
     end_year = start_year + 1
-    data["scenario_configs"]["snapshots"] = {
-        "start": DoubleQuotedScalarString(f"{start_year}-01-01"),
-        "end": DoubleQuotedScalarString(f"{end_year}-01-01"),
-        "inclusive": DoubleQuotedScalarString("left"),
-    }
+    data["scenario_configs"]["snapshots"] = CommentedMap(
+        {
+            "start": DoubleQuotedScalarString(f"{start_year}-01-01"),
+            "end": DoubleQuotedScalarString(f"{end_year}-01-01"),
+            "inclusive": DoubleQuotedScalarString("left"),
+        }
+    )
 
     # Add comments before or after keys
-    SNAPSHOTS_COMMENT_TEXT = (
-        '"end" shall be should be "12-31" if base year is a leap year'
-    )
-    data["scenario_configs"].yaml_set_comment_before_after_key(
-        "snapshots", after=SNAPSHOTS_COMMENT_TEXT
+    SNAPSHOTS_COMMENT_TEXT = 'shall be should be "12-31" if base year is a leap year'
+    data["scenario_configs"]["snapshots"].yaml_add_eol_comment(
+        SNAPSHOTS_COMMENT_TEXT, "end"
     )
     data["scenario_configs"].yaml_set_comment_before_after_key(
         "interest", after="interest rate in decimals (e.g. 0.05 represents 5%)"
@@ -217,71 +220,121 @@ if __name__ == "__main__":
         )
         fuels_list.fa.set_flow_style()  # Force inline style [a, b, c]
 
-        data["scenario_configs"]["interest"][country] = 0.05
-        data["co2_management"][country] = {
-            "option": DoubleQuotedScalarString("co2_cap"),
-            "value": {
-                2025: 100,
-                2030: 90,
-                2035: 80,
-                2040: 70,
-                2045: 60,
-                2050: 50,
-            },
-        }
-        data["custom_constraints"][country] = {
-            "energy_independence": {
-                "activate": False,
-                "pe_conv_fraction": {
-                    "Solar": 1,
-                    "Wind": 1,
-                    "Geothermal": 1,
-                    "Water": 1,
+        data["scenario_configs"]["interest"][country] = None
+        data["scenario_configs"]["interest"].yaml_add_eol_comment(
+            "Please fill here", country
+        )
+        data["co2_management"][country] = CommentedMap(
+            {
+                "option": DoubleQuotedScalarString("co2_cap"),
+                "value": CommentedMap(
+                    {
+                        2025: None,
+                        2030: None,
+                        2035: None,
+                        2040: None,
+                        2045: None,
+                        2050: None,
+                    }
+                ),
+            }
+        )
+        add_please_fill_here_comments(data["co2_management"][country]["value"])
+
+        data["custom_constraints"][country] = CommentedMap(
+            {
+                "energy_independence": {
+                    "activate": False,
+                    "pe_conv_fraction": CommentedMap(
+                        {
+                            "Solar": None,
+                            "Wind": None,
+                            "Geothermal": None,
+                            "Water": None,
+                        }
+                    ),
+                    "ei_fraction": CommentedMap(
+                        {
+                            2025: None,
+                            2030: None,
+                            2035: None,
+                            2040: None,
+                            2045: None,
+                            2050: None,
+                        }
+                    ),
                 },
-                "ei_fraction": {
-                    2025: 0.3,
-                    2030: 0.4,
-                    2035: 0.5,
-                    2040: 0.6,
-                    2045: 0.7,
-                    2050: 0.8,
+                "production_constraint_fuels": {
+                    "activate": False,
+                    "fuels": fuels_list,
                 },
-            },
-            "production_constraint_fuels": {
-                "activate": False,
-                "fuels": fuels_list,
-            },
-            "reserve_margin": {
-                "activate": False,
-                "epsilon_load": 0.1,
-                "epsilon_vre": 0.1,
-                "contingency": 1000,
-                "method": DoubleQuotedScalarString("static"),
-            },
-            "res_generation": {
-                "activate": False,
-                "math_symbol": DoubleQuotedScalarString("<="),
-                "res_generation_share": {
-                    2030: 0.25,
-                    2035: 0.35,
-                    2040: 0.4,
-                    2045: 0.45,
-                    2050: 0.5,
+                "reserve_margin": CommentedMap(
+                    {
+                        "activate": False,
+                        "epsilon_load": None,
+                        "epsilon_vre": None,
+                        "contingency": None,
+                        "method": DoubleQuotedScalarString("static"),
+                    }
+                ),
+                "res_generation": {
+                    "activate": False,
+                    "math_symbol": DoubleQuotedScalarString("<="),
+                    "res_generation_share": CommentedMap(
+                        {
+                            2030: None,
+                            2035: None,
+                            2040: None,
+                            2045: None,
+                            2050: None,
+                        }
+                    ),
                 },
-            },
-            "thermal_must_run": {
-                "activate": False,
-                "min_must_run_ratio": 0.2,
-            },
-            "capacity_factor_constraint": {
-                "activate": False,
-                "values": {
-                    DoubleQuotedScalarString("SubC"): 0.6,
-                    DoubleQuotedScalarString("SupC"): 0.6,
-                    DoubleQuotedScalarString("HDAM"): 0.4,
+                "thermal_must_run": CommentedMap(
+                    {
+                        "activate": False,
+                        "min_must_run_ratio": None,
+                    }
+                ),
+                "capacity_factor_constraint": {
+                    "activate": False,
+                    "values": CommentedMap(
+                        {
+                            DoubleQuotedScalarString("SubC"): None,
+                            DoubleQuotedScalarString("SupC"): None,
+                            DoubleQuotedScalarString("HDAM"): None,
+                        }
+                    ),
                 },
-            },
-        }
+            }
+        )
+
+        add_please_fill_here_comments(
+            data["custom_constraints"][country]["energy_independence"][
+                "pe_conv_fraction"
+            ]
+        )
+
+        add_please_fill_here_comments(
+            data["custom_constraints"][country]["energy_independence"]["ei_fraction"]
+        )
+
+        add_please_fill_here_comments(
+            data["custom_constraints"][country]["reserve_margin"]
+        )
+
+        add_please_fill_here_comments(
+            data["custom_constraints"][country]["res_generation"][
+                "res_generation_share"
+            ]
+        )
+        add_please_fill_here_comments(
+            data["custom_constraints"][country]["thermal_must_run"]
+        )
+
+        add_please_fill_here_comments(
+            data["custom_constraints"][country]["capacity_factor_constraint"]["values"]
+        )
 
     # create a scenario_config.yaml template file
     yaml_files = glob.glob(f"{input_folder_path}/*.yaml")
