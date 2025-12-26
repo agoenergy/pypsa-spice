@@ -209,6 +209,14 @@ class Plots:
             table=self.output_tables.ind_cap_by_type_by_carrier_yearly(),
         )
 
+    def hyd_eltz_cap_by_region_yearly_plot(self):
+        """Plot annual ELTZ electrolyzer capacity by country and region."""
+        file_name = self.output_tables.hyd_eltz_cap_by_region_yearly.__name__
+        standard_plot(
+            file_name=file_name,
+            table=self.output_tables.hyd_eltz_cap_by_region_yearly(),
+        )
+
     # =================================== TRANSPORT ====================================
     def tran_capex_by_type_yearly_plot(self):
         """Plot annual transport CAPEX by country and type."""
@@ -2843,6 +2851,71 @@ class OutputTables(Plots):
             decimals=2,
         )
         final_df = final_df.loc[final_df.value != 0]
+
+        return final_df
+
+    def ind_eltz_cap_by_region_yearly(self) -> pd.DataFrame:
+        """Calculate annual ELTZ electrolyzer capacity by country and region.
+
+        << Unit: GW >>
+
+        ELTZ electrolyzers are Links with naming pattern:
+        PH_LUZ-N_HVELEC_to_PH_HYDN_by_ELTZ
+        - bus0: regional HVELEC bus (e.g., PH_LUZ-MND_HVELEC)
+        - bus1: global hydrogen bus (e.g., PH_HYDN)
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame with multi-index (country, region) and columns (value, year)
+        """
+        final_df = pd.DataFrame()
+        for year in self.network_dict:
+            n = self.network_dict[year]
+            cap_mix = pd.DataFrame()
+            
+            # Get Links component
+            links = n.links
+            
+            # Filter for ELTZ electrolyzers
+            # bus0 contains HVELEC, bus1 contains HYDN, and type is ELTZ
+            eltz_links = links[
+                (links.bus0.str.contains("HVELEC"))
+                & (links.bus1.str.contains("HYDN"))
+                & (links.type == "ELTZ")
+            ]
+            
+            if not eltz_links.empty:
+                # Calculate capacity (p_nom_opt * efficiency for Links)
+                eltz_cap = (
+                    (eltz_links.p_nom_opt * eltz_links.efficiency)
+                    .groupby(
+                        [
+                            eltz_links.country,
+                            eltz_links.bus0.str.split("_", n=2).str[1],  # Extract region from bus0
+                        ]
+                    )
+                    .sum()
+                    .to_frame()
+                )
+                eltz_cap.columns = ["value"]
+                cap_mix = eltz_cap
+            
+            if not cap_mix.empty:
+                cap_mix["year"] = year
+                final_df = pd.concat([final_df, cap_mix], axis=0)
+        
+        if final_df.empty:
+            return final_df
+        
+        final_df = final_df.fillna(0)
+        final_df.index.names = ["country", "region"]
+        final_df = scaling_conversion(
+            input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
+            scaling_number=1e3,
+            decimals=2,
+        )
+        # final_df = final_df.loc[final_df.value != 0]
 
         return final_df
 
