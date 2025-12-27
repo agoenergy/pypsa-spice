@@ -11,7 +11,7 @@ import os
 
 import pandas as pd
 import streamlit as st
-
+st.image("design/pypsa-spice-ph.png")
 st.title("PyPSA-SPICE technological nomenclature")
 st.divider()
 

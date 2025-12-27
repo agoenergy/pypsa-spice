@@ -33,14 +33,14 @@ init_conf = getters.init_config
 # Initialize input_data_folder_path in session state
 st.session_state.input_data_folder_path = init_conf["input_folder_path"]
 
-# st.logo( # noqa: E800
-#     os.path.join( # noqa: E800
-#       st.session_state.current_dir, "design/pypsa-spice-long.png" # noqa: E800
-#     ),  # noqa: E800
-#     icon_image=os.path.join( # noqa: E800
-#       st.session_state.current_dir, "design/agora-icon.png" # noqa: E800
-#     ),  # noqa: E800
-# ) # noqa: E800
+st.logo( # noqa: E800
+    os.path.join( # noqa: E800
+      st.session_state.current_dir, "design/pypsa-spice-ph.png" # noqa: E800
+    ),  # noqa: E800
+    icon_image=os.path.join( # noqa: E800
+      st.session_state.current_dir, "design/agora-icon.png" # noqa: E800
+    ),  # noqa: E800
+) # noqa: E800
 
 apply_sidebar_styles()
 

@@ -1132,24 +1132,33 @@ def sankey_diagram(
     # Create the Sankey diagram figure
     fig = go.Figure(data=[go.Sankey(
         arrangement='snap',
-        valuesuffix = "TWh",
+        valuesuffix = " TWh",
         node=dict(
             label=unique_source_target,
-            pad=10,  # Increase padding to reduce overlap
-            thickness=20,
+            pad=20,  # Increase padding to reduce overlap and improve readability
+            thickness=30,
             color=[color_map[x] for x in unique_source_target],
-            align='justify'
+            align='justify',
+            line=dict(color='rgba(0,0,0,0.4)', width=2),  # Darker border for better contrast
         ),
         link=dict(
             source=links_dict["source"],
             target=links_dict["target"],
             value=links_dict["value"],
             color=link_colors_with_opacity,  # Set the new colors with opacity
-        )
+        ),
+        textfont=dict(size=16, color='black', family='Arial, sans-serif', weight=600),  # Larger, bold text
     )])
 
     # Update layout settings
-    fig.update_layout(font_size=10, width=800, height=600)
+    fig.update_layout(
+        font=dict(size=16, color='black', family='Arial, sans-serif', weight=600),
+        width=900,
+        height=650,
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        margin=dict(l=20, r=20, t=40, b=40)
+    )
 
     # Streamlit app
     st.plotly_chart(fig, use_container_width=True, key=f"sankey_diagram_{scenario_name}_{table_name}")

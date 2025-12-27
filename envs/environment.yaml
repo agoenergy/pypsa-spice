@@ -33,5 +33,7 @@ dependencies:
   - weasyprint==65.1 
   - xarray==2025.8.0
   - yaml==0.2.5
+  - boto3
+  - awscli
   - pip:
       - -r requirements.txt

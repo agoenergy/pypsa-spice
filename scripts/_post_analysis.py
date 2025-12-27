@@ -4218,13 +4218,60 @@ class OutputTables(Plots):
         tform['target'] = 'Electricity'
         tform = tform[['source', 'target', 'value', 'year', 'color']]
         
-        # skipped hydrogen blending, for simplicity
+        # === Hydrogen Energy Flow Processing ===
+        # Process hydrogen links to capture energy transformation flows:
+        # 1. Electricity → Hydrogen (ELTZ: electrolysis)
+        # 2. Hydrogen → Gas (hydrogen blending and other conversions)
+
+        hyd_df = pd.DataFrame()
+        
+        for year in self.network_dict:
+            n = self.network_dict[year]
+            
+            # Filter for hydrogen carrier links, excluding industrial uses
+            hyd_idx = n.links[
+                (n.links.carrier == "Hyd") & 
+                ~(n.links.type.str.contains('IND'))  #remove industry boilers
+            ].index
+            
+            # Calculate annual energy flows by link type
+            # Uses snapshot weightings to convert power (MW) to energy (MWh)
+            hyd_flows = (
+                n.links_t.p0[hyd_idx]
+                .multiply(n.snapshot_weightings.generators, axis=0)  # Apply time weightings
+                .T
+                .groupby(n.links.type)  # Aggregate by technology type
+                .sum()
+                .T
+                .sum()  # Sum across all time steps
+                .reset_index()
+            )
+            
+            hyd_flows.columns = ['type', 'value']
+            
+            # Map technology types to Sankey diagram source-target pairs
+            hyd_flows['source'] = hyd_flows['type'].apply(
+                lambda x: 'Electricity' if x == 'ELTZ' else 'Hyd')   #ELTZ or OCHT only
+            hyd_flows['target'] = hyd_flows['type'].apply( 
+                lambda x: 'Hyd' if x == 'ELTZ' else 'Electricity')           #ELTZ or OCHT only
+            hyd_flows['year'] = year
+            hyd_flows['color'] = hyd_flows['source'].map(color_map)
+            
+            hyd_df = pd.concat([hyd_df, hyd_flows], axis=0, ignore_index=True)
+        
+        # Prepare hydrogen flows for Sankey diagram
+        hyd_df = hyd_df[['source', 'target', 'value', 'year', 'color']]
+        hyd_df = scaling_conversion(
+            input_df=hyd_df.loc[~(hyd_df == 0).all(axis=1), :],
+            scaling_number=1e6,  # Convert MWh to TWh
+            decimals=2,
+        )
 
         # Generate last-tier links
         tfec = self.ene_total_final_consumption()
         tfec['color'] = tfec['carrier'].map(color_map)
         tfec.columns = ['source', 'target', 'value', 'year', 'color']
 
-        # Combine all tiers and filter for the specified year
-        final_df = pd.concat([tpes1, tform, tfec], axis=0)
+        # Combine all tiers including hydrogen flows
+        final_df = pd.concat([tpes1, tform, hyd_df, tfec], axis=0, ignore_index=True)
         return final_df.reset_index(drop=True)
