@@ -20,13 +20,17 @@ from typing import Any
 import pandas as pd
 import pypsa
 from _helpers import configure_logging, load_scenario_config
-from custom_constraints import (add_energy_independence_constraint,
-                                add_reserve_margin, add_storage_constraints,
-                                capacity_factor_constraint, co2_cap_constraint,
-                                fuel_supply_constraint,
-                                re_pow_generation_constraint,
-                                renewable_potential_constraint,
-                                thermal_must_run_constraint)
+from custom_constraints import (
+    add_energy_independence_constraint,
+    add_reserve_margin,
+    add_storage_constraints,
+    capacity_factor_constraint,
+    co2_cap_constraint,
+    fuel_supply_constraint,
+    re_pow_generation_constraint,
+    renewable_potential_constraint,
+    thermal_must_run_constraint,
+)
 from dotenv import load_dotenv
 from linopy.remote.oetc import OetcCredentials, OetcHandler, OetcSettings
 
@@ -75,6 +79,7 @@ def extra_functionality_linopt(
         ):
             capacity_factor_constraint(
                 network,
+                country=country,
                 cf_dict=country_constraints["capacity_factor_constraint"]["values"],
             )
             constraint_added = True
@@ -266,8 +271,7 @@ def solve_network(
 if __name__ == "__main__":
     snakemake: Any = globals().get("snakemake")
     if snakemake is None:
-        from _helpers import \
-            mock_snakemake  # pylint: disable=ungrouped-imports
+        from _helpers import mock_snakemake  # pylint: disable=ungrouped-imports
 
         snakemake = mock_snakemake("solve_network", sector="p-i-t", years=2025)
     configure_logging(snakemake)
