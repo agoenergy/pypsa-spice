@@ -467,10 +467,10 @@ class OutputTables(Plots):
             column (value)
         """
         df_all = pd.DataFrame()
-        for country in self.countries:
+        for country in self.pow_emi_by_carrier_yearly().index.unique():
             pow_emi_df = (
                 self.pow_emi_by_carrier_yearly()
-                .loc[country]
+                .loc[[country]]
                 .groupby(["carrier", "year"])
                 .sum()
                 .reset_index()
@@ -652,8 +652,10 @@ class OutputTables(Plots):
         for country in self.countries:
             if country not in self.scenario_configs.get("custom_constraints", {}):
                 continue
-            if not self.scenario_configs["custom_constraints"][country].get(
-                "energy_independence", False
+            if not (
+                self.scenario_configs["custom_constraints"][country][
+                    "energy_independence"
+                ].get("activate", False)
             ):
                 continue
             final_df = pd.DataFrame()
@@ -2012,7 +2014,6 @@ class OutputTables(Plots):
                 inflexible_power_load = (
                     n.loads_t.p[hv_lv_load_indices].T.groupby(n.loads.carrier).sum().T
                 )
-
                 inflexible_power_load.columns = ["Inflexible_Power"]
             country_load_df = pd.concat(
                 [country_load_df, inflexible_power_load], axis=1
