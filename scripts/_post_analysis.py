@@ -512,15 +512,16 @@ class OutputTables(Plots):
             A DataFrame with multi-index (country, sector, year) and column (value)
         """
         df_all = pd.DataFrame()
-        for country in self.countries:
+        emi_cost_df = self.pow_emi_by_carrier_yearly()
+
+        for country in emi_cost_df.index.unique():
             if (
                 self.scenario_configs["co2_management"][country]["option"]
                 != "co2_price"
             ):
                 continue  # skip if no CO2 price is applied
             pow_emi_cost_df = (
-                self.pow_emi_cost_by_carrier_yearly()
-                .loc[country]
+                emi_cost_df.loc[[country]]
                 .groupby("year")
                 .sum()
                 .reset_index()
@@ -2114,7 +2115,8 @@ class OutputTables(Plots):
             A DataFrame with multi-index (country, carrier) and columns (value, year)
         """
         df_all = pd.DataFrame()
-        for country in self.countries:
+        emi_df = self.pow_emi_by_carrier_yearly()
+        for country in emi_df.index.unique():
             if (
                 self.scenario_configs["co2_management"][country]["option"]
                 != "co2_price"
@@ -2126,8 +2128,7 @@ class OutputTables(Plots):
                     year
                 ]
                 emi = (
-                    self.pow_emi_by_carrier_yearly()
-                    .loc[country]
+                    emi_df.loc[[country]]
                     .set_index(["carrier", "year"], append=True)["value"]
                     .unstack()[year]
                     .fillna(0)
