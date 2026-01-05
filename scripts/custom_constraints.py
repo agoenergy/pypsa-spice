@@ -23,9 +23,7 @@ import pandas as pd
 import pypsa
 import xarray as xr
 from _helpers import FilePath
-from pypsa.descriptors import expand_series
 from pypsa.descriptors import get_switchable_as_dense as get_as_dense
-from pypsa.optimization.compat import define_constraints, get_var
 
 
 def renewable_potential_constraint(
@@ -135,7 +133,7 @@ def add_storage_constraints(n: pypsa.Network):
         - n.model["Link-p_nom"].loc[dischargers_ext] * eff
     )
 
-    n.model.add_constraints(lhs == 0, name="Link-charger_ratio")
+    n.model.add_constraints(lhs, "==", 0, name="Link-charger_ratio")
 
 
 def co2_cap_constraint(n: pypsa.Network, country: str, co2_cap: float):
@@ -160,7 +158,7 @@ def co2_cap_constraint(n: pypsa.Network, country: str, co2_cap: float):
     rhs = co2_cap * 1e6
     lhs = n.model["Store-e"].loc[n.snapshots[-1], stores]
     print(f"Adding CO2 Cap of {co2_cap}mtCO2 for {country}")
-    n.model.add_constraints(lhs <= rhs, name=f"co2_cap_{country}")
+    n.model.add_constraints(lhs, "<=", rhs, name=f"co2_cap_{country}")
 
 
 def capacity_factor_constraint(n: pypsa.Network, cf_dict: dict):
@@ -192,7 +190,7 @@ def capacity_factor_constraint(n: pypsa.Network, cf_dict: dict):
                 dispatch = n.model[f"{c}-{p_gen}"]
                 if not ext_i.empty:
                     capacity_variable = (
-                        n.model[f"{c}-p_nom"].rename({f"{c}-ext": c}).loc[ext_i]
+                        n.model[f"{c}-p_nom"].sel(name=ext_i).rename({"name": c})
                     )
                     # LHS
                     if c == "Link":
@@ -214,7 +212,9 @@ def capacity_factor_constraint(n: pypsa.Network, cf_dict: dict):
                             .sum()
                         )
                     n.model.add_constraints(
-                        lhs <= 0,
+                        lhs,
+                        "<=",
+                        0,
                         name=f"updated_capacity_factor_{gen_type}_constraint_ext",
                     )
                 if not fix_i.empty:
@@ -244,7 +244,9 @@ def capacity_factor_constraint(n: pypsa.Network, cf_dict: dict):
                             .sum()
                         )
                     n.model.add_constraints(
-                        lhs <= rhs,
+                        lhs,
+                        "<=",
+                        rhs,
                         name=f"updated_capacity_factor_{gen_type}_constraint_fix",
                     )
 
@@ -303,13 +305,13 @@ def thermal_must_run_constraint(
             if c == "Link":
                 gen_var = gen_var.mul(eff)
             # get dispatch variable sum
-            lhs += gen_var.sum(c)
+            lhs += gen_var.sum("name")
     # define constraint ------------------------------------------------------
     print(
         f"....add minimum thermal must run as {round(min_must_run_ratio*100)}% "
         f"of power load per snapshot for {country}"
     )
-    n.model.add_constraints(lhs >= rhs, name=f"thermal_must_run_limit_{country}")
+    n.model.add_constraints(lhs, ">=", rhs, name=f"thermal_must_run_limit_{country}")
 
 
 def re_pow_generation_constraint(
@@ -361,9 +363,9 @@ def re_pow_generation_constraint(
             ].index
             if not res_gen.empty:
                 # Get var and weights
-                gen_var = get_var(n, c, p_gen).loc[:, res_gen]
-                weight_gen = xr.DataArray(
-                    expand_series(n.snapshot_weightings.objective, df.index)
+                gen_var = n.model[f"{c}-{p_gen}"].loc[:, res_gen]
+                weight_gen = (
+                    n.snapshot_weightings["objective"].reindex(df.index).to_xarray()
                 )
                 if c == "Link":
                     eff = xr.DataArray(df.loc[res_gen, "efficiency"])
@@ -382,12 +384,12 @@ def re_pow_generation_constraint(
         f"....add minimum renewable generation as: {round(res_generation_share*100)}% "
         f"of total power load in {country}"
     )
-    define_constraints(
-        n,
+
+    n.model.add_constraints(
         lhs,
         math_symbol,
         rhs,
-        f"RE share of {round(res_generation_share*100)}% in {country}",
+        name=f"RE share of {round(res_generation_share*100)}% in {country}",
     )
 
 
@@ -412,7 +414,7 @@ def fuel_supply_constraint(n: pypsa.Network, country: str, supply_limits: dict):
             n.model["Generator-p"]
             .loc[:, supply_gen]
             .mul(n.snapshot_weightings.generators)
-            .sum("Generator")
+            .sum("name")
             .sum()
         )
         print(f"....add a supply limit for {carrier} in {country}")
@@ -449,9 +451,9 @@ def add_energy_independence_constraint(
     fs_loc_gen = [ele for ele in fs_gen if ele not in fs_imp_gen]  # local generators
 
     # Get var and weights
-    gen_var = get_var(n, "Generator", "p")
-    weight_gen = xr.DataArray(
-        expand_series(n.snapshot_weightings.objective, n.generators.index)
+    gen_var = n.model["Generator-p"]
+    weight_gen = (
+        n.snapshot_weightings["objective"].reindex(n.generators.index).to_xarray()
     )
     # Primary energy import (for imported fossil generators)
     gen_var_imp = gen_var.loc[:, fs_imp_gen]
@@ -466,10 +468,8 @@ def add_energy_independence_constraint(
         df = n.df(c)
         p_gen = "p" if c != "StorageUnit" else "p_dispatch"
         # Get var and weights
-        gen_var = get_var(n, c, p_gen)
-        weight_gen = xr.DataArray(
-            expand_series(n.snapshot_weightings.objective, df.index)
-        )
+        gen_var = n.model[f"{c}-{p_gen}"]
+        weight_gen = n.snapshot_weightings["objective"].reindex(df.index).to_xarray()
         for res in ["Solar", "Wind", "Geothermal", "Water"]:
             # Local generators
             res_gen_loc = df[
@@ -503,8 +503,7 @@ def add_energy_independence_constraint(
     lhs = (1 - ei_frac) * pe_loc - ei_frac * pe_imp
     rhs = 0
 
-    define_constraints(
-        n,
+    n.model.add_constraints(
         lhs,
         ">=",
         rhs,
@@ -619,13 +618,15 @@ def _add_reserve_margin_static(n: pypsa.Network, ep_load: float, country: str):
             eff = None
             if c == "Link":
                 eff = xr.DataArray(
-                    n.df(c).loc[ext_i, "efficiency"].rename({f"{c}": f"{c}-ext"})
+                    n.df(c).loc[ext_i, "efficiency"],
+                    coords={"name": ext_i},
+                    dims=["name"],
                 )
             lhs += (
-                n.model.variables[f"{c}-p_nom"].sel({f"{c}-ext": ext_i})
+                n.model.variables[f"{c}-p_nom"].sel(name=ext_i)
                 * r_rating
                 * (eff if eff is not None else 1)
-            ).sum(f"{c}-ext")
+            ).sum("name")
 
     # rhs = (1+ep_load) * peak load - fix_cap
     load_id = n.loads[
@@ -675,7 +676,7 @@ def _add_reserve_margin_dynamic(
         )
         assets_reserve = n.model[f"{c}-r"].loc[:, reserve_asset_indexes]
         r_rating = xr.DataArray(df.loc[reserve_asset_indexes, "r_rating"])
-        assets_sumed_reserve = (assets_reserve * r_rating).sum(f"{c}")
+        assets_sumed_reserve = (assets_reserve * r_rating).sum("name")
         # add total reserve of the component to the lhs
         lhs += assets_sumed_reserve
     # subtract share of extendable renewable capacities
@@ -686,15 +687,24 @@ def _add_reserve_margin_dynamic(
         n.generators_t.p_max_pu.columns
     )
     if not ext_i.empty and not vres_i.empty:
-        # capacity factor CF
-        capacity_factor_ext = n.generators_t.p_max_pu[vres_i.intersection(ext_i)]
-        # capacities of VRES
-        p_nom_vres = (
-            n.model["Generator-p_nom"]
-            .loc[vres_i.intersection(ext_i)]
-            .rename({"Generator-ext": "Generator"})
-        )
-        lhs += (p_nom_vres * (-ep_vre * capacity_factor_ext)).sum("Generator")
+        # intersection of VRES and extendable generators
+        vres_ext = vres_i.intersection(ext_i)
+
+        if not vres_ext.empty:
+            # capacity factor CF: DataFrame (snapshots x generators)
+            # -> DataArray (snapshot, name)
+            cf_df = n.generators_t.p_max_pu[vres_ext]  # pandas DataFrame
+            capacity_factor_ext = xr.DataArray(
+                cf_df.values,
+                coords={"snapshot": cf_df.index, "name": cf_df.columns},
+                dims=("snapshot", "name"),
+            )
+
+            # capacities of VRES: linopy/xarray variable with dim "name"
+            p_nom_vres = n.model["Generator-p_nom"].sel(name=vres_ext)
+
+            # broadcast over snapshot, sum over generators
+            lhs += (p_nom_vres * (-ep_vre * capacity_factor_ext)).sum("name")
 
     # minus the electricity going to storage
     store_links = n.links[
@@ -709,10 +719,10 @@ def _add_reserve_margin_dynamic(
     if not store_links.empty:
         storage_load = n.model["Link-p"].loc[:, store_links]
         store_eff = xr.DataArray(n.links.loc[store_links, "efficiency"])
-        lhs += (-storage_load.mul(store_eff)).sum("Link")
+        lhs += (-storage_load.mul(store_eff)).sum("name")
     if not storageunits_id.empty:
         SU_store = n.model["StorageUnit-p_store"].loc[:, storageunits_id]
-        lhs += (-SU_store).sum("StorageUnit")
+        lhs += (-SU_store).sum("name")
 
     # ------------- RHS -------------------------------------------------
     # ------------- Generators
@@ -729,7 +739,7 @@ def _add_reserve_margin_dynamic(
     renewable_capacity_fix = n.generators.p_nom[vres_i.difference(ext_i)]
     potential = (capacity_factor_fix * renewable_capacity_fix).sum(axis=1)
     rhs = ep_load * demand + ep_vre * potential + cont
-    n.model.add_constraints(lhs >= rhs, name=f"dynamic_reserve_margin_{country}")
+    n.model.add_constraints(lhs, ">=", rhs, name=f"dynamic_reserve_margin_{country}")
 
 
 def _update_capacity_constraint_non_link(n: pypsa.Network, country: str):
@@ -752,17 +762,22 @@ def _update_capacity_constraint_non_link(n: pypsa.Network, country: str):
         reserve = n.model[f"{c}-r"].loc[:, reserve_asset_indices]
         # Get p_max_pu
         p_max_pu = get_as_dense(n, c, "p_max_pu")
+
         if not ext_i.empty:
-            # variable assets
-            capacity_variable = n.model[f"{c}-p_nom"].rename({f"{c}-ext": c}).loc[ext_i]
+            capacity_variable = n.model[f"{c}-p_nom"].sel(name=ext_i)
+
+            # align everything on axis=1 (asset name)
             lhs = (
                 dispatch.loc[:, ext_i]
                 + reserve.loc[:, ext_i]
-                - capacity_variable.mul(p_max_pu.loc[:, ext_i])
+                - (p_max_pu.loc[:, ext_i] * capacity_variable)
             )
             # variable assets constraint
             n.model.add_constraints(
-                lhs <= 0, name=f"updated_capacity_constraint_{c.lower()}s_ext_{country}"
+                lhs,
+                "<=",
+                0,
+                name=f"updated_capacity_constraint_{c.lower()}s_ext_{country}",
             )
         if not fix_i.empty:
             # fix assets
@@ -771,7 +786,9 @@ def _update_capacity_constraint_non_link(n: pypsa.Network, country: str):
             rhs = p_max_pu.loc[:, fix_i].mul(capacity_fixed)
             # fix assets constraint
             n.model.add_constraints(
-                lhs <= rhs,
+                lhs,
+                "<=",
+                rhs,
                 name=f"updated_capacity_constraint_{c.lower()}s_fix_{country}",
             )
 
@@ -793,14 +810,16 @@ def _update_capacity_constraint_links(n: pypsa.Network, country: str):
     dispatch = n.model["Link-p"].loc[:, reserve_asset_indices]
     reserve = n.model["Link-r"].loc[:, reserve_asset_indices]
     # Get r_rating and efficiencies of links
-    eff = xr.DataArray(df.loc[reserve_asset_indices, "efficiency"])
+    eff = xr.DataArray(
+        df.loc[reserve_asset_indices, "efficiency"],
+        coords={"name": reserve_asset_indices},
+        dims=["name"],
+    )
     # Get p_max_pu
     p_max_pu = get_as_dense(n, "Link", "p_max_pu")
     if not ext_i.empty:
         # variable assets
-        capacity_variable = (
-            n.model["Link-p_nom"].rename({"Link-ext": "Link"}).loc[ext_i]
-        )
+        capacity_variable = n.model["Link-p_nom"].sel(name=ext_i)
         lhs = (
             dispatch.loc[:, ext_i].mul(eff.loc[ext_i])
             + reserve.loc[:, ext_i]
@@ -808,7 +827,7 @@ def _update_capacity_constraint_links(n: pypsa.Network, country: str):
         )
         # variable assets constraint
         n.model.add_constraints(
-            lhs <= 0, name=f"updated_capacity_constraint_links_ext_{country}"
+            lhs, "<=", 0, name=f"updated_capacity_constraint_links_ext_{country}"
         )
     if not fix_i.empty:  # fix assets
         capacity_fixed = df["p_nom"].loc[fix_i]
@@ -816,7 +835,7 @@ def _update_capacity_constraint_links(n: pypsa.Network, country: str):
         rhs = p_max_pu.loc[:, fix_i].mul(capacity_fixed).mul(eff.loc[fix_i])
         # fix assets constraint
         n.model.add_constraints(
-            lhs <= rhs, name=f"updated_capacity_constraint_links_fix_{country}"
+            lhs, "<=", rhs, name=f"updated_capacity_constraint_links_fix_{country}"
         )
 
 
@@ -845,7 +864,7 @@ def _update_storage_reserve_constraint(n: pypsa.Network, country: str):
         # - (0.25 * state of charge of asset g at time t)
         lhs = assets_reserve - assets_soc.mul(0.25)
         n.model.add_constraints(
-            lhs <= 0, name=f"updated_soc_constraint_storage_units_{country}"
+            lhs, "<=", 0, name=f"updated_soc_constraint_storage_units_{country}"
         )
 
     # constraining soc for links plus store buses
@@ -870,7 +889,7 @@ def _update_storage_reserve_constraint(n: pypsa.Network, country: str):
         ].index
         store_asset_soc = (
             n.model["Store-e"]
-            .sel({"Store": store_asset_indexes})
+            .sel(name=store_asset_indexes)
             .groupby(n.stores.loc[store_asset_indexes, "bus"].to_xarray())
             .sum()
         )
@@ -878,7 +897,7 @@ def _update_storage_reserve_constraint(n: pypsa.Network, country: str):
         # - (0.25 * sum_s,h soc(s,h,t) of store s at bus h)
         lhs = bus_reserve - store_asset_soc.mul(0.25)
         n.model.add_constraints(
-            lhs <= 0, name=f"updated_soc_constraint_storage_links_{country}"
+            lhs, "<=", 0, name=f"updated_soc_constraint_storage_links_{country}"
         )
 
 
