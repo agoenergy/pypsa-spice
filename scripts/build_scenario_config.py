@@ -156,51 +156,39 @@ def add_please_fill_here_comments(
         list_of_targeted_dict.yaml_add_eol_comment("Please fill here", targeted_value)
 
 
-def add_country_specific_constraints(data: YAML, configurations: dict):
+def add_country_specific_constraints(input_scenario_data: YAML, config_dict: dict):
     """Add country specific constraints to the scenario configuration data.
 
     Parameters
     ----------
-    data : YAML
-        YAML data to add country specific constraints to
-    configurations : dict
+    scenario_data : YAML
+        YAML dictionary to add country specific constraints to
+    config_dict : dict
         configurations containing country/region information
     """
     # Add country specific inputs
-    for country in configurations["base_configs"]["regions"].keys():
-        # Create a new list for each loop to solve YAML anchors (&id001) issue
-        fuels_list = CommentedSeq(
-            [
-                DoubleQuotedScalarString("Bio"),
-                DoubleQuotedScalarString("Bit"),
-                DoubleQuotedScalarString("Gas"),
-                DoubleQuotedScalarString("Oil"),
-            ]
-        )
+    for country in config_dict["base_configs"]["regions"].keys():
+        fuels_list = CommentedSeq([])
         fuels_list.fa.set_flow_style()  # Force inline style [a, b, c]
 
-        data["scenario_configs"]["interest"][country] = None
-        data["scenario_configs"]["interest"].yaml_add_eol_comment(
+        input_scenario_data["scenario_configs"]["interest"][country] = None
+        input_scenario_data["scenario_configs"]["interest"].yaml_add_eol_comment(
             "Please fill here", country
         )
-        data["co2_management"][country] = CommentedMap(
+        input_scenario_data["co2_management"][country] = CommentedMap(
             {
                 "option": DoubleQuotedScalarString("co2_cap"),
-                "value": CommentedMap(
-                    {
-                        2025: None,
-                        2030: None,
-                        2035: None,
-                        2040: None,
-                        2045: None,
-                        2050: None,
-                    }
-                ),
+                "value": CommentedMap({}),
             }
         )
-        add_please_fill_here_comments(data["co2_management"][country]["value"])
+        for year in config_dict["base_configs"]["years"]:
+            input_scenario_data["co2_management"][country]["value"][year] = None
 
-        data["custom_constraints"][country] = CommentedMap(
+        add_please_fill_here_comments(
+            input_scenario_data["co2_management"][country]["value"]
+        )
+
+        input_scenario_data["custom_constraints"][country] = CommentedMap(
             {
                 "energy_independence": CommentedMap(
                     {
@@ -213,16 +201,7 @@ def add_country_specific_constraints(data: YAML, configurations: dict):
                                 "Water": None,
                             }
                         ),
-                        "ei_fraction": CommentedMap(
-                            {
-                                2025: None,
-                                2030: None,
-                                2035: None,
-                                2040: None,
-                                2045: None,
-                                2050: None,
-                            }
-                        ),
+                        "ei_fraction": CommentedMap({}),
                     }
                 ),
                 "production_constraint_fuels": CommentedMap(
@@ -244,15 +223,7 @@ def add_country_specific_constraints(data: YAML, configurations: dict):
                     {
                         "activate": False,
                         "math_symbol": DoubleQuotedScalarString("<="),
-                        "res_generation_share": CommentedMap(
-                            {
-                                2030: None,
-                                2035: None,
-                                2040: None,
-                                2045: None,
-                                2050: None,
-                            }
-                        ),
+                        "res_generation_share": CommentedMap({}),
                     }
                 ),
                 "thermal_must_run": CommentedMap(
@@ -264,61 +235,63 @@ def add_country_specific_constraints(data: YAML, configurations: dict):
                 "capacity_factor_constraint": CommentedMap(
                     {
                         "activate": False,
-                        "values": CommentedMap(
-                            {
-                                DoubleQuotedScalarString("SubC"): None,
-                                DoubleQuotedScalarString("SupC"): None,
-                                DoubleQuotedScalarString("HDAM"): None,
-                            }
-                        ),
+                        "value": CommentedMap({}),
                     }
                 ),
             }
         )
 
-        add_activate_comments(
-            data["custom_constraints"][country]["energy_independence"]
-        )
-        add_please_fill_here_comments(
-            data["custom_constraints"][country]["energy_independence"][
-                "pe_conv_fraction"
-            ]
-        )
-        add_please_fill_here_comments(
-            data["custom_constraints"][country]["energy_independence"]["ei_fraction"]
-        )
+        energy_independence_dict = input_scenario_data["custom_constraints"][country][
+            "energy_independence"
+        ]
+        res_gen_dict = input_scenario_data["custom_constraints"][country][
+            "res_generation"
+        ]
+        capacity_factor_dict = input_scenario_data["custom_constraints"][country][
+            "capacity_factor_constraint"
+        ]
+        for year in config_dict["base_configs"]["years"]:
+            res_gen_dict["res_generation_share"][year] = None
+            energy_independence_dict["ei_fraction"][year] = None
+            capacity_factor_dict["value"][year] = None
+
+        add_activate_comments(energy_independence_dict)
+        add_please_fill_here_comments(energy_independence_dict["pe_conv_fraction"])
+        add_please_fill_here_comments(energy_independence_dict["ei_fraction"])
 
         add_activate_comments(
-            data["custom_constraints"][country]["production_constraint_fuels"],
-        )
-
-        add_activate_comments(
-            data["custom_constraints"][country]["reserve_margin"],
+            input_scenario_data["custom_constraints"][country][
+                "production_constraint_fuels"
+            ],
         )
         add_please_fill_here_comments(
-            data["custom_constraints"][country]["reserve_margin"],
-            exception_list=["activate", "method"],
-        )
-
-        add_activate_comments(data["custom_constraints"][country]["res_generation"])
-        add_please_fill_here_comments(
-            data["custom_constraints"][country]["res_generation"][
-                "res_generation_share"
-            ]
-        )
-
-        add_activate_comments(data["custom_constraints"][country]["thermal_must_run"])
-        add_please_fill_here_comments(
-            data["custom_constraints"][country]["thermal_must_run"],
+            input_scenario_data["custom_constraints"][country][
+                "production_constraint_fuels"
+            ],
             exception_list=["activate"],
         )
 
         add_activate_comments(
-            data["custom_constraints"][country]["capacity_factor_constraint"]
+            input_scenario_data["custom_constraints"][country]["reserve_margin"],
         )
         add_please_fill_here_comments(
-            data["custom_constraints"][country]["capacity_factor_constraint"]["values"]
+            input_scenario_data["custom_constraints"][country]["reserve_margin"],
+            exception_list=["activate", "method"],
         )
+
+        add_activate_comments(res_gen_dict)
+        add_please_fill_here_comments(res_gen_dict["res_generation_share"])
+
+        add_activate_comments(
+            input_scenario_data["custom_constraints"][country]["thermal_must_run"]
+        )
+        add_please_fill_here_comments(
+            input_scenario_data["custom_constraints"][country]["thermal_must_run"],
+            exception_list=["activate"],
+        )
+
+        add_activate_comments(capacity_factor_dict)
+        add_please_fill_here_comments(capacity_factor_dict["value"])
 
 
 if __name__ == "__main__":
@@ -357,23 +330,23 @@ if __name__ == "__main__":
     yaml.default_flow_style = False
     yaml.width = 4096  # Prevent line wrapping
 
-    data = yaml.load(SCENAIOR_DEFAULT_CONFIGS)
+    scenario_data = yaml.load(SCENAIOR_DEFAULT_CONFIGS)
 
     # Initialize certain keys as a dictionary if it is None
-    if data["scenario_configs"].get("snapshots") is None:
-        data["scenario_configs"]["snapshots"] = {}
-    if data["scenario_configs"].get("interest") is None:
-        data["scenario_configs"]["interest"] = CommentedMap()
+    if scenario_data["scenario_configs"].get("snapshots") is None:
+        scenario_data["scenario_configs"]["snapshots"] = {}
+    if scenario_data["scenario_configs"].get("interest") is None:
+        scenario_data["scenario_configs"]["interest"] = CommentedMap()
 
-    if data.get("co2_management") is None:
-        data["co2_management"] = CommentedMap()
+    if scenario_data.get("co2_management") is None:
+        scenario_data["co2_management"] = CommentedMap()
 
-    if data.get("custom_constraints") is None:
-        data["custom_constraints"] = CommentedMap()
+    if scenario_data.get("custom_constraints") is None:
+        scenario_data["custom_constraints"] = CommentedMap()
 
     start_year = configurations["base_configs"]["years"][0]
     end_year = start_year + 1
-    data["scenario_configs"]["snapshots"] = CommentedMap(
+    scenario_data["scenario_configs"]["snapshots"] = CommentedMap(
         {
             "start": DoubleQuotedScalarString(f"{start_year}-01-01"),
             "end": DoubleQuotedScalarString(f"{end_year}-01-01"),
@@ -383,10 +356,10 @@ if __name__ == "__main__":
 
     # Add comments before or after keys
     SNAPSHOTS_COMMENT_TEXT = 'shall be should be "12-31" if base year is a leap year'
-    data["scenario_configs"]["snapshots"].yaml_add_eol_comment(
+    scenario_data["scenario_configs"]["snapshots"].yaml_add_eol_comment(
         SNAPSHOTS_COMMENT_TEXT, "end"
     )
-    data["scenario_configs"].yaml_set_comment_before_after_key(
+    scenario_data["scenario_configs"].yaml_set_comment_before_after_key(
         "interest", after="interest rate in decimals (e.g. 0.05 represents 5%)"
     )
     CO2_MANAGEMENT_COMMENT_TEXT = (
@@ -397,17 +370,17 @@ if __name__ == "__main__":
         '"co2_price" is a price on CO2 emissions in the system.'
         "Values are in currency/tonne of CO2."
     )
-    data.yaml_set_comment_before_after_key(
+    scenario_data.yaml_set_comment_before_after_key(
         "co2_management", after=CO2_MANAGEMENT_COMMENT_TEXT
     )
     CUSTOM_CONSTRAINTS_COMMENT_TEXT = (
         "please indicate country/region and their specific custom constraints"
     )
-    data.yaml_set_comment_before_after_key(
+    scenario_data.yaml_set_comment_before_after_key(
         "custom_constraints", after=CUSTOM_CONSTRAINTS_COMMENT_TEXT
     )
 
-    add_country_specific_constraints(data, configurations)
+    add_country_specific_constraints(scenario_data, configurations)
 
     # Create a scenario_config.yaml template file
     yaml_files = glob.glob(f"{input_folder_path}/{input_scenario_name}/*.yaml")
@@ -419,7 +392,7 @@ if __name__ == "__main__":
         ) as f:
             f.write(HEADER)
             yaml.dump(
-                data,
+                scenario_data,
                 f,
             )
 

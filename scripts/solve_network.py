@@ -81,7 +81,7 @@ def extra_functionality_linopt(
             capacity_factor_constraint(
                 network,
                 country=country,
-                cf_dict=country_constraints["capacity_factor_constraint"]["values"],
+                cf_dict=country_constraints["capacity_factor_constraint"]["value"],
             )
             constraint_added = True
 
