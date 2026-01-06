@@ -22,6 +22,7 @@ import pypsa
 from _helpers import configure_logging, load_scenario_config
 from custom_constraints import (
     add_energy_independence_constraint,
+    add_generation_constraint,
     add_reserve_margin,
     add_storage_constraints,
     capacity_factor_constraint,
@@ -81,6 +82,16 @@ def extra_functionality_linopt(
                 network,
                 country=country,
                 cf_dict=country_constraints["capacity_factor_constraint"]["values"],
+            )
+            constraint_added = True
+
+        # Power generation constraint
+        if country_constraints["generation_constraint"].get("activate", False):
+            add_generation_constraint(
+                network,
+                country=country,
+                year=year,
+                gen_dict=country_constraints["generation_constraint"]["values"],
             )
             constraint_added = True
 
@@ -279,7 +290,7 @@ if __name__ == "__main__":
     if snakemake is None:
         from _helpers import mock_snakemake  # pylint: disable=ungrouped-imports
 
-        snakemake = mock_snakemake("solve_network", sector="p-i-t", years=2025)
+        snakemake = mock_snakemake("solve_network", sector="p", years=2023)
     configure_logging(snakemake)
     scenario_configs = load_scenario_config(
         "data/"
