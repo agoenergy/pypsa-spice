@@ -12,7 +12,13 @@ PyPSA-SPICE requires two configuration files:
 
 2. **`scenario_config.yaml`**: Located inside each scenario folder, this file contains scenario-specific configurations. It is only used after the input data structure has been created.
 
-To get started, configure `base_config.yaml` first, then run the data setup process. Once complete, you can configure individual scenarios using their respective `scenario_config.yaml` files.
+To get started, configure `base_config.yaml` first, then run the data setup process. Once all the necessary input data is provided, run the following command in your terminal.
+
+```bash title="Generating the scenario_config file"
+snakemake -c1 build_scenario_config
+```
+
+You can configure individual scenarios using their respective `scenario_config.yaml` files.
 
 ## base_config.yaml
 
