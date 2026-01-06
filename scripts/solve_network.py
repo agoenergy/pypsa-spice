@@ -66,8 +66,8 @@ def extra_functionality_linopt(
                 country=country,
                 co2_cap=country_emission_settings["value"][year],
             )
-
-        if country not in scenario_configs.get("custom_constraints", {}):
+        custom_constraint_set = scenario_configs.get("custom_constraints") or {}
+        if country not in custom_constraint_set:
             continue
 
         country_constraints = scenario_configs["custom_constraints"][country]
@@ -265,7 +265,13 @@ def solve_network(
             keep_references=True,
             extra_functionality=extra_functionality_linopt_config,
         )
-    return network
+    if n.model.status != "warning":
+        print("model feasible! 🌶 ")
+        return network
+    else:
+        print("model infeasible compute infeasibilites")
+        if solver_name.lower() in ["gurobi", "cplex"]:
+            n.model.print_infeasibilities()
 
 
 if __name__ == "__main__":
@@ -293,12 +299,4 @@ if __name__ == "__main__":
         )
     n.export_to_netcdf(snakemake.output.pre_solved)
     n = solve_network(n, y, scenario_configs=scenario_configs)
-
-    if n.model.status != "warning":
-        print("model feasible! 🌶 ")
-    else:
-        print("model infeasible compute infeasibilites")
-        inf_constr = n.model.compute_infeasibilities()
-        n.model.constraints.print_labels(inf_constr)
-
     n.export_to_netcdf(snakemake.output.final_network)

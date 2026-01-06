@@ -610,8 +610,8 @@ class OutputTables(Plots):
             )
             # energy balance of the fuel buses
             eb = n.statistics.energy_balance(
-                groupby=n.statistics.groupers.get_bus_and_carrier_and_bus_carrier,
-                aggregate_time=False,
+                groupby=["bus", "carrier", "bus_carrier"],
+                groupby_time=False,
             ).reset_index()
             eb["country"] = eb["bus"].apply(lambda x: n.buses.country[x])
             eb = eb.loc[eb.bus.isin(bus_id)].round()
@@ -955,15 +955,15 @@ class OutputTables(Plots):
                 included_substrings = ["HVELEC", "LVELEC", "HHBSN", "BATSN", "HPHSN"]
                 if c == "Store":
                     pow_cost = n.statistics.capex(
-                        comps=c, groupby=[bus_name, "country", "type"]
+                        components=c, groupby=[bus_name, "country", "type"]
                     )
                 else:
                     pow_cost = n.statistics.capex(
-                        comps=c, groupby=[bus_name, "country", "type"]
+                        components=c, groupby=[bus_name, "country", "type"]
                     ).sub(
                         n.statistics.capex(
                             cost_attribute="fom_cost",
-                            comps=c,
+                            components=c,
                             groupby=[bus_name, "country", "type"],
                         ),
                         fill_value=0,
@@ -1026,7 +1026,7 @@ class OutputTables(Plots):
                 included_substrings = ["HVELEC", "LVELEC", "HHBSN", "BATSN", "HPHSN"]
                 pow_cost = n.statistics.capex(
                     cost_attribute="fom_cost",
-                    comps=c,
+                    components=c,
                     groupby=[bus_name, "country", "type"],
                 )
                 if not pow_cost.empty:
@@ -1087,15 +1087,15 @@ class OutputTables(Plots):
                 # new opex = opex + fom_cost + fuel_cost
                 if c == "Store":
                     pow_cost = n.statistics.opex(
-                        comps=c, groupby=[bus_name, "country", "type"]
+                        components=c, groupby=[bus_name, "country", "type"]
                     )
                 else:
                     pow_cost = n.statistics.opex(
-                        comps=c, groupby=[bus_name, "country", "type"]
+                        components=c, groupby=[bus_name, "country", "type"]
                     ).add(
                         n.statistics.capex(
                             cost_attribute="fom_cost",
-                            comps=c,
+                            components=c,
                             groupby=[bus_name, "country", "type"],
                         ),
                         fill_value=0,
@@ -2199,7 +2199,7 @@ class OutputTables(Plots):
             n = self.network_dict[year]
             inter_cf = (
                 n.statistics.capacity_factor(
-                    comps="Link", groupby=["type", "country", "bus0", "bus1"]
+                    components="Link", groupby=["type", "country", "bus0", "bus1"]
                 )
                 .loc["ITCN"]
                 .reset_index()
@@ -2858,15 +2858,15 @@ class OutputTables(Plots):
                 included_substrings = ["IND", "INLHSTORN"]
                 if c == "Store":
                     ind_cost = n.statistics.capex(
-                        comps=c, groupby=[bus_name, "country", "type", "carrier"]
+                        components=c, groupby=[bus_name, "country", "type", "carrier"]
                     )
                 else:
                     ind_cost = n.statistics.capex(
-                        comps=c, groupby=[bus_name, "country", "type", "carrier"]
+                        components=c, groupby=[bus_name, "country", "type", "carrier"]
                     ).sub(
                         n.statistics.capex(
                             cost_attribute="fom_cost",
-                            comps=c,
+                            components=c,
                             groupby=[bus_name, "country", "type", "carrier"],
                         ),
                         fill_value=0,
@@ -2926,7 +2926,7 @@ class OutputTables(Plots):
                 included_substrings = ["IND", "INLHSTORN"]
                 pow_cost = n.statistics.capex(
                     cost_attribute="fom_cost",
-                    comps=c,
+                    components=c,
                     groupby=[bus_name, "country", "type", "carrier"],
                 )
                 if not pow_cost.empty:
@@ -2985,15 +2985,15 @@ class OutputTables(Plots):
                 # new opex = opex + fom_cost + fuel_cost
                 if c == "Store":
                     ind_cost = n.statistics.opex(
-                        comps=c, groupby=[bus_name, "country", "type", "carrier"]
+                        components=c, groupby=[bus_name, "country", "type", "carrier"]
                     )
                 else:
                     ind_cost = n.statistics.opex(
-                        comps=c, groupby=[bus_name, "country", "type", "carrier"]
+                        components=c, groupby=[bus_name, "country", "type", "carrier"]
                     ).add(
                         n.statistics.capex(
                             cost_attribute="fom_cost",
-                            comps=c,
+                            components=c,
                             groupby=[bus_name, "country", "type", "carrier"],
                         ),
                         fill_value=0,
