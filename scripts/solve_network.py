@@ -91,7 +91,7 @@ def extra_functionality_linopt(
                 network,
                 country=country,
                 year=year,
-                gen_dict=country_constraints["generation_constraint"]["values"],
+                gen_dict=country_constraints["generation_constraint"]["value"],
             )
             constraint_added = True
 
