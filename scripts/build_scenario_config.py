@@ -154,8 +154,8 @@ def add_please_fill_here_comments(
         list_of_targeted_dict.yaml_add_eol_comment("Please fill here", targeted_value)
 
 
-def add_country_specific_constraints(input_scenario_data: YAML, config_dict: dict):
-    """Add country specific constraints to the scenario configuration data.
+def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict):
+    """Add country specific parameters to the scenario configuration data.
 
     Parameters
     ----------
@@ -381,7 +381,7 @@ def build_scenario_config_file(configurations: dict):
         "custom_constraints", after=CUSTOM_CONSTRAINTS_COMMENT_TEXT
     )
 
-    add_country_specific_constraints(scenario_data, configurations)
+    add_country_specific_parameters(scenario_data, configurations)
 
     # Create a scenario_config.yaml template file
     yaml_files = glob.glob(f"{input_folder_path}/{input_scenario_name}/*.yaml")
