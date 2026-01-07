@@ -169,7 +169,7 @@ def capacity_factor_constraint(n: pypsa.Network, country: str, cf_dict: dict):
     n : pypsa.Network
         PyPSA network object to which the constraint will be applied.
     country : str
-        Country for which the CO2 cap is applied.
+        Country for which the constraint is applied.
     cf_dict : dict
         Dictionary with generator types as keys and their corresponding capacity
         factor limits as values.
@@ -251,8 +251,11 @@ def capacity_factor_constraint(n: pypsa.Network, country: str, cf_dict: dict):
                                 .sum()
                             )
                         n.model.add_constraints(
-                            lhs <= rhs,
-                            name=f"updated_capacity_factor_{gen_type}_constraint_fix",
+                            lhs,
+                            "<=",
+                            rhs,
+                            name=f"updated_capacity_factor_{gen_type}_{country}"
+                            + "_constraint_fix",
                         )
 
 
@@ -286,7 +289,7 @@ def thermal_must_run_constraint(
         p_gen = "p" if c != "StorageUnit" else "p_dispatch"
         # thermal assets index --------------------------------------------------------
         thermal_asset_index = df[
-            (df.index.astype(str).str.contains(country + "_"))
+            (df.country == country)
             & (
                 df.type.isin(
                     [
