@@ -10,9 +10,7 @@ It creates configuration of different scenario settings.
 
 import glob
 import os
-from typing import Any
 
-from _helpers import configure_logging
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString
@@ -299,16 +297,14 @@ def add_country_specific_constraints(input_scenario_data: YAML, config_dict: dic
         add_please_fill_here_comments(capacity_factor_dict["value"])
 
 
-if __name__ == "__main__":
-    snakemake: Any = globals().get("snakemake")
-    if snakemake is None:
-        from _helpers import mock_snakemake  # pylint: disable=ungrouped-imports
+def build_scenario_config_file(configurations: dict):
+    """Combine all the functions of building scenario configuration file.
 
-        snakemake = mock_snakemake("build_scenario_config")
-    # Getting global config params
-    configure_logging(snakemake)
-    configurations = snakemake.params.config
-
+    Parameters
+    ----------
+    configurations :
+        configurations from the snakemake workflow
+    """
     # Skeleton porject folder path
     project_folder_path = (
         "data/"
@@ -400,12 +396,6 @@ if __name__ == "__main__":
                 scenario_data,
                 f,
             )
-
-        print(
-            "scenario_config.yaml file is generated successfully in "
-            f"{input_folder_path}/{input_scenario_name}. "
-            "Please fill in the required fields."
-        )
     else:
         raise (
             FileExistsError(
