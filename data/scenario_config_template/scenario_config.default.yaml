@@ -102,14 +102,6 @@ custom_constraints:
           "SubC": 40
         2030: 
           "BIOT": 18
-        2035:
-          "BIOT": 18
-        2040:
-          "BIOT": 18
-        2045:
-          "BIOT": 18
-        2050:
-          "BIOT": 18
   YZ:
     energy_independence:
       activate: false
