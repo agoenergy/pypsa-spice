@@ -12,7 +12,13 @@ PyPSA-SPICE requires two configuration files:
 
 2. **`scenario_config.yaml`**: Located inside each scenario folder, this file contains scenario-specific configurations. It is only used after the input data structure has been created.
 
-To get started, configure `base_config.yaml` first, then run the data setup process. Once complete, you can configure individual scenarios using their respective `scenario_config.yaml` files.
+To get started, configure `base_config.yaml` first, then run the data setup with the following command in your terminal.
+
+```bash title="Generating skeleton folders and scenario_config file"
+snakemake -c1 build_skeleton
+```
+
+You can configure individual scenarios using their respective `scenario_config.yaml` files.
 
 ## base_config.yaml
 
@@ -118,12 +124,13 @@ co2_management: # (1)!
 The custom constraints section allows you to apply additional rules or limits to the model’s behavior, tailoring it to specific scenario requirements. All custom constraints are listed below in the two countries as an example. These constraints can control various aspects of the model, such as renewable generation share, thermal power plant operation, reserve margins, energy independence, and production limitations. By adjusting these settings, you can implement assumptions or policies. The settings listed below should be configured for each country individually.
 
 !!! Note
-    By default these are not included, so if you need a custom constraint, the corresponding part needs to be included in your scenario config file.
+    If you need a custom constraint to be included, simply let `activate` variable to be `true` and add the corresponding part in your scenario config file.
 
 ```yaml title="Custom constraints"
 custom_constraints:
   XY:
     energy_independence: # (1)!
+      activate: true
       pe_conv_fraction: # (2)!
         Solar: 1
         Wind: 1
@@ -136,13 +143,17 @@ custom_constraints:
         2040: 0.6
         2045: 0.7
         2050: 0.8
-    production_constraint_fuels: ["Bio", "Bit", "Gas", "Oil"] # (4)!
+    production_constraint_fuels: 
+      activate: true
+      fuels: ["Bio", "Bit", "Gas", "Oil"] # (4)!
     reserve_margin: # (5)!
+      activate: true
       epsilon_load: 0.1 # (6)!
       epsilon_vre: 0.1 # (7)!
       contingency: 1000 # (8)!
       method: static # (9)!
     res_generation: # (10)!
+      activate: true
       math_symbol: "<=" # (11)!
       res_generation_share: # (12)!
         2030: 0.25
@@ -151,14 +162,20 @@ custom_constraints:
         2045: 0.45
         2050: 0.5
     thermal_must_run: # (13)!
+      activate: true
       must_run_frac: 0.2 # (14)!
+    capacity_factor_constraint:
+      activate: false
   YZ:
-    capacity_factor_constraint: # (15)!
-      "SubC": 0.6
-      "SupC": 0.6
-      "HDAM": 0.4
-    production_constraint_fuels: ["Bio", "Bit", "Gas", "Oil"]
+    energy_independence:
+      activate: false
+    production_constraint_fuels:
+      activate: true
+      fuels: ["Bio", "Bit", "Gas", "Oil"] 
+    reserve_margin:
+      activate: false
     res_generation: 
+      activate: true
       math_symbol: "<="
       res_generation_share:
         2030: 0.1
@@ -166,13 +183,21 @@ custom_constraints:
         2040: 0.3
         2045: 0.3
         2050: 0.3
+    thermal_must_run:
+      activate: false
+    capacity_factor_constraint: # (15)!
+      activate: true
+      values:
+        "SubC": 0.6
+        "SupC": 0.6
+        "HDAM": 0.4
 ```
 
-1. The model adds constraints to ensure energy independence. This indicates how much of energy needs are met without relying on imports (by producing enough energy domestically). You can refer to Constraint - Energy Independence for more information.<br>To deactivate it, you can exclude them in the `custom_constraints`, and the model will identify it as deactivated.
+1. The model adds constraints to ensure energy independence. This indicates how much of energy needs are met without relying on imports (by producing enough energy domestically). You can refer to Constraint - Energy Independence for more information.
 2. Primary energy conversion factor (dimensionless) is used to convert electricity generation to `primary energy` to make renewables comparable to fossil at primary energy level. Different definitions can be used to arrive at the value of these.
 3. **Minimum** energy independence fraction, defined as the ratio of locally produced energy to the total energy consumed (the sum of locally produced and imported energy). For details, see the `Energy independence constraint` section below.
-4. Maximum production limit of certain fuels can be defined here. Maximum values for these fuels are defined in `Power/fuel_supplies.csv`.<br>To deactivate it, you can remove them in the `custom_constraints`, and the model will identify it as dectivated.
-5. The model adds reserve margin constraints based on `reserve_parameters`. See Constraint - Reserve Margin for more information.<br>To deactivate it, you can exclude them in the `custom_constraints`, and the model will identify it as dectivated.
+4. Maximum production limit of certain fuels can be defined here. Maximum values for these fuels are defined in `Power/fuel_supplies.csv`.
+5. The model adds reserve margin constraints based on `reserve_parameters`. See Constraint - Reserve Margin for more information.
 6. Fraction of load considered as reserve.
 7. Contribution of Variable Renewable Energy (VRE) to the reserve.
 8. Extra contingency in MW. It is under `reserve_margin`. This is usually taken as a the size of largest individual power plants or defined by country specific regulations.
@@ -182,7 +207,7 @@ custom_constraints:
 12. Fraction of renewable generation to the total electricity demand for each year.
 13. The model forces combined thermal power plants to have minimum generation level as a fraction of load.
 14. Fraction of thermal generation to the total electricity demand per snapshot providing the baseload.
-15. Maximum capacity factor of certain technologies can be defined here.<br>To deactivate it, you can exclude them in the `custom_constraints`, and the model will identify it as dectivated.
+15. Maximum capacity factor of certain technologies can be defined here.
 
 In the following two sub-sections, we provide more information about the definition of energy independence and reserve margin.
 
@@ -238,8 +263,6 @@ solving:
   oetc: # (3)!
     activate: false
     name: test-agora-job
-    authentication_server_url: http://34.34.8.15:5050
-    orchestrator_server_url: http://34.34.8.15:5000
     cpu_cores: 4
     disk_space_gb: 20
     delete_worker_on_error: false
@@ -281,12 +304,12 @@ solving:
     highs-default: #(32)!
       threads: 4 #(33)!
       solver: "ipm"
-      run_crossover: "off"
+      run_crossover: "on"
       small_matrix_value: 1e-6 #(34)!
-      large_matrix_value: 1e9 #(35)!
-      primal_feasibility_tolerance: 1e-5 #(36)!
-      dual_feasibility_tolerance: 1e-5 #(37)!
-      ipm_optimality_tolerance: 1e-4 #(38)!
+      large_matrix_value: 1e15 #(35)!
+      primal_feasibility_tolerance: 1e-6 #(36)!
+      dual_feasibility_tolerance: 1e-6 #(37)!
+      ipm_optimality_tolerance: 1e-6 #(38)!
       parallel: "on"
       random_seed: 123 #(39)!
     highs-simplex:
@@ -332,10 +355,10 @@ solving:
 33. Number of CPU threads to be used by the solver for parallel computation to speed up solving time.
 34. Values less than or equal to this will be treated as zero.
 35. Values greater than or equal to this will be treated as infinite.
-36. Range: `[1e-10, inf]`, default: `1e-07`.
-37. Range: `[1e-10, inf]`, default: `1e-07`.
-38. Range: `[1e-10, inf]`, default: `1e-07`.
+36. Range: `[1e-10, inf]`, default: `1e-06`.
+37. Range: `[1e-10, inf]`, default: `1e-06`.
+38. Range: `[1e-10, inf]`, default: `1e-06`.
 39. Fixed `random_seed` values must be set if you want to get the same results (i.e., reproducibility of the optimisation process). The value does not matter.
-40. Range: `[1e-10, inf]`, default: `1e-07`.
-41. Range: `[1e-12, inf]`, default: `1e-08`.
+40. Range: `[1e-10, inf]`, default: `1e-05`.
+41. Range: `[1e-12, inf]`, default: `1e-05`.
 42. Fixed `random_seed` values must be set if you want to get the same results (i.e., reproducibility of the optimisation process). The value does not matter.

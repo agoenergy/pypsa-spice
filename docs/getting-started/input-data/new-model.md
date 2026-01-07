@@ -13,6 +13,7 @@ Steps of setting up a new model:
 1. Adjust the information inside `base_config.yaml`.
 2. Run `snakemake -c1 build_skeleton` to create a folder structure and template CSV files for your input data. All input folders and files shall be created inside the `data` folder after this command is executed.
 3. Fill in the skeleton CSVs with the required data manually or using available resources.
+4. Fill the scenario assumptions and constraints in `scenario_config.yaml` in your scenario folder.
 
 An example structure created by ``build_skeleton`` is displayed below. The following sections will use this example to explain the settings.
 
@@ -116,7 +117,9 @@ To help you fill these files:
 - check [Global CSV template](global_csv_template.md) for default  file descriptions of country-level data.
 - see [Regional CSV template](regional_csv_template.md) for detailed file descriptions of region-level data.
 
-Once all the necessary input data is provided, adjust model and solver settings in [Model configuration](model-builder-configuration.md) and follow [Model execution](model-builder-execution.md) to understand the model logic and how to run the model.
-
 !!! Tip
     By default, the input structure considers large number of technologies represented in the model. If the particular technologies are not needed in your model, it is good practice to remove the input data for these technologies. You can also define your own technologies and customise the model accordingly.  
+
+## Step 4: fill in the skeleton CSVs
+
+Once all the necessary input data is provided, you can adjust model and solver settings in [Model configuration](model-builder-configuration.md) and follow [Model execution](model-builder-execution.md) to understand the model logic and how to run the model.

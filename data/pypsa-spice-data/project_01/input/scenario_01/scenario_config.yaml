@@ -58,6 +58,7 @@ custom_constraints:
   # please indicate country/region and their specific custom constraints
   XY:
     energy_independence:
+      activate: true
       pe_conv_fraction:
         Solar: 1
         Wind: 1
@@ -70,13 +71,17 @@ custom_constraints:
         2040: 0.6
         2045: 0.7
         2050: 0.8
-    production_constraint_fuels: ["Bio", "Bit", "Gas", "Oil"]
-    reserve_margin: # check documentation for definition
+    production_constraint_fuels:
+      activate: true
+      fuels: ["Bio", "Bit", "Gas", "Oil"]
+    reserve_margin:
+      activate: true
       epsilon_load: 0.1 # the fraction of load that is considered as reserve (pu)
       epsilon_vre: 0.1 # the contribution of vre to the reserve (pu)
       contingency: 1000 # extra contingency (MW)
       method: static # static or dynamic. If static, ignore epsilon_vre
     res_generation:
+      activate: true
       math_symbol: "<=" # Left hand side of the formula is the objective
       res_generation_share: # Share of res generation as the Right hand side of the formula
         2030: 0.25
@@ -85,14 +90,20 @@ custom_constraints:
         2045: 0.45
         2050: 0.5
     thermal_must_run:
+      activate: true
       min_must_run_ratio: 0.2 # minimum fraction of thermal generation that must run
-  YZ:
     capacity_factor_constraint:
-      "SubC": 0.6
-      "SupC": 0.6
-      "HDAM": 0.4
-    production_constraint_fuels: ["Bio", "Bit", "Gas", "Oil"]
+      activate: false
+  YZ:
+    energy_independence:
+      activate: false
+    production_constraint_fuels: 
+      activate: true
+      fuels: ["Bio", "Bit", "Gas", "Oil"]
+    reserve_margin:
+      activate: false
     res_generation:
+      activate: true
       math_symbol: "<="
       res_generation_share:
         2030: 0.1
@@ -100,7 +111,15 @@ custom_constraints:
         2040: 0.3
         2045: 0.3
         2050: 0.3
-
+    thermal_must_run:
+      activate: false
+    capacity_factor_constraint:
+      activate: true
+      values:
+        "SubC": 0.6
+        "SupC": 0.6
+        "HDAM": 0.4
+        
 
 #####Solver settings#####
 solving:

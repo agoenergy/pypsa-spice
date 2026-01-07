@@ -19,10 +19,7 @@ from typing import Any
 
 import pandas as pd
 import pypsa
-from _helpers import (
-    configure_logging,
-    load_scenario_config,
-)
+from _helpers import configure_logging, load_scenario_config
 from custom_constraints import (
     add_energy_independence_constraint,
     add_reserve_margin,
@@ -77,16 +74,21 @@ def extra_functionality_linopt(
 
         # Capacity factor constraint
         if (
-            country_constraints.get("capacity_factor_constraint", False)
+            country_constraints["capacity_factor_constraint"].get("activate", False)
             and year > base_year
         ):
             capacity_factor_constraint(
-                network, cf_dict=country_constraints["capacity_factor_constraint"]
+                network,
+                country=country,
+                cf_dict=country_constraints["capacity_factor_constraint"]["value"],
             )
             constraint_added = True
 
         # Energy independence constraint
-        if country_constraints.get("energy_independence", False) and year > base_year:
+        if (
+            country_constraints["energy_independence"].get("activate", False)
+            and year > base_year
+        ):
             energy_independence = country_constraints["energy_independence"]
             add_energy_independence_constraint(
                 network,
@@ -97,13 +99,15 @@ def extra_functionality_linopt(
             constraint_added = True
 
         # Fuel supply/production limit constraint
-        if country_constraints.get("production_constraint_fuels", False):
+        if country_constraints["production_constraint_fuels"].get("activate", False):
             fuel_supply_limits = pd.read_csv(snakemake.input.fuel_limits)
             fuel_supply_limits = fuel_supply_limits[
                 (fuel_supply_limits.year == year)
                 & (fuel_supply_limits.country == country)
             ].set_index("carrier")
-            restricted_carriers = country_constraints["production_constraint_fuels"]
+            restricted_carriers = country_constraints["production_constraint_fuels"][
+                "fuels"
+            ]
             fuel_supply_limits = fuel_supply_limits.loc[
                 restricted_carriers, "max_supply__mwh_year"
             ].to_dict()
@@ -113,7 +117,7 @@ def extra_functionality_linopt(
             constraint_added = True
 
         # Reserve margin constraint
-        if country_constraints.get("reserve_margin", False):
+        if country_constraints["reserve_margin"].get("activate", False):
             if year > base_year:
                 reserve_params = country_constraints["reserve_margin"]
                 add_reserve_margin(
@@ -132,7 +136,10 @@ def extra_functionality_linopt(
                 )
 
         # Renewable generation constraint
-        if country_constraints.get("res_generation", False) and year > base_year:
+        if (
+            country_constraints["res_generation"].get("activate", False)
+            and year > base_year
+        ):
             res_generation = country_constraints["res_generation"]
             re_pow_generation_constraint(
                 network,
@@ -143,7 +150,7 @@ def extra_functionality_linopt(
             constraint_added = True
 
         # Thermal must-run constraint
-        if country_constraints.get("thermal_must_run", False):
+        if country_constraints["thermal_must_run"].get("activate", False):
             thermal_must_run = country_constraints["thermal_must_run"]
             thermal_must_run_constraint(
                 network,

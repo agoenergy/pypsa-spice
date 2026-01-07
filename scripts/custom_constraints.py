@@ -161,13 +161,15 @@ def co2_cap_constraint(n: pypsa.Network, country: str, co2_cap: float):
     n.model.add_constraints(lhs, "<=", rhs, name=f"co2_cap_{country}")
 
 
-def capacity_factor_constraint(n: pypsa.Network, cf_dict: dict):
+def capacity_factor_constraint(n: pypsa.Network, country: str, cf_dict: dict):
     """Add constraint on capacity factor for specific generator types.
 
     Parameters
     ----------
     n : pypsa.Network
         PyPSA network object to which the constraint will be applied.
+    country : str
+        Country for which the constraint is applied.
     cf_dict : dict
         Dictionary with generator types as keys and their corresponding capacity
         factor limits as values.
@@ -180,75 +182,81 @@ def capacity_factor_constraint(n: pypsa.Network, cf_dict: dict):
             bus_name = "bus1" if c == "Link" else "bus"
             # Get p_max_pu
             p_max_pu = get_as_dense(n, c, "p_max_pu")
-            gen = df[
-                (df.type == gen_type) & (df[bus_name].str.contains("HVELEC"))
-            ].index
-            if not gen.empty:
-                ext_i, fix_i = __get_asset_indices(df=df.loc[gen])
-                # Get var and cf
-                cf = cf_dict.get(gen_type)
-                dispatch = n.model[f"{c}-{p_gen}"]
-                if not ext_i.empty:
-                    capacity_variable = (
-                        n.model[f"{c}-p_nom"].sel(name=ext_i).rename({"name": c})
-                    )
-                    # LHS
-                    if c == "Link":
-                        eff = xr.DataArray(df.loc[gen, "efficiency"])
-                        lhs = (
-                            dispatch.loc[:, ext_i].mul(eff.loc[ext_i]).sum().sum()
-                            - capacity_variable.mul(p_max_pu.loc[:, ext_i])
-                            .mul(eff.loc[ext_i])
-                            .mul(cf)
-                            .sum()
-                            .sum()
-                        )
-                    else:
-                        lhs = (
-                            dispatch.loc[:, ext_i].sum().sum()
-                            - capacity_variable.mul(p_max_pu.loc[:, ext_i])
-                            .mul(cf)
-                            .sum()
-                            .sum()
-                        )
-                    n.model.add_constraints(
-                        lhs,
-                        "<=",
-                        0,
-                        name=f"updated_capacity_factor_{gen_type}_constraint_ext",
-                    )
-                if not fix_i.empty:
+            if not df.empty:
+                gen = df[
+                    (df.type == gen_type)
+                    & (df[bus_name].str.contains("HVELEC"))
+                    & (df.country == country)
+                ].index
+
+                if not gen.empty:
+                    ext_i, fix_i = __get_asset_indices(df=df.loc[gen])
                     # Get var and cf
-                    capacity_fixed = df["p_nom"].loc[fix_i]
-                    if c == "Link":
-                        eff = xr.DataArray(df.loc[gen, "efficiency"])
+                    cf = cf_dict.get(gen_type)
+                    dispatch = n.model[f"{c}-{p_gen}"]
+                    if not ext_i.empty:
+                        capacity_variable = (
+                            n.model[f"{c}-p_nom"].sel(name=ext_i).rename({"name": c})
+                        )
+                        # LHS
+                        if c == "Link":
+                            eff = xr.DataArray(df.loc[gen, "efficiency"])
+                            lhs = (
+                                dispatch.loc[:, ext_i].mul(eff.loc[ext_i]).sum().sum()
+                                - capacity_variable.mul(p_max_pu.loc[:, ext_i])
+                                .mul(eff.loc[ext_i])
+                                .mul(cf)
+                                .sum()
+                                .sum()
+                            )
+                        else:
+                            lhs = (
+                                dispatch.loc[:, ext_i].sum().sum()
+                                - capacity_variable.mul(p_max_pu.loc[:, ext_i])
+                                .mul(cf)
+                                .sum()
+                                .sum()
+                            )
+                        n.model.add_constraints(
+                            lhs,
+                            "<=",
+                            0,
+                            name=f"updated_capacity_factor_{gen_type}_{country}"
+                            + "_constraint_ext",
+                        )
+                    if not fix_i.empty:
+                        # Get var and cf
                         capacity_fixed = df["p_nom"].loc[fix_i]
-                        lhs = dispatch.loc[:, fix_i].mul(eff.loc[fix_i]).sum().sum()
-                        rhs = (
-                            (
+                        if c == "Link":
+                            eff = xr.DataArray(df.loc[gen, "efficiency"])
+                            capacity_fixed = df["p_nom"].loc[fix_i]
+                            lhs = dispatch.loc[:, fix_i].mul(eff.loc[fix_i]).sum().sum()
+                            rhs = (
+                                (
+                                    p_max_pu.loc[:, fix_i]
+                                    .mul(capacity_fixed)
+                                    .mul(eff.loc[fix_i])
+                                    .mul(cf)
+                                )
+                                .sum()
+                                .sum()
+                            )
+                        else:
+                            lhs = dispatch.loc[:, fix_i].sum().sum()
+                            rhs = (
                                 p_max_pu.loc[:, fix_i]
                                 .mul(capacity_fixed)
-                                .mul(eff.loc[fix_i])
                                 .mul(cf)
+                                .sum()
+                                .sum()
                             )
-                            .sum()
-                            .sum()
+                        n.model.add_constraints(
+                            lhs,
+                            "<=",
+                            rhs,
+                            name=f"updated_capacity_factor_{gen_type}_{country}"
+                            + "_constraint_fix",
                         )
-                    else:
-                        lhs = dispatch.loc[:, fix_i].sum().sum()
-                        rhs = (
-                            p_max_pu.loc[:, fix_i]
-                            .mul(capacity_fixed)
-                            .mul(cf)
-                            .sum()
-                            .sum()
-                        )
-                    n.model.add_constraints(
-                        lhs,
-                        "<=",
-                        rhs,
-                        name=f"updated_capacity_factor_{gen_type}_constraint_fix",
-                    )
 
 
 def thermal_must_run_constraint(
