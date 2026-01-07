@@ -290,7 +290,7 @@ if __name__ == "__main__":
     if snakemake is None:
         from _helpers import mock_snakemake  # pylint: disable=ungrouped-imports
 
-        snakemake = mock_snakemake("solve_network", sector="p", years=2023)
+        snakemake = mock_snakemake("solve_network", sector="p-i-t", years=2025)
     configure_logging(snakemake)
     scenario_configs = load_scenario_config(
         "data/"
