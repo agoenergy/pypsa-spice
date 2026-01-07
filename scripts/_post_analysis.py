@@ -470,7 +470,6 @@ class OutputTables(Plots):
 
         for country in self.countries:
             pow_emi_country_list = self.pow_emi_by_carrier_yearly().index.unique()
-            ind_emi_country_list = self.ind_emi_by_carrier_yearly().index.unique()
             if country in pow_emi_country_list:
                 pow_emi_df = (
                     self.pow_emi_by_carrier_yearly()
@@ -482,7 +481,7 @@ class OutputTables(Plots):
                 )
             else:
                 pow_emi_df = pd.DataFrame()
-
+            ind_emi_country_list = self.ind_emi_by_carrier_yearly().index.unique()
             if ("i" in self.config["base_configs"]["sector"][0]) and (
                 country in ind_emi_country_list
             ):
