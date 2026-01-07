@@ -248,6 +248,13 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
                         "value": CommentedMap({}),
                     }
                 ),
+                # ---- Generation constraint ----
+                "generation_constraint": CommentedMap(
+                    {
+                        "activate": False,
+                        "value": CommentedMap({}),
+                    }
+                ),
             }
         )
 
@@ -257,11 +264,13 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
         energy_independence = custom_constraints_country["energy_independence"]
         res_generation = custom_constraints_country["res_generation"]
         capacity_factor = custom_constraints_country["capacity_factor_constraint"]
+        generation = custom_constraints_country["generation_constraint"]
 
         for year in years:
             energy_independence["ei_fraction"][year] = None
             res_generation["res_generation_share"][year] = None
             capacity_factor["value"][year] = None
+            generation["value"][year] = None
 
         # Add comments per constraint (activate toggles, please-fill hints, etc.)
         # Energy independence comments
@@ -298,6 +307,10 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
         # Capacity factor comments
         add_activate_comments(capacity_factor)
         add_please_fill_here_comments_for_dict(capacity_factor["value"])
+
+        # Generation constraint comments
+        add_activate_comments(generation)
+        add_please_fill_here_comments_for_dict(generation["value"])
 
 
 def build_scenario_config_file(configurations: dict):
