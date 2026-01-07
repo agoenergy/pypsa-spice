@@ -249,7 +249,7 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
                     }
                 ),
                 # ---- Generation constraint ----
-                "generation_constraint": CommentedMap(
+                "maximum_generation_constraint": CommentedMap(
                     {
                         "activate": False,
                         "value": CommentedMap({}),
@@ -264,7 +264,7 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
         energy_independence = custom_constraints_country["energy_independence"]
         res_generation = custom_constraints_country["res_generation"]
         capacity_factor = custom_constraints_country["capacity_factor_constraint"]
-        generation = custom_constraints_country["generation_constraint"]
+        generation = custom_constraints_country["maximum_generation_constraint"]
 
         for year in years:
             energy_independence["ei_fraction"][year] = None

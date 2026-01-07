@@ -519,7 +519,7 @@ def add_energy_independence_constraint(
     )
 
 
-def add_generation_constraint(
+def add_maximum_generation_constraint(
     n: pypsa.Network, country: str, year: int, gen_dict: dict
 ):
     """Add constraint on maximum generation per techology, country and year.
