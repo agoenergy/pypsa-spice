@@ -278,6 +278,11 @@ def add_country_specific_constraints(input_scenario_data: YAML, config_dict: dic
             input_scenario_data["custom_constraints"][country]["reserve_margin"],
             exception_list=["activate", "method"],
         )
+        input_scenario_data["custom_constraints"][country][
+            "reserve_margin"
+        ].yaml_add_eol_comment(
+            "static or dynamic. If static, ignore epsilon_vre", "method"
+        )
 
         add_activate_comments(res_gen_dict)
         add_please_fill_here_comments(res_gen_dict["res_generation_share"])
