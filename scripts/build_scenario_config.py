@@ -269,12 +269,12 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
         add_please_fill_here_comments_for_dict(energy_independence["pe_conv_fraction"])
         add_please_fill_here_comments_for_dict(energy_independence["ei_fraction"])
 
-        # Production constraint fuels comments (skip activate field)
+        # Production constraint fuels comments
         prod_fuels = custom_constraints_country["production_constraint_fuels"]
         add_activate_comments(prod_fuels)
         add_please_fill_here_comments_for_dict(prod_fuels, exception_list=["activate"])
 
-        # Reserve margin comments (skip activate + method because method has its own hint)
+        # Reserve margin comments
         reserve_margin = custom_constraints_country["reserve_margin"]
         add_activate_comments(reserve_margin)
         add_please_fill_here_comments_for_dict(
