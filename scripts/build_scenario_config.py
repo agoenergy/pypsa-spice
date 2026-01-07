@@ -131,7 +131,7 @@ def add_activate_comments(list_of_targeted_dict: dict):
             )
 
 
-def add_please_fill_here_comments(
+def add_please_fill_here_comments_for_dict(
     list_of_targeted_dict: dict, exception_list: list = None
 ):
     """Add "Please fill here" comments to all targeted values in the given dictionary.
@@ -165,32 +165,39 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
         configurations containing country/region information
     """
     # Add country specific inputs
-    for country in config_dict["base_configs"]["regions"].keys():
-        fuels_list = CommentedSeq([])
-        fuels_list.fa.set_flow_style()  # Force inline style [a, b, c]
+    regions = config_dict["base_configs"]["regions"]
+    years = config_dict["base_configs"]["years"]
 
-        input_scenario_data["scenario_configs"]["interest"][country] = None
-        input_scenario_data["scenario_configs"]["interest"].yaml_add_eol_comment(
-            "Please fill here", country
-        )
-        input_scenario_data["co2_management"][country] = CommentedMap(
+    # Iterate through all countries/regions in base_config.yaml
+    for country in regions.keys():
+        # 1) Setting interest rate block (per country)
+        interest_by_country = input_scenario_data["scenario_configs"]["interest"]
+        interest_by_country[country] = None
+        interest_by_country.yaml_add_eol_comment("Please fill here", country)
+        # 2) Setting CO2 management block (per country)
+        co2_country_block = CommentedMap(
             {
                 "option": DoubleQuotedScalarString("co2_cap"),
                 "value": CommentedMap({}),
             }
         )
-        for year in config_dict["base_configs"]["years"]:
-            input_scenario_data["co2_management"][country]["value"][year] = None
+        input_scenario_data["co2_management"][country] = co2_country_block
+        # Populate yearly values with placeholders
+        for year in years:
+            co2_country_block["value"][year] = None
+        # Add "Please fill here" comments for all year entries
+        add_please_fill_here_comments_for_dict(co2_country_block["value"])
+        # 3) Setting custom constraints block (per country)
+        fuels_list = CommentedSeq([])
+        fuels_list.fa.set_flow_style()
 
-        add_please_fill_here_comments(
-            input_scenario_data["co2_management"][country]["value"]
-        )
-
-        input_scenario_data["custom_constraints"][country] = CommentedMap(
+        custom_constraints_country = CommentedMap(
             {
+                # ---- Energy independence constraint ----
                 "energy_independence": CommentedMap(
                     {
                         "activate": False,
+                        # Primary energy conversion fractions (technology -> fraction)
                         "pe_conv_fraction": CommentedMap(
                             {
                                 "Solar": None,
@@ -202,12 +209,14 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
                         "ei_fraction": CommentedMap({}),
                     }
                 ),
+                # ---- Production constraint by fuels ----
                 "production_constraint_fuels": CommentedMap(
                     {
                         "activate": False,
                         "fuels": fuels_list,
                     }
                 ),
+                # ---- Reserve margin constraint ----
                 "reserve_margin": CommentedMap(
                     {
                         "activate": False,
@@ -217,6 +226,7 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
                         "method": DoubleQuotedScalarString("static"),
                     }
                 ),
+                # ---- Renewable generation share constraint ----
                 "res_generation": CommentedMap(
                     {
                         "activate": False,
@@ -224,12 +234,14 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
                         "res_generation_share": CommentedMap({}),
                     }
                 ),
+                # ---- Thermal must-run constraint ----
                 "thermal_must_run": CommentedMap(
                     {
                         "activate": False,
                         "min_must_run_ratio": None,
                     }
                 ),
+                # ---- Capacity factor constraint ----
                 "capacity_factor_constraint": CommentedMap(
                     {
                         "activate": False,
@@ -239,62 +251,53 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
             }
         )
 
-        energy_independence_dict = input_scenario_data["custom_constraints"][country][
-            "energy_independence"
-        ]
-        res_gen_dict = input_scenario_data["custom_constraints"][country][
-            "res_generation"
-        ]
-        capacity_factor_dict = input_scenario_data["custom_constraints"][country][
-            "capacity_factor_constraint"
-        ]
-        for year in config_dict["base_configs"]["years"]:
-            res_gen_dict["res_generation_share"][year] = None
-            energy_independence_dict["ei_fraction"][year] = None
-            capacity_factor_dict["value"][year] = None
+        input_scenario_data["custom_constraints"][country] = custom_constraints_country
 
-        add_activate_comments(energy_independence_dict)
-        add_please_fill_here_comments(energy_independence_dict["pe_conv_fraction"])
-        add_please_fill_here_comments(energy_independence_dict["ei_fraction"])
+        # Fill in year-indexed placeholders inside custom constraints
+        energy_independence = custom_constraints_country["energy_independence"]
+        res_generation = custom_constraints_country["res_generation"]
+        capacity_factor = custom_constraints_country["capacity_factor_constraint"]
 
-        add_activate_comments(
-            input_scenario_data["custom_constraints"][country][
-                "production_constraint_fuels"
-            ],
-        )
-        add_please_fill_here_comments(
-            input_scenario_data["custom_constraints"][country][
-                "production_constraint_fuels"
-            ],
-            exception_list=["activate"],
-        )
+        for year in years:
+            energy_independence["ei_fraction"][year] = None
+            res_generation["res_generation_share"][year] = None
+            capacity_factor["value"][year] = None
 
-        add_activate_comments(
-            input_scenario_data["custom_constraints"][country]["reserve_margin"],
+        # Add comments per constraint (activate toggles, please-fill hints, etc.)
+        # Energy independence comments
+        add_activate_comments(energy_independence)
+        add_please_fill_here_comments_for_dict(energy_independence["pe_conv_fraction"])
+        add_please_fill_here_comments_for_dict(energy_independence["ei_fraction"])
+
+        # Production constraint fuels comments (skip activate field)
+        prod_fuels = custom_constraints_country["production_constraint_fuels"]
+        add_activate_comments(prod_fuels)
+        add_please_fill_here_comments_for_dict(prod_fuels, exception_list=["activate"])
+
+        # Reserve margin comments (skip activate + method because method has its own hint)
+        reserve_margin = custom_constraints_country["reserve_margin"]
+        add_activate_comments(reserve_margin)
+        add_please_fill_here_comments_for_dict(
+            reserve_margin, exception_list=["activate", "method"]
         )
-        add_please_fill_here_comments(
-            input_scenario_data["custom_constraints"][country]["reserve_margin"],
-            exception_list=["activate", "method"],
-        )
-        input_scenario_data["custom_constraints"][country][
-            "reserve_margin"
-        ].yaml_add_eol_comment(
+        reserve_margin.yaml_add_eol_comment(
             "static or dynamic. If static, ignore epsilon_vre", "method"
         )
 
-        add_activate_comments(res_gen_dict)
-        add_please_fill_here_comments(res_gen_dict["res_generation_share"])
+        # RES generation comments
+        add_activate_comments(res_generation)
+        add_please_fill_here_comments_for_dict(res_generation["res_generation_share"])
 
-        add_activate_comments(
-            input_scenario_data["custom_constraints"][country]["thermal_must_run"]
-        )
-        add_please_fill_here_comments(
-            input_scenario_data["custom_constraints"][country]["thermal_must_run"],
-            exception_list=["activate"],
+        # Thermal must-run comments
+        thermal_must_run = custom_constraints_country["thermal_must_run"]
+        add_activate_comments(thermal_must_run)
+        add_please_fill_here_comments_for_dict(
+            thermal_must_run, exception_list=["activate"]
         )
 
-        add_activate_comments(capacity_factor_dict)
-        add_please_fill_here_comments(capacity_factor_dict["value"])
+        # Capacity factor comments
+        add_activate_comments(capacity_factor)
+        add_please_fill_here_comments_for_dict(capacity_factor["value"])
 
 
 def build_scenario_config_file(configurations: dict):
