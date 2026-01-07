@@ -289,7 +289,7 @@ def thermal_must_run_constraint(
         p_gen = "p" if c != "StorageUnit" else "p_dispatch"
         # thermal assets index --------------------------------------------------------
         thermal_asset_index = df[
-            (df.index.astype(str).str.contains(country + "_"))
+            (df.country == country)
             & (
                 df.type.isin(
                     [
