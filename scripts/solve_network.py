@@ -86,12 +86,16 @@ def extra_functionality_linopt(
             constraint_added = True
 
         # Power generation constraint
-        if country_constraints["maximum_generation_constraint"].get("activate", False):
+        if country_constraints["maximum_power_generation_constraint"].get(
+            "activate", False
+        ):
             add_maximum_power_generation_constraint(
                 network,
                 country=country,
                 year=year,
-                gen_dict=country_constraints["maximum_generation_constraint"]["value"],
+                gen_dict=country_constraints["maximum_power_generation_constraint"][
+                    "value"
+                ],
             )
             constraint_added = True
 

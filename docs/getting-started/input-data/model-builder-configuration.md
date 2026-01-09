@@ -166,7 +166,7 @@ custom_constraints:
       must_run_frac: 0.2 # (14)!
     capacity_factor_constraint:
       activate: false
-    maximum_generation_constraint: # (15)!
+    maximum_power_generation_constraint: # (15)!
       activate: true
       value:
         "BIOT":
@@ -199,7 +199,7 @@ custom_constraints:
         "SubC": 0.6
         "SupC": 0.6
         "HDAM": 0.4
-    maximum_generation_constraint:
+    maximum_power_generation_constraint:
       activate: false
 ```
 
@@ -217,7 +217,7 @@ custom_constraints:
 12. Fraction of renewable generation to the total electricity demand for each year.
 13. The model forces combined thermal power plants to have minimum generation level as a fraction of load.
 14. Fraction of thermal generation to the total electricity demand per snapshot providing the baseload.
-15. Maximum allowable total generation of certain technologies in specific years. This is used to as a forced constraint to align generation into a desired value.
+15. Maximum allowable total power generation (unit in TWh) of certain technologies in specific years. This is used to as a forced constraint to align generation into a desired value.
 16. Maximum capacity factor of certain technologies can be defined here. This constraint does not apply to the base year.
 
 In the following two sub-sections, we provide more information about the definition of energy independence and reserve margin.
