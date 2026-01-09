@@ -98,10 +98,10 @@ custom_constraints:
       activate: true
       value:
         2025: 
-          "BIOT": 18
-          "SubC": 40
+          "BIOT": 18 # unit in TWh
+          "SubC": 40 # unit in TWh
         2030: 
-          "BIOT": 18
+          "BIOT": 18 # unit in TWh
   YZ:
     energy_independence:
       activate: false

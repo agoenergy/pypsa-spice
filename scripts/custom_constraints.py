@@ -535,17 +535,14 @@ def add_maximum_generation_constraint(
     gen_dict : dictionary
         Maximum generation (TWh) of each technology per each modelling year.
     """
-    if year in gen_dict.keys():
-        gen_list = gen_dict[year].keys()
-
-        weight_da = xr.DataArray(
-            n.snapshot_weightings["objective"],
-            dims="snapshot",
-            coords={"snapshot": n.snapshots},
-        )
-
-        for gen_type in gen_list:
-            lhs_list = []
+    weight_da = xr.DataArray(
+        n.snapshot_weightings["objective"],
+        dims="snapshot",
+        coords={"snapshot": n.snapshots},
+    )
+    lhs = 0
+    for gen_type in gen_dict.keys():
+        if year in gen_dict[gen_type].keys():
             for c in ["Generator", "StorageUnit", "Link"]:
                 df = n.df(c)
                 p_gen = "p" if c != "StorageUnit" else "p_dispatch"
@@ -562,15 +559,12 @@ def add_maximum_generation_constraint(
                         gen_var = n.model[f"{c}-{p_gen}"].loc[:, gen_index]
                         if c == "Link":
                             eff = xr.DataArray(df.loc[gen_index, "efficiency"])
-                            weight_gen = (gen_var.mul(eff) * weight_da).sum("name")
+                            lhs += (gen_var.mul(eff) * weight_da).sum("name").sum()
                         else:
-                            weight_gen = (gen_var * weight_da).sum("name")
+                            lhs += (gen_var * weight_da).sum("name").sum()
 
-                        lhs_list.append(weight_gen)
-            # lhs = weighted sum of type generation over all snapshots and components
-            lhs = sum(lhs_list)
             # rhs = maximum generation from gen_dict in converted from TWh to MWh
-            total_gen = gen_dict[year][gen_type]
+            total_gen = gen_dict[gen_type][year]
             rhs = total_gen * 1e6
 
             print(
