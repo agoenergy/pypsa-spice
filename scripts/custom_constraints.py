@@ -568,7 +568,7 @@ def add_maximum_power_generation_constraint(
             rhs = total_gen * 1e6
 
             print(
-                "....adding maximum generation constraint: "
+                "....adding maximum power generation constraint: "
                 f"{gen_type} - {total_gen} TWh "
                 f"in {country} in {year}"
             )
