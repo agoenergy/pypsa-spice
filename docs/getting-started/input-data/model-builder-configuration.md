@@ -169,11 +169,11 @@ custom_constraints:
     maximum_generation_constraint: # (15)!
       activate: true
       value:
-        2025: 
-          "BIOT": 18
-          "SubC": 40
-        2030: 
-          "BIOT": 18
+        "BIOT":
+          2025: 18
+          2030: 18
+        "SubC":
+          2025: 40
   YZ:
     energy_independence:
       activate: false
