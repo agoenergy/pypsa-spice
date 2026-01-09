@@ -13,7 +13,7 @@ Steps of setting up a new model:
 1. Adjust the information inside `base_config.yaml`.
 2. Run `snakemake -c1 build_skeleton` to create a folder structure and template CSV files for your input data. All input folders and files shall be created inside the `data` folder after this command is executed.
 3. Fill in the skeleton CSVs with the required data manually or using available resources.
-4. Run `snakemake -c1 build_scenario_config` to create a `scenario_config.yaml` in your scenario folder. After creating the file, you can adjust the scenario assumptions and constraints.
+4. Fill the scenario assumptions and constraints in `scenario_config.yaml` in your scenario folder.
 
 An example structure created by ``build_skeleton`` is displayed below. The following sections will use this example to explain the settings.
 
@@ -122,10 +122,4 @@ To help you fill these files:
 
 ## Step 4: fill in the skeleton CSVs
 
-Once all the necessary input data is provided, run the following command in your terminal.
-
-```bash title="Generating the scenario_config file"
-snakemake -c1 build_scenario_config
-```
-
-This step creates your scenario_config file. You can adjust model and solver settings in [Model configuration](model-builder-configuration.md) and follow [Model execution](model-builder-execution.md) to understand the model logic and how to run the model.
+Once all the necessary input data is provided, you can adjust model and solver settings in [Model configuration](model-builder-configuration.md) and follow [Model execution](model-builder-execution.md) to understand the model logic and how to run the model.

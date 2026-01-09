@@ -22,6 +22,7 @@ from _helpers import (
     FilePath,
     configure_logging,
 )
+from build_scenario_config import build_scenario_config_file
 from pandas.errors import SettingWithCopyWarning
 
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
@@ -1972,3 +1973,6 @@ if __name__ == "__main__":
         elec_buses=elec_buses_df,
         tra_buses=tra_buses_df,
     )
+
+    # =============== Create a scenario config file in the scenario folder =============
+    build_scenario_config_file(configurations)

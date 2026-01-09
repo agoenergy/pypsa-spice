@@ -22,6 +22,7 @@ import pypsa
 from _helpers import configure_logging, load_scenario_config
 from custom_constraints import (
     add_energy_independence_constraint,
+    add_maximum_power_generation_constraint,
     add_reserve_margin,
     add_storage_constraints,
     capacity_factor_constraint,
@@ -81,6 +82,20 @@ def extra_functionality_linopt(
                 network,
                 country=country,
                 cf_dict=country_constraints["capacity_factor_constraint"]["value"],
+            )
+            constraint_added = True
+
+        # Power generation constraint
+        if country_constraints["maximum_power_generation_constraint"].get(
+            "activate", False
+        ):
+            add_maximum_power_generation_constraint(
+                network,
+                country=country,
+                year=year,
+                gen_dict=country_constraints["maximum_power_generation_constraint"][
+                    "value"
+                ],
             )
             constraint_added = True
 

@@ -467,16 +467,24 @@ class OutputTables(Plots):
             column (value)
         """
         df_all = pd.DataFrame()
-        for country in self.pow_emi_by_carrier_yearly().index.unique():
-            pow_emi_df = (
-                self.pow_emi_by_carrier_yearly()
-                .loc[[country]]
-                .groupby(["carrier", "year"])
-                .sum()
-                .reset_index()
-                .assign(sector="power")
-            )
-            if "i" in self.config["base_configs"]["sector"][0]:
+
+        for country in self.countries:
+            pow_emi_country_list = self.pow_emi_by_carrier_yearly().index.unique()
+            if country in pow_emi_country_list:
+                pow_emi_df = (
+                    self.pow_emi_by_carrier_yearly()
+                    .loc[[country]]
+                    .groupby(["carrier", "year"])
+                    .sum()
+                    .reset_index()
+                    .assign(sector="power")
+                )
+            else:
+                pow_emi_df = pd.DataFrame()
+            ind_emi_country_list = self.ind_emi_by_carrier_yearly().index.unique()
+            if ("i" in self.config["base_configs"]["sector"][0]) and (
+                country in ind_emi_country_list
+            ):
                 ind_emi_df = (
                     self.ind_emi_by_carrier_yearly()
                     .loc[country]
@@ -2115,8 +2123,7 @@ class OutputTables(Plots):
             A DataFrame with multi-index (country, carrier) and columns (value, year)
         """
         df_all = pd.DataFrame()
-        emi_df = self.pow_emi_by_carrier_yearly()
-        for country in emi_df.index.unique():
+        for country in self.countries:
             if (
                 self.scenario_configs["co2_management"][country]["option"]
                 != "co2_price"
@@ -2127,16 +2134,21 @@ class OutputTables(Plots):
                 co2_price = self.scenario_configs["co2_management"][country]["value"][
                     year
                 ]
-                emi = (
-                    emi_df.loc[[country]]
-                    .set_index(["carrier", "year"], append=True)["value"]
-                    .unstack()[year]
-                    .fillna(0)
-                )
-                emi_cost = emi.mul(co2_price).to_frame("value")
-                emi_cost["year"] = year
-                df_country = pd.concat([df_country, emi_cost], axis=0)
-                df_country.index.names = ["country", "carrier"]
+                pow_emi_country_list = self.pow_emi_by_carrier_yearly().index.unique()
+                if country in pow_emi_country_list:
+                    emi = (
+                        self.pow_emi_by_carrier_yearly()
+                        .loc[[country]]
+                        .set_index(["carrier", "year"], append=True)["value"]
+                        .unstack()[year]
+                        .fillna(0)
+                    )
+                    emi_cost = emi.mul(co2_price).to_frame("value")
+                    emi_cost["year"] = year
+                    df_country = pd.concat([df_country, emi_cost], axis=0)
+                    df_country.index.names = ["country", "carrier"]
+                else:
+                    df_country = pd.DataFrame()
             df_all = pd.concat([df_all, df_country], axis=0)
         if df_all.empty:
             return pd.DataFrame(columns=["year", "value"])  # return an empty dataframe

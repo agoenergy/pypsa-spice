@@ -169,7 +169,7 @@ def capacity_factor_constraint(n: pypsa.Network, country: str, cf_dict: dict):
     n : pypsa.Network
         PyPSA network object to which the constraint will be applied.
     country : str
-        Country for which the CO2 cap is applied.
+        Country for which the constraint is applied.
     cf_dict : dict
         Dictionary with generator types as keys and their corresponding capacity
         factor limits as values.
@@ -251,8 +251,11 @@ def capacity_factor_constraint(n: pypsa.Network, country: str, cf_dict: dict):
                                 .sum()
                             )
                         n.model.add_constraints(
-                            lhs <= rhs,
-                            name=f"updated_capacity_factor_{gen_type}_constraint_fix",
+                            lhs,
+                            "<=",
+                            rhs,
+                            name=f"updated_capacity_factor_{gen_type}_{country}"
+                            + "_constraint_fix",
                         )
 
 
@@ -286,7 +289,7 @@ def thermal_must_run_constraint(
         p_gen = "p" if c != "StorageUnit" else "p_dispatch"
         # thermal assets index --------------------------------------------------------
         thermal_asset_index = df[
-            (df.index.astype(str).str.contains(country + "_"))
+            (df.country == country)
             & (
                 df.type.isin(
                     [
@@ -514,6 +517,65 @@ def add_energy_independence_constraint(
         rhs,
         f"Energy Independence Constraint of >= {ei_frac} for {country}",
     )
+
+
+def add_maximum_power_generation_constraint(
+    n: pypsa.Network, country: str, year: int, gen_dict: dict
+):
+    """Add constraint on maximum generation per techology, country and year.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object to which the constraint will be applied.
+    country : str
+        Country for which the constraint is applied.
+    year: int
+        The year of optimization for which the constraint is applied.
+    gen_dict : dictionary
+        Maximum generation (TWh) of each technology per each modelling year.
+    """
+    weight_da = xr.DataArray(
+        n.snapshot_weightings["objective"],
+        dims="snapshot",
+        coords={"snapshot": n.snapshots},
+    )
+    lhs = 0
+    for gen_type in gen_dict.keys():
+        if year in gen_dict[gen_type].keys():
+            for c in ["Generator", "StorageUnit", "Link"]:
+                df = n.df(c)
+                p_gen = "p" if c != "StorageUnit" else "p_dispatch"
+                bus_name = "bus1" if c == "Link" else "bus"
+                if not df.empty:
+                    gen_index = df[
+                        (df.country == country)
+                        & (df.type == gen_type)
+                        & (df[bus_name].str.contains("HVELEC"))
+                    ].index
+
+                    if not gen_index.empty:
+                        # Get var and weights
+                        gen_var = n.model[f"{c}-{p_gen}"].loc[:, gen_index]
+                        if c == "Link":
+                            eff = xr.DataArray(df.loc[gen_index, "efficiency"])
+                            lhs += (gen_var.mul(eff) * weight_da).sum("name").sum()
+                        else:
+                            lhs += (gen_var * weight_da).sum("name").sum()
+
+            # rhs = maximum generation from gen_dict in converted from TWh to MWh
+            total_gen = gen_dict[gen_type][year]
+            rhs = total_gen * 1e6
+
+            print(
+                "....adding maximum power generation constraint: "
+                f"{gen_type} - {total_gen} TWh "
+                f"in {country} in {year}"
+            )
+
+            n.model.add_constraints(
+                lhs, "<=", rhs, name=f"max_generation_{gen_type}_{country}_{year}"
+            )
 
 
 def add_reserve_margin(

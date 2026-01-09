@@ -94,6 +94,14 @@ custom_constraints:
       min_must_run_ratio: 0.2 # minimum fraction of thermal generation that must run
     capacity_factor_constraint:
       activate: false
+    maximum_power_generation_constraint: # maximum power generation per techology, country and year (TWh)
+      activate: true
+      value:
+        "BIOT":
+          2025: 18 # unit in TWh
+          2030: 18 # unit in TWh
+        "SubC":
+          2025: 40 # unit in TWh
   YZ:
     energy_independence:
       activate: false
@@ -119,8 +127,9 @@ custom_constraints:
         "SubC": 0.6
         "SupC": 0.6
         "HDAM": 0.4
+    maximum_power_generation_constraint: # maximum power generation per techology, country and year (TWh)
+      activate: false
         
-
 #####Solver settings#####
 solving:
   solver:
