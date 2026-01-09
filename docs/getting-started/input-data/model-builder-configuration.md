@@ -166,6 +166,14 @@ custom_constraints:
       must_run_frac: 0.2 # (14)!
     capacity_factor_constraint:
       activate: false
+    maximum_power_generation_constraint: # (15)!
+      activate: true
+      value:
+        "BIOT":
+          2025: 18
+          2030: 18
+        "SubC":
+          2025: 40
   YZ:
     energy_independence:
       activate: false
@@ -185,29 +193,32 @@ custom_constraints:
         2050: 0.3
     thermal_must_run:
       activate: false
-    capacity_factor_constraint: # (15)!
+    capacity_factor_constraint: # (16)!
       activate: true
       values:
         "SubC": 0.6
         "SupC": 0.6
         "HDAM": 0.4
+    maximum_power_generation_constraint:
+      activate: false
 ```
 
-1. The model adds constraints to ensure energy independence. This indicates how much of energy needs are met without relying on imports (by producing enough energy domestically). You can refer to Constraint - Energy Independence for more information.
+1. The model adds constraints to ensure energy independence. This indicates how much of energy needs are met without relying on imports (by producing enough energy domestically). You can refer to Constraint - Energy Independence for more information. This constraint does not apply to the base year.
 2. Primary energy conversion factor (dimensionless) is used to convert electricity generation to `primary energy` to make renewables comparable to fossil at primary energy level. Different definitions can be used to arrive at the value of these.
 3. **Minimum** energy independence fraction, defined as the ratio of locally produced energy to the total energy consumed (the sum of locally produced and imported energy). For details, see the `Energy independence constraint` section below.
 4. Maximum production limit of certain fuels can be defined here. Maximum values for these fuels are defined in `Power/fuel_supplies.csv`.
-5. The model adds reserve margin constraints based on `reserve_parameters`. See Constraint - Reserve Margin for more information.
+5. The model adds reserve margin constraints based on `reserve_parameters`. See Constraint - Reserve Margin for more information. This constraint does not apply to the base year.
 6. Fraction of load considered as reserve.
 7. Contribution of Variable Renewable Energy (VRE) to the reserve.
 8. Extra contingency in MW. It is under `reserve_margin`. This is usually taken as a the size of largest individual power plants or defined by country specific regulations.
 9. Options: `static` (no VRE) or `dynamic` (includes VRE). See reserve margin definition below.
-10. The model adds a constraint on renewable generation as a fraction of total electricity demand.
+10. The model adds a constraint on renewable generation as a fraction of total electricity demand. This constraint does not apply to the base year.
 11. Defines the type of renewable constraint. If set to `<=` it means the fraction of renewable generation from the total electricity demand should be **less than or equal to** the given values or **greater than or equal to** if value set to `=>`
 12. Fraction of renewable generation to the total electricity demand for each year.
 13. The model forces combined thermal power plants to have minimum generation level as a fraction of load.
 14. Fraction of thermal generation to the total electricity demand per snapshot providing the baseload.
-15. Maximum capacity factor of certain technologies can be defined here.
+15. Maximum allowable total power generation (unit in TWh) of certain technologies in specific years. This is used to as a forced constraint to align generation into a desired value.
+16. Maximum capacity factor of certain technologies can be defined here. This constraint does not apply to the base year.
 
 In the following two sub-sections, we provide more information about the definition of energy independence and reserve margin.
 
