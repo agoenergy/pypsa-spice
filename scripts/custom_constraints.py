@@ -562,9 +562,9 @@ def add_maximum_generation_constraint(
                         gen_var = n.model[f"{c}-{p_gen}"].loc[:, gen_index]
                         if c == "Link":
                             eff = xr.DataArray(df.loc[gen_index, "efficiency"])
-                            weight_gen = (gen_var.mul(eff) * weight_da).sum()
+                            weight_gen = (gen_var.mul(eff) * weight_da).sum("name")
                         else:
-                            weight_gen = (gen_var * weight_da).sum()
+                            weight_gen = (gen_var * weight_da).sum("name")
 
                         lhs_list.append(weight_gen)
             # lhs = weighted sum of type generation over all snapshots and components
