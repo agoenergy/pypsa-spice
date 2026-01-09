@@ -567,9 +567,9 @@ def add_maximum_generation_constraint(
                             weight_gen = (gen_var * weight_da).sum()
 
                         lhs_list.append(weight_gen)
-
+            # lhs = weighted sum of type generation over all snapshots and components
             lhs = sum(lhs_list)
-
+            # rhs = maximum generation from gen_dict in converted from TWh to MWh
             total_gen = gen_dict[year][gen_type]
             rhs = total_gen * 1e6
 
