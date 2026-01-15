@@ -18,12 +18,13 @@ path_configs:
   project_name: LTES_CentralAsia
   input_scenario_name: ref_central_asia
   output_scenario_name: ref_central_asia
+
 base_configs:
   countries: ["KZ", "UZ", "KG"] # list of countries in ISO2 format
   regions: 
     KZ: ["NR", "SO", "WS"]
     UZ: ["UZ"]
-    KG: ["BA", "CH", "JA", "NR", "OS", "TL", "YK"]
+    KG: ["KG"]
   years: [2023, 2030, 2035] # list of modelled years
   sector: ["p"] # options: ["p", "p-i", "p-t", "p-i-t"], representing power (p), industry (i), and transport (t) sectors.
   currency: USD # currency for the model in all uppercases, ISO4217 format
