@@ -170,6 +170,7 @@ plugins:
   - search
   - mkdocs-video
   - to-pdf:
+      enabled_if_env: BUILD_PDF
       author: Agora Think Tanks
       copyright: Copyright © PyPSA-SPICE Developers
       toc_level: 3
