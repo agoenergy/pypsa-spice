@@ -30,3 +30,7 @@ docs/*.vscode/settings.json
 
 # Untrack files
 gurobi.log
+
+node_modules/
+package-lock.json
+package.json

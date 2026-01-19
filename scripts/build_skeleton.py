@@ -3,13 +3,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Generate skeleton CSV files for setting up an energy system modeling.
+Generate skeleton CSV files for setting up an energy system modelling.
 
 It creates templates for buses, generators, storage, loads, interconnectors,
 and converter links for power, industry and transport sectors.
 """
 
-import glob
 import itertools
 import os
 import shutil
@@ -23,6 +22,7 @@ from _helpers import (
     FilePath,
     configure_logging,
 )
+from build_scenario_config import build_scenario_config_file
 from pandas.errors import SettingWithCopyWarning
 
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
@@ -719,7 +719,7 @@ def create_interconnector(
     for column in fill_columns:
         intercon_df[column] = "Please fill here"
 
-    # ================================ Finalize and save ===============================
+    # ======================== 🌶 Finalize and save 🌶 ===================
     intercon_df = intercon_df.set_index(["country", "link"]).sort_values(
         by=["bus0", "bus1"]
     )
@@ -1771,14 +1771,6 @@ if __name__ == "__main__":
     # create_skeleton_inputs
     create_folders(save_path=input_scenario_folder_path, sector_folder=True)
 
-    # create a scenario_config.yaml template file
-    yaml_files = glob.glob(f"{input_scenario_folder_path}/*.yaml")
-    if len(yaml_files) == 0:
-        shutil.copyfile(
-            "data/scenario_config_template/scenario_config.default.yaml",
-            f"{input_scenario_folder_path}/scenario_config.yaml",
-        )
-
     # output paths for regional templates csvs
     path_p_buses = input_scenario_folder_path + "/power/buses.csv"
     path_p_fuel_supplies = input_scenario_folder_path + "/power/fuel_supplies.csv"
@@ -1981,3 +1973,6 @@ if __name__ == "__main__":
         elec_buses=elec_buses_df,
         tra_buses=tra_buses_df,
     )
+
+    # =============== Create a scenario config file in the scenario folder =============
+    build_scenario_config_file(configurations)

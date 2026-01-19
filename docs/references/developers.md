@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
-# Developers & Reviewers
+# Developers and reviewers
 
 This project is developed and maintained by the team at Agora Energiewende. 
 The following people have contributed significantly towards the development of PyPSA-SPICE:
@@ -19,9 +19,9 @@ The following people have contributed significantly towards the development of P
 - Dr. Saeed Sayadi
 - Dr. Jia Loy
 
-### Technische Universität Berlin (TU Berlin)
+### Open Energy Transition (OET)
 
-- Dr. Elisabeth Zeyen
+- Dr. Elisabeth Zeyen (formerly Technische Universität Berlin (TU Berlin))
 
 ### Institute for Climate and Sustainable Cities (ICSC)
 
@@ -29,7 +29,7 @@ The following people have contributed significantly towards the development of P
 
 ### Transition Zero (TZ)
 
-- Thomas Kouroughli (former colleague at Agora Energiewende)
+- Thomas Kouroughli (formerly Agora Energiewende)
 
 ## Reviewers
 

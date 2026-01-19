@@ -835,6 +835,25 @@ def get_storage_units_inflows(
     return storage_inflows
 
 
+def get_crf(interest: float, life_years: float) -> float:
+    """Calculate capital recovery factor.
+
+    Parameters
+    ----------
+    interest : float
+        discounted rate
+    life_years : float
+        lifetime of technology in years
+
+    Returns
+    -------
+    float
+        capital recovery factor
+    """
+    crf = interest * (1 + interest) ** life_years / ((1 + interest) ** life_years - 1)
+    return crf
+
+
 def get_capital_cost(
     plant_type: list[str], tech_costs: pd.DataFrame, interest: float, currency: str
 ) -> float:
@@ -862,10 +881,18 @@ def get_capital_cost(
         / ((1 + interest) ** tech_costs.life__years - 1)
     )
 
+    capex_column_name = f"cap__{str(currency).lower()}_mw"
+    fom_column_name = f"fom__{str(currency).lower()}_mwa"
+    # Handling incase of storage technologies with different unit
+    if capex_column_name not in tech_costs.columns:
+        capex_column_name = f"cap__{str(currency).lower()}_mwh"
+    if fom_column_name not in tech_costs.columns:
+        fom_column_name = f"fom__{str(currency).lower()}_mwh"
+
     return (
         (
-            tech_costs[f"cap__{str(currency).lower()}_mw"].astype(float) * crf
-            + tech_costs[f"fom__{str(currency).lower()}_mwa"].astype(float)
+            tech_costs[capex_column_name].astype(float) * crf
+            + tech_costs[fom_column_name].astype(float)
         )
         .fillna(0)
         .loc[plant_type]
@@ -877,7 +904,7 @@ def update_tech_fact_table(
     technologies_dir: FilePath,
     tech_costs_dir: FilePath,
     year: int,
-    interest: float,
+    interest_dict: dict,
     currency: str,
 ) -> pd.DataFrame:
     """Process and add techno-economic columns to plants or links table.
@@ -892,8 +919,8 @@ def update_tech_fact_table(
         directory to database of cost params per technology
     year : int
         year of model run
-    interest : float
-        interest rate
+    interest_dict : dict
+        dict of interest rate
     currency : str
         currency of model run
 
@@ -932,7 +959,11 @@ def update_tech_fact_table(
                 if "p_nom_max_" not in x and "p_nom_min_" not in x
             ]
         ]
-
+        # Retrieve interest rate for given country
+        try:
+            interest = interest_dict[row["country"]]
+        except KeyError:
+            raise KeyError(f'No specific interest rate for {row["country"]} in config.')
         # Processing cost fact columns
         result["capital_cost"] = get_capital_cost(
             plant_type=(row["type"], row["country"]),
@@ -992,9 +1023,9 @@ def update_tech_fact_table(
 
 def update_storage_costs(
     storage_table: pd.DataFrame,
-    storage_costs: FilePath,
+    storage_costs_dir: FilePath,
     year: int,
-    interest: float,
+    interest_dict: dict,
     currency: str,
 ) -> pd.DataFrame:
     """Update storage cost parameters.
@@ -1012,8 +1043,8 @@ def update_storage_costs(
         'country'].
     year : int
         Model year to filter the storage_costs table.
-    interest : float
-        Discount rate (as a decimal, e.g., 0.07 for 7%).
+    interest_dict : dict
+        dict of interest rate.
     currency : str
         Currency in all uppercase, , ISO4217 format
 
@@ -1024,67 +1055,55 @@ def update_storage_costs(
         'capital_cost', 'marginal_cost', 'lifetime', 'inv_cost', 'fom_cost'.
     """
     # Load and filter storage cost data for the specified year
-    storage_costs_df = pd.read_csv(storage_costs, index_col=["storage_type", "country"])
+    storage_costs_df = pd.read_csv(
+        storage_costs_dir, index_col=["storage_type", "country"]
+    )
     storage_costs_df = storage_costs_df[storage_costs_df.year == year]
 
-    # Calculate capital recovery factor (CRF) for each storage type/country
-    crf = (
-        interest
-        * (1 + interest) ** storage_costs_df.life__years
-        / ((1 + interest) ** storage_costs_df.life__years - 1)
-    )
-
-    def get_cost(row, col):
-        """Fetch a value from storage_costs_df, raise error if not found."""
-        idx = (row["type"], row["country"])
-        if idx not in storage_costs_df.index:
-            raise KeyError(
-                f"Type '{row['type']}' or country '{row['country']}' "
-                "not found in storage_costs_df."
-            )
-        return float(storage_costs_df.loc[idx, col])
-
-    def get_crf(row):
-        """Fetch CRF for a given type/country, raising error if not found."""
-        idx = (row["type"], row["country"])
-        if idx not in crf.index:
-            raise KeyError(
-                f"Type '{row['type']}' or country '{row['country']}' "
-                "not found in CRF index."
-            )
-        return float(crf.loc[idx])
-
-    # Compute capital_cost: (CAPEX * CRF + FOM)
-    storage_table["capital_cost"] = storage_table.apply(
-        lambda row: get_cost(row, f"cap__{str(currency).lower()}_mwh") * get_crf(row)
-        + get_cost(row, f"fom__{str(currency).lower()}_mwh"),
-        axis=1,
-    )
-
-    # Compute marginal_cost: VOM
-    storage_table["marginal_cost"] = storage_table.apply(
-        lambda row: get_cost(row, f"vom__{str(str(currency).lower()).lower()}_mwh"),
-        axis=1,
-    )
-
-    # Compute lifetime: LIFE
-    storage_table["lifetime"] = storage_table.apply(
-        lambda row: get_cost(row, "life__years"),
-        axis=1,
-    )
-
-    # Compute inv_cost: CAPEX
-    storage_table["inv_cost"] = storage_table.apply(
-        lambda row: get_cost(row, f"cap__{str(currency).lower()}_mwh"),
-        axis=1,
-    )
-
-    # Compute fom_cost: FOM
-    storage_table["fom_cost"] = storage_table.apply(
-        lambda row: get_cost(row, f"fom__{str(currency).lower()}_mwh"),
-        axis=1,
-    )
-
+    storage_table = storage_table.reset_index().to_dict("records")
+    dfs = []
+    for row in storage_table:
+        result = pd.DataFrame([row])
+        # Retrieve interest rate for given country
+        try:
+            interest = interest_dict[row["country"]]
+        except KeyError:
+            raise KeyError(f'No specific interest rate for {row["country"]} in config.')
+        # Processing cost fact columns
+        result["capital_cost"] = get_capital_cost(
+            plant_type=(row["type"], row["country"]),
+            tech_costs=storage_costs_df,
+            interest=interest,
+            currency=currency,
+        )
+        result["marginal_cost"] = (
+            storage_costs_df[f"vom__{str(currency).lower()}_mwh"]
+            .astype(float)
+            .fillna(0)
+            .loc[(row["type"], row["country"])]
+        )
+        result["fom_cost"] = (
+            storage_costs_df[f"fom__{str(currency).lower()}_mwh"]
+            .astype(float)
+            .fillna(0)
+            .loc[(row["type"], row["country"])]
+        )
+        result["inv_cost"] = (
+            storage_costs_df[f"cap__{str(currency).lower()}_mwh"]
+            .astype(float)
+            .fillna(0)
+            .loc[(row["type"], row["country"])]
+        )
+        result["lifetime"] = (
+            storage_costs_df["life__years"]
+            .astype(float)
+            .fillna(0)
+            .loc[(row["type"], row["country"])]
+        )
+        dfs.append(result)
+    storage_table = pd.concat(dfs)
+    storage_table = storage_table[sorted(storage_table.columns)]
+    storage_table = storage_table.set_index("store")
     return storage_table
 
 
@@ -1093,7 +1112,7 @@ def update_ev_char_parameters(
     cost_df: pd.DataFrame,
     ev_param_dir: FilePath,
     year: int,
-    interest_rate: float,
+    interest_dict: dict,
     currency: str,
 ) -> pd.DataFrame:
     """Update ev storage and link parameters parameters.
@@ -1108,8 +1127,8 @@ def update_ev_char_parameters(
         directory of EV parameter database
     cost_df : pd.DataFrame
         DataFrame of cost parameters
-    interest_rate : float
-        Discount rate (as a decimal, e.g., 0.07 for 7%).
+    interest_dict : dict
+        dict of interest rate.
     currency : str
         Currency in all uppercase, , ISO4217 format
 
@@ -1132,11 +1151,16 @@ def update_ev_char_parameters(
             print(f'{row["type"]} is not in technology database')
         for column in row.keys():
             result[column] = row[column]
+        # Retrieve interest rate for given country
+        try:
+            interest = interest_dict[row["country"]]
+        except KeyError:
+            raise KeyError(f'No specific interest rate for {row["country"]} in config.')
         # processing costs for chargers
         result["capital_cost"] = get_capital_cost(
             plant_type=(row["type"], row["country"]),
             tech_costs=cost_df_single_year,
-            interest=interest_rate,
+            interest=interest,
             currency=currency,
         )
         result["marginal_cost"] = (
@@ -1635,10 +1659,9 @@ def add_unit_column(table_name: str, currency: str) -> str:
 
 def filter_selected_countries_and_regions(
     df: pd.DataFrame,
-    column: str,
-    country_region: dict,
-    currency: str,
-    buses_csv: bool = False,
+    filter_column: str,
+    country_regions: dict,
+    include_both_country_n_regional_rows: bool = False,
 ) -> pd.DataFrame:
     """Filter selected regions defined in the config.yaml.
 
@@ -1646,58 +1669,62 @@ def filter_selected_countries_and_regions(
     ----------
     df : pd.DataFrame
         Targeted DataFrame for filtering
-    column: str
+    filter_column: str
         Targeted column for filtering
-    country_region : dict{str, list[str]}
+    country_regions : dict{str, list[str]}
         A dictionary with countries regions within those countries to filter by.
     currency: str
         Currency from the config file
-    buses_csv : bool
-        If True, apply filtering algorithms especially for buses.csv.
+    include_both_country_n_regional_rows : bool
+        If True, include both country node (e.g. national loads/buses)
+        and region-filtered rows (regional loads/bueses).
 
     Returns
     -------
     pd.DataFrame
         Filtered DataFrame
     """
-    final_df = pd.DataFrame()
-    for country, region in country_region.items():
-        region_pattern = [country + "_" + x for x in region]
-        # for buses cases
-        if buses_csv:
-            country_node_df = df[
-                (df["country"].str.contains(country))
-                & (~(df[column].str.contains("_")))
+    country_patterns = list(country_regions.keys())
+    region_patterns = []
+    for country, regions in country_regions.items():
+        for region in regions:
+            region_patterns.append(f"{country}_{region}")
+    if include_both_country_n_regional_rows:
+        # filtering table by both country and regional information
+        # e.g. buses, loads where you can have both national and regional nodes
+        country_node_df = df[
+            (df["country"].str.contains("|".join(country_patterns)))
+            & (~(df[filter_column].str.contains("_")))
+        ]  # Select only country nodes and ignore nodes with regional info
+        region_node_df = df[(df[filter_column].str.contains("|".join(region_patterns)))]
+        filter_df = pd.concat([country_node_df, region_node_df])
+    else:
+        # for interconnector links
+        # filter only rows with regional information in both bus0 or bus1
+        if filter_column == "link" and set(df.type) == {"ITCN"}:
+            filter_df = df[
+                df["bus0"].str.contains("|".join(region_patterns))
+                & df["bus1"].str.contains("|".join(region_patterns))
+            ]  # make sure regional pattern is in either bus0 or bus1
+        # for storage_energy table
+        # add national "CO2STORN", "HYDN" to the list of regional nodes
+        elif filter_column == "store":
+            region_node_df = df[
+                (df[filter_column].str.contains("|".join(region_patterns)))
             ]
-            region_df = df[(df[column].str.contains("|".join(region_pattern)))]
-            filter_df = pd.concat([country_node_df, region_df])
+            extra_df = df[
+                (df["country"].str.contains("|".join(country_patterns)))
+                & df[filter_column].str.contains("|".join(["CO2STORN", "HYDN"]))
+            ]
+            filter_df = pd.concat([region_node_df, extra_df])
+        # for other components, select only rows with regional information
         else:
-            # for interconnector cases
-            columns_to_check = [column, "bus0", "bus1", f"cap__{currency.lower()}_mw"]
-            if (
-                column == "link"
-                and len([col for col in columns_to_check if col in df.columns]) == 4
-            ):
-                from_df = df[(df["bus0"].str.contains("|".join(region_pattern)))]
-                filter_df = from_df[
-                    (from_df["bus1"].str.contains("|".join(region_pattern)))
-                ]
-            # for storage_energy cases
-            elif column == "store":
-                region_df = df[(df[column].str.contains("|".join(region_pattern)))]
-                extra_df = df[
-                    (df["country"].str.contains(country))
-                    & df[column].str.contains("|".join(["CO2STORN", "HYDN"]))
-                ]
-                filter_df = pd.concat([region_df, extra_df])
-            else:
-                filter_df = df[(df[column].str.contains("|".join(region_pattern)))]
-        final_df = pd.concat([final_df, filter_df])
-    return final_df
+            filter_df = df[(df[filter_column].str.contains("|".join(region_patterns)))]
+    return filter_df
 
 
 def load_scenario_config(path: str) -> dict:
-    """Open and read scenario configuration from a YAML file.
+    """Open and read scenario configurations from a YAML file.
 
     Parameters
     ----------
@@ -1709,6 +1736,10 @@ def load_scenario_config(path: str) -> dict:
     dict
         dictionary of scenario configuration
     """
+    # strip "/scripts" from path in case of running from scripts folder (for debugger)
+    path = os.path.abspath(path)
+    if "/scripts" in path:
+        path = path.replace("/scripts", "")
     yaml_files = glob.glob(f"{path}/*.yaml")
     with open(yaml_files[0]) as f:
         return yaml.safe_load(f)

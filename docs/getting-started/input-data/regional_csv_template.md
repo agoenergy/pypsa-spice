@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
-# Input Data: Regional CSV Template
+# Input data: regional CSV template
 
 ```text title="Structure of the regional CSV template files"
 📦 data
@@ -40,7 +40,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 ```
 
 !!! Tip
-    The currency of all example data is `USD` defined in the `base_configs` section of `config.yaml`. You can refer to [Model Builder Configuration](model-builder-configuration.md#base_configyaml) for more information.
+    The currency of all example data is `USD` defined in the `base_configs` section of `config.yaml`. You can refer to [Model builder configuration](model-builder-configuration.md#base_configyaml) for more information.
 
 !!! Tip
     If there's a cell with `inf` in the csv files, it represents infinite value in `float` datatype when it is read into the network.
@@ -54,26 +54,25 @@ This file defines the buses to be used in the model. All components need to be c
 | `country`    | 2-letter country codes according to [ISO 3166](https://www.iso.org/iso-3166-country-codes.html){:target="_blank"} format                        |
 | `node`       | Node or region name within the country (can be the same as country if the model is not region-specific)  |
 | `bus`        | PyPSA `bus` component. Format: `{NODE}_{TECHNOLOGY}N` or `{COUNTRY}_{TECHNOLOGY}N` (suffix `N` is not applied for technologies with `HVELEC`, `LVELEC`, `IND-LH`, `IND-HH`, or `ATMP`) |
-| `carrier`    | Fuel or resource name. Unlike other entries that are in uppercase, here only the first letter is capitalized.                  |
+| `carrier`    | Fuel or resource name. Unlike other entries that are in uppercase, here only the first letter is capitalised.                  |
 
-## Decommission Capacity
+## Decommission capacity
 
 `Decommission_capacity.csv` contains the installed capacity of power plants scheduled for decommissioning.
 
 - For **Generators**, the `name` column must match the `name` column in `data_folder_name/project_name/input/input_scenario_name/power/power_generators.csv`.
 - For **Links**, the `name` column must match the `link` column in `data_folder_name/project_name/input/input_scenario_name/power/power_links.csv`
 
-
 | Parameter   | definition                                                |
 | ----------- | --------------------------------------------------------- |
 | `country`     | 2-letter country codes according to [ISO 3166](https://www.iso.org/iso-3166-country-codes.html){:target="_blank"} format       |
 | `name`        | Asset name (to be decommissioned)  |
-| `class`       | Component type of the asset in PyPSA network. Only the first letter is capitalized |
+| `class`       | Component type of the asset in PyPSA network. Only the first letter is capitalised |
 | `years`| Decommission plan in each year [MW]             |
 
-## Fuel Supplies
+## Fuel supplies
 
-These are fuel supply generators that provide fuel in the thermal energy unit [MWh_th]. It is possible to put maximum supply constraint over a year for these fuel supplies. See model [schematic diagram](../../user-guide/model-builder-methodology.md/#model-builder-methodology)
+These are fuel supply generators that provide fuel in the thermal energy unit [MWh_th]. It is possible to put maximum supply constraint over a year for these fuel supplies. See model [schematic diagram](../../user-guide/model-builder-methodology.md/#model-builder-methodology).
 
 | Parameter    | definition                                                                     |
 | ------------ | ------------------------------------------------------------------------------ |
@@ -95,7 +94,7 @@ Interconnectors connect different regions by their maximum power transfer capaci
 | `link`                     | Name of the interconnection link between two regions/countries. Format: `{NODE}_HVELEC_to_{NODE}_HVELEC` |
 | `bus0`                     | Region/country exporting electricity to `bus1`. Used as the `bus` component in the PyPSA network Format: `{NODE}_HVELEC`       |
 | `bus1`                     | Region/country importing electricity from `bus0`. Used as the `bus` component in the PyPSA network Format: `{NODE}_HVELEC`       |
-| `carrier`                  | Energy carrier or resource (e.g., electricity, gas). Only the first letter is capitalized   |
+| `carrier`                  | Energy carrier or resource (e.g., electricity, gas). Only the first letter is capitalised   |
 | `type`                     | Interconnector technology (e.g., `ITCN`). All uppercase |
 | `efficiency`               | Efficiency of the interconnector                                          |
 | `p_max_pu`                 | Maximum availability per snapshot (per unit of `p_nom`)                           |
@@ -120,7 +119,7 @@ This file contains the **total** load per load type which is matched to `profile
 | `profile_type` | Load profile type                         |
 | `name`         | Load name. Format: `{BUS}_{PROFILE_TYPE}`   |
 | `total_load__mwh`   | Total annual load in MWh                                  |
-| `carrier`      | Energy carrier or resource. First letter capitalized                  |
+| `carrier`      | Energy carrier or resource. First letter capitalised                  |
 | `year`         | Year of the load data                                                          |
 
 ## Generators
@@ -132,7 +131,7 @@ See details of implementation in [power](../../user-guide/power_sector.md/#power
 | `country`                  | 2-letter country codes according to [ISO 3166](https://www.iso.org/iso-3166-country-codes.html){:target="_blank"} format                        |
 | `node`                     | Name of the nodes or regions                |
 | `type`                     | Generator technology.                                    |
-| `carrier`                  | Energy carrier or resource. First letter capitalized.                  |
+| `carrier`                  | Energy carrier or resource. First letter capitalised.                  |
 | `bus`                      | PyPSA `bus` component. Format: `{NODE}_{TECHNOLOGY}N` (suffix `N` is not applied for technologies with `HVELEC`, `LVELEC`, `IND-LH`, `IND-HH`, or `ATMP`) |
 | `name`                     | Generator name. Format: `{BUS}_{TECHNOLOGY}`               |
 | `p_nom`                    | Nominal capacity in the default year in MW                        |
@@ -150,13 +149,13 @@ See details of implementation logic in [power](../../user-guide/power_sector.md/
 | `bus0...3`                 | PyPSA `bus` components. Format: `{NODE}_{TECHNOLOGY}N` (suffix `N` is not applied for technologies with `HVELEC`, `LVELEC`, `IND-LH`, `IND-HH`, or `ATMP`) |
 | `type`                     | Link technology                                    |
 | `link`                     | Link name. Format: `{BUS0}_to_{BUS1}_by_{TECHNOLOGY}`        |
-| `carrier`                  | Energy carrier or resource. First letter capitalized                  |
+| `carrier`                  | Energy carrier or resource. First letter capitalised                  |
 | `p_nom`                    | Nominal capacity in the default year in MW                        |
 | `p_nom_extendable`         | Indicates if capacity can be expanded. Possible values: `TRUE` or `FALSE`     |
 | `p_nom_max_{YEAR}` | Maximum additional capacity allowed in the given year in MW  |
 | `p_nom_min_{YEAR}` | Minimum additional capacity allowed in the given year in MW  |
 
-## Storage Capacity
+## Storage capacity
 
 See details of implementation logic for [power](../../user-guide/power_sector.md/#storage-capacity) and [industry](../../user-guide/industry_sector.md/#storage-capacity) sectors.
 
@@ -165,7 +164,7 @@ See details of implementation logic for [power](../../user-guide/power_sector.md
 | `country`                  | 2-letter country codes according to [ISO 3166](https://www.iso.org/iso-3166-country-codes.html){:target="_blank"} format                        |
 | `node`                     | Name of the nodes or regions                |
 | `type`                     | Storage technology                                   |
-| `carrier`                  | Energy carrier or resource. First letter capitalized                  |
+| `carrier`                  | Energy carrier or resource. First letter capitalised                  |
 | `bus`                      | PyPSA `bus` component. The values can be `{NODE}_HVELEC` or `{NODE}_LVELEC` for power sector, and `{NODE}_IND-LH` for industry sector |
 | `name`                     | Storage name. Format: `{BUS}_{TECHNOLOGY}`              |
 | `p_nom`                    | Nominal capacity in the default year in MW                        |
@@ -173,9 +172,9 @@ See details of implementation logic for [power](../../user-guide/power_sector.md
 | `p_nom_max_{YEAR}` | Maximum additional capacity allowed in the given year in MW  |
 | `p_nom_min_{YEAR}` | Minimum additional capacity allowed in the given year in MW  |
 
-## Storage Energy
+## Storage energy
 
-See details of description for use of storage energy in [power sector](../../user-guide/power_sector.md/#storage-energy) and [industry sectors](../../user-guide/industry_sector.md/#storage-energy). 
+See details of description for use of storage energy in [Power sector](../../user-guide/power_sector.md/#storage-energy) and [industry sector](../../user-guide/industry_sector.md/#storage-energy). 
 
 | Parameter                | definition                                                                 |
 | ------------------------ | -------------------------------------------------------------------------- |
@@ -183,15 +182,15 @@ See details of description for use of storage energy in [power sector](../../use
 | `bus`                      | PyPSA `bus` component. Format: `{NODE}_{TECHNOLOGY}N` (suffix `N` is not applied for technologies with `HVELEC`, `LVELEC`, `IND-LH`, `IND-HH`, or `ATMP`) |
 | `store`                    | Energy storage name. Format: `{BUS}_STOR`   |
 | `type`                     | Storage technology                                    |
-| `carrier`                  | Energy carrier or resource. First letter capitalized                  |
+| `carrier`                  | Energy carrier or resource. First letter capitalised                  |
 | `standing_loss`            | Hourly energy loss rate during storage, in %/hour.                       |
 | `e_nom`                    | Nominal energy in the default year in MWh                         |
 | `e_nom_extendable`         | Indicates if capacity can be expanded. Possible values: `TRUE` or `FALSE`      |
 | `max_store_{YEAR}` | Maximum additional capacity allowed in the given year in MW      |
 
-## EV Chargers
+## EV chargers
 
-See details of implementation [here](../../user-guide/transport_sector.md).
+See details of implementation in the [Transport sector](../../user-guide/transport_sector.md).
 
 | Parameter                | definition                                                                 |
 | ------------------------ | -------------------------------------------------------------------------- |
@@ -206,7 +205,7 @@ See details of implementation [here](../../user-guide/transport_sector.md).
 
 ## EV Storages
 
-See details of implementation [here](../../user-guide/transport_sector.md/#electric-vehicle-storage).
+See details of implementation in the [Transport sector](../../user-guide/transport_sector.md/#electric-vehicle-storage).
 
 | Parameter                | definition                                                                 |
 | ------------------------ | -------------------------------------------------------------------------- |

@@ -3,6 +3,10 @@
 SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
+<picture align="center">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/images/pypsa-logo_rgb_dark.svg">
+  <img alt="PyPSA-spice banner" src="docs/assets/images/pypsa-logo_rgb.svg">
+</picture>
 
 # PyPSA-SPICE: PyPSA-based Scenario Planning and Integrated Capacity Expansion
 
@@ -30,7 +34,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 > If you are considering using this model builder, please reach out to us at [modelling@agora-thinktanks.org](mailto:modelling@agora-thinktanks.org). We would be happy to help you get started.
 > If you encounter a bug, please create a [new issue](https://github.com/agoenergy/pypsa-spice/issues). For new ideas or feature requests, you can start a conversation in the [discussions](https://github.com/agoenergy/pypsa-spice/discussions) section of the repository.
 
-PyPSA-SPICE (https://agoenergy.github.io/pypsa-spice/) is an open-source model builder for assessing national mid/long-term energy scenarios using a least-cost, multi-sectoral optimization approach based on the [PyPSA](https://pypsa.org/) framework. It can be used to build models that represent one or more countries across multiple interconnected nodes linked by electricity transmission, and within each region, it models the integration of power, heat, and transport sectors. The model focuses on the power sector, which is represented with a high level of detail.
+[PyPSA-SPICE](https://agoenergy.github.io/pypsa-spice/) is an open-source model builder for assessing national mid-/long-term energy scenarios using a least-cost, multi-sectoral optimisation approach based on the [PyPSA](https://pypsa.org/) framework. It can be used to build models that represent one or more countries across multiple interconnected nodes linked by electricity transmission. Within each region, it models the integration of the power, heat, and transport sectors.
 
 The model workflow has been designed to be more accessible compared to other PyPSA-based models, though basic Python coding knowledge is required.
 
@@ -43,7 +47,7 @@ The model workflow has been designed to be more accessible compared to other PyP
 </a>
 <!-- markdownlint-disable MD033 -->
 
-## Quick Installation
+## Quick installation
 
 In order to install the application, first make sure you have _git_, _conda_ and optionally _mamba_ installed.
 
@@ -63,7 +67,7 @@ Once _mamba_ is installed, you can also create the environment more quickly usin
 mamba env create -f envs/environment.yaml
 ```
 
-## Execution of the Model Builder using Template Data
+## Execution of the model builder using template data
 
 To have a first glance of how the model builder works, template data in [pypsa-spice-data](data/pypsa-spice-data/) folder can be used. The following command can be executed to run the whole workflow at once. The command will use 1 core (`-j1`) and 1 thread (`-c4`) to execute. For more information, please refer to the [snakemake documentation](https://snakemake.readthedocs.io/en/stable/executing/cli.html) to adjust the cores and threads to use.
 
@@ -87,8 +91,8 @@ Please use the citation below:
 
 ## Contributions
 
-We welcome anyone interested in contributing to this project, and please have a look
-at [Contributing Guide](docs/contributing/contributing.md) and our [Code of Conduct](docs/contributing/code_of_conduct.md).
+We welcome any contributions and additional spice to this project; please have a look
+at [contributing guide](docs/contributing/contributing.md) and our [code of conduct](docs/contributing/code_of_conduct.md).
 If you have any ideas, suggestions or encounter problems, feel free to file issues
 or make pull requests on GitHub.
 
@@ -130,7 +134,7 @@ or make pull requests on GitHub.
 
 ## License
 
-Copyright &copy; [PyPSA-SPICE Developers](docs/references/developers.md)
+Copyright &copy; [PyPSA-SPICE developers](docs/references/developers.md)
 
 PyPSA-SPICE is licensed under the open source [GNU General Public License v2.0 or later](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 with the following information:

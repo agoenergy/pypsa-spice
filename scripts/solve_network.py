@@ -19,12 +19,10 @@ from typing import Any
 
 import pandas as pd
 import pypsa
-from _helpers import (
-    configure_logging,
-    load_scenario_config,
-)
+from _helpers import configure_logging, load_scenario_config
 from custom_constraints import (
     add_energy_independence_constraint,
+    add_maximum_power_generation_constraint,
     add_reserve_margin,
     add_storage_constraints,
     capacity_factor_constraint,
@@ -69,24 +67,43 @@ def extra_functionality_linopt(
                 country=country,
                 co2_cap=country_emission_settings["value"][year],
             )
-
-        if country not in scenario_configs.get("custom_constraints", {}):
+        custom_constraint_set = scenario_configs.get("custom_constraints") or {}
+        if country not in custom_constraint_set:
             continue
 
         country_constraints = scenario_configs["custom_constraints"][country]
 
         # Capacity factor constraint
         if (
-            country_constraints.get("capacity_factor_constraint", False)
+            country_constraints["capacity_factor_constraint"].get("activate", False)
             and year > base_year
         ):
             capacity_factor_constraint(
-                network, cf_dict=country_constraints["capacity_factor_constraint"]
+                network,
+                country=country,
+                cf_dict=country_constraints["capacity_factor_constraint"]["value"],
+            )
+            constraint_added = True
+
+        # Power generation constraint
+        if country_constraints["maximum_power_generation_constraint"].get(
+            "activate", False
+        ):
+            add_maximum_power_generation_constraint(
+                network,
+                country=country,
+                year=year,
+                gen_dict=country_constraints["maximum_power_generation_constraint"][
+                    "value"
+                ],
             )
             constraint_added = True
 
         # Energy independence constraint
-        if country_constraints.get("energy_independence", False) and year > base_year:
+        if (
+            country_constraints["energy_independence"].get("activate", False)
+            and year > base_year
+        ):
             energy_independence = country_constraints["energy_independence"]
             add_energy_independence_constraint(
                 network,
@@ -97,13 +114,15 @@ def extra_functionality_linopt(
             constraint_added = True
 
         # Fuel supply/production limit constraint
-        if country_constraints.get("production_constraint_fuels", False):
+        if country_constraints["production_constraint_fuels"].get("activate", False):
             fuel_supply_limits = pd.read_csv(snakemake.input.fuel_limits)
             fuel_supply_limits = fuel_supply_limits[
                 (fuel_supply_limits.year == year)
                 & (fuel_supply_limits.country == country)
             ].set_index("carrier")
-            restricted_carriers = country_constraints["production_constraint_fuels"]
+            restricted_carriers = country_constraints["production_constraint_fuels"][
+                "fuels"
+            ]
             fuel_supply_limits = fuel_supply_limits.loc[
                 restricted_carriers, "max_supply__mwh_year"
             ].to_dict()
@@ -113,7 +132,7 @@ def extra_functionality_linopt(
             constraint_added = True
 
         # Reserve margin constraint
-        if country_constraints.get("reserve_margin", False):
+        if country_constraints["reserve_margin"].get("activate", False):
             if year > base_year:
                 reserve_params = country_constraints["reserve_margin"]
                 add_reserve_margin(
@@ -132,7 +151,10 @@ def extra_functionality_linopt(
                 )
 
         # Renewable generation constraint
-        if country_constraints.get("res_generation", False) and year > base_year:
+        if (
+            country_constraints["res_generation"].get("activate", False)
+            and year > base_year
+        ):
             res_generation = country_constraints["res_generation"]
             re_pow_generation_constraint(
                 network,
@@ -143,7 +165,7 @@ def extra_functionality_linopt(
             constraint_added = True
 
         # Thermal must-run constraint
-        if country_constraints.get("thermal_must_run", False):
+        if country_constraints["thermal_must_run"].get("activate", False):
             thermal_must_run = country_constraints["thermal_must_run"]
             thermal_must_run_constraint(
                 network,
@@ -206,7 +228,7 @@ def solve_network(
         oetc_settings = None
         oetc_handler = None
 
-    print(f"######## Solving model with {solver_name.capitalize()}")
+    print(f"######## 🌶 Solving model with {solver_name.capitalize()}")
     extra_functionality_linopt_config = partial(
         extra_functionality_linopt, scenario_configs=scenario_configs
     )
@@ -258,7 +280,13 @@ def solve_network(
             keep_references=True,
             extra_functionality=extra_functionality_linopt_config,
         )
-    return network
+    if n.model.status != "warning":
+        print("model feasible! 🌶 ")
+        return network
+    else:
+        print("model infeasible compute infeasibilites")
+        if solver_name.lower() in ["gurobi", "cplex"]:
+            n.model.print_infeasibilities()
 
 
 if __name__ == "__main__":
@@ -286,12 +314,4 @@ if __name__ == "__main__":
         )
     n.export_to_netcdf(snakemake.output.pre_solved)
     n = solve_network(n, y, scenario_configs=scenario_configs)
-
-    if n.model.status != "warning":
-        print("model feasible!")
-    else:
-        print("model infeasible compute infeasibilites")
-        inf_constr = n.model.compute_infeasibilities()
-        n.model.constraints.print_labels(inf_constr)
-
     n.export_to_netcdf(snakemake.output.final_network)

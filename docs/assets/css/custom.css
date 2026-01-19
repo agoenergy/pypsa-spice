@@ -83,3 +83,23 @@ img[alt="PyPSA-SPICE_snakemake_workflow_DAG"] {
   font-size: 0.85rem;
 }
 
+/* Default: light logo visible, dark logo hidden */
+#logo_light_mode {
+  display: var(--logo-light-display, block);
+}
+
+#logo_dark_mode {
+  display: var(--logo-dark-display, none);
+}
+
+/* Light scheme = `default` (your first palette) */
+[data-md-color-scheme="default"] {
+  --logo-light-display: block;
+  --logo-dark-display: none;
+}
+
+/* Dark scheme = `slate` (your second palette) */
+[data-md-color-scheme="slate"] {
+  --logo-light-display: none;
+  --logo-dark-display: block;
+}

@@ -4,7 +4,7 @@
 
 # to preview the documentation website in local server, run `mkdocs serve --config-file mkdocs.yaml` and get the url in the terminal to paste it in the browser
 
-site_name: "PyPSA-SPICE Model Builder Documentation"
+site_name: "Model Builder Documentation"
 site_url: https://agora-energiewende.org
 repo_url: https://github.com/agoenergy/pypsa-spice
 theme:
@@ -14,7 +14,13 @@ theme:
     text: Flexo
     code: Roboto Mono
   favicon: assets/favicon/favicon.ico
-  logo: assets/images/logo.png
+
+  # use custom logos instead of the single `logo` entry
+  custom_dir: overrides
+  logo_light_mode: assets/images/pypsa-logo_rgb.png
+  logo_dark_mode: assets/images/pypsa-logo_rgb_dark.png
+
+  #logo: assets/images/pypsa-logo_rgb.png
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -74,21 +80,23 @@ theme:
 nav:
   - 🏠 Home: index.md
 
-  - 📖 User Guide:
-    - Model Builder Methodology: user-guide/model-builder-methodology.md
-    - Power Sector: user-guide/power_sector.md
-    - Industry Sector: user-guide/industry_sector.md
-    - Transport Sector: user-guide/transport_sector.md
-    - Post Analysis: user-guide/post-analysis.md
+  - 📝 Release notes: releases/index.md
+
+  - 📖 User guide:
+    - Model builder methodology: user-guide/model-builder-methodology.md
+    - Power sector: user-guide/power_sector.md
+    - Industry sector: user-guide/industry_sector.md
+    - Transport sector: user-guide/transport_sector.md
+    - Post analysis: user-guide/post-analysis.md
     - Troubleshooting: user-guide/troubleshooting.md
   
-  - 🚀 Getting Started:
+  - 🚀 Getting started:
     - Overview: getting-started/overview.md
     - Installation: getting-started/installation.md
-    - Input Data:
-      - Defining a New Model: getting-started/input-data/new-model.md
-      - Global CSV Template: getting-started/input-data/global_csv_template.md
-      - Regional CSV Template: getting-started/input-data/regional_csv_template.md
+    - Input data:
+      - Defining a new model: getting-started/input-data/new-model.md
+      - Global CSV template: getting-started/input-data/global_csv_template.md
+      - Regional CSV template: getting-started/input-data/regional_csv_template.md
       - Configuration: getting-started/input-data/model-builder-configuration.md
       - Execution: getting-started/input-data/model-builder-execution.md
 
@@ -97,14 +105,14 @@ nav:
     - List of charts and sections: visualisation-tool/vis-sections-and-charts.md
     - Deployment: visualisation-tool/deployment.md
 
-  - 📚 Tutorials and Examples:
-    - Training Materials: tutorials-and-examples/training_materials.md
-    - Data Sources: tutorials-and-examples/data_sources.md
+  - 📚 Tutorials and examples:
+    - Training materials: tutorials-and-examples/training_materials.md
+    - Data sources: tutorials-and-examples/data_sources.md
     - Publication: tutorials-and-examples/publication.md
 
   - 🤝 Contributing:
     - Contributing: contributing/contributing.md
-    - Code of Conduct: contributing/code_of_conduct.md
+    - Code of conduct: contributing/code_of_conduct.md
 
   - 🔗 References:
     - License: references/citation_and_license.md
@@ -133,6 +141,16 @@ markdown_extensions:
   - markdown_katex:
       no_inline_svg: true
       insert_fonts_css: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      provider: github
+      repo: agoenergy/pypsa-spice
+  - pymdownx.snippets:
+      base_path: docs
+      check_paths: true
 
 extra:
   # link to Agora's social network accounts
@@ -162,13 +180,15 @@ extra_javascript:
 
 plugins:
   - search
+  - awesome-pages
   - mkdocs-video
   - to-pdf:
-      author: Data and Modelling Team at Agora Think Tanks
+      enabled_if_env: BUILD_PDF
+      author: Agora Think Tanks
       copyright: Copyright © PyPSA-SPICE Developers
       toc_level: 3
       cover: true
-      cover_logo: /assets/images/logo.png
+      cover_logo: /assets/images/pypsa-logo_rgb.png
       cover_title: "PyPSA-SPICE Model Builder"
       cover_subtitle: "Documentation"
       output_path: ../docs/pypsa-spice-documentation.pdf

@@ -335,7 +335,7 @@ def handle_custom_constraints(config, file_path):
         country_constraints = custom_constraint[selected_country]
 
         # RE Generation Constraint
-        if country_constraints.get("re_gen_constraint", False):
+        if country_constraints["res_generation"].get("activate", False):
             re_gen_constraint = country_constraints["res_generation"]
             re_gen_sense = st.radio(
                 "RE Generation Sense",
@@ -374,7 +374,7 @@ def handle_custom_constraints(config, file_path):
                 for _, row in edited_re_gen_df.iterrows()
             }
 
-        if country_constraints.get("re_gen_constraint", False):
+        if country_constraints["thermal_must_run"].get("activate", False):
             must_run_constraint = country_constraints["thermal_must_run"]
             must_run_frac = st.number_input(
                 "Must Run Fraction",
@@ -387,7 +387,7 @@ def handle_custom_constraints(config, file_path):
             must_run_constraint["min_must_run_ratio"] = must_run_frac
 
         # Reserve Margin
-        if country_constraints.get("reserve_margin", False):
+        if country_constraints["reserve_margin"].get("activate", False):
             margin_constraint = country_constraints["reserve_margin"]
 
             st.write("Reserve Parameters:")

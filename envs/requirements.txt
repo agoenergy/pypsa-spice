@@ -3,5 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 markdown-katex==202406.1035
+mkdocs-awesome-pages-plugin==2.10.0
 mkdocs-to-pdf==0.10.1     
 streamlit-js-eval==0.1.7
+ruamel-yaml==0.18.17

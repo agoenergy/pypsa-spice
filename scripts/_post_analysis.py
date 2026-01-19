@@ -467,16 +467,24 @@ class OutputTables(Plots):
             column (value)
         """
         df_all = pd.DataFrame()
+
         for country in self.countries:
-            pow_emi_df = (
-                self.pow_emi_by_carrier_yearly()
-                .loc[country]
-                .groupby(["carrier", "year"])
-                .sum()
-                .reset_index()
-                .assign(sector="power")
-            )
-            if "i" in self.config["base_configs"]["sector"][0]:
+            pow_emi_country_list = self.pow_emi_by_carrier_yearly().index.unique()
+            if country in pow_emi_country_list:
+                pow_emi_df = (
+                    self.pow_emi_by_carrier_yearly()
+                    .loc[[country]]
+                    .groupby(["carrier", "year"])
+                    .sum()
+                    .reset_index()
+                    .assign(sector="power")
+                )
+            else:
+                pow_emi_df = pd.DataFrame()
+            ind_emi_country_list = self.ind_emi_by_carrier_yearly().index.unique()
+            if ("i" in self.config["base_configs"]["sector"][0]) and (
+                country in ind_emi_country_list
+            ):
                 ind_emi_df = (
                     self.ind_emi_by_carrier_yearly()
                     .loc[country]
@@ -512,15 +520,16 @@ class OutputTables(Plots):
             A DataFrame with multi-index (country, sector, year) and column (value)
         """
         df_all = pd.DataFrame()
-        for country in self.countries:
+        emi_cost_df = self.pow_emi_by_carrier_yearly()
+
+        for country in emi_cost_df.index.unique():
             if (
                 self.scenario_configs["co2_management"][country]["option"]
                 != "co2_price"
             ):
                 continue  # skip if no CO2 price is applied
             pow_emi_cost_df = (
-                self.pow_emi_cost_by_carrier_yearly()
-                .loc[country]
+                emi_cost_df.loc[[country]]
                 .groupby("year")
                 .sum()
                 .reset_index()
@@ -609,8 +618,8 @@ class OutputTables(Plots):
             )
             # energy balance of the fuel buses
             eb = n.statistics.energy_balance(
-                groupby=n.statistics.groupers.get_bus_and_carrier_and_bus_carrier,
-                aggregate_time=False,
+                groupby=["bus", "carrier", "bus_carrier"],
+                groupby_time=False,
             ).reset_index()
             eb["country"] = eb["bus"].apply(lambda x: n.buses.country[x])
             eb = eb.loc[eb.bus.isin(bus_id)].round()
@@ -652,8 +661,10 @@ class OutputTables(Plots):
         for country in self.countries:
             if country not in self.scenario_configs.get("custom_constraints", {}):
                 continue
-            if not self.scenario_configs["custom_constraints"][country].get(
-                "energy_independence", False
+            if not (
+                self.scenario_configs["custom_constraints"][country][
+                    "energy_independence"
+                ].get("activate", False)
             ):
                 continue
             final_df = pd.DataFrame()
@@ -952,15 +963,15 @@ class OutputTables(Plots):
                 included_substrings = ["HVELEC", "LVELEC", "HHBSN", "BATSN", "HPHSN"]
                 if c == "Store":
                     pow_cost = n.statistics.capex(
-                        comps=c, groupby=[bus_name, "country", "type"]
+                        components=c, groupby=[bus_name, "country", "type"]
                     )
                 else:
                     pow_cost = n.statistics.capex(
-                        comps=c, groupby=[bus_name, "country", "type"]
+                        components=c, groupby=[bus_name, "country", "type"]
                     ).sub(
                         n.statistics.capex(
                             cost_attribute="fom_cost",
-                            comps=c,
+                            components=c,
                             groupby=[bus_name, "country", "type"],
                         ),
                         fill_value=0,
@@ -1023,7 +1034,7 @@ class OutputTables(Plots):
                 included_substrings = ["HVELEC", "LVELEC", "HHBSN", "BATSN", "HPHSN"]
                 pow_cost = n.statistics.capex(
                     cost_attribute="fom_cost",
-                    comps=c,
+                    components=c,
                     groupby=[bus_name, "country", "type"],
                 )
                 if not pow_cost.empty:
@@ -1084,15 +1095,15 @@ class OutputTables(Plots):
                 # new opex = opex + fom_cost + fuel_cost
                 if c == "Store":
                     pow_cost = n.statistics.opex(
-                        comps=c, groupby=[bus_name, "country", "type"]
+                        components=c, groupby=[bus_name, "country", "type"]
                     )
                 else:
                     pow_cost = n.statistics.opex(
-                        comps=c, groupby=[bus_name, "country", "type"]
+                        components=c, groupby=[bus_name, "country", "type"]
                     ).add(
                         n.statistics.capex(
                             cost_attribute="fom_cost",
-                            comps=c,
+                            components=c,
                             groupby=[bus_name, "country", "type"],
                         ),
                         fill_value=0,
@@ -2012,7 +2023,6 @@ class OutputTables(Plots):
                 inflexible_power_load = (
                     n.loads_t.p[hv_lv_load_indices].T.groupby(n.loads.carrier).sum().T
                 )
-
                 inflexible_power_load.columns = ["Inflexible_Power"]
             country_load_df = pd.concat(
                 [country_load_df, inflexible_power_load], axis=1
@@ -2124,17 +2134,21 @@ class OutputTables(Plots):
                 co2_price = self.scenario_configs["co2_management"][country]["value"][
                     year
                 ]
-                emi = (
-                    self.pow_emi_by_carrier_yearly()
-                    .loc[country]
-                    .set_index(["carrier", "year"], append=True)["value"]
-                    .unstack()[year]
-                    .fillna(0)
-                )
-                emi_cost = emi.mul(co2_price).to_frame("value")
-                emi_cost["year"] = year
-                df_country = pd.concat([df_country, emi_cost], axis=0)
-                df_country.index.names = ["country", "carrier"]
+                pow_emi_country_list = self.pow_emi_by_carrier_yearly().index.unique()
+                if country in pow_emi_country_list:
+                    emi = (
+                        self.pow_emi_by_carrier_yearly()
+                        .loc[[country]]
+                        .set_index(["carrier", "year"], append=True)["value"]
+                        .unstack()[year]
+                        .fillna(0)
+                    )
+                    emi_cost = emi.mul(co2_price).to_frame("value")
+                    emi_cost["year"] = year
+                    df_country = pd.concat([df_country, emi_cost], axis=0)
+                    df_country.index.names = ["country", "carrier"]
+                else:
+                    df_country = pd.DataFrame()
             df_all = pd.concat([df_all, df_country], axis=0)
         if df_all.empty:
             return pd.DataFrame(columns=["year", "value"])  # return an empty dataframe
@@ -2197,7 +2211,7 @@ class OutputTables(Plots):
             n = self.network_dict[year]
             inter_cf = (
                 n.statistics.capacity_factor(
-                    comps="Link", groupby=["type", "country", "bus0", "bus1"]
+                    components="Link", groupby=["type", "country", "bus0", "bus1"]
                 )
                 .loc["ITCN"]
                 .reset_index()
@@ -2856,15 +2870,15 @@ class OutputTables(Plots):
                 included_substrings = ["IND", "INLHSTORN"]
                 if c == "Store":
                     ind_cost = n.statistics.capex(
-                        comps=c, groupby=[bus_name, "country", "type", "carrier"]
+                        components=c, groupby=[bus_name, "country", "type", "carrier"]
                     )
                 else:
                     ind_cost = n.statistics.capex(
-                        comps=c, groupby=[bus_name, "country", "type", "carrier"]
+                        components=c, groupby=[bus_name, "country", "type", "carrier"]
                     ).sub(
                         n.statistics.capex(
                             cost_attribute="fom_cost",
-                            comps=c,
+                            components=c,
                             groupby=[bus_name, "country", "type", "carrier"],
                         ),
                         fill_value=0,
@@ -2924,7 +2938,7 @@ class OutputTables(Plots):
                 included_substrings = ["IND", "INLHSTORN"]
                 pow_cost = n.statistics.capex(
                     cost_attribute="fom_cost",
-                    comps=c,
+                    components=c,
                     groupby=[bus_name, "country", "type", "carrier"],
                 )
                 if not pow_cost.empty:
@@ -2983,15 +2997,15 @@ class OutputTables(Plots):
                 # new opex = opex + fom_cost + fuel_cost
                 if c == "Store":
                     ind_cost = n.statistics.opex(
-                        comps=c, groupby=[bus_name, "country", "type", "carrier"]
+                        components=c, groupby=[bus_name, "country", "type", "carrier"]
                     )
                 else:
                     ind_cost = n.statistics.opex(
-                        comps=c, groupby=[bus_name, "country", "type", "carrier"]
+                        components=c, groupby=[bus_name, "country", "type", "carrier"]
                     ).add(
                         n.statistics.capex(
                             cost_attribute="fom_cost",
-                            comps=c,
+                            components=c,
                             groupby=[bus_name, "country", "type", "carrier"],
                         ),
                         fill_value=0,

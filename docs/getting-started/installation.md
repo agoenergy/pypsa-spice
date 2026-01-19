@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 # Installation
 
-## Clone the Repository
+## Clone the repository
 
 First, clone the [PyPSA-SPICE repository](https://github.com/agoenergy/pypsa-spice){:target="_blank"} using the **Git** version control system. **Important:** the path to the directory where the repository is cloned **must not contain any spaces**.
 
@@ -17,7 +17,7 @@ git clone https://github.com/agoenergy/pypsa-spice.git
 cd pypsa-spice
 ```
 
-## Install Python Dependencies
+## Install Python dependencies
 
 PyPSA-SPICE needs a set of Python packages to function. We recommend using **Conda**, a package and environment management system, to handle these dependencies.
 
@@ -37,31 +37,31 @@ bash Miniforge3-$ Miniforge3-Linux-x86_64.sh
 
 You can switch to any other directory outside the folder you cloned PyPSA-SPICE.
 
-**Important Notes:**
+**Important notes:**
 
 1. **Mambaforge** is deprecated as of July 2024 and was officially retired after January 2025. For this reason, we recommend using Miniforge3 instead.
 2. Install Miniforge3 or mamba packages only in the base Conda environment. Installing them in other environments may lead to compatibility issues or unexpected errors.
 3. Miniforge3 and Mambaforge use different environment paths. If you switch from one to the other, you will need to recreate all Conda environments, as they are not shared between the two setups.
 
-The required Python packages for PyPSA-SPICE are listed in the `environment.yaml` (via conda or mamba) and `requirements.txt` (via pip). You can create and activate the environment (which is called `pypsa-spice`) using the following commands:
+The required Python packages for PyPSA-SPICE are listed in the `environment.yaml` (via conda or mamba) and `requirements.txt` (via pip). You can create and activate the environment (which is called `hotpot`) using the following commands:
 
 ```bash title="Installing and activating the virtual environment"
 mamba env create -f envs/environment.yaml
-conda activate pypsa-spice
+conda activate hotpot
 ```
 
 Note that the environment activation is local to the currently open terminal session. If you open a new terminal window, you will need to re-run the activation command.
 
-## Install a Solver
+## Install a solver
 
-Th network model created in PyPSA-SPICE model builder is passed to an external solver to perform total annual system cost minimization and obtain optimal power flows. PyPSA-SPICE is compatible with several solvers that can be installed via Python. In our default environment, Gurobi and HiGHs solvers are installed (packages installed not licenses). Below is a list of supported solvers along with links to their official installation guides for different operating systems:
+Th network model created in PyPSA-SPICE model builder is passed to an external solver to perform total annual system cost minimisation and obtain optimal power flows. PyPSA-SPICE is compatible with several solvers that can be installed via Python. In our default environment, Gurobi and HiGHs solvers are installed (packages installed not licenses). Below is a list of supported solvers along with links to their official installation guides for different operating systems:
 
 | Solver              | License type         | Installation guide |
 | ------------------- | -------------------- | ------------------ |
-| Ipopt               | Free & open-source   | [Ipopt](https://coin-or.github.io/Ipopt/INSTALL.html){:target="_blank"} |
-| Cbc                 | Free & open-source   | [Cbc](https://github.com/coin-or/Cbc?tab=readme-ov-file#download){:target="_blank"} |
-| GLPK                | Free & open-source   | [GLPK](https://www.gnu.org/software/glpk/){:target="_blank"} /[WinGLPK](http://winglpk.sourceforge.net/){:target="_blank"} |
-| HiGHs               | Free & open-source   | [highspy](https://ergo-code.github.io/HiGHS/dev/interfaces/python/#Install){:target="_blank"} |
+| Ipopt               | Free and open-source   | [Ipopt](https://coin-or.github.io/Ipopt/INSTALL.html){:target="_blank"} |
+| Cbc                 | Free and open-source   | [Cbc](https://github.com/coin-or/Cbc?tab=readme-ov-file#download){:target="_blank"} |
+| GLPK                | Free and open-source   | [GLPK](https://www.gnu.org/software/glpk/){:target="_blank"} /[WinGLPK](http://winglpk.sourceforge.net/){:target="_blank"} |
+| HiGHs               | Free and open-source   | [highspy](https://ergo-code.github.io/HiGHS/dev/interfaces/python/#Install){:target="_blank"} |
 | Gurobi              | commercial | [gurobipy](https://support.gurobi.com/hc/en-us/articles/360044290292-How-do-I-install-Gurobi-for-Python){:target="_blank"} |
 | CPLEX               | commercial | [CPLEX](https://www.ibm.com/products/ilog-cplex-optimization-studio){:target="_blank"} |
 | FICO® Xpress Solver | commercial | [FICO® Xpress Solver](https://www.fico.com/de/products/fico-xpress-solver){:target="_blank"} |
@@ -71,20 +71,20 @@ Commercial solvers such as Gurobi currently significantly outperform open-source
 === "on Mac or Linux"
 
     ```bash
-    conda activate pypsa-spice
+    conda activate hotpot
     conda install -c conda-forge ipopt coincbc
     ```
 
 === "on Windows"
 
     ```bash
-    conda activate pypsa-spice
+    conda activate hotpot
     conda install -c conda-forge ipopt glpk
     ```
 
 On Windows, new versions of ``ipopt`` have caused problems. Consider downgrading to version 3.11.1.
 
-## Set up the Default Configuration
+## Set up the default configuration
 
 PyPSA-SPICE requires two configuration files:
 
@@ -94,7 +94,7 @@ PyPSA-SPICE requires two configuration files:
 
 To get started, configure `base_config.yaml` first, then run the data setup process. Once complete, you can configure individual scenarios using their respective `scenario_config.yaml` files. For detailed configuration options, refer to [model-builder-configuration](input-data/model-builder-configuration.md).
 
-## Quick Execution of the Model Builder using Template Data
+## Quick execution of the model builder using template data
 
 To have a first glance of how the model builder works, template data in `data/pypsa-spice-data` folder can be used. You can run the entire workflow with the following command:
 

@@ -4,19 +4,19 @@ SPDX-FileCopyrightText: PyPSA-SPICE Developers
 SPDX-License-Identifier: GPL-2.0-or-later
 -->
 
-# Power Sector
+# Power sector
 
-## Key Features
+## Key features
 
 - **Co-optimisation** of generation and capacity expansion including interconnections.
-- **Myopic** (Year-by-year) optimisation. Each year is optimised independently, without assuming knowledge of future developments.
+- **Myopic** (year-by-year) optimisation. Each year is optimised independently, without assuming knowledge of future developments.
 - **Brownfield** modelling approach. The model builds on existing infrastructure, meaning capacity from previous years is retained and carried forward.
 
-PyPSA-SPICE follows the component definitions from [PyPSA Components](https://docs.pypsa.org/latest/user-guide/design/){:target="_blank"}. The diagram below illustrates all components involved in energy flows at a single node in the power sector.
+PyPSA-SPICE follows the component definitions from [PyPSA components](https://docs.pypsa.org/latest/user-guide/design/){:target="_blank"}. The diagram below illustrates all components involved in energy flows at a single node in the power sector.
 
-[![PyPSA-SPICE power sector energy flow](../assets/images/pypsa-spice_schema_power_sector.svg){ .img-center width="100%" }](../assets/images/pypsa-spice_schema_power_sector.svg){: target="_blank" }
+[![PyPSA-SPICE power sector energy flow](../assets/images/pypsa-spice_schema_power_sector.jpg){ .img-center width="100%" }](../assets/images/pypsa-spice_schema_power_sector.jpg){: target="_blank" }
 
-## Power Generators
+## Power generators
 
 All the listed components are defined as `Generator` in PyPSA.
 
@@ -30,7 +30,7 @@ All the listed components are defined as `Generator` in PyPSA.
 | `WTOF`        | Offshore wind                            |
 | `WTON`        | Onshore wind                             |
 
-## Power Links
+## Power links
 
 All the listed components are defined as `Link` in PyPSA.
 
@@ -46,20 +46,20 @@ All the listed components are defined as `Link` in PyPSA.
 | `OILT`        | Oil turbine power plant power plant                  |
 | `SubC`        | Subcritical coal-fired power plant       |
 | `SupC`        | Supercritical coal-fired power plant     |
-| `WSTT`        | Waste-to-Energy power plant              |
+| `WSTT`        | Waste-to-energy power plant              |
 
-## Storage Capacity
+## Storage capacity
 
 The following component is defined as `StorageUnit` in PyPSA.
 
 Storages can be modelled with two approaches.
 
-1. **Fixed Energy/Power Ratio:** In this case, the energy to power ratio for storage is predefined. You can use multiple storage type with different energy to power ratio. For example, `BATS` with E/P ratio of 4 and `BATS` with E/P ratio of 8 representing different energy to power ratio and the model will optimise the capacity of each of these technology. In this case, PyPSA type `Storage_units` can be used for modelling and defining the energy to power ratio in `technologies.csv`.
-2. **Variable Energy/Power Ratio:** If you want the model to optimise the energy/power ratio of storage your have to model it using a combination of `links` + `store` component. This requires separate inputs like costs for capacity and energy component of the storage inputs.
+1. **Fixed energy-to-power ratio:** In this case, the energy to power ratio for storage is predefined. You can use multiple storage type with different energy to power ratio. For example, `BATS` with E/P ratio of 4 and `BATS` with E/P ratio of 8 representing different energy to power ratio and the model will optimise the capacity of each of these technology. In this case, PyPSA type `Storage_units` can be used for modelling and defining the energy to power ratio in `technologies.csv`.
+2. **Variable energy-to-power ratio:** If you want the model to optimise the energy/power ratio of storage your have to model it using a combination of `Links` + `Store` component. This requires separate inputs like costs for capacity and energy component of the storage inputs.
 
 !!! Tip
-    In PyPSA components, `StorageUnit` is modelled as a storage asset with a fixed energy-to-power ratio defined by `max_hours` of the nominal power (you can also refer to [PyPSA Components - Storage Unit](https://docs.pypsa.org/latest/user-guide/components/storage-units/){:target="_blank"} for more information). Thus, in PyPSA-SPICE model builder, hydro dam `HDAM` is defined as a `StorageUnit` and it is given in storage capcaity only to represent nominal power-related params. <br><br>
-    To model the storage energy separately from the power capacity, `store` + 2 `links` is a better combination. You can refer to [Storage Energy](power_sector.md#storage-energy) for more information. Technologies defined in the storage energy require storage capacity if the carrier is related to electricity (power).
+    In PyPSA components, `StorageUnit` is modelled as a storage asset with a fixed energy-to-power ratio defined by `max_hours` of the nominal power (you can also refer to [PyPSA Components - StorageUnit](https://docs.pypsa.org/latest/user-guide/components/storage-units/){:target="_blank"} for more information). Thus, in PyPSA-SPICE model builder, hydro dam `HDAM` is defined as a `StorageUnit` and it is given in storage capcaity only to represent nominal power-related params. <br><br>
+    To model the storage energy separately from the power capacity, `Store` + 2 `Links` is a better combination. You can refer to [Storage energy](power_sector.md#storage-energy) for more information. Technologies defined in the storage energy require storage capacity if the carrier is related to electricity (power).
 
 | Abbreviation  | Full Name                                |
 | ------------- | ---------------------------------------- |
@@ -68,13 +68,13 @@ Storages can be modelled with two approaches.
 | `HHBS`        | Household battery storage                |
 | `HPHS`        | Hydro pumped storage                     |
 
-## Storage Energy
+## Storage energy
 
 All the listed components are defined as `Store` in PyPSA.
 
 !!! Tip
-    In PyPSA components, `Store` is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of `store` + 2 `links`. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
-    In PyPSA-SPICE model builder, technologies that are defined as storage energy, **they should also be included in [Storage Capacity](power_sector.md#storage-capacity) to describe charging and discharging processes. The links are created automatically , and hence it's not required to add charging and discharging links inside [Power Links](power_sector.md#power-links).**<br><br>
+    In PyPSA components, `Store` is modelled as a storage asset with only energy storage. It can optimise energy capacity separately from the power capacity with a combination of `Store` + 2 `Links`. The links represent charging and discharging characteristics to control the power output. Marginal cost and efficiency of charging and discharging can be defined in each link.<br><br>
+    In PyPSA-SPICE model builder, technologies that are defined as storage energy, **they should also be included in [Storage capacity](power_sector.md#storage-capacity) to describe charging and discharging processes. The links are created automatically , and hence it's not required to add charging and discharging links inside [Power links](power_sector.md#power-links).**<br><br>
     Detailed information and example can be found in [PyPSA Components - Store](https://docs.pypsa.org/latest/user-guide/components/stores/){:target="_blank"} and [Replace StorageUnits with fundamental Links and Stores](https://docs.pypsa.org/latest/examples/replace-generator-storage-units-with-store/){:target="_blank"}.
 
 | Abbreviation  | Full Name                                |
@@ -100,7 +100,7 @@ All the listed components are defined as `Store` in PyPSA.
 | `Hyd`         | Hydrogen                                                      |
 | `Lig`         | Lignite                                                       |
 | `Lng`         | Liquefied natural gas                                         |
-| `Low_Heat`    | Low/Medium-temperature heat (< 350°C)                         |
+| `Low_Heat`    | Low-/Medium-temperature heat (< 350°C)                         |
 | `Oil`         | Oil                                                           |
 | `Uranium`     | Uranium                                                       |
 | `Waste`       | Waste                                                         |
@@ -127,23 +127,23 @@ All the listed components are defined as `Store` in PyPSA.
 | `OILN`        | Oil                           |
 | `WSTN`        | Waste                         |
 
-## Other Components
+## Other components
 
 | Abbreviation | Full Name                                               |
 | ------------ | ------------------------------------------------------- |
 | `co2Price`   | Price of emitting one unit of CO~2~ into the atmosphere |
 | `r`          | Interest rate                                           |
-| `HV_LOAD`   | Wholesale market load (High voltage level)              |
+| `HV_LOAD`   | Wholesale market load (high voltage level)              |
 | `LV_LOAD`   | Building load (low/medium voltage level)                |
 
-## Custom Constraints (Defined in the `config.yaml` File)
+## Custom constraints (defined in the `config.yaml` file)
 
 - CO</sub>2</sub> management
-- Energy independence
-- Fuel production constraint
-- Reserve margin
-- Renewable generation share constraint
-- Must run constraint of thermal generators
-- Capacity factor constraint
+- energy independence
+- fuel production constraint
+- reserve margin
+- renewable generation share constraint
+- must run constraint of thermal generators
+- capacity factor constraint
 
-You can refer to [Model Builder Constraints](../getting-started/input-data/model-builder-configuration.md) for more information.
+You can refer to [Model builder constraints](../getting-started/input-data/model-builder-configuration.md) for more information.

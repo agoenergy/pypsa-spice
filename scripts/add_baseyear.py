@@ -70,10 +70,9 @@ class AddBaseNetwork:
         bus_df = pd.read_csv(bus_dir)
         bus_df = filter_selected_countries_and_regions(
             df=bus_df,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
-            buses_csv=True,
+            filter_column="node",
+            country_regions=self.country_region,
+            include_both_country_n_regional_rows=True,
         )
         bus_df = get_buses(bus_df=bus_df)
         self.network.add(
@@ -132,9 +131,8 @@ class AddBaseNetwork:
         interc = pd.read_csv(snakemake.input.interconnection)
         interc = filter_selected_countries_and_regions(
             df=interc,
-            column="link",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="link",
+            country_regions=self.country_region,
         ).set_index("link")
 
         self.network.add(
@@ -188,16 +186,15 @@ class AddBaseNetwork:
         storage_capacity = pd.read_csv(storage_capacity_dir)
         storage_capacity = filter_selected_countries_and_regions(
             df=storage_capacity,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
         )
         storage_capacity = update_tech_fact_table(
             tech_table=storage_capacity,
             technologies_dir=self.technologies_dir,
             tech_costs_dir=self.tech_cost_dir,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
 
@@ -334,18 +331,17 @@ class AddBaseNetwork:
         storage_energy_raw = pd.read_csv(storage_energy_dir).set_index("store")
         storage_energy_raw = filter_selected_countries_and_regions(
             df=storage_energy_raw.reset_index(),
-            column="store",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="store",
+            country_regions=self.country_region,
         ).set_index("store")
         storage_energy_raw["cyclic"] = storage_energy_raw["type"].apply(
             lambda x: x != "CO2STOR"
         )
         storage_energy = update_storage_costs(
             storage_energy_raw,
-            storage_costs=self.storage_cost_path,
+            storage_costs_dir=self.storage_cost_path,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
 
@@ -373,9 +369,9 @@ class AddBaseNetwork:
         """Add loads of all kind to the PyPSA network."""
         load_df = filter_selected_countries_and_regions(
             df=pd.read_csv(load_dir),
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
+            include_both_country_n_regional_rows=True,
         )
         final_load = get_time_series_demands(load_df, self.dmd_profile_path, self.year)
         final_load.reset_index(["country", "bus", "carrier", "node"], inplace=True)
@@ -404,16 +400,15 @@ class AddBaseNetwork:
         clean_pps = pd.read_csv(plant_dir)
         clean_pps = filter_selected_countries_and_regions(
             df=clean_pps,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
         )
         clean_pps = update_tech_fact_table(
             tech_table=clean_pps,
             technologies_dir=self.technologies_dir,
             tech_costs_dir=self.tech_cost_dir,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
         clean_gen = clean_pps[clean_pps["class"] == "Generator"]
@@ -455,16 +450,15 @@ class AddBaseNetwork:
         links_df = pd.read_csv(links_dir)
         links_df = filter_selected_countries_and_regions(
             df=links_df,
-            column="link",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="link",
+            country_regions=self.country_region,
         )
         links_df = update_tech_fact_table(
             tech_table=links_df,
             technologies_dir=self.technologies_dir,
             tech_costs_dir=self.tech_cost_dir,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
         # ensure all efficiency columns are filled
@@ -516,16 +510,15 @@ class AddBaseNetwork:
         ].set_index(["powerplant_type", "country"])
         ev_links_df = filter_selected_countries_and_regions(
             df=ev_links_df.reset_index(),
-            column="link",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="link",
+            country_regions=self.country_region,
         ).set_index("link")
         ev_links_df = update_ev_char_parameters(
             tech_df=ev_links_df,
             year=self.year,
             ev_param_dir=snakemake.input.ev_parameters,
             cost_df=tech_costs_df,
-            interest_rate=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
         link_p_max_pu = (
@@ -564,9 +557,8 @@ class AddBaseNetwork:
         ev_storages = pd.read_csv(snakemake.input.tra_pev_storages).set_index("name")
         ev_storages = filter_selected_countries_and_regions(
             df=ev_storages,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
         )
         ev_storages = update_ev_store_parameters(
             tech_table=ev_storages,
@@ -616,26 +608,29 @@ class AddBaseNetwork:
 
     def add_noisy_cost(self):
         """Add noisy cost for faster solving time."""
-        for t in self.network.iterate_components(self.network.one_port_components):
-            non_co2_assets = t.df[t.df.carrier != "CO2"].index
-            if "marginal_cost" in t.df:
-                t.df.loc[non_co2_assets, "marginal_cost"] += 1e-2 + 2e-3 * (
-                    np.random.random(len(t.df.loc[non_co2_assets])) - 0.5
+        for t in self.network.components:
+            if t.name not in self.network.one_port_components:
+                continue
+            non_co2_assets = t.static[t.static.carrier != "CO2"].index
+            if "marginal_cost" in t.static:
+                t.static.loc[non_co2_assets, "marginal_cost"] += 1e-2 + 2e-3 * (
+                    np.random.random(len(t.static.loc[non_co2_assets])) - 0.5
                 )
-            if "capital_cost" in t.df:
-                t.df.loc[non_co2_assets, "capital_cost"] += 1e-1 + 2e-2 * (
-                    np.random.random(len(t.df.loc[non_co2_assets])) - 0.5
+            if "capital_cost" in t.static:
+                t.static.loc[non_co2_assets, "capital_cost"] += 1e-1 + 2e-2 * (
+                    np.random.random(len(t.static.loc[non_co2_assets])) - 0.5
                 )
 
     def remove_abundant_components(self):
         """Remove components with 0 capacities and non extendable status."""
-        for comp in self.network.iterate_components(
-            ["Link", "Generator", "Store", "StorageUnit"]
-        ):
+        for comp in self.network.components:
+            if comp.name not in ["Link", "Generator", "Store", "StorageUnit"]:
+                continue
             attr = "e" if comp.name == "Store" else "p"
             # remove asset with capacity = 0 and non extendable
-            assets_below_threshold = comp.df.index[
-                (comp.df[attr + "_nom"] < 0.1) & ~(comp.df[attr + "_nom_extendable"])
+            assets_below_threshold = comp.static.index[
+                (comp.static[attr + "_nom"] < 0.1)
+                & ~(comp.static[attr + "_nom_extendable"])
             ]
             self.network.remove(comp.name, assets_below_threshold)
 
@@ -654,8 +649,8 @@ class AddBaseNetwork:
             # Get all time-dependent data
             dfs = [
                 pnl
-                for c in self.network.iterate_components()
-                for attr, pnl in c.pnl.items()
+                for c in self.network.components
+                for attr, pnl in c.dynamic.items()
                 if not pnl.empty and attr != "e_min_pu"
             ]
             df = pd.concat(dfs, axis=1)
@@ -736,7 +731,7 @@ class AddBaseNetwork:
             self.network.cluster = map_snapshots_to_periods
             self.network.set_snapshots(new_snapshots.index)
             # Aggregation all time-varying data.
-            for comp in self.network.iterate_components():
+            for comp in self.network.components:
                 pnl = getattr(self.network, comp.list_name + "_t")
                 for k, df in comp.pnl.items():
                     if not df.empty:
@@ -818,6 +813,7 @@ if __name__ == "__main__":
     n.set_snapshots(resolution)
     # executing each add functions
     c = AddBaseNetwork(network=n, year=selected_year, scenario_configs=scenario_configs)
+    print("Adding spice...")
     c.add_buses(bus_dir=snakemake.input.elec_buses)
     c.add_atmosphere()
     c.add_interconnectors()

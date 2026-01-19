@@ -29,7 +29,7 @@ from _helpers import (
     FilePath,
     configure_logging,
     filter_selected_countries_and_regions,
-    get_capital_cost,
+    get_crf,
     get_link_availabilities,
     get_plant_availabilities,
     get_storage_units_inflows,
@@ -70,23 +70,26 @@ def add_brownfield(
     co2_store = n.stores[n.stores.bus.str.contains("CO2STORN")].index
     n.remove("Store", co2_store)
 
-    for c in n.iterate_components(["Link", "Generator", "Store", "StorageUnit"]):
+    for c in n.components:
+        if c.name not in ["Link", "Generator", "Store", "StorageUnit"]:
+            continue
         attr = "e" if c.name == "Store" else "p"
         # fix capacities from older assets
-        c.df[attr + "_nom"] = c.df[attr + "_nom_opt"]
-        c.df[attr + "_nom_extendable"] = False
+        c.static[attr + "_nom"] = c.static[attr + "_nom_opt"]
+        c.static[attr + "_nom_extendable"] = False
 
         # re-enable theoretical store
         if c.name == "Store":
-            tstor = c.df[
-                (c.df.carrier.isin(["CO2"])) | (c.df.type.str.contains("_STORE"))
+            tstor = c.static[
+                (c.static.carrier.isin(["CO2"]))
+                | (c.static.type.str.contains("_STORE"))
             ].index
-            c.df.loc[tstor, attr + "_nom_extendable"] = True
+            c.static.loc[tstor, attr + "_nom_extendable"] = True
 
         # re-enable theoretical generators
         if c.name == "Generator":
-            tgen = c.df[c.df.type.str.contains("SUPPLY")].index
-            c.df.loc[tgen, attr + "_nom_extendable"] = True
+            tgen = c.static[c.static.type.str.contains("SUPPLY")].index
+            c.static.loc[tgen, attr + "_nom_extendable"] = True
 
         for country in snakemake.params.country_region:
             # subtract co2 price from marginal cost of previous year fossil links
@@ -100,13 +103,15 @@ def add_brownfield(
                 co2_price_previous = scenario_configs["co2_management"][country][
                     "value"
                 ][year_previous]
-                emit_links = c.df[c.df.bus2 == f"{country}_ATMP"].index
-                c.df.loc[emit_links, "marginal_cost"] = c.df.loc[
+                emit_links = c.static[c.static.bus2 == f"{country}_ATMP"].index
+                c.static.loc[emit_links, "marginal_cost"] = c.static.loc[
                     emit_links, "marginal_cost"
-                ] - c.df.loc[emit_links, "efficiency2"].mul(co2_price_previous)
+                ] - c.static.loc[emit_links, "efficiency2"].mul(co2_price_previous)
 
         # remove assets whose build_year + lifetime < year
-        assets_phased_out = c.df.index[c.df.build_year + c.df.lifetime < year]
+        assets_phased_out = c.static.index[
+            c.static.build_year + c.static.lifetime < year
+        ]
 
         n.remove(c.name, assets_phased_out)
 
@@ -119,8 +124,9 @@ def add_brownfield(
 
         # remove capacities below a certain threshold (this is mainly to avoid
         # numerical issues)
-        assets_below_threshold = c.df.index[
-            (c.df[attr + "_nom_opt"] < threshold) & ~(c.df[attr + "_nom_extendable"])
+        assets_below_threshold = c.static.index[
+            (c.static[attr + "_nom_opt"] < threshold)
+            & ~(c.static[attr + "_nom_extendable"])
         ]
         n.remove(c.name, assets_below_threshold)
 
@@ -161,37 +167,36 @@ def update_decommission_base_assets(
     decap_df = pd.concat([pow_decom_df, ind_decom_df], axis=0)
     decap_df = filter_selected_countries_and_regions(
         df=decap_df.reset_index(),
-        column="name",
-        country_region=sm_country_region,
-        currency=str(currency).lower(),
+        filter_column="name",
+        country_regions=sm_country_region,
     ).set_index("name")
     for col in decap_df.columns:
         if col in ["country", "class"]:
             decap_df[col] = decap_df[col].astype(str)
         else:
             decap_df[col] = decap_df[col].astype(float).fillna(0)
-    for c in n.iterate_components(
-        [
+    for c in n.components:
+        if c.name not in [
             "Store",
             "StorageUnit",
             "Link",
             "Generator",
-        ]
-    ):
+        ]:
+            continue
         decap = decap_df[decap_df["class"] == c.name][str(year)]
         if len(decap) == 0:
             print(f"No decommissioning for {c.name}")
             continue
         attr = "e" if c.name == "Store" else "p"
         for plant in decap.index:
-            if plant in c.df.index:
+            if plant in c.static.index:
                 if c.name == "Link":
-                    c.df.loc[plant, f"{attr}_nom"] = c.df.loc[plant, f"{attr}_nom"] - (
-                        decap.loc[plant] / c.df.loc[plant, "efficiency"]
-                    )
+                    c.static.loc[plant, f"{attr}_nom"] = c.static.loc[
+                        plant, f"{attr}_nom"
+                    ] - (decap.loc[plant] / c.static.loc[plant, "efficiency"])
                 else:
-                    c.df.loc[plant, f"{attr}_nom"] = (
-                        c.df.loc[plant, f"{attr}_nom"] - decap.loc[plant]
+                    c.static.loc[plant, f"{attr}_nom"] = (
+                        c.static.loc[plant, f"{attr}_nom"] - decap.loc[plant]
                     )
         # Ensure nominal 'p' or 'e' never goes below 0.
         # If this check is not implemented, some solvers such as HiGHS won't be able to
@@ -199,18 +204,18 @@ def update_decommission_base_assets(
         # constraints (i.e., nominal values are set to be non-negative in a different
         # constraint, but their values might become negative after decommissioning in
         # these constraints)
-        negative_capacities = c.df[f"{attr}_nom"] < 0
+        negative_capacities = c.static[f"{attr}_nom"] < 0
         if negative_capacities.any():
-            affected = c.df.index[negative_capacities].tolist()
+            affected = c.static.index[negative_capacities].tolist()
             for asset in affected:
-                negative_capacity = c.df.loc[asset, f"{attr}_nom"]
+                negative_capacity = c.static.loc[asset, f"{attr}_nom"]
                 print(
                     f"[WARNING] Decommissioning set negative capacity to component "
                     f"'{asset}' (value: {negative_capacity:.2f}), which was clipped to "
                     "0 to avoid infeasibility. Please correct your input data.",
                     f"{asset} - {negative_capacity:.2f}",
                 )
-            c.df[f"{attr}_nom"] = c.df[f"{attr}_nom"].clip(lower=0.0)
+            c.static[f"{attr}_nom"] = c.static[f"{attr}_nom"].clip(lower=0.0)
 
 
 def update_fuel_data(
@@ -300,14 +305,16 @@ def update_brownfield_snapshots(
     )
     n.set_snapshots(reduced_year_hours)
     n.snapshot_weightings = weights.set_index(n.snapshots)
-    for c in n_p.iterate_components(["Link", "Generator", "Store", "StorageUnit"]):
+    for c in n_p.components:
+        if c.name not in ["Link", "Generator", "Store", "StorageUnit"]:
+            continue
         # copy time-dependent
         selection = n.component_attrs[c.name].type.str.contains(
             "series"
         ) & n.component_attrs[c.name].status.str.contains("Input")
         for tattr in n.component_attrs[c.name].index[selection]:
             n.import_series_from_dataframe(
-                c.pnl[tattr].set_index(n.snapshots), c.name, tattr
+                c.dynamic[tattr].set_index(n.snapshots), c.name, tattr
             )
 
 
@@ -353,9 +360,8 @@ class AddFutureAssets:
         interconnectors = pd.read_csv(snakemake.input.interconnection)
         interconnectors = filter_selected_countries_and_regions(
             df=interconnectors,
-            column="link",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="link",
+            country_regions=self.country_region,
         ).set_index("link")
         p_nom_max_min_columns = [
             x for x in interconnectors.columns if "p_nom_max" in x or "p_nom_min" in x
@@ -363,15 +369,27 @@ class AddFutureAssets:
         interconnectors[p_nom_max_min_columns] = interconnectors[
             p_nom_max_min_columns
         ].astype("float64")
+        # Calculate capital cost for interconnectors
         interconnectors["life__years"] = (
             50  # assuming lifetime of 50 years for interconnectors
         )
-        interconnectors[f"cap__{str(self.currency).lower()}_mw"] = get_capital_cost(
-            plant_type="ITCN",
-            tech_costs=interconnectors.set_index("type"),
-            interest=self.interest,
-            currency=self.currency,
-        ).values  # annualized capital cost
+        # get interest rate for each country
+        interconnectors["interest"] = interconnectors["country"].apply(
+            lambda x: self.interest.get(x)
+        )
+        interconnectors_dict = interconnectors.to_dict("records")
+        crfs = []
+        for row in interconnectors_dict:
+            # calculate crf for each interconnector
+            crf = get_crf(row["interest"], row["life__years"])
+            crfs.append(crf)
+        interconnectors["crf"] = crfs
+        # capital cost = capex * crf + fom
+        interconnectors["capital_cost"] = (
+            interconnectors[f"cap__{str(self.currency).lower()}_mw"]
+            * interconnectors["crf"]
+            + interconnectors[f"fom__{str(self.currency).lower()}_mwa"]
+        )
         # Make distribution grid expandable
         distribution_grid = interconnectors[
             (interconnectors.type == "ITCN")
@@ -400,7 +418,7 @@ class AddFutureAssets:
             p_nom_max=interconnectors[f"p_nom_max_{self.year}"],
             p_nom_min=interconnectors[f"p_nom_min_{self.year}"],
             p_nom_extendable=True,
-            capital_cost=interconnectors[f"cap__{str(self.currency).lower()}_mw"],
+            capital_cost=interconnectors["capital_cost"],
             build_year=self.year,
             lifetime=interconnectors["life__years"],
             country=interconnectors["country"],
@@ -420,16 +438,15 @@ class AddFutureAssets:
         storage_capacity = pd.read_csv(storage_capacity_dir)
         storage_capacity = filter_selected_countries_and_regions(
             df=storage_capacity,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
         )
         storage_capacity = update_tech_fact_table(
             tech_table=storage_capacity,
             technologies_dir=self.technologies_dir,
             tech_costs_dir=self.tech_cost_dir,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
         storage_capacity = storage_capacity[(storage_capacity["p_nom_extendable"])]
@@ -583,18 +600,17 @@ class AddFutureAssets:
         storage_energy_raw = pd.read_csv(storage_energy_dir).set_index("store")
         storage_energy_raw = filter_selected_countries_and_regions(
             df=storage_energy_raw.reset_index(),
-            column="store",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="store",
+            country_regions=self.country_region,
         ).set_index("store")
         storage_energy_raw["cyclic"] = storage_energy_raw["type"].apply(
             lambda x: x != "CO2STOR"
         )
         storage_energy = update_storage_costs(
             storage_energy_raw,
-            storage_costs=self.storage_cost_path,
+            storage_costs_dir=self.storage_cost_path,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
 
@@ -635,9 +651,9 @@ class AddFutureAssets:
         """
         load_df = filter_selected_countries_and_regions(
             df=pd.read_csv(loads),
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
+            include_both_country_n_regional_rows=True,
         )
         final_load = get_time_series_demands(load_df, self.dmd_profile_path, self.year)
         final_load.reset_index(["country", "bus", "carrier", "node"], inplace=True)
@@ -674,16 +690,15 @@ class AddFutureAssets:
         clean_pps = pd.read_csv(plants)
         clean_pps = filter_selected_countries_and_regions(
             df=clean_pps,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
         )
         clean_pps = update_tech_fact_table(
             tech_table=clean_pps,
             technologies_dir=self.technologies_dir,
             tech_costs_dir=self.tech_cost_dir,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
 
@@ -743,16 +758,15 @@ class AddFutureAssets:
         raw_links_df = pd.read_csv(links)
         links_df = filter_selected_countries_and_regions(
             df=raw_links_df,
-            column="link",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="link",
+            country_regions=self.country_region,
         )
         links_df = update_tech_fact_table(
             tech_table=links_df,
             technologies_dir=self.technologies_dir,
             tech_costs_dir=self.tech_cost_dir,
             year=self.year,
-            interest=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
         links_df = links_df[links_df["p_nom_extendable"]]
@@ -816,16 +830,15 @@ class AddFutureAssets:
         ].set_index(["powerplant_type", "country"])
         ev_links_df = filter_selected_countries_and_regions(
             df=ev_links_df.reset_index(),
-            column="link",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="link",
+            country_regions=self.country_region,
         ).set_index("link")
         ev_links = update_ev_char_parameters(
             tech_df=ev_links_df,
             year=self.year,
             ev_param_dir=snakemake.input.ev_parameters,
             cost_df=tech_cost_df,
-            interest_rate=self.interest,
+            interest_dict=self.interest,
             currency=self.currency,
         )
         link_p_max_pu = get_link_availabilities(
@@ -867,9 +880,8 @@ class AddFutureAssets:
         ev_storages = pd.read_csv(snakemake.input.tra_pev_storages)
         ev_storages = filter_selected_countries_and_regions(
             df=ev_storages,
-            column="node",
-            country_region=self.country_region,
-            currency=str(self.currency).lower(),
+            filter_column="node",
+            country_regions=self.country_region,
         ).set_index("name")
         ev_storages = update_ev_store_parameters(
             tech_table=ev_storages,
@@ -923,6 +935,8 @@ class AddFutureAssets:
                 self.network.links.loc[
                     emit_links, "marginal_cost"
                 ] += self.network.links.loc[emit_links, "efficiency2"].mul(co2price)
+
+    # ========================== A̶D̶D̶I̶N̶G̶ ̶S̶P̶I̶C̶E̶ =========================
 
 
 if __name__ == "__main__":
