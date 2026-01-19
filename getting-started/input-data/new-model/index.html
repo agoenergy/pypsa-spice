@@ -299,6 +299,28 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../../releases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    📝 Release notes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
       
@@ -377,10 +399,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
             
   
   
@@ -393,8 +415,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             🚀 Getting started
           </label>
@@ -477,10 +499,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
             
   
   
@@ -493,8 +515,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_3">
             <span class="md-nav__icon md-icon"></span>
             Input data
           </label>
@@ -578,6 +600,15 @@
   <a href="#step-3-fill-in-the-skeleton-csvs" class="md-nav__link">
     <span class="md-ellipsis">
       Step 3: fill in the skeleton CSVs
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-fill-in-the-skeleton-csvs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: fill in the skeleton CSVs
     </span>
   </a>
   
@@ -925,6 +956,7 @@
 <li>Adjust the information inside <code>base_config.yaml</code>.</li>
 <li>Run <code>snakemake -c1 build_skeleton</code> to create a folder structure and template CSV files for your input data. All input folders and files shall be created inside the <code>data</code> folder after this command is executed.</li>
 <li>Fill in the skeleton CSVs with the required data manually or using available resources.</li>
+<li>Fill the scenario assumptions and constraints in <code>scenario_config.yaml</code> in your scenario folder.</li>
 </ol>
 <p>An example structure created by <code>build_skeleton</code> is displayed below. The following sections will use this example to explain the settings.</p>
 <h2 id="step-1-set-up-the-base-configuration-file">Step 1: set up the base configuration file<a class="headerlink" href="#step-1-set-up-the-base-configuration-file" title="Permanent link">¶</a></h2>
@@ -1013,11 +1045,12 @@
 <li>check <a href="../global_csv_template/">Global CSV template</a> for default  file descriptions of country-level data.</li>
 <li>see <a href="../regional_csv_template/">Regional CSV template</a> for detailed file descriptions of region-level data.</li>
 </ul>
-<p>Once all the necessary input data is provided, adjust model and solver settings in <a href="../model-builder-configuration/">Model configuration</a> and follow <a href="../model-builder-execution/">Model execution</a> to understand the model logic and how to run the model.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>By default, the input structure considers large number of technologies represented in the model. If the particular technologies are not needed in your model, it is good practice to remove the input data for these technologies. You can also define your own technologies and customise the model accordingly.  </p>
-</div></div>
+</div>
+<h2 id="step-4-fill-in-the-skeleton-csvs">Step 4: fill in the skeleton CSVs<a class="headerlink" href="#step-4-fill-in-the-skeleton-csvs" title="Permanent link">¶</a></h2>
+<p>Once all the necessary input data is provided, you can adjust model and solver settings in <a href="../model-builder-configuration/">Model configuration</a> and follow <a href="../model-builder-execution/">Model execution</a> to understand the model logic and how to run the model.</p></div>
 
 
 
