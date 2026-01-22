@@ -83,6 +83,11 @@ img[alt="PyPSA-SPICE_snakemake_workflow_DAG"] {
   font-size: 0.85rem;
 }
 
+/* Hide the logo in the navigation title */
+.md-nav__title .md-logo {
+  display: none;
+}
+
 /* Default: light logo visible, dark logo hidden */
 #logo_light_mode {
   display: var(--logo-light-display, block);
