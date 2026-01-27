@@ -456,7 +456,7 @@ def simple_bar_yearly(scenario_name: str, graph_config: dict) -> None:
     df = read_result_csv(
         scenario_name,
         graph_config["table_name"],
-        country=graph_config["shared_country"],
+        country_filter=graph_config["shared_country"],
     )
     df = clean_df_for_plotting(leg_col, df)
 
@@ -527,7 +527,7 @@ def simple_line_yearly(scenario_name: str, graph_config: dict):
     leg_col = graph_config["leg_col"]
 
     df = read_result_csv(
-        scenario_name, table_name, country=graph_config["shared_country"]
+        scenario_name, table_name, country_filter=graph_config["shared_country"]
     )
 
     df = clean_df_for_plotting(leg_col, df)
@@ -580,7 +580,7 @@ def bar_with_filter(scenario_name: str, graph_config: dict):
     slider_id = graph_config["slider_id"].format(scenario_name)
     table_name = graph_config["table_name"]
     df = read_result_csv(
-        scenario_name, table_name, country=graph_config["shared_country"]
+        scenario_name, table_name, country_filter=graph_config["shared_country"]
     )
 
     mapping_df = create_nice_names_and_color_mapping(table_name)
@@ -654,7 +654,7 @@ def area_share_yearly(scenario_name: str, graph_config: dict):
     table_name = graph_config["table_name"]
 
     df = read_result_csv(
-        scenario_name, table_name, country=graph_config["shared_country"]
+        scenario_name, table_name, country_filter=graph_config["shared_country"]
     )
     df = clean_df_for_plotting(leg_col, df)
 
@@ -699,8 +699,8 @@ def simple_bar_hourly(scenario_name: str, graph_config: dict[str, str]) -> None:
     df = read_result_csv(
         scenario_name,
         graph_config["table_name"],
-        year=str(graph_config["shared_years"]),
-        country=graph_config["shared_country"],
+        year_folder=str(graph_config["shared_years"]),
+        country_filter=graph_config["shared_country"],
     )
 
     if df is not None and not df.empty:
@@ -775,8 +775,8 @@ def simple_line_hourly(scenario_name: str, graph_config: dict):
     df = read_result_csv(
         scenario_name,
         graph_config["table_name"],
-        year=str(graph_config["shared_years"]),
-        country=graph_config["shared_country"],
+        year_folder=str(graph_config["shared_years"]),
+        country_filter=graph_config["shared_country"],
     )
 
     if df is not None and not df.empty:
@@ -853,8 +853,8 @@ def filtered_bar_hourly(scenario_name: str, graph_config: dict):
     df = read_result_csv(
         scenario_name,
         graph_config["table_name"],
-        year=str(graph_config["shared_years"]),
-        country=graph_config["shared_country"],
+        year_folder=str(graph_config["shared_years"]),
+        country_filter=graph_config["shared_country"],
     )
 
     if df is not None and not df.empty:
@@ -953,8 +953,8 @@ def line_with_secondary_y_hourly(scenario_name: str, graph_config: dict):
     df = read_result_csv(
         scenario_name,
         graph_config["table_name"],
-        year=str(graph_config["shared_years"]),
-        country=graph_config["shared_country"],
+        year_folder=str(graph_config["shared_years"]),
+        country_filter=graph_config["shared_country"],
     )
 
     if df is not None and not df.empty:
@@ -1040,3 +1040,16 @@ def line_with_secondary_y_hourly(scenario_name: str, graph_config: dict):
             use_container_width=True,
             key=f"plotly_chart_{scenario_name}_{table_name}",
         )
+
+
+if __name__ == "__main__":
+    # test plotting function
+    simple_bar_yearly(
+        scenario_name="scenario_01_tag1",
+        graph_config={
+            "table_name": "pow_cap_by_type_yearly",
+            "leg_col": "technology",
+            "download_id": "{}_cap_by_type",
+            "units": "GW",
+        },
+    )

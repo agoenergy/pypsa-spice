@@ -541,7 +541,9 @@ def render_st_page_and_plot_settings(graph_type, config_plot: dict):
         config_plot["shared_year"] = str(shared_year)
 
         df1 = read_result_csv(
-            st.session_state.sce1, config_plot["table_name"], year=str(shared_year)
+            st.session_state.sce1,
+            config_plot["table_name"],
+            year_folder=str(shared_year),
         )
         df1["snapshot"] = pd.to_datetime(df1["snapshot"])
 
@@ -550,7 +552,7 @@ def render_st_page_and_plot_settings(graph_type, config_plot: dict):
                 read_result_csv(
                     st.session_state.sce2,
                     config_plot["table_name"],
-                    year=str(shared_year),
+                    year_folder=str(shared_year),
                 )
                 if is_dual_scenario
                 else None
@@ -646,8 +648,8 @@ def display_download_button_without_data(
     df = read_result_csv(
         scenario_name,
         graph_config["table_name"],
-        year=str(graph_config["shared_years"]),
-        country=graph_config["shared_country"],
+        year_folder=str(graph_config["shared_years"]),
+        country_filter=graph_config["shared_country"],
     )
 
     if df is not None and not df.empty:
@@ -681,7 +683,7 @@ def display_download_button_with_data(scenario_name: str, graph_config: dict[str
     df = read_result_csv(
         scenario_name,
         graph_config["table_name"],
-        country=graph_config["shared_country"],
+        country_filter=graph_config["shared_country"],
     )
     base_group_cols = {"year", leg_col}
 
@@ -863,7 +865,9 @@ def read_and_concatenate_hourly_data(
         df_combined = pd.concat(
             [
                 read_result_csv(
-                    scenario_name=scenario_name, table_name=table_name, year=str(year)
+                    scenario_name=scenario_name,
+                    table_name=table_name,
+                    year_folder=str(year),
                 )
                 for year in list_of_years
             ],

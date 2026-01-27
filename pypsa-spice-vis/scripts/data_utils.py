@@ -219,8 +219,8 @@ def get_hourly_dfs_for_both_scenarios(
         df = read_result_csv(
             scenario,
             graph_config["table_name"],
-            year=str(graph_config["shared_years"]),
-            country=graph_config["shared_country"],
+            year_folder=str(graph_config["shared_years"]),
+            country_filter=graph_config["shared_country"],
         )
 
         if df is not None and not df.empty:
@@ -276,8 +276,8 @@ def prettify_label(label: str) -> str:
 def read_result_csv(
     scenario_name: str,
     table_name: str,
-    country: str = None,
-    year: str = None,
+    country_filter: str = None,
+    year_folder: str = None,
 ) -> pd.DataFrame:
     """Read model ouput csv files for a given scenario and table name.
 
@@ -287,9 +287,9 @@ def read_result_csv(
         Selected scenario in streamlit UI
     table_name : str
         Output table name
-    country : str, optional
+    country_filter : str, optional
         If not None, filter the csv by inputted country, by default None
-    year : str, optional
+    year_folder : str, optional
         If not None, read csv from year specific folder else all_years folder,
         by default None
 
@@ -298,7 +298,7 @@ def read_result_csv(
     pd.DataFrame
         _description_
     """
-    if year:
+    if year_folder:
         file_path = os.path.abspath(
             st.session_state.result_path
             + "/"
@@ -306,7 +306,7 @@ def read_result_csv(
             + "/csvs/"
             + st.session_state.sector
             + "/"
-            + year
+            + year_folder
             + "/"
             + table_name
             + ".csv"
@@ -330,8 +330,8 @@ def read_result_csv(
         with st.container(height=450, border=True):
             st.write(f":material/warning: File dose not exist or is empty: {file_path}")
         return None
-    if "country" in df.columns and country is not None:
-        df = df[df["country"] == country]
+    if "country" in df.columns and country_filter is not None:
+        df = df[df["country"] == country_filter]
 
     df = df.fillna(0)
 
