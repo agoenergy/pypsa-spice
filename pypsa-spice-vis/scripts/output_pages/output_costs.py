@@ -16,7 +16,7 @@ import yaml
 from scripts.output_st_handler import (
     generate_sidebar,
     map_chart_to_plot_function,
-    render_st_page_and_plot,
+    render_st_page_and_plot_settings,
 )
 
 st.title(":material/attach_money: Costs")
@@ -35,7 +35,7 @@ for _item, values in config.items():
         values["incl_sector"] == "all"
         or values["incl_sector"] in st.session_state.sector
     ):
-        render_st_page_and_plot(
+        render_st_page_and_plot_settings(
             graph_type=map_chart_to_plot_function(values["graph_type"]),
             config_plot=values,
         )
