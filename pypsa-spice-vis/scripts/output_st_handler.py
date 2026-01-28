@@ -106,41 +106,41 @@ def setup_year_filter(config_plot: dict, is_dual_scenario: bool) -> str:
     return shared_year
 
 
-def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None) -> str:
+def setup_country_filter(
+    config_plot, is_dual_scenario=False, scenario_name=None
+) -> str:
     """Set up the country filter that appears in filtered_bar_hourly graphs.
 
     Parameters
     ----------
-    config_plot : _type_
+    config_plot : str
         Configuration dictionary for the plot
     is_dual_scenario : bool, optional
         True if sce2 is selected, by default False
-    scenario_tag : _type_, optional
-        Optional tag for the scenario, used in the label, by default None
+    scenario_name : str, optional
+        Optional name for the scenario, used in the label, by default None
 
     Returns
     -------
     str
-        ountry selected in the widget. Defaults to the first country.
+        Country selected in the widget. Defaults to the first country.
     """
-    df = read_result_csv(scenario_tag, "pow_cap_by_type_yearly")
+    df = read_result_csv(scenario_name, "pow_cap_by_type_yearly")
 
     # Setup country filters if needed
     if "country" in df.columns:
         # Set widget configuration params based on one or two scenarios
         if is_dual_scenario:
             country_options = sorted(set(df["country"].unique().tolist()))
-            scenario_text = "both"  # noqa: F841
         else:
             country_options = df["country"].unique()
-            scenario_text = st.session_state.sce1  # noqa: F841
 
         slider_id = config_plot["table_name"]
         if "shared_country" in config_plot:
             country_id = config_plot["shared_country"]
         else:
             country_id = "all"
-        key = f"shared_country_{country_id}_{scenario_tag}_{slider_id}"
+        key = f"shared_country_{country_id}_{scenario_name}_{slider_id}"
         label = f"{slider_id} Select country:"
 
         # Pills widget for the country selection element
@@ -525,7 +525,7 @@ def render_st_page_and_plot_settings(graph_type, config_plot: dict):
 
     # Setup country filter
     config_plot["shared_country"] = setup_country_filter(
-        config_plot, is_dual_scenario, scenario_tag=st.session_state.sce1
+        config_plot, is_dual_scenario, scenario_name=st.session_state.sce1
     )
 
     # Setup filters based on graph type
