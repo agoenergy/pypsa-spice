@@ -647,127 +647,189 @@ class OutputTables(Plots):
         return final_df
 
     def ene_pe_import_local_ei_yearly(self) -> pd.DataFrame:
-        """Calculate energy independence fraction.
+        """Calculate yearly energy independence.
 
-        Calculation is based on primary energy imports and local primary energy
-        generation.
+        Energy independence is derived from:
+        - imported primary energy (from imported SUPPLY generators + imported HDAM)
+        - local primary energy (from SUPPLY gen + RES converted to PE + local HDAM)
 
         Returns
         -------
         pd.DataFrame
-            A DataFrame with columns (year, type, value, country)
+            DataFrame with columns: year, type, value, country
+            Indexed by: (country, type)
         """
-        df_all = pd.DataFrame()
+        result_rows = []
+        custom_constraints = self.scenario_configs.get("custom_constraints", {})
+
         for country in self.countries:
-            if country not in self.scenario_configs.get("custom_constraints", {}):
+            # --- Country-level configuration checks
+            country_constraints = custom_constraints.get(country)
+            if not isinstance(country_constraints, dict):
                 continue
-            if not (
-                self.scenario_configs["custom_constraints"][country][
-                    "energy_independence"
-                ].get("activate", False)
-            ):
+
+            # Ensure energy_independence exists (explicit requirement)
+            energy_ind_cfg = country_constraints.get("energy_independence")
+            if not isinstance(energy_ind_cfg, dict):
+                country_constraints["energy_independence"] = {}
                 continue
-            final_df = pd.DataFrame()
-            for year in self.network_dict:
-                df_year = pd.DataFrame()
-                n = self.network_dict[year]
-                ff_gen = n.generators[
-                    (n.generators.country == country)
-                    & (n.generators.type.str.contains("SUPPLY"))
-                ].index
-                ff_imp_gen = ff_gen[ff_gen.str.contains("-IMP")]
-                ff_loc_gen = [ele for ele in ff_gen if ele not in ff_imp_gen]
 
-                # primary energy import
-                pe_imp = (
-                    n.generators_t.p[ff_imp_gen]
-                    .multiply(n.snapshot_weightings.generators, axis=0)
-                    .sum()
-                    .sum()
-                )
-                # local energy generators
-                pe_loc = (
-                    n.generators_t.p[ff_loc_gen]
-                    .multiply(n.snapshot_weightings.generators, axis=0)
-                    .sum()
-                    .sum()
+            if not energy_ind_cfg.get("activate", False):
+                continue
+
+            pe_conversion_factors = energy_ind_cfg.get("pe_conv_fraction", {})
+
+            for year, network in self.network_dict.items():
+                generators = network.generators
+
+                # ======================================================
+                # Primary energy from SUPPLY generators (imported vs local)
+                # ======================================================
+                supply_mask = (generators.country == country) & generators.type.astype(
+                    str
+                ).str.contains("SUPPLY", na=False)
+                supply_generators = generators.index[supply_mask]
+
+                imported_supply_generators = supply_generators[
+                    supply_generators.astype(str).str.contains("-IMP", na=False)
+                ]
+                local_supply_generators = supply_generators.difference(
+                    imported_supply_generators
                 )
 
-                # electricity generators from renewable sources (res)
-                pe_conv_frac = self.scenario_configs["custom_constraints"][country][
-                    "energy_independence"
-                ]["pe_conv_fraction"]
-                for res in ["Solar", "Wind", "Geothermal", "Water"]:
-                    res_gen_loc = n.generators[
-                        (n.generators.carrier == res)
-                        & (n.generators.country == country)
-                        & ~(n.generators.index.str.contains("-IMP"))
-                    ].index
-                    if not res_gen_loc.empty:
-                        res_gen_pe = (
-                            n.generators_t.p[res_gen_loc]
-                            .multiply(n.snapshot_weightings.generators, axis=0)
+                primary_energy_imported = 0.0
+                primary_energy_local = 0.0
+
+                # Imported SUPPLY contribution
+                if len(imported_supply_generators) > 0:
+                    primary_energy_imported += (
+                        network.generators_t.p[imported_supply_generators]
+                        .multiply(network.snapshot_weightings.generators, axis=0)
+                        .to_numpy()
+                        .sum()
+                    )
+
+                # Local SUPPLY contribution
+                if len(local_supply_generators) > 0:
+                    primary_energy_local += (
+                        network.generators_t.p[local_supply_generators]
+                        .multiply(network.snapshot_weightings.generators, axis=0)
+                        .to_numpy()
+                        .sum()
+                    )
+
+                # ======================================================
+                # Renewable electricity converted to primary energy (local only)
+                # ======================================================
+                for carrier in ["Solar", "Wind", "Geothermal", "Water"]:
+                    conversion = float(pe_conversion_factors.get(carrier, 0.0))
+
+                    # Skip if conversion factor is missing/zero or no matching assets
+                    if conversion == 0.0:
+                        continue
+
+                    local_res_mask = (
+                        (generators.carrier == carrier)
+                        & (generators.country == country)
+                        & ~generators.index.astype(str).str.contains("-IMP", na=False)
+                    )
+                    local_res_generators = generators.index[local_res_mask]
+
+                    if len(local_res_generators) > 0:
+                        res_energy = (
+                            network.generators_t.p[local_res_generators]
+                            .multiply(network.snapshot_weightings.generators, axis=0)
+                            .to_numpy()
                             .sum()
-                            .sum()
-                            * pe_conv_frac[res]
                         )
-                        pe_loc = pe_loc + res_gen_pe
-                # If HDAM implemented as storage unit
+                        primary_energy_local += res_energy * conversion
 
-                hdam_str_loc = n.storage_units[
-                    (n.storage_units.type == "HDAM")
-                    & (n.storage_units.country == country)
-                    & ~(n.storage_units.index.str.contains("-IMP"))
-                ].index
-                hdam_str_imp = n.storage_units[
-                    (n.storage_units.type == "HDAM")
-                    & (n.storage_units.country == country)
-                    & (n.storage_units.index.str.contains("-IMP"))
-                ].index
+                # ======================================================
+                # HDAM storage units treated as primary energy (dispatch)
+                # ======================================================
+                storage_units = network.storage_units
 
-                if not hdam_str_loc.empty:  # local HDAM
-                    hdam_loc_gen_pe = (
-                        n.storage_units_t.p_dispatch[hdam_str_loc]
-                        .multiply(n.snapshot_weightings.stores, axis=0)
-                        .sum()
-                        .sum()
-                        * pe_conv_frac["Water"]
-                    )
-                    pe_loc = pe_loc + hdam_loc_gen_pe
-
-                if not hdam_str_imp.empty:  # imported HDAM
-                    hdam_imp_gen_pe = (
-                        n.storage_units_t.p_dispatch[hdam_str_loc]
-                        .multiply(n.snapshot_weightings.stores, axis=0)
-                        .sum()
-                        .sum()
-                        * pe_conv_frac["Water"]
-                    )
-                    pe_imp = pe_imp + hdam_imp_gen_pe
-                df_year = pd.concat(
-                    [df_year, pd.DataFrame([year, "import", (pe_imp / 1e6).round(2)])],
-                    axis=1,
+                hdam_mask = (storage_units.type == "HDAM") & (
+                    storage_units.country == country
                 )
-                df_year = pd.concat(
-                    [df_year, pd.DataFrame([year, "local", (pe_loc / 1e6).round(2)])],
-                    axis=1,
+                hdam_units = storage_units.index[hdam_mask]
+
+                local_hdam_units = hdam_units[
+                    ~hdam_units.astype(str).str.contains("-IMP", na=False)
+                ]
+                imported_hdam_units = hdam_units[
+                    hdam_units.astype(str).str.contains("-IMP", na=False)
+                ]
+
+                water_conversion = float(pe_conversion_factors.get("Water", 0.0))
+
+                if water_conversion != 0.0:
+                    # Local HDAM contribution
+                    if len(local_hdam_units) > 0:
+                        hdam_local_energy = (
+                            network.storage_units_t.p_dispatch[local_hdam_units]
+                            .multiply(network.snapshot_weightings.stores, axis=0)
+                            .to_numpy()
+                            .sum()
+                        )
+                        primary_energy_local += hdam_local_energy * water_conversion
+
+                    # Imported HDAM contribution
+                    if len(imported_hdam_units) > 0:
+                        hdam_imported_energy = (
+                            network.storage_units_t.p_dispatch[imported_hdam_units]
+                            .multiply(network.snapshot_weightings.stores, axis=0)
+                            .to_numpy()
+                            .sum()
+                        )
+                        primary_energy_imported += (
+                            hdam_imported_energy * water_conversion
+                        )
+
+                # ======================================================
+                # Energy independence fraction
+                # ======================================================
+                total_primary_energy = primary_energy_imported + primary_energy_local
+                energy_independence_fraction = (
+                    1.0 - primary_energy_imported / total_primary_energy
+                    if total_primary_energy > 0
+                    else 1.0
                 )
-                df_year = pd.concat(
+
+                # Store yearly results (scaled)
+                result_rows.extend(
                     [
-                        df_year,
-                        pd.DataFrame(
-                            [year, "ei_frac", (1 - pe_imp / (pe_imp + pe_loc)).round(3)]
-                        ),
-                    ],
-                    axis=1,
+                        {
+                            "country": country,
+                            "year": year,
+                            "type": "import",
+                            "value": round(primary_energy_imported / 1e6, 2),
+                        },
+                        {
+                            "country": country,
+                            "year": year,
+                            "type": "local",
+                            "value": round(primary_energy_local / 1e6, 2),
+                        },
+                        {
+                            "country": country,
+                            "year": year,
+                            "type": "ei_frac",
+                            "value": round(energy_independence_fraction, 3),
+                        },
+                    ]
                 )
-                df_year = df_year.T
-                final_df = pd.concat([final_df, df_year], axis=0)
-            final_df.columns = ["year", "type", "value"]
-            final_df["country"] = country
-            df_all = pd.concat([df_all, final_df], axis=0)
-            final_df.set_index(["country", "type"], inplace=True)
-            return final_df
+
+        result_df = pd.DataFrame(
+            result_rows, columns=["year", "type", "value", "country"]
+        )
+
+        # Avoid setting index on empty DataFrame
+        if result_df.empty:
+            return result_df
+
+        result_df.set_index(["country", "type"], inplace=True)
+        return result_df
 
     # ====================================== POWER =====================================
     def pow_cap_by_type_yearly(self) -> pd.DataFrame:

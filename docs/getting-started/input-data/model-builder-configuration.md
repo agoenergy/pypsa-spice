@@ -124,7 +124,7 @@ co2_management: # (1)!
 The custom constraints section allows you to apply additional rules or limits to the model’s behavior, tailoring it to specific scenario requirements. All custom constraints are listed below in the two countries as an example. These constraints can control various aspects of the model, such as renewable generation share, thermal power plant operation, reserve margins, energy independence, and production limitations. By adjusting these settings, you can implement assumptions or policies. The settings listed below should be configured for each country individually.
 
 !!! Note
-    If you need a custom constraint to be included, simply let `activate` variable to be `true` and add the corresponding part in your scenario config file.
+    If you need a custom constraint to be included, simply let `activate` variable to be `true` and add the corresponding part in your scenario config file. If you don't want activate a custom constraint by letting `activate` variable to be `false`, you can remove the constraint in the config file since it won't be read into the network during execution.
 
 ```yaml title="Custom constraints"
 custom_constraints:
