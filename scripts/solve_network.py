@@ -75,7 +75,8 @@ def extra_functionality_linopt(
 
         # Capacity factor constraint
         if (
-            country_constraints["capacity_factor_constraint"].get("activate", False)
+            "capacity_factor_constraint" in country_constraints
+            and country_constraints["capacity_factor_constraint"].get("activate", False)
             and year > base_year
         ):
             capacity_factor_constraint(
@@ -86,8 +87,11 @@ def extra_functionality_linopt(
             constraint_added = True
 
         # Power generation constraint
-        if country_constraints["maximum_power_generation_constraint"].get(
-            "activate", False
+        if (
+            "maximum_power_generation_constraint" in country_constraints
+            and country_constraints["maximum_power_generation_constraint"].get(
+                "activate", False
+            )
         ):
             add_maximum_power_generation_constraint(
                 network,
@@ -101,7 +105,8 @@ def extra_functionality_linopt(
 
         # Energy independence constraint
         if (
-            country_constraints["energy_independence"].get("activate", False)
+            "energy_independence" in country_constraints
+            and country_constraints["energy_independence"].get("activate", False)
             and year > base_year
         ):
             energy_independence = country_constraints["energy_independence"]
@@ -114,7 +119,9 @@ def extra_functionality_linopt(
             constraint_added = True
 
         # Fuel supply/production limit constraint
-        if country_constraints["production_constraint_fuels"].get("activate", False):
+        if "production_constraint_fuels" in country_constraints and country_constraints[
+            "production_constraint_fuels"
+        ].get("activate", False):
             fuel_supply_limits = pd.read_csv(snakemake.input.fuel_limits)
             fuel_supply_limits = fuel_supply_limits[
                 (fuel_supply_limits.year == year)
@@ -132,7 +139,9 @@ def extra_functionality_linopt(
             constraint_added = True
 
         # Reserve margin constraint
-        if country_constraints["reserve_margin"].get("activate", False):
+        if "reserve_margin" in country_constraints and country_constraints[
+            "reserve_margin"
+        ].get("activate", False):
             if year > base_year:
                 reserve_params = country_constraints["reserve_margin"]
                 add_reserve_margin(
@@ -152,7 +161,8 @@ def extra_functionality_linopt(
 
         # Renewable generation constraint
         if (
-            country_constraints["res_generation"].get("activate", False)
+            "res_generation" in country_constraints
+            and country_constraints["res_generation"].get("activate", False)
             and year > base_year
         ):
             res_generation = country_constraints["res_generation"]
@@ -165,7 +175,9 @@ def extra_functionality_linopt(
             constraint_added = True
 
         # Thermal must-run constraint
-        if country_constraints["thermal_must_run"].get("activate", False):
+        if "thermal_must_run" in country_constraints and country_constraints[
+            "thermal_must_run"
+        ].get("activate", False):
             thermal_must_run = country_constraints["thermal_must_run"]
             thermal_must_run_constraint(
                 network,
