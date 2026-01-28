@@ -5,6 +5,8 @@
 
 ### Fixed
 
+- Allow user to remove a custom constraint from `scenario_config.yaml` if it is set with `activate: False` ([:material-source-pull:67](https://github.com/agoenergy/pypsa-spice/pull/67) by @nhlong2701 & @RichChang963)
+
 ### Changed
 
 ### Notes
