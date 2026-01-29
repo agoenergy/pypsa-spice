@@ -7,6 +7,8 @@
 
 ### Changed
 
+- Added a new documentation file explaining how to set up a decommissioning/retrofit approach in **pypsa-spice** ([:material-source-pull:68](https://github.com/agoenergy/pypsa-spice/pull/68) by @nhlong2701)
+
 ### Notes
 
 --8<-- "releases/v1.0.0.md"
