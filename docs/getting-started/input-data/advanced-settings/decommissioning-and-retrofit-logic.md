@@ -52,3 +52,4 @@ retro.p_nom_max_2030 = MW_over_2030
 - retrofit pays retrofit CAPEX only
 - 2025: shift MW to retrofit p_nom
 - 2030: decommissionable, but optional retrofit"] -.-> A
+```

@@ -152,6 +152,11 @@ markdown_extensions:
   - pymdownx.snippets:
       base_path: docs
       check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
 
 extra:
   # link to Agora's social network accounts
