@@ -97,7 +97,8 @@ nav:
       - Defining a new model: getting-started/input-data/new-model.md
       - Global CSV template: getting-started/input-data/global_csv_template.md
       - Regional CSV template: getting-started/input-data/regional_csv_template.md
-      - Advanced settings: getting-started/input-data/advanced-settings/decommissioning-and-retrofit-logic.md
+      - Advanced settings: 
+        - Decommissioning and retrofit: getting-started/input-data/advanced-settings/decommissioning-and-retrofit-logic.md
       - Configuration: getting-started/input-data/model-builder-configuration.md
       - Execution: getting-started/input-data/model-builder-execution.md
 

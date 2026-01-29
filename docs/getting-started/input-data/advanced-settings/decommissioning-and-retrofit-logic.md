@@ -1,6 +1,4 @@
-# Advanced settings in PyPSA-SPICE
-
-## Decommissioning & retrofit logic
+# Decommissioning & retrofit logic
 
 This note explains how PyPSA‑SPICE handles plant capacity that reaches the end of its technical lifetime **while you still want to allow the model to keep operating the plant by paying for a retrofit**. To represent this, each plant can be split into two **paired** assets:
 
@@ -10,7 +8,7 @@ This note explains how PyPSA‑SPICE handles plant capacity that reaches the end
 !!! Note
     Key assumption: retrofit asset is treated as an **upgrade of the existing capacity**, so it pays **only the retrofit CAPEX** rather than the full greenfield cost of constructing a new plant.
 
-### Logic overview
+## Logic overview
 
 - **Base year (2025):** capacity that is already over-lifetime is **shifted** from the normal asset to the retrofit asset (treated as retrofitted, not decommissioned).
 
