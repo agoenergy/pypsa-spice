@@ -331,7 +331,8 @@ def read_result_csv(
             st.write(f":material/warning: File dose not exist or is empty: {file_path}")
         return None
     if "country" in df.columns and country is not None:
-        df = df[df["country"] == country]
+        if country != "all":
+            df = df[df["country"] == country]
 
     df = df.fillna(0)
 
