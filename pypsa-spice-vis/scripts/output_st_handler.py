@@ -137,12 +137,11 @@ def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None)
 
         table_name = config_plot.get("table_name", "")
         is_regional_hourly = (
-            "flow" in table_name or "charging" in table_name or "region" in table_name
+            "flow" in table_name
+            or "charging" in table_name
+            or ("region" in table_name and "price" not in table_name)
         )
-
-        excluded_units = { "USD/MWh", "USD/MWh_th"}
-
-        if units and (not is_regional_hourly) and (units not in excluded_units):
+        if units and not is_regional_hourly:
             country_options += ["ALL"]
 
         slider_id = config_plot["table_name"]
