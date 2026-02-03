@@ -135,6 +135,16 @@ def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None)
             country_options = df["country"].unique()
             scenario_text = st.session_state.sce1  # noqa: F841
 
+        units = config_plot.get("units")  # None if missing
+
+        table_name = config_plot.get("table_name", "")
+        is_regional_hourly = "hourly" in table_name or "region" in table_name
+
+        excluded_units = {"%", "USD/MWh", "USD/MWh_th"}
+
+        if units and (not is_regional_hourly) and (units not in excluded_units):
+            country_options += ["all"]
+
         slider_id = config_plot["table_name"]
         if "shared_country" in config_plot:
             country_id = config_plot["shared_country"]
