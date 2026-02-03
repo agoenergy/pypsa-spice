@@ -130,15 +130,15 @@ def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None)
         # Set widget configuration params based on one or two scenarios
         if is_dual_scenario:
             country_options = sorted(set(df["country"].unique().tolist()))
-            scenario_text = "both"  # noqa: F841
         else:
             country_options = df["country"].unique()
-            scenario_text = st.session_state.sce1  # noqa: F841
 
         units = config_plot.get("units")  # None if missing
 
         table_name = config_plot.get("table_name", "")
-        is_regional_hourly = "hourly" in table_name or "region" in table_name
+        is_regional_hourly = (
+            "flow" in table_name or "charging" in table_name or "region" in table_name
+        )
 
         excluded_units = {"%", "USD/MWh", "USD/MWh_th"}
 
