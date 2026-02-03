@@ -140,16 +140,16 @@ def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None)
             "flow" in table_name or "charging" in table_name or "region" in table_name
         )
 
-        excluded_units = {"%", "USD/MWh", "USD/MWh_th"}
+        excluded_units = { "USD/MWh", "USD/MWh_th"}
 
         if units and (not is_regional_hourly) and (units not in excluded_units):
-            country_options += ["all"]
+            country_options += ["ALL"]
 
         slider_id = config_plot["table_name"]
         if "shared_country" in config_plot:
             country_id = config_plot["shared_country"]
         else:
-            country_id = "all"
+            country_id = "ALL"
         key = f"shared_country_{country_id}_{scenario_tag}_{slider_id}"
         label = f"{slider_id} Select country:"
 

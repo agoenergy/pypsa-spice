@@ -32,7 +32,7 @@ table_of_content = []
 
 for _item, values in config.items():
     if (
-        values["incl_sector"] == "all"
+        values["incl_sector"] == "ALL"
         or values["incl_sector"] in st.session_state.sector
     ):
         render_st_page_and_plot(
