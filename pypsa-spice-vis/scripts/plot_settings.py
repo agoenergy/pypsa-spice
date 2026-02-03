@@ -537,7 +537,6 @@ def simple_line_yearly(scenario_name: str, graph_config: dict):
 
     # Total average values per year will be applied if all countries are selected
     df = df.groupby(["year", leg_col], as_index=False)["value"].mean()
-
     df["nice_names"] = df[leg_col].map(
         lambda x: (
             mapping_df.loc[x, "nice_names"]
@@ -666,7 +665,6 @@ def area_share_yearly(scenario_name: str, graph_config: dict):
 
     # Total average values per year will be applied if all countries are selected
     df = df.groupby(["year", leg_col], as_index=False)["value"].mean()
-    
     df["nice_names"] = df[leg_col].map(
         lambda x: (
             mapping_df.loc[x, "nice_names"]
