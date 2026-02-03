@@ -517,7 +517,7 @@ def setup_hourly_data_filters(
     }
 
 
-def render_st_page_and_plot(graph_type, config_plot: dict):
+def render_st_page_and_plot(graph_type_func, config_plot: dict):
     """Render and plot all graphs based on the provided graph type and configuration."""
     st.markdown(
         f"<div id='{config_plot['name'].replace(' ', '-')}'></div>",
@@ -589,7 +589,7 @@ def render_st_page_and_plot(graph_type, config_plot: dict):
         # Display the graph for single scenario
         config_plot["years"] = st.session_state.sce1_years
         st.markdown(f"#### {st.session_state.sce1} ")
-        graph_type(scenario_name=st.session_state.sce1, graph_config=config_plot)
+        graph_type_func(scenario_name=st.session_state.sce1, graph_config=config_plot)
 
         # Display the data download part
         if config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
@@ -603,11 +603,15 @@ def render_st_page_and_plot(graph_type, config_plot: dict):
         with col1:
             config_plot["years"] = st.session_state.sce1_years
             st.markdown(f"#### {st.session_state.sce1} ")
-            graph_type(scenario_name=st.session_state.sce1, graph_config=config_plot)
+            graph_type_func(
+                scenario_name=st.session_state.sce1, graph_config=config_plot
+            )
         with col3:
             config_plot["years"] = st.session_state.sce2_years
             st.markdown(f"#### {st.session_state.sce2} ")
-            graph_type(scenario_name=st.session_state.sce2, graph_config=config_plot)
+            graph_type_func(
+                scenario_name=st.session_state.sce2, graph_config=config_plot
+            )
 
         # Display the data download part
         col1, col2, col3 = st.columns([6, 1, 6])
