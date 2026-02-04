@@ -25,7 +25,7 @@ The `base_config.yaml` contains two parts which will be used both for folder str
 
 ```yaml title="Init settings in the config.yaml file"
 path_configs: #(1)!
-  data_folder_name: pypsa-spice-data
+  data_folder_name: example
   project_name: project_01
   input_scenario_name: scenario_01 # (2)!
   output_scenario_name: scenario_01_tag1 # (3)!
@@ -63,7 +63,7 @@ This step creates your skeleton folder and files which can be feed with your dat
 
 ```text title="Structure of Folder and files created by build skeleton script"
 📦 data
- ┗ 📂 pypsa-spice-data
+ ┗ 📂 example
     ┗ 📂 project_01
        ┣ 📂 input
        ┃ ┣ 📂 global_input

@@ -14,7 +14,7 @@ logging:
 
 #####Init settings#####
 path_configs:
-  data_folder_name: pypsa-spice-data
+  data_folder_name: example
   project_name: project_01
   input_scenario_name: scenario_01
   output_scenario_name: scenario_01_tag1
