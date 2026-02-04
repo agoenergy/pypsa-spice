@@ -2,7 +2,8 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# to preview the documentation website in local server, run `mkdocs serve --config-file mkdocs.yaml` and get the url in the terminal to paste it in the browser
+# to preview the documentation website in local server, run `mkdocs serve --config-file mkdocs.yaml` and get the url in the terminal to paste it in the browser. 
+# run `BUILD_PDF=1 mkdocs build` will update the pypsa-spice-documentation.pdf inside docs folder.
 
 site_name: "Model Builder Documentation"
 site_url: https://agora-energiewende.org
