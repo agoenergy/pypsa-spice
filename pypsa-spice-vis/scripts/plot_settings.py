@@ -16,7 +16,6 @@ import plotly.graph_objects as go
 import streamlit as st
 from plotly.graph_objs._figure import Figure
 from plotly.subplots import make_subplots
-
 from scripts.data_utils import (
     calculate_min_max_y_scale,
     clean_df_for_plotting,
@@ -27,6 +26,7 @@ from scripts.data_utils import (
     prettify_label,
     read_result_csv,
 )
+from streamlit.runtime.state.common import WidgetArgs
 
 # pylint: disable=too-many-locals, broad-exception-caught
 
@@ -358,19 +358,15 @@ def update_layout(
     legend_x_anchor = "left"
     legend_y_anchor = "bottom"
     margin_b = 0
-    # In narrow widths (but before graphs have stacked), in two scenario cases adjust
-    # the legend orientation and position: horizontal and below the graph
-    if (
-        st.session_state.sce2 != ""
-        and st.session_state.window_width < 1130
-        and st.session_state.window_width > 608
-    ):
+    # In two scenario cases, always position legend horizontally at the bottom
+    # spanning across the page under both graphs
+    if st.session_state.sce2 != "":
         legend_orientation = "h"
-        legend_x_pos = 0.2
-        legend_y_pos = -0.4
+        legend_x_pos = 0.5
+        legend_y_pos = -0.25
         legend_x_anchor = "center"
         legend_y_anchor = "top"
-        margin_b = 100
+        margin_b = 150
 
     # Check if the x tick font size has been set already (in the case of hourly graphs
     # this is set in _update_hourly_plot_x_axis, and we do not want to overwrite it)

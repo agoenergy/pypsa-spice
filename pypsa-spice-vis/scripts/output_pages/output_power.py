@@ -14,7 +14,6 @@ import os
 import pandas as pd
 import streamlit as st
 import yaml
-
 from scripts.data_utils import (
     calculate_min_max_y_scale,
     clean_df_for_plotting,
@@ -116,7 +115,7 @@ def render_p1_capacity_by_type(config_p1: dict) -> None:
     y_range = {"max_scale": y_range["max"], "min_scale": y_range["min"]}
 
     if not is_dual:
-        st.markdown(f"#### {st.session_state.sce1} ")
+        st.markdown(f"{st.session_state.sce1} ")
         colour_mapping = get_colour_mapping(
             table_name, mapping_df, scenario_1_grouped, legend_col
         )
@@ -126,15 +125,14 @@ def render_p1_capacity_by_type(config_p1: dict) -> None:
             colour_mapping,
             y_range,
             key=(
-                "plotly_chart_"
-                f"{config_p1['download_id'].format(st.session_state.sce1)}"
+                f"plotly_chart_{config_p1['download_id'].format(st.session_state.sce1)}"
             ),
         )
         render_download_with_table(scenario_1_raw, config_p1, st.session_state.sce1)
     else:
         col1, col2, col3 = st.columns([6, 1, 6])
         with col1:
-            st.markdown(f"#### {st.session_state.sce1} ")
+            st.caption(f"{st.session_state.sce1} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_1_grouped, legend_col
             )
@@ -149,7 +147,7 @@ def render_p1_capacity_by_type(config_p1: dict) -> None:
                 ),
             )
         with col3:
-            st.markdown(f"#### {st.session_state.sce2} ")
+            st.caption(f"{st.session_state.sce2} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_2_grouped, legend_col
             )
@@ -244,7 +242,7 @@ def render_p2_capacity_by_region(config_p2: dict) -> None:
     y_range = {"max_scale": y_range["max"], "min_scale": y_range["min"]}
 
     if not is_dual:
-        st.markdown(f"#### {st.session_state.sce1} ")
+        st.caption(f"{st.session_state.sce1}")
         colour_mapping = get_colour_mapping(
             table_name, mapping_df, scenario_1_filtered, legend_col
         )
@@ -259,7 +257,7 @@ def render_p2_capacity_by_region(config_p2: dict) -> None:
     else:
         col1, col2, col3 = st.columns([6, 1, 6])
         with col1:
-            st.markdown(f"#### {st.session_state.sce1} ")
+            st.caption(f"{st.session_state.sce1} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_1_filtered, legend_col
             )
@@ -271,7 +269,7 @@ def render_p2_capacity_by_region(config_p2: dict) -> None:
                 key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
             )
         with col3:
-            st.markdown(f"#### {st.session_state.sce2} ")
+            st.caption(f"{st.session_state.sce2} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_2_filtered, legend_col
             )
@@ -331,7 +329,7 @@ def render_p3_generation_by_type(config_p3: dict) -> None:
     y_range = {"max_scale": y_range["max"], "min_scale": y_range["min"]}
 
     if not is_dual:
-        st.markdown(f"#### {st.session_state.sce1} ")
+        st.caption(f"{st.session_state.sce1} ")
         colour_mapping = get_colour_mapping(
             table_name, mapping_df, scenario_1_grouped, legend_col
         )
@@ -341,15 +339,14 @@ def render_p3_generation_by_type(config_p3: dict) -> None:
             colour_mapping,
             y_range,
             key=(
-                "plotly_chart_"
-                f"{config_p3['download_id'].format(st.session_state.sce1)}"
+                f"plotly_chart_{config_p3['download_id'].format(st.session_state.sce1)}"
             ),
         )
         render_download_with_table(scenario_1_raw, config_p3, st.session_state.sce1)
     else:
         col1, col2, col3 = st.columns([6, 1, 6])
         with col1:
-            st.markdown(f"#### {st.session_state.sce1} ")
+            st.caption(f"{st.session_state.sce1} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_1_grouped, legend_col
             )
@@ -364,7 +361,7 @@ def render_p3_generation_by_type(config_p3: dict) -> None:
                 ),
             )
         with col3:
-            st.markdown(f"#### {st.session_state.sce2} ")
+            st.caption(f"{st.session_state.sce2} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_2_grouped, legend_col
             )
@@ -418,7 +415,7 @@ def render_p4_share_category(config_p4: dict) -> None:
         scenario_2_plot = add_nice_names(scenario_2_plot, legend_col, mapping_df)
 
     if not is_dual:
-        st.markdown(f"#### {st.session_state.sce1} ")
+        st.caption(f"{st.session_state.sce1} ")
         colour_mapping = get_colour_mapping(
             table_name, mapping_df, scenario_1_plot, legend_col
         )
@@ -432,7 +429,7 @@ def render_p4_share_category(config_p4: dict) -> None:
     else:
         col1, col2, col3 = st.columns([6, 1, 6])
         with col1:
-            st.markdown(f"#### {st.session_state.sce1} ")
+            st.caption(f"{st.session_state.sce1} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_1_plot, legend_col
             )
@@ -443,7 +440,7 @@ def render_p4_share_category(config_p4: dict) -> None:
                 key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
             )
         with col3:
-            st.markdown(f"#### {st.session_state.sce2} ")
+            st.caption(f"{st.session_state.sce2} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_2_plot, legend_col
             )
@@ -534,7 +531,7 @@ def render_p6_transmission_capacity_between_regions(config_p6: dict) -> None:
     y_range = {"max_scale": y_range["max"], "min_scale": y_range["min"]}
 
     if not is_dual:
-        st.markdown(f"#### {st.session_state.sce1} ")
+        st.caption(f"{st.session_state.sce1} ")
         colour_mapping = get_colour_mapping(
             table_name, mapping_df, scenario_1_filtered, legend_col
         )
@@ -549,7 +546,7 @@ def render_p6_transmission_capacity_between_regions(config_p6: dict) -> None:
     else:
         col1, col2, col3 = st.columns([6, 1, 6])
         with col1:
-            st.markdown(f"#### {st.session_state.sce1} ")
+            st.caption(f"{st.session_state.sce1} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_1_filtered, legend_col
             )
@@ -561,7 +558,7 @@ def render_p6_transmission_capacity_between_regions(config_p6: dict) -> None:
                 key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
             )
         with col3:
-            st.markdown(f"#### {st.session_state.sce2} ")
+            st.caption(f"{st.session_state.sce2} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_2_filtered, legend_col
             )
@@ -673,7 +670,7 @@ def render_p7_hourly_generation(config_p7: dict) -> None:
     y_range = {"max_scale": y_range["max"], "min_scale": y_range["min"]}
 
     if not is_dual:
-        st.markdown(f"#### {st.session_state.sce1} ")
+        st.caption(f"{st.session_state.sce1} ")
         colour_mapping = get_colour_mapping(
             table_name, mapping_df, scenario_1_filtered, legend_col
         )
@@ -686,8 +683,7 @@ def render_p7_hourly_generation(config_p7: dict) -> None:
             end_date,
             is_complete,
             key=(
-                "plotly_chart_"
-                f"{config_p7['download_id'].format(st.session_state.sce1)}"
+                f"plotly_chart_{config_p7['download_id'].format(st.session_state.sce1)}"
             ),
         )
         render_download_without_data(
@@ -696,7 +692,7 @@ def render_p7_hourly_generation(config_p7: dict) -> None:
     else:
         col1, col2, col3 = st.columns([6, 1, 6])
         with col1:
-            st.markdown(f"#### {st.session_state.sce1} ")
+            st.caption(f"{st.session_state.sce1} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_1_filtered, legend_col
             )
@@ -714,7 +710,7 @@ def render_p7_hourly_generation(config_p7: dict) -> None:
                 ),
             )
         with col3:
-            st.markdown(f"#### {st.session_state.sce2} ")
+            st.caption(f"{st.session_state.sce2} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_2_filtered, legend_col
             )
@@ -836,7 +832,7 @@ def render_p8_regional_hourly_generation(config_p8: dict) -> None:
     y_range = {"max_scale": y_range["max"], "min_scale": y_range["min"]}
 
     if not is_dual:
-        st.markdown(f"#### {st.session_state.sce1} ")
+        st.caption(f"{st.session_state.sce1} ")
         colour_mapping = get_colour_mapping(
             table_name, mapping_df, scenario_1_filtered, legend_col
         )
@@ -856,7 +852,7 @@ def render_p8_regional_hourly_generation(config_p8: dict) -> None:
     else:
         col1, col2, col3 = st.columns([6, 1, 6])
         with col1:
-            st.markdown(f"#### {st.session_state.sce1} ")
+            st.caption(f"{st.session_state.sce1} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_1_filtered, legend_col
             )
@@ -871,7 +867,7 @@ def render_p8_regional_hourly_generation(config_p8: dict) -> None:
                 key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
             )
         with col3:
-            st.markdown(f"#### {st.session_state.sce2} ")
+            st.caption(f"{st.session_state.sce2} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_2_filtered, legend_col
             )
@@ -938,7 +934,7 @@ def render_p9_energy_demand_by_carrier(config_p9: dict) -> None:
     y_range = {"max_scale": y_range["max"], "min_scale": y_range["min"]}
 
     if not is_dual:
-        st.markdown(f"#### {st.session_state.sce1} ")
+        st.caption(f"{st.session_state.sce1} ")
         colour_mapping = get_colour_mapping(
             table_name, mapping_df, scenario_1_grouped, legend_col
         )
@@ -948,15 +944,14 @@ def render_p9_energy_demand_by_carrier(config_p9: dict) -> None:
             colour_mapping,
             y_range,
             key=(
-                "plotly_chart_"
-                f"{config_p9['download_id'].format(st.session_state.sce1)}"
+                f"plotly_chart_{config_p9['download_id'].format(st.session_state.sce1)}"
             ),
         )
         render_download_with_table(scenario_1_raw, config_p9, st.session_state.sce1)
     else:
         col1, col2, col3 = st.columns([6, 1, 6])
         with col1:
-            st.markdown(f"#### {st.session_state.sce1} ")
+            st.caption(f"{st.session_state.sce1} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_1_grouped, legend_col
             )
@@ -971,7 +966,7 @@ def render_p9_energy_demand_by_carrier(config_p9: dict) -> None:
                 ),
             )
         with col3:
-            st.markdown(f"#### {st.session_state.sce2} ")
+            st.caption(f"{st.session_state.sce2} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_2_grouped, legend_col
             )
@@ -1086,7 +1081,7 @@ def render_p10_hourly_demand(config_p10: dict) -> None:
     y_range = {"max_scale": y_range["max"], "min_scale": y_range["min"]}
 
     if not is_dual:
-        st.markdown(f"#### {st.session_state.sce1} ")
+        st.caption(f"{st.session_state.sce1} ")
         colour_mapping = get_colour_mapping(
             table_name, mapping_df, scenario_1_filtered, legend_col
         )
@@ -1109,7 +1104,7 @@ def render_p10_hourly_demand(config_p10: dict) -> None:
     else:
         col1, col2, col3 = st.columns([6, 1, 6])
         with col1:
-            st.markdown(f"#### {st.session_state.sce1} ")
+            st.caption(f"{st.session_state.sce1} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_1_filtered, legend_col
             )
@@ -1127,7 +1122,7 @@ def render_p10_hourly_demand(config_p10: dict) -> None:
                 ),
             )
         with col3:
-            st.markdown(f"#### {st.session_state.sce2} ")
+            st.caption(f"{st.session_state.sce2} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_2_filtered, legend_col
             )
@@ -1247,7 +1242,7 @@ def render_p11_hourly_elec_price(config_p11: dict) -> None:
     y_range = {"max_scale": y_range["max"], "min_scale": y_range["min"]}
 
     if not is_dual:
-        st.markdown(f"#### {st.session_state.sce1} ")
+        st.caption(f"{st.session_state.sce1} ")
         colour_mapping = get_colour_mapping(
             table_name, mapping_df, scenario_1_filtered, legend_col
         )
@@ -1267,7 +1262,7 @@ def render_p11_hourly_elec_price(config_p11: dict) -> None:
     else:
         col1, col2, col3 = st.columns([6, 1, 6])
         with col1:
-            st.markdown(f"#### {st.session_state.sce1} ")
+            st.caption(f"{st.session_state.sce1} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_1_filtered, legend_col
             )
@@ -1282,7 +1277,7 @@ def render_p11_hourly_elec_price(config_p11: dict) -> None:
                 key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
             )
         with col3:
-            st.markdown(f"#### {st.session_state.sce2} ")
+            st.caption(f"{st.session_state.sce2} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_2_filtered, legend_col
             )
@@ -1399,7 +1394,7 @@ def render_p12_nodal_flow_between_regions(config_p12: dict) -> None:
     y_range = {"max_scale": y_range["max"], "min_scale": y_range["min"]}
 
     if not is_dual:
-        st.markdown(f"#### {st.session_state.sce1} ")
+        st.caption(f"{st.session_state.sce1} ")
         colour_mapping = get_colour_mapping(
             table_name, mapping_df, scenario_1_filtered, legend_col
         )
@@ -1419,7 +1414,7 @@ def render_p12_nodal_flow_between_regions(config_p12: dict) -> None:
     else:
         col1, col2, col3 = st.columns([6, 1, 6])
         with col1:
-            st.markdown(f"#### {st.session_state.sce1} ")
+            st.caption(f"{st.session_state.sce1} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_1_filtered, legend_col
             )
@@ -1434,7 +1429,7 @@ def render_p12_nodal_flow_between_regions(config_p12: dict) -> None:
                 key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
             )
         with col3:
-            st.markdown(f"#### {st.session_state.sce2} ")
+            st.caption(f"{st.session_state.sce2} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_2_filtered, legend_col
             )
@@ -1501,7 +1496,7 @@ def render_p13_battery_ep_ratio(config_p13: dict) -> None:
     y_range = {"max_scale": y_range["max"], "min_scale": y_range["min"]}
 
     if not is_dual:
-        st.markdown(f"#### {st.session_state.sce1} ")
+        st.caption(f"{st.session_state.sce1} ")
         colour_mapping = get_colour_mapping(
             table_name, mapping_df, scenario_1_grouped, legend_col
         )
@@ -1519,7 +1514,7 @@ def render_p13_battery_ep_ratio(config_p13: dict) -> None:
     else:
         col1, col2, col3 = st.columns([6, 1, 6])
         with col1:
-            st.markdown(f"#### {st.session_state.sce1} ")
+            st.caption(f"{st.session_state.sce1} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_1_grouped, legend_col
             )
@@ -1534,7 +1529,7 @@ def render_p13_battery_ep_ratio(config_p13: dict) -> None:
                 ),
             )
         with col3:
-            st.markdown(f"#### {st.session_state.sce2} ")
+            st.caption(f"{st.session_state.sce2} ")
             colour_mapping = get_colour_mapping(
                 table_name, mapping_df, scenario_2_grouped, legend_col
             )
@@ -1567,7 +1562,7 @@ def render_p14_battery_charging_profile(config_p14: dict) -> None:
     render_section_header(config_p14["name"])
 
     is_dual = st.session_state.sce2 and st.session_state.sce2 != ""
-    
+
     config_p14["shared_country"] = setup_country_filter(
         config_p14, is_dual, scenario_tag=st.session_state.sce1
     )
@@ -1659,7 +1654,7 @@ def render_p14_battery_charging_profile(config_p14: dict) -> None:
     config_p14["label_map"] = label_map
 
     if not is_dual:
-        st.markdown(f"#### {st.session_state.sce1} ")
+        st.caption(f"{st.session_state.sce1} ")
         plot_line_with_secondary_y_hourly(
             scenario_1_filtered,
             config_p14,
@@ -1681,7 +1676,7 @@ def render_p14_battery_charging_profile(config_p14: dict) -> None:
     else:
         col1, col2, col3 = st.columns([6, 1, 6])
         with col1:
-            st.markdown(f"#### {st.session_state.sce1} ")
+            st.caption(f"{st.session_state.sce1} ")
             plot_line_with_secondary_y_hourly(
                 scenario_1_filtered,
                 config_p14,
@@ -1698,7 +1693,7 @@ def render_p14_battery_charging_profile(config_p14: dict) -> None:
                 key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
             )
         with col3:
-            st.markdown(f"#### {st.session_state.sce2} ")
+            st.caption(f"{st.session_state.sce2} ")
             plot_line_with_secondary_y_hourly(
                 scenario_2_filtered,
                 config_p14,
