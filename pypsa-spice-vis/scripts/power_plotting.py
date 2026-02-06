@@ -1,0 +1,211 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+"""Plot-only helpers for Power page charts."""
+
+import plotly.express as px
+import plotly.graph_objects as go
+import streamlit as st
+from plotly.subplots import make_subplots
+
+from scripts.plot_settings import (
+    add_stackedbar_total,
+    handle_y_axis_list,
+    update_hourly_plot_x_axis,
+    update_layout,
+)
+
+
+def plot_simple_bar_yearly(df_grouped, graph_config, colour_mapping, y_range, key):
+    """Plot yearly stacked bar chart from pre-processed data."""
+    fig = px.bar(
+        df_grouped,
+        x="year",
+        y="value",
+        color="nice_names",
+        barmode="group"
+        if graph_config.get("table_name") == "pow_bats_ep_ratio"
+        else "stack",
+        color_discrete_map=colour_mapping,
+    )
+
+    fig = add_stackedbar_total(fig, df_grouped)
+    fig = update_layout(fig, df_grouped, y_range, graph_config)
+    st.plotly_chart(fig, use_container_width=True, key=key)
+
+
+def plot_simple_line_yearly(df, graph_config, colour_mapping, y_range, key):
+    """Plot yearly line chart from pre-processed data."""
+    fig = px.line(
+        df,
+        x="year",
+        y="value",
+        color="nice_names",
+        color_discrete_map=colour_mapping,
+    )
+    fig = update_layout(fig, df, y_range, graph_config)
+    st.plotly_chart(fig, use_container_width=True, key=key)
+
+
+def plot_area_share_yearly(df, graph_config, colour_mapping, key):
+    """Plot yearly area chart from pre-processed data."""
+    fig = px.area(
+        df,
+        x="year",
+        y="value",
+        color="nice_names",
+        color_discrete_map=colour_mapping,
+    )
+    fig = update_layout(fig, df, None, graph_config)
+    st.plotly_chart(fig, use_container_width=True, key=key)
+
+
+def plot_bar_with_filter(df, graph_config, colour_mapping, y_range, key):
+    """Plot yearly stacked bar chart with pre-applied filter."""
+    fig = px.bar(
+        df,
+        x="year",
+        y="value",
+        color="nice_names",
+        color_discrete_map=colour_mapping,
+    )
+    fig = add_stackedbar_total(fig, df)
+    fig = update_layout(fig, df, y_range, graph_config)
+    st.plotly_chart(fig, use_container_width=True, key=key)
+
+
+def plot_simple_bar_hourly(
+    filtered_df,
+    graph_config,
+    colour_mapping,
+    y_range,
+    start_date,
+    end_date,
+    is_complete,
+    key,
+):
+    """Plot hourly stacked bar chart from pre-filtered data."""
+    fig = px.bar(
+        filtered_df,
+        x="snapshot",
+        y="value",
+        color="nice_names",
+        color_discrete_map=colour_mapping,
+    )
+    fig = update_hourly_plot_x_axis(
+        fig, filtered_df, start_date, end_date, is_complete
+    )
+    fig = update_layout(fig, filtered_df, y_range, graph_config)
+    st.plotly_chart(fig, use_container_width=True, key=key)
+
+
+def plot_simple_line_hourly(
+    filtered_df,
+    graph_config,
+    colour_mapping,
+    y_range,
+    start_date,
+    end_date,
+    is_complete,
+    key,
+):
+    """Plot hourly line chart from pre-filtered data."""
+    fig = px.line(
+        filtered_df,
+        x="snapshot",
+        y="value",
+        color="nice_names",
+        color_discrete_map=colour_mapping,
+    )
+    fig = update_hourly_plot_x_axis(
+        fig, filtered_df, start_date, end_date, is_complete
+    )
+    fig = update_layout(fig, filtered_df, y_range, graph_config)
+    st.plotly_chart(fig, use_container_width=True, key=key)
+
+
+def plot_filtered_bar_hourly(
+    filtered_df,
+    graph_config,
+    colour_mapping,
+    y_range,
+    start_date,
+    end_date,
+    is_complete,
+    key,
+):
+    """Plot hourly stacked bar chart with line overlay from pre-filtered data."""
+    fig = px.bar(
+        filtered_df[filtered_df["value"] != 0],
+        x="snapshot",
+        y="value",
+        color="nice_names",
+        color_discrete_map=colour_mapping,
+    )
+    fig = update_hourly_plot_x_axis(
+        fig, filtered_df, start_date, end_date, is_complete
+    )
+    fig = update_layout(fig, filtered_df, y_range, graph_config)
+
+    fil_col = graph_config.get("fil_col")
+    if fil_col and fil_col in filtered_df.columns:
+        df_line = (
+            filtered_df.groupby(["snapshot", fil_col])["value"].sum().reset_index()
+        )
+        line_chart_trace = px.line(df_line, x="snapshot", y="value")
+        line_chart_trace.update_traces(line={"color": "blue", "width": 3})
+        for trace in line_chart_trace.data:
+            fig.add_trace(trace)
+
+    st.plotly_chart(fig, use_container_width=True, key=key)
+
+
+def plot_line_with_secondary_y_hourly(
+    filtered_df,
+    graph_config,
+    colour_mapping,
+    y_range,
+    start_date,
+    end_date,
+    is_complete,
+    key,
+):
+    """Plot hourly line chart with secondary y-axis from pre-filtered data."""
+    leg_col = graph_config["leg_col"]
+    primary_y_lab = graph_config["primary_y_lab"]
+    secondary_y_lab = graph_config["secondary_y_lab"]
+    label_map = graph_config.get("label_map", {})
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    for prim_y in primary_y_lab:
+        nice_name = label_map.get(prim_y, prim_y)
+        fig.add_trace(
+            go.Line(
+                y=filtered_df[filtered_df[leg_col] == prim_y]["value"],
+                x=filtered_df["snapshot"],
+                name=nice_name,
+                line={"color": colour_mapping.get(nice_name, "#a0a0a0")},
+            ),
+            secondary_y=False,
+        )
+
+    for secd_y in secondary_y_lab:
+        nice_name = label_map.get(secd_y, secd_y)
+        fig.add_trace(
+            go.Line(
+                y=filtered_df[filtered_df[leg_col] == secd_y]["value"],
+                x=filtered_df["snapshot"],
+                name=nice_name,
+                line={"color": colour_mapping.get(nice_name, "#a0a0a0")},
+            ),
+            secondary_y=True,
+        )
+
+    fig = update_hourly_plot_x_axis(
+        fig, filtered_df, start_date, end_date, is_complete
+    )
+    fig = update_layout(fig, filtered_df, y_range, graph_config)
+    fig.update_yaxes(title_text=handle_y_axis_list(primary_y_lab), secondary_y=False)
+    fig.update_yaxes(title_text=handle_y_axis_list(secondary_y_lab), secondary_y=True)
+    st.plotly_chart(fig, use_container_width=True, key=key)

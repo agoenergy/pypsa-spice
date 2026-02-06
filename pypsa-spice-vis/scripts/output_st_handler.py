@@ -22,6 +22,8 @@ from scripts.data_utils import (
 from scripts.plot_settings import (
     area_share_yearly,
     bar_with_filter,
+    generate_default_colour_mapping,
+    handle_color_mapping_for_chart,
     filtered_bar_hourly,
     line_with_secondary_y_hourly,
     simple_bar_hourly,
@@ -55,6 +57,91 @@ def generate_sidebar(table_of_content):
                 f'<a href="#{anchor_id}" class="nav-link">{section}</a>',
                 unsafe_allow_html=True,
             )
+
+
+def render_section_header(section_name: str) -> None:
+    """Render a section header with an anchor for sidebar navigation."""
+    anchor_id = slugify_text(section_name)
+    st.markdown(f"<div id='{anchor_id}'></div>", unsafe_allow_html=True)
+    st.markdown(f"#### {section_name}")
+
+
+def add_nice_names(df: pd.DataFrame, leg_col: str, mapping_df: pd.DataFrame | None):
+    """Add nice_names column using mapping or prettified labels."""
+    df = df.copy()
+    df["nice_names"] = df[leg_col].map(
+        lambda x: (
+            mapping_df.loc[x, "nice_names"]
+            if (mapping_df is not None and x in mapping_df.index)
+            else prettify_label(x)
+        )
+    )
+    return df
+
+
+def get_colour_mapping(table_name, mapping_df, df, leg_col):
+    """Get the color mapping for a chart based on mapping files or defaults."""
+    unique_legends = df["nice_names"].unique().tolist()
+    if mapping_df is not None:
+        return handle_color_mapping_for_chart(table_name, unique_legends)
+    return generate_default_colour_mapping(df, leg_col)
+
+
+def render_download_with_table(
+    df: pd.DataFrame, graph_config: dict, scenario_name: str
+):
+    """Render data table and CSV download for yearly charts."""
+    leg_col = graph_config["leg_col"]
+    download_id = graph_config["download_id"].format(scenario_name)
+    base_group_cols = {"year", leg_col}
+
+    additional_group_cols = [
+        col
+        for col in df.columns
+        if col not in base_group_cols.union({"value"}) and df[col].dtype == "object"
+    ]
+
+    group_cols = ["year", leg_col] + additional_group_cols
+    df_grouped = df.groupby(group_cols, as_index=False)["value"].sum(min_count=1)
+
+    with st.expander(f":material/database: Data ({scenario_name}):", expanded=False):
+        pivot_index = (
+            [leg_col] + additional_group_cols
+            if leg_col == "from"
+            else additional_group_cols + [leg_col]
+        )
+        df_pivot = pd.pivot_table(
+            df_grouped,
+            values="value",
+            columns="year",
+            index=pivot_index,
+        )
+        df_pivot = df_pivot.loc[~(df_pivot == 0).all(axis=1)].fillna(0)
+        df_pivot.index.names = pivot_index
+        styled_df = df_pivot.style.apply(generate_diff_arrows, axis=None).format(
+            "{:.1f}"
+        )
+        st.table(styled_df)
+
+        csv_data = df_pivot.to_csv().encode("utf-8")
+        create_download_csv_button(csv_data, download_id)
+
+
+def render_download_without_data(
+    filtered_df: pd.DataFrame, graph_config: dict, scenario_name: str
+):
+    """Render CSV download for hourly charts using pre-filtered data."""
+    leg_col = graph_config["leg_col"]
+    download_id = graph_config["download_id"].format(scenario_name)
+    graph_type = graph_config["graph_type"]
+
+    if filtered_df is not None and not filtered_df.empty:
+        csv_data = (
+            filtered_df.to_csv().encode("utf-8")
+            if graph_type == "filtered_bar_hourly"
+            else filtered_df[["snapshot", leg_col, "value"]].to_csv().encode("utf-8")
+        )
+        create_download_csv_button(csv_data, download_id)
 
 
 def setup_year_filter(config_plot: dict, is_dual_scenario: bool) -> str:
@@ -95,13 +182,8 @@ def setup_year_filter(config_plot: dict, is_dual_scenario: bool) -> str:
         default=years[0],
         label_visibility="collapsed",
     )  # noqa:E731
-
-    if is_dual_scenario:
-        spacer1, filter_col, spacer2 = st.columns([1, 3, 1])
-        with filter_col:
-            shared_year = pills_widget()
-    else:
-        shared_year = pills_widget()
+    
+    shared_year = pills_widget()
 
     return shared_year
 
@@ -414,9 +496,7 @@ def setup_radio_button_filter(config_plot: dict, is_dual_scenario: bool) -> str 
         )
         slider_id = config_plot["slider_id"].format("both")
 
-        spacer1, filter_col, spacer2 = st.columns([1, 2, 1])  # noqa: F841
-        with filter_col:
-            shared_filter = st.radio(
+        shared_filter = st.radio(
                 f"{slider_id} Select {fil_col} (both):",
                 options=[str(x) for x in filter_options],
                 format_func=prettify_label,

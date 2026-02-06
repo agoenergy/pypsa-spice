@@ -8,7 +8,6 @@ power:
   p1: 
     name: Capacity by type
     units: GW
-    graph_type: simple_bar_yearly
     table_name: pow_cap_by_type_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
@@ -19,7 +18,6 @@ power:
   p2:
     name: Capacity by region
     units: GW
-    graph_type: bar_with_filter
     table_name: pow_cap_by_type_by_region_yearly
     leg_col: technology
     fil_col: region
@@ -32,7 +30,6 @@ power:
   p3:
     name: Generation by type
     units: TWh
-    graph_type: simple_bar_yearly
     table_name: pow_gen_by_type_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
@@ -43,7 +40,6 @@ power:
   p4:
     name: Share category
     units: "%"
-    graph_type: area_share_yearly
     table_name: pow_gen_by_category_share_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
@@ -54,7 +50,6 @@ power:
   # p5:
   #   name: Generation by regions
   #   units: TWh
-  #   graph_type: simple_bar_yearly
   #   table_name: pow_gen_by_region_yearly
   #   leg_col: region
   #   yaxis_scale: # only valid when the chart does not include filters or sliders
@@ -65,7 +60,6 @@ power:
   p6:
     name: Transmission capacity between regions
     units: GW
-    graph_type: bar_with_filter
     table_name: pow_intercap_by_region_yearly
     leg_col: from
     fil_col: to
@@ -78,7 +72,6 @@ power:
   p7:
     name: Hourly generation
     units: MW
-    graph_type: simple_bar_hourly
     table_name: pow_gen_by_type_hourly
     leg_col: technology
     slider_id: 'Gen: ({}):'
@@ -87,7 +80,6 @@ power:
   p8:
     name: Regional hourly generation
     units: MW
-    graph_type: filtered_bar_hourly
     table_name: pow_gen_by_type_region_hourly
     leg_col: type_and_flow
     fil_col: "region"
@@ -97,7 +89,6 @@ power:
   p9:
     name: Energy demand by carrier
     units: TWh
-    graph_type: simple_bar_yearly
     table_name: ene_dmd_by_carrier_yearly
     leg_col: carrier
     yaxis_scale: # only valid when the chart does not include filters or sliders
@@ -108,7 +99,6 @@ power:
   p10:
     name: Hourly demand
     units: MW
-    graph_type: simple_bar_hourly
     table_name: pow_elec_load_by_sector_hourly
     leg_col: sector
     slider_id: 'Load: ({}):".format(sce_name)'
@@ -117,7 +107,6 @@ power:
   p11:
     name: Hourly elec price
     units: USD/MWh
-    graph_type: simple_line_hourly
     table_name: pow_marginal_price_by_region_hourly
     leg_col: region
     slider_id: 'Price: ({}):".format(sce_name)'
@@ -126,7 +115,6 @@ power:
   p12:
     name: Nodal flow between regions
     units: MW
-    graph_type: simple_line_hourly
     table_name: pow_nodal_flow_hourly
     leg_col: flow
     download_id: '{}_nodal_flow_hourly'
@@ -134,7 +122,6 @@ power:
 
   p13:
     name: Battery's E/P ratio
-    graph_type: simple_bar_yearly
     table_name: pow_bats_ep_ratio
     leg_col: bus
     yaxis_scale: # only valid when the chart does not include filters or sliders
@@ -145,7 +132,6 @@ power:
   p14:
     name: Battery's charging profile
     units: MW
-    graph_type: line_with_secondary_y_hourly
     table_name: pow_bats_charging_hourly
     leg_col: status
     slider_id: 'battery_profile_{}'
