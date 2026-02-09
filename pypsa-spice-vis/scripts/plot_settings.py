@@ -325,7 +325,7 @@ def update_hourly_plot_x_axis(
 
 
 def update_layout(
-    fig: Figure, df: pd.DataFrame, yaxis_scales: dict = None, graph_config: dict = None
+    fig: Figure, df: pd.DataFrame, yaxis_scales: dict | None = None, graph_config: dict | None = None
 ) -> Figure:
     """Update the layout of a Plotly figure to improve readability and aesthetics.
 

@@ -155,7 +155,7 @@ def _render_dual_chart_layout(
     plot_kwargs.pop("key", None)
 
     # Charts
-    col1, _, col3 = st.columns([6, 1, 6])
+    col1, col2 = st.columns([6, 6])
     with col1:
         st.caption(f"{scenario_1_name}")
         colour_mapping_1 = get_colour_mapping(
@@ -167,7 +167,7 @@ def _render_dual_chart_layout(
             key=plot_key_1, **plot_kwargs
         )
 
-    with col3:
+    with col2:
         st.caption(f"{scenario_2_name}")
         colour_mapping_2 = get_colour_mapping(
             table_name, mapping_df, scenario_2_data, legend_col
@@ -179,10 +179,10 @@ def _render_dual_chart_layout(
         )
 
     # Download buttons
-    col1, _, col3 = st.columns([6, 1, 6])
+    col1, col2 = st.columns([6, 6])
     with col1:
         render_download_func(raw_data_1, config_dict, scenario_1_name)
-    with col3:
+    with col2:
         render_download_func(raw_data_2, config_dict, scenario_2_name)
 
 
