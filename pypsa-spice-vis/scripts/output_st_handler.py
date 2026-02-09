@@ -131,7 +131,7 @@ def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None)
         if is_dual_scenario:
             country_options = sorted(set(df["country"].unique().tolist()))
         else:
-            country_options = df["country"].unique()
+            country_options = df["country"].unique().tolist()
 
         units = config_plot.get("units")  # None if missing
 
