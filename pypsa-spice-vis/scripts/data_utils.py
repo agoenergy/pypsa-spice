@@ -31,18 +31,19 @@ def handle_small_values(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def calculate_min_max_y_scale(
-    df: pd.DataFrame, df2: pd.DataFrame, group_col: str = None
+    df: pd.DataFrame, df2: pd.DataFrame | None, group_col: str | None
 ) -> dict:
-    """Calculate manimum and maximum values to use on the y axis.
+    """
+    Calculate minimum and maximum values to use on the y axis.
 
     Parameters
     ----------
     df : pd.DataFrame
         Input DataFrame. Assumes it contains a "value" column.
-    df2 : pd.DataFrame
-        Optional second input DataFrame to compare with to calculate a joint
-    group_col : str, optional
-        Column in the df to group by first, by default None
+    df2 : pd.DataFrame | None
+        Optional second input DataFrame to compare with to calculate a joint scale.
+    group_col : str | None
+        Column in the df to group by first. If None, calculates overall min/max.
 
     Returns
     -------
@@ -136,20 +137,62 @@ def convert_month_to_name(month_num: int) -> str:
 
 
 def filter_dataframe_by_date_range(
-    df: pd.DataFrame, start_date: dt.datetime, end_date: dt.datetime
-):
-    """Filter input dataframe by specific date range."""
+    df: pd.DataFrame,
+    start_date: dt.datetime | None,
+    end_date: dt.datetime | None,
+) -> pd.DataFrame:
+    """
+    Filter input dataframe by specific date range.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input dataframe with a 'snapshot' column
+    start_date : dt.datetime | None
+        Start date for filtering. If None, no lower bound is applied.
+    end_date : dt.datetime | None
+        End date for filtering. If None, no upper bound is applied.
+
+    Returns
+    -------
+    pd.DataFrame
+        Filtered dataframe
+    """
     df = df.copy()
     df["Date"] = pd.to_datetime(df["snapshot"])
-    filtered_df = df[(df["Date"] >= start_date) & (df["Date"] <= end_date)]
+
+    # Apply filters only if dates are provided
+    if start_date is not None and end_date is not None:
+        filtered_df = df[(df["Date"] >= start_date) & (df["Date"] <= end_date)]
+    elif start_date is not None:
+        filtered_df = df[df["Date"] >= start_date]
+    elif end_date is not None:
+        filtered_df = df[df["Date"] <= end_date]
+    else:
+        filtered_df = df
 
     return filtered_df
 
 
-def filter_dataframe_by_month(df: pd.DataFrame, month: int):
-    """Filter input dataframe by month."""
+def filter_dataframe_by_month(df: pd.DataFrame, month: int) -> pd.DataFrame:
+    """
+    Filter input dataframe by month.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input dataframe with a 'snapshot' column
+    month : int
+        Month number (1-12) to filter by
+
+    Returns
+    -------
+    pd.DataFrame
+        Filtered dataframe containing only rows from the specified month
+    """
+    df = df.copy()
     df["Date"] = pd.to_datetime(df["snapshot"])
-    df["Month"] = df["Date"].dt.month
+    df["Month"] = df["Date"].dt.month  # type: ignore
 
     return df[df["Month"] == month]
 
@@ -200,8 +243,9 @@ def get_filtered_df_and_date_range(df: pd.DataFrame, graph_config: dict):
 
 def get_hourly_dfs_for_both_scenarios(
     graph_config: dict,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Get the filtered hourly dataframes for two scenarios.
+) -> list[pd.DataFrame]:
+    """
+    Get the filtered hourly dataframes for two scenarios.
 
     Parameters
     ----------
@@ -210,8 +254,9 @@ def get_hourly_dfs_for_both_scenarios(
 
     Returns
     -------
-    tuple[pd.DataFrame, pd.DataFrame]
-        The filtered hourly dataframes for the two scenarios
+    list[pd.DataFrame]
+        List of filtered hourly dataframes (1 or 2 elements depending on
+        whether both scenarios have data)
     """
     start_date = end_date = None
     filtered_dfs = []
@@ -276,10 +321,11 @@ def prettify_label(label: str) -> str:
 def read_result_csv(
     scenario_name: str,
     table_name: str,
-    country: str = None,
-    year: str = None,
-) -> pd.DataFrame:
-    """Read model ouput csv files for a given scenario and table name.
+    country: str | None = None,
+    year: str | None = None,
+) -> pd.DataFrame | None:
+    """
+    Read model output csv files for a given scenario and table name.
 
     Parameters
     ----------
@@ -287,16 +333,16 @@ def read_result_csv(
         Selected scenario in streamlit UI
     table_name : str
         Output table name
-    country : str, optional
+    country : str | None, optional
         If not None, filter the csv by inputted country, by default None
-    year : str, optional
+    year : str | None, optional
         If not None, read csv from year specific folder else all_years folder,
         by default None
 
     Returns
     -------
-    pd.DataFrame
-        _description_
+    pd.DataFrame | None
+        DataFrame containing the CSV data, or None if file not found
     """
     if year:
         file_path = os.path.abspath(
@@ -328,7 +374,7 @@ def read_result_csv(
         df = pd.read_csv(os.path.abspath(file_path))
     except FileNotFoundError:
         with st.container(height=450, border=True):
-            st.write(f":material/warning: File dose not exist or is empty: {file_path}")
+            st.write(f":material/warning: File does not exist or is empty: {file_path}")
         return None
     if "country" in df.columns and country is not None:
         df = df[df["country"] == country]

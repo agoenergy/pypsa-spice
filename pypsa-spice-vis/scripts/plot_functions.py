@@ -48,8 +48,11 @@ def plot_simple_line_yearly(df, graph_config, colour_mapping, y_range, key):
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
-def plot_area_share_yearly(df, graph_config, colour_mapping, key):
-    """Plot yearly area chart from pre-processed data."""
+def plot_area_share_yearly(df, graph_config, colour_mapping, y_range, key):
+    """Plot yearly area chart from pre-processed data.
+
+    Note: y_range parameter is accepted for interface consistency but not used.
+    """
     fig = px.area(
         df,
         x="year",
