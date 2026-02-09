@@ -29,14 +29,13 @@ with open(
 
 table_of_content = []
 
-
 for _item, values in config.items():
     if (
         values["incl_sector"] == "all"
         or values["incl_sector"] in st.session_state.sector
     ):
         render_st_page_and_plot(
-            graph_type=map_chart_to_plot_function(values["graph_type"]),
+            graph_type_func=map_chart_to_plot_function(values["graph_type"]),
             config_plot=values,
         )
         table_of_content.append(values["name"])

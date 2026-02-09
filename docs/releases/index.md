@@ -11,7 +11,7 @@
 ### Changed
 
 - Added a new documentation file explaining how to set up a decommissioning/retrofit approach in **pypsa-spice** ([:material-source-pull:68](https://github.com/agoenergy/pypsa-spice/pull/68) by @nhlong2701)
-- 
+- Add 'ALL` option in the charts of pypsa-spice-vis ([:material-source-pull:72](https://github.com/agoenergy/pypsa-spice/pull/72) by @RichChang963)
 
 ### Notes
 
