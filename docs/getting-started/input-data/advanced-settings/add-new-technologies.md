@@ -19,9 +19,9 @@ To add a new gas-fired power plant type (e.g. `CCGT_Mod`), follow these steps:
 - In **`decomission_capacity.csv`**: Add a decommissioning plan for `CCGT_Mod`, if applicable.
 
 !!! tip
-    *In most cases, the new plant type is only slightly different from an existing one (e.g. `CCGT_Mod` vs `CCGT`).*
+    In most cases, the new plant type is only slightly different from an existing one (e.g. `CCGT_Mod` vs `CCGT`).
 
-    *To save time and reduce errors, copy the `CCGT` rows in all four files, change the relevant text to `CCGT_Mod`, and then modify only the parameters that differ.*
+    To save time and reduce errors, copy the `CCGT` rows in all four files, change the relevant text to `CCGT_Mod`, and then modify only the parameters that differ.
 
 
 ## Example 2: Adding a new renewable plant with time-dependent availability
