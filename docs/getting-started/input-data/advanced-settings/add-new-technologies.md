@@ -1,4 +1,4 @@
-# Adding a new technology logic
+# Adding new Technologies in PyPSA-SPICE
 
 This note explains how to add new or custom technologies in PyPSA-SPICE that are not included in the default set. In PyPSA-SPICE, some energy technologies are modeled by combining multiple PyPSA components to capture the characteristics of a specific plant type. Below are a few common examples for reference.
 
