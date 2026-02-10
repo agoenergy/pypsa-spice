@@ -10,43 +10,34 @@ dataframes and visualisations from the modelling results.
 """
 
 import os
-from typing import Optional
 
 import pandas as pd
 import streamlit as st
 import yaml
-from scripts.data_utils import (
-    calculate_min_max_y_scale,
-    clean_df_for_plotting,
-    filter_dataframe_by_date_range,
-    get_filtered_df_and_date_range,
-    handle_small_values,
-    prettify_label,
-    read_result_csv,
-)
-from scripts.output_st_handler import (
-    add_nice_names,
-    generate_sidebar,
-    get_colour_mapping,
-    render_download_with_table,
-    render_download_without_data,
-    render_section_header,
-    setup_country_filter,
-    setup_hourly_data_filters,
-    setup_radio_button_filter,
-    setup_region_filter,
-    setup_year_filter,
-)
+
+from scripts.data_utils import (calculate_min_max_y_scale,
+                                clean_df_for_plotting,
+                                filter_dataframe_by_date_range,
+                                get_filtered_df_and_date_range,
+                                handle_small_values, prettify_label,
+                                read_result_csv)
+from scripts.output_st_handler import (add_nice_names, generate_sidebar,
+                                       get_colour_mapping,
+                                       render_download_with_table,
+                                       render_download_without_data,
+                                       render_section_header,
+                                       setup_country_filter,
+                                       setup_hourly_data_filters,
+                                       setup_radio_button_filter,
+                                       setup_region_filter, setup_year_filter)
+from scripts.plot_functions import (plot_area_share_yearly,
+                                    plot_bar_with_filter,
+                                    plot_filtered_bar_hourly,
+                                    plot_line_with_secondary_y_hourly,
+                                    plot_simple_bar_hourly,
+                                    plot_simple_bar_yearly,
+                                    plot_simple_line_hourly)
 from scripts.plot_settings import create_nice_names_and_color_mapping
-from scripts.plot_functions import (
-    plot_area_share_yearly,
-    plot_bar_with_filter,
-    plot_filtered_bar_hourly,
-    plot_line_with_secondary_y_hourly,
-    plot_simple_bar_hourly,
-    plot_simple_bar_yearly,
-    plot_simple_line_hourly,
-)
 
 st.title(":material/bolt: Power")
 
@@ -83,8 +74,8 @@ table_of_content = [chart["name"] for chart in power_charts]
 
 def _prepare_y_range(
     scenario_1: pd.DataFrame,
-    scenario_2: Optional[pd.DataFrame],
-    x_col: Optional[str],
+    scenario_2: pd.DataFrame | None,
+    x_col: str | None,
 ) -> dict:
     """Calculate y-axis range for consistent scaling across scenarios."""
     y_range = calculate_min_max_y_scale(scenario_1, scenario_2, x_col)  # type: ignore
@@ -116,10 +107,14 @@ def _render_single_chart_layout(
     scenario_name = st.session_state.sce1
     st.markdown(f"{scenario_name}")
 
-    colour_mapping = get_colour_mapping(table_name, mapping_df, scenario_data, legend_col)
+    colour_mapping = get_colour_mapping(
+        table_name, mapping_df, scenario_data, legend_col
+    )
 
     plot_key = plot_kwargs.pop("key", f"plotly_chart_{scenario_name}_{table_name}")
-    plot_func(scenario_data, config_dict, colour_mapping, y_range, key=plot_key, **plot_kwargs)
+    plot_func(
+        scenario_data, config_dict, colour_mapping, y_range, key=plot_key, **plot_kwargs
+    )
 
     render_download_func(raw_data, config_dict, scenario_name)
 
@@ -163,8 +158,12 @@ def _render_dual_chart_layout(
         )
         plot_key_1 = f"plotly_chart_{scenario_1_name}_{table_name}"
         plot_func(
-            scenario_1_data, config_dict, colour_mapping_1, y_range,
-            key=plot_key_1, **plot_kwargs
+            scenario_1_data,
+            config_dict,
+            colour_mapping_1,
+            y_range,
+            key=plot_key_1,
+            **plot_kwargs,
         )
 
     with col2:
@@ -174,8 +173,12 @@ def _render_dual_chart_layout(
         )
         plot_key_2 = f"plotly_chart_{scenario_2_name}_{table_name}"
         plot_func(
-            scenario_2_data, config_dict, colour_mapping_2, y_range,
-            key=plot_key_2, **plot_kwargs
+            scenario_2_data,
+            config_dict,
+            colour_mapping_2,
+            y_range,
+            key=plot_key_2,
+            **plot_kwargs,
         )
 
     # Download buttons
@@ -188,7 +191,7 @@ def _render_dual_chart_layout(
 
 def _load_and_validate_hourly_data(
     scenario_name: str, table_name: str, year: str, country: str
-) -> Optional[pd.DataFrame]:
+) -> pd.DataFrame | None:
     """
     Load hourly data and convert snapshot to datetime.
 
@@ -204,14 +207,10 @@ def _load_and_validate_hourly_data(
 def _setup_hourly_filters(
     config_dict: dict,
     scenario_1_raw: pd.DataFrame,
-    scenario_2_raw: Optional[pd.DataFrame],
+    scenario_2_raw: pd.DataFrame | None,
     has_dual: bool,
 ):
-    """
-    Setup region and date filters for hourly data.
-
-    Updates config_dict in place with filter settings.
-    """
+    """Set up region and date filters for hourly data."""
     config_dict["shared_region"] = setup_region_filter(
         config_dict, scenario_1_raw, scenario_2_raw, has_dual  # type: ignore
     )
@@ -291,13 +290,17 @@ def render_p1_capacity_by_type(config_p1: dict) -> None:
                 ["year", legend_col], as_index=False
             )["value"].sum()
             scenario_2_grouped = _normalize_dataframe(scenario_2_grouped)
-            scenario_2_grouped = add_nice_names(scenario_2_grouped, legend_col, mapping_df)
+            scenario_2_grouped = add_nice_names(
+                scenario_2_grouped, legend_col, mapping_df
+            )
 
     # Calculate common y-axis range
     y_range = _prepare_y_range(scenario_1_grouped, scenario_2_grouped, "year")
 
     # Render charts (only dual if scenario 2 data is available)
-    has_dual_data = is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
+    has_dual_data = (
+        is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
+    )
     if not has_dual_data:
         _render_single_chart_layout(
             scenario_1_grouped,
@@ -309,7 +312,9 @@ def render_p1_capacity_by_type(config_p1: dict) -> None:
             y_range,
             plot_simple_bar_yearly,
             render_download_with_table,
-            key=f"plotly_chart_{config_p1['download_id'].format(st.session_state.sce1)}",
+            key=(
+                f"plotly_chart_{config_p1['download_id'].format(st.session_state.sce1)}"
+            ),
         )
     else:
         _render_dual_chart_layout(
@@ -388,14 +393,18 @@ def render_p2_capacity_by_region(config_p2: dict) -> None:
             scenario_2_filtered = scenario_2_raw[
                 scenario_2_raw[filter_col] == filter_value_s2
             ].copy()
-            scenario_2_filtered = add_nice_names(scenario_2_filtered, legend_col, mapping_df)
+            scenario_2_filtered = add_nice_names(
+                scenario_2_filtered, legend_col, mapping_df
+            )
             scenario_2_filtered = clean_df_for_plotting(legend_col, scenario_2_filtered)
 
     # Calculate common y-axis range
     y_range = _prepare_y_range(scenario_1_filtered, scenario_2_filtered, "year")
 
     # Render charts (only dual if scenario 2 data is available)
-    has_dual_data = is_dual and scenario_2_filtered is not None and scenario_2_raw is not None
+    has_dual_data = (
+        is_dual and scenario_2_filtered is not None and scenario_2_raw is not None
+    )
     if not has_dual_data:
         _render_single_chart_layout(
             scenario_1_filtered,
@@ -470,13 +479,17 @@ def render_p3_generation_by_type(config_p3: dict) -> None:
                 ["year", legend_col], as_index=False
             )["value"].sum()
             scenario_2_grouped = _normalize_dataframe(scenario_2_grouped)
-            scenario_2_grouped = add_nice_names(scenario_2_grouped, legend_col, mapping_df)
+            scenario_2_grouped = add_nice_names(
+                scenario_2_grouped, legend_col, mapping_df
+            )
 
     # Calculate common y-axis range
     y_range = _prepare_y_range(scenario_1_grouped, scenario_2_grouped, "year")
 
     # Render charts (only dual if scenario 2 data is available)
-    has_dual_data = is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
+    has_dual_data = (
+        is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
+    )
     if not has_dual_data:
         _render_single_chart_layout(
             scenario_1_grouped,
@@ -488,7 +501,9 @@ def render_p3_generation_by_type(config_p3: dict) -> None:
             y_range,
             plot_simple_bar_yearly,
             render_download_with_table,
-            key=f"plotly_chart_{config_p3['download_id'].format(st.session_state.sce1)}",
+            key=(
+                f"plotly_chart_{config_p3['download_id'].format(st.session_state.sce1)}"
+            ),
         )
     else:
         _render_dual_chart_layout(
@@ -546,8 +561,10 @@ def render_p4_share_category(config_p4: dict) -> None:
             scenario_2_plot = clean_df_for_plotting(legend_col, scenario_2_raw)
             scenario_2_plot = add_nice_names(scenario_2_plot, legend_col, mapping_df)
 
-    # Render charts (area charts don't use y_range, only dual if scenario 2 data is available)
-    has_dual_data = is_dual and scenario_2_plot is not None and scenario_2_raw is not None
+    # Render charts (area charts don't use y_range, only dual if scenario 2 is there)
+    has_dual_data = (
+        is_dual and scenario_2_plot is not None and scenario_2_raw is not None
+    )
     if not has_dual_data:
         _render_single_chart_layout(
             scenario_1_plot,
@@ -637,14 +654,18 @@ def render_p6_transmission_capacity_between_regions(config_p6: dict) -> None:
             scenario_2_filtered = scenario_2_raw[
                 scenario_2_raw[filter_col] == filter_value_s2
             ].copy()
-            scenario_2_filtered = add_nice_names(scenario_2_filtered, legend_col, mapping_df)
+            scenario_2_filtered = add_nice_names(
+                scenario_2_filtered, legend_col, mapping_df
+            )
             scenario_2_filtered = clean_df_for_plotting(legend_col, scenario_2_filtered)
 
     # Calculate common y-axis range
     y_range = _prepare_y_range(scenario_1_filtered, scenario_2_filtered, "year")
 
     # Render charts (only dual if scenario 2 data is available)
-    has_dual_data = is_dual and scenario_2_filtered is not None and scenario_2_raw is not None
+    has_dual_data = (
+        is_dual and scenario_2_filtered is not None and scenario_2_raw is not None
+    )
     if not has_dual_data:
         _render_single_chart_layout(
             scenario_1_filtered,
@@ -706,7 +727,10 @@ def render_p7_hourly_generation(config_p7: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = _load_and_validate_hourly_data(
-            st.session_state.sce2, table_name, str(shared_year), config_p7["shared_country"]
+            st.session_state.sce2,
+            table_name,
+            str(shared_year),
+            config_p7["shared_country"],
         )
 
     # Setup hourly filters
@@ -714,8 +738,10 @@ def render_p7_hourly_generation(config_p7: dict) -> None:
     _setup_hourly_filters(config_p7, scenario_1_raw, scenario_2_raw, has_dual_filters)
 
     # Filter and prepare scenario 1 data
-    scenario_1_filtered, start_date, end_date, is_complete = _filter_and_prepare_hourly_data(
-        scenario_1_raw, config_p7, legend_col, mapping_df
+    scenario_1_filtered, start_date, end_date, is_complete = (
+        _filter_and_prepare_hourly_data(
+            scenario_1_raw, config_p7, legend_col, mapping_df
+        )
     )
     if start_date > end_date:
         st.error("Error: End date must be greater than or equal to start date.")
@@ -733,7 +759,11 @@ def render_p7_hourly_generation(config_p7: dict) -> None:
     y_range = _prepare_y_range(scenario_1_filtered, scenario_2_filtered, "snapshot")
 
     # Render charts
-    plot_kwargs = {"start_date": start_date, "end_date": end_date, "is_complete": is_complete}
+    plot_kwargs = {
+        "start_date": start_date,
+        "end_date": end_date,
+        "is_complete": is_complete,
+    }
     if not is_dual:
         _render_single_chart_layout(
             scenario_1_filtered,
@@ -745,7 +775,9 @@ def render_p7_hourly_generation(config_p7: dict) -> None:
             y_range,
             plot_simple_bar_hourly,
             render_download_without_data,
-            key=f"plotly_chart_{config_p7['download_id'].format(st.session_state.sce1)}",
+            key=(
+                f"plotly_chart_{config_p7['download_id'].format(st.session_state.sce1)}"
+            ),
             **plot_kwargs,
         )
     else:
@@ -797,7 +829,10 @@ def render_p8_regional_hourly_generation(config_p8: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = _load_and_validate_hourly_data(
-            st.session_state.sce2, table_name, str(shared_year), config_p8["shared_country"]
+            st.session_state.sce2,
+            table_name,
+            str(shared_year),
+            config_p8["shared_country"],
         )
 
     # Setup hourly filters
@@ -805,8 +840,10 @@ def render_p8_regional_hourly_generation(config_p8: dict) -> None:
     _setup_hourly_filters(config_p8, scenario_1_raw, scenario_2_raw, has_dual_filters)
 
     # Filter and prepare data
-    scenario_1_filtered, start_date, end_date, is_complete = _filter_and_prepare_hourly_data(
-        scenario_1_raw, config_p8, legend_col, mapping_df
+    scenario_1_filtered, start_date, end_date, is_complete = (
+        _filter_and_prepare_hourly_data(
+            scenario_1_raw, config_p8, legend_col, mapping_df
+        )
     )
     if start_date > end_date:
         st.error("Error: End date must be greater than or equal to start date.")
@@ -823,7 +860,11 @@ def render_p8_regional_hourly_generation(config_p8: dict) -> None:
     y_range = _prepare_y_range(scenario_1_filtered, scenario_2_filtered, "snapshot")
 
     # Render charts
-    plot_kwargs = {"start_date": start_date, "end_date": end_date, "is_complete": is_complete}
+    plot_kwargs = {
+        "start_date": start_date,
+        "end_date": end_date,
+        "is_complete": is_complete,
+    }
     if not is_dual:
         _render_single_chart_layout(
             scenario_1_filtered,
@@ -900,13 +941,17 @@ def render_p9_energy_demand_by_carrier(config_p9: dict) -> None:
                 ["year", legend_col], as_index=False
             )["value"].sum()
             scenario_2_grouped = _normalize_dataframe(scenario_2_grouped)
-            scenario_2_grouped = add_nice_names(scenario_2_grouped, legend_col, mapping_df)
+            scenario_2_grouped = add_nice_names(
+                scenario_2_grouped, legend_col, mapping_df
+            )
 
     # Calculate common y-axis range
     y_range = _prepare_y_range(scenario_1_grouped, scenario_2_grouped, "year")
 
     # Render charts (only dual if scenario 2 data is available)
-    has_dual_data = is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
+    has_dual_data = (
+        is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
+    )
     if not has_dual_data:
         _render_single_chart_layout(
             scenario_1_grouped,
@@ -918,7 +963,9 @@ def render_p9_energy_demand_by_carrier(config_p9: dict) -> None:
             y_range,
             plot_simple_bar_yearly,
             render_download_with_table,
-            key=f"plotly_chart_{config_p9['download_id'].format(st.session_state.sce1)}",
+            key=(
+                f"plotly_chart_{config_p9['download_id'].format(st.session_state.sce1)}"
+            ),
         )
     else:
         _render_dual_chart_layout(
@@ -959,7 +1006,10 @@ def render_p10_hourly_demand(config_p10: dict) -> None:
 
     # Load and validate scenario data
     scenario_1_raw = _load_and_validate_hourly_data(
-        st.session_state.sce1, table_name, str(shared_year), config_p10["shared_country"]
+        st.session_state.sce1,
+        table_name,
+        str(shared_year),
+        config_p10["shared_country"],
     )
     if scenario_1_raw is None:
         st.divider()
@@ -968,7 +1018,10 @@ def render_p10_hourly_demand(config_p10: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = _load_and_validate_hourly_data(
-            st.session_state.sce2, table_name, str(shared_year), config_p10["shared_country"]
+            st.session_state.sce2,
+            table_name,
+            str(shared_year),
+            config_p10["shared_country"],
         )
 
     # Setup hourly filters
@@ -976,8 +1029,10 @@ def render_p10_hourly_demand(config_p10: dict) -> None:
     _setup_hourly_filters(config_p10, scenario_1_raw, scenario_2_raw, has_dual_filters)
 
     # Filter and prepare data
-    scenario_1_filtered, start_date, end_date, is_complete = _filter_and_prepare_hourly_data(
-        scenario_1_raw, config_p10, legend_col, mapping_df
+    scenario_1_filtered, start_date, end_date, is_complete = (
+        _filter_and_prepare_hourly_data(
+            scenario_1_raw, config_p10, legend_col, mapping_df
+        )
     )
     if start_date > end_date:
         st.error("Error: End date must be greater than or equal to start date.")
@@ -994,7 +1049,11 @@ def render_p10_hourly_demand(config_p10: dict) -> None:
     y_range = _prepare_y_range(scenario_1_filtered, scenario_2_filtered, "snapshot")
 
     # Render charts
-    plot_kwargs = {"start_date": start_date, "end_date": end_date, "is_complete": is_complete}
+    plot_kwargs = {
+        "start_date": start_date,
+        "end_date": end_date,
+        "is_complete": is_complete,
+    }
     if not is_dual:
         _render_single_chart_layout(
             scenario_1_filtered,
@@ -1006,7 +1065,11 @@ def render_p10_hourly_demand(config_p10: dict) -> None:
             y_range,
             plot_simple_bar_hourly,
             render_download_without_data,
-            key=f"plotly_chart_{config_p10['download_id'].format(st.session_state.sce1)}",
+            key=(
+                f"plotly_chart_{
+                    config_p10['download_id'].format(st.session_state.sce1)
+                }"
+            ),
             **plot_kwargs,
         )
     else:
@@ -1049,7 +1112,10 @@ def render_p11_hourly_elec_price(config_p11: dict) -> None:
 
     # Load and validate scenario data
     scenario_1_raw = _load_and_validate_hourly_data(
-        st.session_state.sce1, table_name, str(shared_year), config_p11["shared_country"]
+        st.session_state.sce1,
+        table_name,
+        str(shared_year),
+        config_p11["shared_country"],
     )
     if scenario_1_raw is None:
         st.divider()
@@ -1058,7 +1124,10 @@ def render_p11_hourly_elec_price(config_p11: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = _load_and_validate_hourly_data(
-            st.session_state.sce2, table_name, str(shared_year), config_p11["shared_country"]
+            st.session_state.sce2,
+            table_name,
+            str(shared_year),
+            config_p11["shared_country"],
         )
 
     # Setup hourly filters
@@ -1066,8 +1135,10 @@ def render_p11_hourly_elec_price(config_p11: dict) -> None:
     _setup_hourly_filters(config_p11, scenario_1_raw, scenario_2_raw, has_dual_filters)
 
     # Filter and prepare data
-    scenario_1_filtered, start_date, end_date, is_complete = _filter_and_prepare_hourly_data(
-        scenario_1_raw, config_p11, legend_col, mapping_df
+    scenario_1_filtered, start_date, end_date, is_complete = (
+        _filter_and_prepare_hourly_data(
+            scenario_1_raw, config_p11, legend_col, mapping_df
+        )
     )
     if start_date > end_date:
         st.error("Error: End date must be greater than or equal to start date.")
@@ -1084,7 +1155,11 @@ def render_p11_hourly_elec_price(config_p11: dict) -> None:
     y_range = _prepare_y_range(scenario_1_filtered, scenario_2_filtered, None)
 
     # Render charts
-    plot_kwargs = {"start_date": start_date, "end_date": end_date, "is_complete": is_complete}
+    plot_kwargs = {
+        "start_date": start_date,
+        "end_date": end_date,
+        "is_complete": is_complete,
+    }
     if not is_dual:
         _render_single_chart_layout(
             scenario_1_filtered,
@@ -1138,7 +1213,10 @@ def render_p12_nodal_flow_between_regions(config_p12: dict) -> None:
 
     # Load and validate scenario data
     scenario_1_raw = _load_and_validate_hourly_data(
-        st.session_state.sce1, table_name, str(shared_year), config_p12["shared_country"]
+        st.session_state.sce1,
+        table_name,
+        str(shared_year),
+        config_p12["shared_country"],
     )
     if scenario_1_raw is None:
         st.divider()
@@ -1147,7 +1225,10 @@ def render_p12_nodal_flow_between_regions(config_p12: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = _load_and_validate_hourly_data(
-            st.session_state.sce2, table_name, str(shared_year), config_p12["shared_country"]
+            st.session_state.sce2,
+            table_name,
+            str(shared_year),
+            config_p12["shared_country"],
         )
 
     # Setup hourly filters
@@ -1155,8 +1236,10 @@ def render_p12_nodal_flow_between_regions(config_p12: dict) -> None:
     _setup_hourly_filters(config_p12, scenario_1_raw, scenario_2_raw, has_dual_filters)
 
     # Filter and prepare data
-    scenario_1_filtered, start_date, end_date, is_complete = _filter_and_prepare_hourly_data(
-        scenario_1_raw, config_p12, legend_col, mapping_df
+    scenario_1_filtered, start_date, end_date, is_complete = (
+        _filter_and_prepare_hourly_data(
+            scenario_1_raw, config_p12, legend_col, mapping_df
+        )
     )
     if start_date > end_date:
         st.error("Error: End date must be greater than or equal to start date.")
@@ -1173,7 +1256,11 @@ def render_p12_nodal_flow_between_regions(config_p12: dict) -> None:
     y_range = _prepare_y_range(scenario_1_filtered, scenario_2_filtered, None)
 
     # Render charts
-    plot_kwargs = {"start_date": start_date, "end_date": end_date, "is_complete": is_complete}
+    plot_kwargs = {
+        "start_date": start_date,
+        "end_date": end_date,
+        "is_complete": is_complete,
+    }
     if not is_dual:
         _render_single_chart_layout(
             scenario_1_filtered,
@@ -1250,13 +1337,17 @@ def render_p13_battery_ep_ratio(config_p13: dict) -> None:
                 ["year", legend_col], as_index=False
             )["value"].sum()
             scenario_2_grouped = _normalize_dataframe(scenario_2_grouped)
-            scenario_2_grouped = add_nice_names(scenario_2_grouped, legend_col, mapping_df)
+            scenario_2_grouped = add_nice_names(
+                scenario_2_grouped, legend_col, mapping_df
+            )
 
     # Calculate common y-axis range
     y_range = _prepare_y_range(scenario_1_grouped, scenario_2_grouped, "year")
 
     # Render charts (only dual if scenario 2 data is available)
-    has_dual_data = is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
+    has_dual_data = (
+        is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
+    )
     if not has_dual_data:
         _render_single_chart_layout(
             scenario_1_grouped,
@@ -1268,7 +1359,11 @@ def render_p13_battery_ep_ratio(config_p13: dict) -> None:
             y_range,
             plot_simple_bar_yearly,
             render_download_with_table,
-            key=f"plotly_chart_{config_p13['download_id'].format(st.session_state.sce1)}",
+            key=(
+                f"plotly_chart_{
+                    config_p13['download_id'].format(st.session_state.sce1)
+                }"
+            ),
         )
     else:
         _render_dual_chart_layout(
@@ -1309,7 +1404,10 @@ def render_p14_battery_charging_profile(config_p14: dict) -> None:
 
     # Load and validate scenario data
     scenario_1_raw = _load_and_validate_hourly_data(
-        st.session_state.sce1, table_name, str(shared_year), config_p14["shared_country"]
+        st.session_state.sce1,
+        table_name,
+        str(shared_year),
+        config_p14["shared_country"],
     )
     if scenario_1_raw is None:
         st.divider()
@@ -1318,7 +1416,10 @@ def render_p14_battery_charging_profile(config_p14: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = _load_and_validate_hourly_data(
-            st.session_state.sce2, table_name, str(shared_year), config_p14["shared_country"]
+            st.session_state.sce2,
+            table_name,
+            str(shared_year),
+            config_p14["shared_country"],
         )
 
     # Setup hourly filters
@@ -1362,7 +1463,11 @@ def render_p14_battery_charging_profile(config_p14: dict) -> None:
     config_p14["label_map"] = label_map
 
     # Render charts (special handling for dual-axis plot)
-    plot_kwargs = {"start_date": start_date, "end_date": end_date, "is_complete": is_complete}
+    plot_kwargs = {
+        "start_date": start_date,
+        "end_date": end_date,
+        "is_complete": is_complete,
+    }
 
     if not is_dual or scenario_2_filtered is None:
         st.caption(f"{st.session_state.sce1}")
@@ -1380,7 +1485,9 @@ def render_p14_battery_charging_profile(config_p14: dict) -> None:
             key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
             **plot_kwargs,
         )
-        render_download_without_data(scenario_1_filtered, config_p14, st.session_state.sce1)
+        render_download_without_data(
+            scenario_1_filtered, config_p14, st.session_state.sce1
+        )
     else:
         col1, _, col3 = st.columns([6, 1, 6])
         with col1:
@@ -1419,9 +1526,13 @@ def render_p14_battery_charging_profile(config_p14: dict) -> None:
 
         col1, _, col3 = st.columns([6, 1, 6])
         with col1:
-            render_download_without_data(scenario_1_filtered, config_p14, st.session_state.sce1)
+            render_download_without_data(
+                scenario_1_filtered, config_p14, st.session_state.sce1
+            )
         with col3:
-            render_download_without_data(scenario_2_filtered, config_p14, st.session_state.sce2)
+            render_download_without_data(
+                scenario_2_filtered, config_p14, st.session_state.sce2
+            )
 
     st.divider()
 

@@ -16,17 +16,14 @@ import plotly.graph_objects as go
 import streamlit as st
 from plotly.graph_objs._figure import Figure
 from plotly.subplots import make_subplots
-from scripts.data_utils import (
-    calculate_min_max_y_scale,
-    clean_df_for_plotting,
-    filter_dataframe_by_date_range,
-    get_filtered_df_and_date_range,
-    get_hourly_dfs_for_both_scenarios,
-    handle_small_values,
-    prettify_label,
-    read_result_csv,
-)
-from streamlit.runtime.state.common import WidgetArgs
+
+from scripts.data_utils import (calculate_min_max_y_scale,
+                                clean_df_for_plotting,
+                                filter_dataframe_by_date_range,
+                                get_filtered_df_and_date_range,
+                                get_hourly_dfs_for_both_scenarios,
+                                handle_small_values, prettify_label,
+                                read_result_csv)
 
 # pylint: disable=too-many-locals, broad-exception-caught
 
@@ -325,7 +322,10 @@ def update_hourly_plot_x_axis(
 
 
 def update_layout(
-    fig: Figure, df: pd.DataFrame, yaxis_scales: dict | None = None, graph_config: dict | None = None
+    fig: Figure,
+    df: pd.DataFrame,
+    yaxis_scales: dict | None = None,
+    graph_config: dict | None = None,
 ) -> Figure:
     """Update the layout of a Plotly figure to improve readability and aesthetics.
 
@@ -419,7 +419,6 @@ def update_layout(
     # For the yearly bar charts, adjust the space between bars
     if graph_config["graph_type"] in [
         "simple_bar_yearly",
-        "simple_bar_yearly_2",
         "bar_with_filter",
     ]:
         fig.update_layout(bargap=0.4)
@@ -458,7 +457,9 @@ def simple_bar_yearly(scenario_name: str, graph_config: dict) -> None:
 
     mapping_df = create_nice_names_and_color_mapping(table_name)
 
+    # Total sum values per year will be applied if all countries are selected
     df_grouped = df.groupby(["year", leg_col], as_index=False)["value"].sum()
+
     df_grouped["nice_names"] = df_grouped[leg_col].map(
         lambda x: (
             mapping_df.loc[x, "nice_names"]
@@ -530,6 +531,8 @@ def simple_line_yearly(scenario_name: str, graph_config: dict):
 
     mapping_df = create_nice_names_and_color_mapping(table_name)
 
+    # Total average values per year will be applied if all countries are selected
+    df = df.groupby(["year", leg_col], as_index=False)["value"].mean()
     df["nice_names"] = df[leg_col].map(
         lambda x: (
             mapping_df.loc[x, "nice_names"]
@@ -656,6 +659,8 @@ def area_share_yearly(scenario_name: str, graph_config: dict):
 
     mapping_df = create_nice_names_and_color_mapping(table_name)
 
+    # Total average values per year will be applied if all countries are selected
+    df = df.groupby(["year", leg_col], as_index=False)["value"].mean()
     df["nice_names"] = df[leg_col].map(
         lambda x: (
             mapping_df.loc[x, "nice_names"]

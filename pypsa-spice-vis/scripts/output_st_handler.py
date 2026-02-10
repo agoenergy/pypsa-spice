@@ -8,29 +8,21 @@ import datetime as dt
 
 import pandas as pd
 import streamlit as st
-from styles import apply_radio_menu_styles, apply_sidebar_chart_nav_styles, use_flexo
+from styles import (apply_radio_menu_styles, apply_sidebar_chart_nav_styles,
+                    use_flexo)
 
-from scripts.data_utils import (
-    convert_month_to_name,
-    filter_dataframe_by_date_range,
-    filter_dataframe_by_month,
-    get_filtered_df_and_date_range,
-    prettify_label,
-    read_result_csv,
-    slugify_text,
-)
-from scripts.plot_settings import (
-    area_share_yearly,
-    bar_with_filter,
-    generate_default_colour_mapping,
-    handle_color_mapping_for_chart,
-    filtered_bar_hourly,
-    line_with_secondary_y_hourly,
-    simple_bar_hourly,
-    simple_bar_yearly,
-    simple_line_hourly,
-    simple_line_yearly,
-)
+from scripts.data_utils import (convert_month_to_name,
+                                filter_dataframe_by_date_range,
+                                filter_dataframe_by_month,
+                                get_filtered_df_and_date_range, prettify_label,
+                                read_result_csv, slugify_text)
+from scripts.plot_settings import (area_share_yearly, bar_with_filter,
+                                   filtered_bar_hourly,
+                                   generate_default_colour_mapping,
+                                   handle_color_mapping_for_chart,
+                                   line_with_secondary_y_hourly,
+                                   simple_bar_hourly, simple_bar_yearly,
+                                   simple_line_hourly, simple_line_yearly)
 
 use_flexo()
 
@@ -182,7 +174,7 @@ def setup_year_filter(config_plot: dict, is_dual_scenario: bool) -> str:
         default=years[0],
         label_visibility="collapsed",
     )  # noqa:E731
-    
+
     shared_year = pills_widget()
 
     return shared_year
@@ -212,16 +204,25 @@ def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None)
         # Set widget configuration params based on one or two scenarios
         if is_dual_scenario:
             country_options = sorted(set(df["country"].unique().tolist()))
-            scenario_text = "both"  # noqa: F841
         else:
-            country_options = df["country"].unique()
-            scenario_text = st.session_state.sce1  # noqa: F841
+            country_options = df["country"].unique().tolist()
+
+        units = config_plot.get("units")  # None if missing
+
+        table_name = config_plot.get("table_name", "")
+        is_regional_hourly = (
+            "flow" in table_name
+            or "charging" in table_name
+            or ("region" in table_name and "price" not in table_name)
+        )
+        if units and not is_regional_hourly:
+            country_options += ["ALL"]
 
         slider_id = config_plot["table_name"]
         if "shared_country" in config_plot:
             country_id = config_plot["shared_country"]
         else:
-            country_id = "all"
+            country_id = "ALL"
         key = f"shared_country_{country_id}_{scenario_tag}_{slider_id}"
         label = f"{slider_id} Select country:"
 
@@ -497,12 +498,12 @@ def setup_radio_button_filter(config_plot: dict, is_dual_scenario: bool) -> str 
         slider_id = config_plot["slider_id"].format("both")
 
         shared_filter = st.radio(
-                f"{slider_id} Select {fil_col} (both):",
-                options=[str(x) for x in filter_options],
-                format_func=prettify_label,
-                horizontal=True,
-                label_visibility="collapsed",
-            )
+            f"{slider_id} Select {fil_col} (both):",
+            options=[str(x) for x in filter_options],
+            format_func=prettify_label,
+            horizontal=True,
+            label_visibility="collapsed",
+        )
     else:
         shared_filter = None
 
@@ -587,7 +588,7 @@ def setup_hourly_data_filters(
     }
 
 
-def render_st_page_and_plot(graph_type, config_plot: dict):
+def render_st_page_and_plot(graph_type_func, config_plot: dict):
     """Render and plot all graphs based on the provided graph type and configuration."""
     st.markdown(
         f"<div id='{config_plot['name'].replace(' ', '-')}'></div>",
@@ -659,7 +660,7 @@ def render_st_page_and_plot(graph_type, config_plot: dict):
         # Display the graph for single scenario
         config_plot["years"] = st.session_state.sce1_years
         st.markdown(f"#### {st.session_state.sce1} ")
-        graph_type(scenario_name=st.session_state.sce1, graph_config=config_plot)
+        graph_type_func(scenario_name=st.session_state.sce1, graph_config=config_plot)
 
         # Display the data download part
         if config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
@@ -673,11 +674,15 @@ def render_st_page_and_plot(graph_type, config_plot: dict):
         with col1:
             config_plot["years"] = st.session_state.sce1_years
             st.markdown(f"#### {st.session_state.sce1} ")
-            graph_type(scenario_name=st.session_state.sce1, graph_config=config_plot)
+            graph_type_func(
+                scenario_name=st.session_state.sce1, graph_config=config_plot
+            )
         with col3:
             config_plot["years"] = st.session_state.sce2_years
             st.markdown(f"#### {st.session_state.sce2} ")
-            graph_type(scenario_name=st.session_state.sce2, graph_config=config_plot)
+            graph_type_func(
+                scenario_name=st.session_state.sce2, graph_config=config_plot
+            )
 
         # Display the data download part
         col1, col2, col3 = st.columns([6, 1, 6])
