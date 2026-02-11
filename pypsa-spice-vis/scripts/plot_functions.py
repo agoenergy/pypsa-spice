@@ -60,6 +60,7 @@ def create_nice_names_and_color_mapping(
     return df
 
 
+@st.fragment
 def plot_simple_bar_yearly(df_grouped, graph_config, colour_mapping, y_range, key):
     """Plot yearly stacked bar chart from pre-processed data."""
     fig = px.bar(
@@ -81,6 +82,7 @@ def plot_simple_bar_yearly(df_grouped, graph_config, colour_mapping, y_range, ke
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
+@st.fragment
 def plot_simple_line_yearly(df, graph_config, colour_mapping, y_range, key):
     """Plot yearly line chart from pre-processed data."""
     fig = px.line(
@@ -94,6 +96,7 @@ def plot_simple_line_yearly(df, graph_config, colour_mapping, y_range, key):
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
+@st.fragment
 def plot_area_share_yearly(df, graph_config, colour_mapping, y_range, key):
     """Plot yearly area chart from pre-processed data.
 
@@ -110,6 +113,7 @@ def plot_area_share_yearly(df, graph_config, colour_mapping, y_range, key):
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
+@st.fragment
 def plot_bar_with_filter(df, graph_config, colour_mapping, y_range, key):
     """Plot yearly stacked bar chart with pre-applied filter."""
     fig = px.bar(
@@ -126,6 +130,7 @@ def plot_bar_with_filter(df, graph_config, colour_mapping, y_range, key):
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
+@st.fragment
 def plot_simple_bar_hourly(
     filtered_df,
     graph_config,
@@ -149,6 +154,7 @@ def plot_simple_bar_hourly(
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
+@st.fragment
 def plot_simple_line_hourly(
     filtered_df,
     graph_config,
@@ -172,6 +178,7 @@ def plot_simple_line_hourly(
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
+@st.fragment
 def plot_filtered_bar_hourly(
     filtered_df,
     graph_config,
@@ -206,6 +213,7 @@ def plot_filtered_bar_hourly(
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
+@st.fragment
 def plot_line_with_secondary_y_hourly(
     filtered_df,
     graph_config,
