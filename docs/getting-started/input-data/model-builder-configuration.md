@@ -24,7 +24,7 @@ You can configure individual scenarios using their respective `scenario_config.y
 
 ```yaml title="Path configurations"
 path_configs: 
-  data_folder_name: pypsa-spice-data #(1)!
+  data_folder_name: example #(1)!
   project_name: project_01 #(2)!
   input_scenario_name: scenario_01 # (3)!
   output_scenario_name: scenario_01_tag1 # (4)!

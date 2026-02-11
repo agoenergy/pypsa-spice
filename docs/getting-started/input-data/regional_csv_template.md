@@ -8,7 +8,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 ```text title="Structure of the regional CSV template files"
 📦 data
- ┗ 📂 pypsa-spice-data
+ ┗ 📂 example
     ┗ 📂 project_01
        ┗ 📂 input
          ┗ 📂 scenario_01
