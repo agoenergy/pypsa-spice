@@ -67,7 +67,7 @@ def plot_simple_bar_yearly(df, graph_config, colour_mapping, y_range, key):
         df,
         x="year",
         y="value",
-        color="nice_names",
+        color="legend",
         barmode=(
             "group"
             if graph_config.get("table_name") == "pow_bats_ep_ratio"
@@ -89,7 +89,7 @@ def plot_simple_line_yearly(df, graph_config, colour_mapping, y_range, key):
         df,
         x="year",
         y="value",
-        color="nice_names",
+        color="legend",
         color_discrete_map=colour_mapping,
     )
     fig = configure_plot_layout(fig, df, y_range, graph_config)
@@ -106,7 +106,7 @@ def plot_area_share_yearly(df, graph_config, colour_mapping, y_range, key):
         df,
         x="year",
         y="value",
-        color="nice_names",
+        color="legend",
         color_discrete_map=colour_mapping,
     )
     fig = configure_plot_layout(fig, df, None, graph_config)
@@ -120,7 +120,7 @@ def plot_bar_with_filter(df, graph_config, colour_mapping, y_range, key):
         df,
         x="year",
         y="value",
-        color="nice_names",
+        color="legend",
         color_discrete_map=colour_mapping,
     )
     fig = add_stackedbar_total(fig, df)
@@ -146,7 +146,7 @@ def plot_simple_bar_hourly(
         df,
         x="snapshot",
         y="value",
-        color="nice_names",
+        color="legend",
         color_discrete_map=colour_mapping,
     )
     fig = update_hourly_plot_x_axis(fig, df, start_date, end_date, is_complete)
@@ -170,7 +170,7 @@ def plot_simple_line_hourly(
         df,
         x="snapshot",
         y="value",
-        color="nice_names",
+        color="legend",
         color_discrete_map=colour_mapping,
     )
     fig = update_hourly_plot_x_axis(fig, df, start_date, end_date, is_complete)
@@ -194,7 +194,7 @@ def plot_filtered_bar_hourly(
         filtered_df[filtered_df["value"] != 0],
         x="snapshot",
         y="value",
-        color="nice_names",
+        color="legend",
         color_discrete_map=colour_mapping,
     )
     fig = update_hourly_plot_x_axis(fig, filtered_df, start_date, end_date, is_complete)
