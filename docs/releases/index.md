@@ -11,6 +11,7 @@
 ### Changed
 
 - Added a new documentation file explaining how to set up a decommissioning/retrofit approach in **pypsa-spice** ([:material-source-pull:68](https://github.com/agoenergy/pypsa-spice/pull/68) by @nhlong2701)
+- Added a new documentation file explaining how to add new technologies in **pypsa-spice** and to better explain the model code and data repositories set up ([:material-source-pull:73](https://github.com/agoenergy/pypsa-spice/pull/73) by @RichChang963 & @nhlong2701)
 - Add 'ALL` option in the charts of pypsa-spice-vis ([:material-source-pull:72](https://github.com/agoenergy/pypsa-spice/pull/72) by @RichChang963)
 
 ### Notes
