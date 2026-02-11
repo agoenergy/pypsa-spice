@@ -79,7 +79,7 @@ def add_nice_names(df: pd.DataFrame, leg_col: str, mapping_df: pd.DataFrame | No
     return df
 
 
-def get_colour_mapping(table_name, mapping_df, df, leg_col):
+def generate_colour_mapping_dict(table_name, mapping_df, df, leg_col):
     """Get the color mapping for a chart based on mapping files or defaults."""
     unique_legends = df["nice_names"].unique().tolist()
     if mapping_df is not None:

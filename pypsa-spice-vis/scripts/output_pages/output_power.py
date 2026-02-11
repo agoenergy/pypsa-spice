@@ -30,7 +30,7 @@ from scripts.data_utils import (
 from scripts.output_st_handler import (
     add_nice_names,
     generate_sidebar,
-    get_colour_mapping,
+    generate_colour_mapping_dict,
     render_download_with_table,
     render_download_without_data,
     render_section_header,
@@ -95,7 +95,7 @@ def _render_single_chart_layout(
     legend_col = config_dict["leg_col"]
     st.markdown(f"{scenario_name}")
 
-    colour_mapping = get_colour_mapping(
+    colour_mapping = generate_colour_mapping_dict(
         table_name, mapping_df, vis_display_data, legend_col
     )
 
@@ -148,7 +148,7 @@ def _render_dual_chart_layout(
     col1, col2 = st.columns([6, 6])
     with col1:
         st.caption(f"{scenario_1_name}")
-        colour_mapping_1 = get_colour_mapping(
+        colour_mapping_1 = generate_colour_mapping_dict(
             table_name, mapping_df, scenario_1_vis_display_data, legend_col
         )
         plot_key_1 = f"plotly_chart_{scenario_1_name}_{table_name}"
@@ -163,7 +163,7 @@ def _render_dual_chart_layout(
 
     with col2:
         st.caption(f"{scenario_2_name}")
-        colour_mapping_2 = get_colour_mapping(
+        colour_mapping_2 = generate_colour_mapping_dict(
             table_name, mapping_df, scenario_2_vis_display_data, legend_col
         )
         plot_key_2 = f"plotly_chart_{scenario_2_name}_{table_name}"
@@ -1448,7 +1448,7 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
 
     if not is_dual or scenario_2_filtered is None:
         st.caption(f"{st.session_state.sce1}")
-        colour_mapping = get_colour_mapping(
+        colour_mapping = generate_colour_mapping_dict(
             table_name,
             mapping_df,
             add_nice_names(scenario_1_filtered, legend_col, mapping_df),
@@ -1469,7 +1469,7 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
         col1, _, col3 = st.columns([6, 1, 6])
         with col1:
             st.caption(f"{st.session_state.sce1}")
-            colour_mapping_1 = get_colour_mapping(
+            colour_mapping_1 = generate_colour_mapping_dict(
                 table_name,
                 mapping_df,
                 add_nice_names(scenario_1_filtered, legend_col, mapping_df),
@@ -1486,7 +1486,7 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
 
         with col3:
             st.caption(f"{st.session_state.sce2}")
-            colour_mapping_2 = get_colour_mapping(
+            colour_mapping_2 = generate_colour_mapping_dict(
                 table_name,
                 mapping_df,
                 add_nice_names(scenario_2_filtered, legend_col, mapping_df),
