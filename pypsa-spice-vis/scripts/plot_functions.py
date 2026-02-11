@@ -8,6 +8,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
+import os
+import re
+import pandas as pd
 
 from scripts.plot_settings import (
     add_stackedbar_total,
@@ -15,6 +18,46 @@ from scripts.plot_settings import (
     update_hourly_plot_x_axis,
     configure_plot_layout,
 )
+
+
+def create_nice_names_and_color_mapping(
+    table_name: str,
+) -> pd.DataFrame:
+    """Get the names to hex codes mapping df for a given graph.
+
+    Parameters
+    ----------
+    table_name : str
+        Tab name of the graph as per the config file
+
+    Returns
+    -------
+    pd.DataFrame
+        Dataframe of tech/carrier csv or None if no mapping file matches
+    """
+    pattern_name_map = [
+        (r"^ene_avg_fuel_costs_fuel_yearly$", "carrier_mapping.csv"),
+        (r"_by_heatgroup", "tech_mapping.csv"),
+        (r"_capex", "tech_mapping.csv"),
+        (r"_opex", "tech_mapping.csv"),
+        (r"_by_type_by_carrier", "carrier_mapping.csv"),
+        (r"_by_carrier", "carrier_mapping.csv"),
+        (r"_by_type", "tech_mapping.csv"),
+        (r"_by_category", "tech_mapping.csv"),
+    ]
+
+    file_name = None
+    for pattern, name in pattern_name_map:
+        if re.search(pattern, table_name):
+            file_name = name
+            break
+    if file_name is None:
+        return None
+
+    file_path = os.path.join(st.session_state.current_dir, f"setting/{file_name}")
+    df = pd.read_csv(file_path, index_col="original_names")
+
+    return df
 
 
 def plot_simple_bar_yearly(df_grouped, graph_config, colour_mapping, y_range, key):

@@ -518,6 +518,27 @@ def setup_radio_button_filter(config_plot: dict, is_dual_scenario: bool) -> str 
     return shared_filter
 
 
+def setup_hourly_filters(
+    config_dict: dict,
+    scenario_1_raw: pd.DataFrame,
+    scenario_2_raw: pd.DataFrame | None,
+    has_dual: bool,
+):
+    """Set up region and date filters for hourly data and update config.
+
+    This function is a small wrapper that determines the shared region via
+    `setup_region_filter` and then computes the hourly filter selections using
+    `setup_hourly_data_filters`, storing the results back into `config_dict`.
+    """
+    config_dict["shared_region"] = setup_region_filter(
+        config_dict, scenario_1_raw, scenario_2_raw, has_dual  # type: ignore
+    )
+    filter_results = setup_hourly_data_filters(
+        scenario_1_raw, scenario_2_raw, config_dict, has_dual
+    )
+    config_dict.update(filter_results)
+
+
 def setup_hourly_data_filters(
     df1: pd.DataFrame,
     df2: pd.DataFrame | None,

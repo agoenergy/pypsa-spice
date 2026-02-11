@@ -403,3 +403,83 @@ def slugify_text(text: str):
     text = re.sub(r"[^a-z0-9]+", "-", text)  # Replace special characters with hyphens
     text = text.strip("-")  # Remove trailing/leading hyphens
     return text
+
+
+def prepare_y_range(
+    scenario_1_df: pd.DataFrame, scenario_2_df: pd.DataFrame | None, x_col: str | None
+) -> dict:
+    """Calculate y-axis range for consistent scaling across scenarios.
+
+    Parameters
+    ----------
+    scenario_1_df : pd.DataFrame
+        First scenario dataframe.
+    scenario_2_df : pd.DataFrame | None
+        Optional second scenario dataframe.
+    x_col : str | None
+        Grouping column used when computing min/max (e.g., 'year' or 'snapshot').
+
+    Returns
+    -------
+    dict
+        Dictionary with keys 'max_scale' and 'min_scale'.
+    """
+    y_range = calculate_min_max_y_scale(scenario_1_df, scenario_2_df, x_col)  # type: ignore
+    return {"max_scale": y_range["max"], "min_scale": y_range["min"]}
+
+
+def normalize_dataframe(df: pd.DataFrame | pd.Series) -> pd.DataFrame:
+    """Ensure groupby results are returned as a DataFrame, not a Series.
+
+    If a Pandas Series is passed (common after .groupby(...).sum()), the
+    function resets the index and returns a DataFrame.
+    """
+    return df.reset_index() if isinstance(df, pd.Series) else df
+
+
+def load_and_validate_hourly_data(
+    scenario_name: str, table_name: str, year: str, country: str
+) -> pd.DataFrame | None:
+    """Load hourly data CSV and convert `snapshot` column to datetimes.
+
+    Returns None if the file is missing or empty.
+    """
+    raw_data = read_result_csv(scenario_name, table_name, year=year, country=country)
+    if raw_data is None or raw_data.empty:
+        return None
+    raw_data["snapshot"] = pd.to_datetime(raw_data["snapshot"])
+    return raw_data
+
+
+def filter_and_prepare_hourly_data(
+    raw_data: pd.DataFrame | None,
+    config_dict: dict,
+    legend_col: str,
+    mapping_df: pd.DataFrame,
+) -> tuple:
+    """Filter hourly raw data by date range and prepare for plotting.
+
+    Returns (filtered_data, start_date, end_date, is_complete). If `raw_data`
+    is None the function returns (None, None, None, False).
+    """
+    if raw_data is None:
+        return None, None, None, False
+
+    monthly_data, start_date, end_date, is_complete = get_filtered_df_and_date_range(
+        raw_data, config_dict
+    )
+    filtered_data = filter_dataframe_by_date_range(
+        monthly_data, start_date=start_date, end_date=end_date
+    )
+    filtered_data = handle_small_values(filtered_data)
+
+    # Import add_nice_names lazily to avoid circular imports at module import time
+    try:
+        from scripts.output_st_handler import add_nice_names
+
+        filtered_data = add_nice_names(filtered_data, legend_col, mapping_df)
+    except Exception:
+        # If output_st_handler is not importable, return data without nice names
+        pass
+
+    return filtered_data, start_date, end_date, is_complete
