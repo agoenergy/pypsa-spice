@@ -23,9 +23,8 @@ To add a new gas-fired power plant type (e.g. `CCGT_Mod`), follow these steps:
 
     To save time and reduce errors, copy the `CCGT` rows in all four files, change the relevant text to `CCGT_Mod`, and then modify only the parameters that differ.
 
-## Example 2: Adding a new renewable plant with time-dependent availability
-
-In PyPSA-SPICE, renewable plants with time-dependent availability are modeled as a PyPSA `Generator` (hydro dams are the exception and use `StorageUnit`). To add a new renewable plant (e.g. `Wind-PV-Hybrid`), do the following:
+## Example 2: Adding a single-output plant (e.g., new renewable plant with time-dependent availability)
+In PyPSA-SPICE, renewable plants with time-dependent availability are modeled as `Generator` component (hydro dams are the exception and use `StorageUnit`). To add a new renewable plant (e.g. `Wind-PV-Hybrid`), do the following:
 
 - In **`technologies.csv`**: Add a new row for `Wind-PV-Hybrid` and fill in the technical parameters. Leave `p_max_pu` and `p_min_pu` empty, as the renewable plant's availability is defined in `availability.csv`.
 - In **`power_plant_costs.csv`**: Add a new row for each modeled year and enter the cost assumptions for `Wind-PV-Hybrid`.
@@ -35,9 +34,9 @@ In PyPSA-SPICE, renewable plants with time-dependent availability are modeled as
 
 ## Example 3: Adding a storage plant with a fixed energy-to-power ratio
 
-In PyPSA-SPICE, all storage plants are built from a combination of PyPSA `Store` and `Link` components, which lets the model optimize **energy capacity** and **power capacity** independently. If you want a custom storage type with a **fixed energy-to-power ratio**, use a PyPSA `StorageUnit` instead. For example, to add a hydro-pumped storage plant (`HPHS_Mod`) with an **energy-to-power ratio of 8**, follow these steps:
+In PyPSA-SPICE, by default, all storage plants are built from a combination of PyPSA `Store` and `Link` components, which lets the model optimize **energy capacity** and **power capacity** independently. If you want a custom storage type with a **fixed energy-to-power ratio**, use a PyPSA `StorageUnit` instead. For example, to add a battery storage plant (`BATS_8`) with an **energy-to-power ratio of 8**, follow these steps:
 
-- In **`technologies.csv`**: Add a new row for `HPHS_Mod` and fill in the technical parameters. Set `max_hours = 8`. Note that storage can have different charge/discharge efficiencies: use `efficiency` for **discharging** and `efficiency_store` for **charging**.
-- In **`power_plant_costs.csv`**: Add a new row for each modeled year and enter cost assumptions for `HPHS_Mod`. CAPEX and FOM in the CSV are in **$/MW**. If your costs are in **$/MWh**, multiply by **8** to convert to **$/MW**.
-- In **`storage_inflows.csv`**: Add the time-dependent inflow profile (MW) for `HPHS_Mod` by region/country (if applicable).
-- In **`storage_capacity.csv`**: Add a new row for `HPHS_Mod`, fill in the required inputs, and make sure to set the bus information correctly.
+- In **`technologies.csv`**: Add a new row for `BATS_8` and fill in the technical parameters. Set `max_hours = 8`. Note that storage can have different charge/discharge efficiencies: use `efficiency` for **discharging** and `efficiency_store` for **charging**. Specify `StorageUnit` as class.
+- In **`power_plant_costs.csv`**: Add a new row for each modeled year and enter cost assumptions for `BATS_8`. CAPEX and FOM in the CSV are in **\$/MW**. If your costs are in **\$/MWh**, multiply by **8** to convert to **\$/MW**.
+- In **`storage_inflows.csv`**: Add the time-dependent inflow profile (MW) for `BATS_8` by region/country (not applicable for batteries, but might apply for technologies like hydro dam).
+- In **`storage_capacity.csv`**: Add a new row for `BATS_8`, fill in the required inputs, and make sure to set the bus information correctly.
