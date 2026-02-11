@@ -17,13 +17,16 @@ import streamlit as st
 from plotly.graph_objs._figure import Figure
 from plotly.subplots import make_subplots
 
-from scripts.data_utils import (calculate_min_max_y_scale,
-                                clean_df_for_plotting,
-                                filter_dataframe_by_date_range,
-                                get_filtered_df_and_date_range,
-                                get_hourly_dfs_for_both_scenarios,
-                                handle_small_values, prettify_label,
-                                read_result_csv)
+from scripts.data_utils import (
+    calculate_min_max_y_scale,
+    clean_df_for_plotting,
+    filter_dataframe_by_date_range,
+    get_filtered_df_and_date_range,
+    get_hourly_dfs_for_both_scenarios,
+    handle_small_values,
+    prettify_label,
+    read_result_csv,
+)
 
 # pylint: disable=too-many-locals, broad-exception-caught
 
@@ -321,7 +324,7 @@ def update_hourly_plot_x_axis(
     return fig
 
 
-def update_layout(
+def configure_plot_layout(
     fig: Figure,
     df: pd.DataFrame,
     yaxis_scales: dict | None = None,
@@ -416,13 +419,6 @@ def update_layout(
         ],
     }
 
-    # For the yearly bar charts, adjust the space between bars
-    if graph_config["graph_type"] in [
-        "simple_bar_yearly",
-        "bar_with_filter",
-    ]:
-        fig.update_layout(bargap=0.4)
-
     if yaxis_scales is not None:
         fig.update_yaxes(range=[yaxis_scales["min_scale"], yaxis_scales["max_scale"]])
 
@@ -502,7 +498,7 @@ def simple_bar_yearly(scenario_name: str, graph_config: dict) -> None:
 
         # Add stacked bar total and update layout
         fig = add_stackedbar_total(fig, df_grouped)
-        fig = update_layout(
+        fig = configure_plot_layout(
             fig, df_grouped, {"max_scale": max_y, "min_scale": min_y}, graph_config
         )
 
@@ -561,7 +557,9 @@ def simple_line_yearly(scenario_name: str, graph_config: dict):
         df, x="year", y="value", color="nice_names", color_discrete_map=colour_mapping
     )
 
-    fig = update_layout(fig, df, {"max_scale": max_y, "min_scale": min_y}, graph_config)
+    fig = configure_plot_layout(
+        fig, df, {"max_scale": max_y, "min_scale": min_y}, graph_config
+    )
     st.plotly_chart(
         fig, use_container_width=True, key=f"plotly_chart_{scenario_name}_{table_name}"
     )
@@ -638,7 +636,7 @@ def bar_with_filter(scenario_name: str, graph_config: dict):
     )
 
     fig = add_stackedbar_total(fig, df_reg)
-    fig = update_layout(
+    fig = configure_plot_layout(
         fig, df_reg, {"max_scale": max_y, "min_scale": min_y}, graph_config
     )
     st.plotly_chart(
@@ -684,7 +682,7 @@ def area_share_yearly(scenario_name: str, graph_config: dict):
         color_discrete_map=colour_mapping,
     )
 
-    fig = update_layout(fig, df, None, graph_config)
+    fig = configure_plot_layout(fig, df, None, graph_config)
     st.plotly_chart(
         fig, use_container_width=True, key=f"plotly_chart_{scenario_name}_{table_name}"
     )
@@ -755,7 +753,7 @@ def simple_bar_hourly(scenario_name: str, graph_config: dict[str, str]) -> None:
         else:
             y_range = calculate_min_max_y_scale(filtered_df, None, "snapshot")
 
-        fig = update_layout(
+        fig = configure_plot_layout(
             fig,
             filtered_df,
             {"max_scale": y_range["max"], "min_scale": y_range["min"]},
@@ -831,7 +829,7 @@ def simple_line_hourly(scenario_name: str, graph_config: dict):
         else:
             y_range = calculate_min_max_y_scale(filtered_df, None, None)
 
-        fig = update_layout(
+        fig = configure_plot_layout(
             fig,
             filtered_df,
             {"max_scale": y_range["max"], "min_scale": y_range["min"]},
@@ -910,7 +908,7 @@ def filtered_bar_hourly(scenario_name: str, graph_config: dict):
         else:
             y_range = calculate_min_max_y_scale(filtered_df, None, "snapshot")
 
-        fig = update_layout(
+        fig = configure_plot_layout(
             fig,
             filtered_df,
             {"max_scale": y_range["max"], "min_scale": y_range["min"]},
@@ -1024,7 +1022,7 @@ def line_with_secondary_y_hourly(scenario_name: str, graph_config: dict):
         else:
             y_range = calculate_min_max_y_scale(filtered_df, None, None)
 
-        fig = update_layout(
+        fig = configure_plot_layout(
             fig,
             filtered_df,
             {"max_scale": y_range["max"], "min_scale": y_range["min"]},

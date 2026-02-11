@@ -15,28 +15,37 @@ import pandas as pd
 import streamlit as st
 import yaml
 
-from scripts.data_utils import (calculate_min_max_y_scale,
-                                clean_df_for_plotting,
-                                filter_dataframe_by_date_range,
-                                get_filtered_df_and_date_range,
-                                handle_small_values, prettify_label,
-                                read_result_csv)
-from scripts.output_st_handler import (add_nice_names, generate_sidebar,
-                                       get_colour_mapping,
-                                       render_download_with_table,
-                                       render_download_without_data,
-                                       render_section_header,
-                                       setup_country_filter,
-                                       setup_hourly_data_filters,
-                                       setup_radio_button_filter,
-                                       setup_region_filter, setup_year_filter)
-from scripts.plot_functions import (plot_area_share_yearly,
-                                    plot_bar_with_filter,
-                                    plot_filtered_bar_hourly,
-                                    plot_line_with_secondary_y_hourly,
-                                    plot_simple_bar_hourly,
-                                    plot_simple_bar_yearly,
-                                    plot_simple_line_hourly)
+from scripts.data_utils import (
+    calculate_min_max_y_scale,
+    clean_df_for_plotting,
+    filter_dataframe_by_date_range,
+    get_filtered_df_and_date_range,
+    handle_small_values,
+    prettify_label,
+    read_result_csv,
+)
+from scripts.output_st_handler import (
+    add_nice_names,
+    generate_sidebar,
+    get_colour_mapping,
+    render_download_with_table,
+    render_download_without_data,
+    render_section_header,
+    setup_country_filter,
+    setup_hourly_data_filters,
+    setup_radio_button_filter,
+    setup_region_filter,
+    setup_year_filter,
+)
+from scripts.plot_functions import (
+    plot_area_share_yearly,
+    plot_bar_with_filter,
+    plot_filtered_bar_hourly,
+    plot_line_with_secondary_y_hourly,
+    plot_simple_bar_hourly,
+    plot_simple_bar_yearly,
+    plot_simple_line_hourly,
+)
 from scripts.plot_settings import create_nice_names_and_color_mapping
 
 st.title(":material/bolt: Power")

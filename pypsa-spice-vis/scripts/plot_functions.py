@@ -13,7 +13,7 @@ from scripts.plot_settings import (
     add_stackedbar_total,
     handle_y_axis_list,
     update_hourly_plot_x_axis,
-    update_layout,
+    configure_plot_layout,
 )
 
 
@@ -24,14 +24,17 @@ def plot_simple_bar_yearly(df_grouped, graph_config, colour_mapping, y_range, ke
         x="year",
         y="value",
         color="nice_names",
-        barmode="group"
-        if graph_config.get("table_name") == "pow_bats_ep_ratio"
-        else "stack",
+        barmode=(
+            "group"
+            if graph_config.get("table_name") == "pow_bats_ep_ratio"
+            else "stack"
+        ),
         color_discrete_map=colour_mapping,
     )
-
     fig = add_stackedbar_total(fig, df_grouped)
-    fig = update_layout(fig, df_grouped, y_range, graph_config)
+    fig = configure_plot_layout(fig, df_grouped, y_range, graph_config)
+    # For the yearly bar charts, adjust the space between bars
+    fig.update_layout(bargap=0.4)
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
@@ -44,7 +47,7 @@ def plot_simple_line_yearly(df, graph_config, colour_mapping, y_range, key):
         color="nice_names",
         color_discrete_map=colour_mapping,
     )
-    fig = update_layout(fig, df, y_range, graph_config)
+    fig = configure_plot_layout(fig, df, y_range, graph_config)
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
@@ -60,7 +63,7 @@ def plot_area_share_yearly(df, graph_config, colour_mapping, y_range, key):
         color="nice_names",
         color_discrete_map=colour_mapping,
     )
-    fig = update_layout(fig, df, None, graph_config)
+    fig = configure_plot_layout(fig, df, None, graph_config)
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
@@ -74,7 +77,9 @@ def plot_bar_with_filter(df, graph_config, colour_mapping, y_range, key):
         color_discrete_map=colour_mapping,
     )
     fig = add_stackedbar_total(fig, df)
-    fig = update_layout(fig, df, y_range, graph_config)
+    fig = configure_plot_layout(fig, df, y_range, graph_config)
+    # For the yearly bar charts, adjust the space between bars
+    fig.update_layout(bargap=0.4)
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
@@ -96,10 +101,8 @@ def plot_simple_bar_hourly(
         color="nice_names",
         color_discrete_map=colour_mapping,
     )
-    fig = update_hourly_plot_x_axis(
-        fig, filtered_df, start_date, end_date, is_complete
-    )
-    fig = update_layout(fig, filtered_df, y_range, graph_config)
+    fig = update_hourly_plot_x_axis(fig, filtered_df, start_date, end_date, is_complete)
+    fig = configure_plot_layout(fig, filtered_df, y_range, graph_config)
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
@@ -121,10 +124,8 @@ def plot_simple_line_hourly(
         color="nice_names",
         color_discrete_map=colour_mapping,
     )
-    fig = update_hourly_plot_x_axis(
-        fig, filtered_df, start_date, end_date, is_complete
-    )
-    fig = update_layout(fig, filtered_df, y_range, graph_config)
+    fig = update_hourly_plot_x_axis(fig, filtered_df, start_date, end_date, is_complete)
+    fig = configure_plot_layout(fig, filtered_df, y_range, graph_config)
     st.plotly_chart(fig, use_container_width=True, key=key)
 
 
@@ -146,10 +147,8 @@ def plot_filtered_bar_hourly(
         color="nice_names",
         color_discrete_map=colour_mapping,
     )
-    fig = update_hourly_plot_x_axis(
-        fig, filtered_df, start_date, end_date, is_complete
-    )
-    fig = update_layout(fig, filtered_df, y_range, graph_config)
+    fig = update_hourly_plot_x_axis(fig, filtered_df, start_date, end_date, is_complete)
+    fig = configure_plot_layout(fig, filtered_df, y_range, graph_config)
 
     fil_col = graph_config.get("fil_col")
     if fil_col and fil_col in filtered_df.columns:
@@ -205,10 +204,8 @@ def plot_line_with_secondary_y_hourly(
             secondary_y=True,
         )
 
-    fig = update_hourly_plot_x_axis(
-        fig, filtered_df, start_date, end_date, is_complete
-    )
-    fig = update_layout(fig, filtered_df, y_range, graph_config)
+    fig = update_hourly_plot_x_axis(fig, filtered_df, start_date, end_date, is_complete)
+    fig = configure_plot_layout(fig, filtered_df, y_range, graph_config)
     fig.update_yaxes(title_text=handle_y_axis_list(primary_y_lab), secondary_y=False)
     fig.update_yaxes(title_text=handle_y_axis_list(secondary_y_lab), secondary_y=True)
     st.plotly_chart(fig, use_container_width=True, key=key)
