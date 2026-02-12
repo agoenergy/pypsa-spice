@@ -17,37 +17,20 @@ import yaml
 from scripts.data_utils import (
     add_nice_names,
     clean_df_for_plotting,
-    filter_and_prepare_hourly_data,
-    filter_dataframe_by_date_range,
-    get_filtered_df_and_date_range,
-    handle_small_values,
-    load_and_validate_hourly_data,
     normalize_dataframe,
     prepare_y_range,
-    prettify_label,
     read_result_csv,
 )
 from scripts.output_st_handler import (
-    generate_colour_mapping_dict,
     generate_sidebar,
     render_chart_layout,
     render_download_with_data_table,
-    render_download_without_data_table,
     render_section_header,
     setup_country_filter,
-    setup_hourly_filters,
-    setup_radio_button_filter,
-    setup_year_filter,
 )
 from scripts.plot_functions import (
     create_nice_names_and_color_mapping,
-    plot_area_share_yearly,
-    plot_bar_with_filter,
-    plot_filtered_bar_hourly,
-    plot_line_with_secondary_y_hourly,
-    plot_simple_bar_hourly,
     plot_simple_bar_yearly,
-    plot_simple_line_hourly,
 )
 
 st.title(":material/thermostat: Emissions")
