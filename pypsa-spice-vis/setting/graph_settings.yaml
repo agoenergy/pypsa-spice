@@ -195,11 +195,6 @@ transport:
     primary_y_lab: ["load", "charging", "storeDischarge"]
     secondary_y_lab: ["stateOfCharge"]
 
-# for emissions and costs specify in which sectors graph should be included
-# 'all': for in all power
-# 'i': when industry is included
-# 't': when transport is included
-
 emissions:
   e1:
     name: Emission (Power sector)
@@ -235,83 +230,79 @@ costs:
   c1: 
     name: CAPEX by type (power sector)
     units: mUSD
-    graph_type: simple_bar_yearly
     table_name: pow_capex_by_type_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
       max: max
     download_id: '{}_pow_capex_by_type_yearly'
-    incl_sector: 'all'
-    
+
   c2: 
+    name: OPEX by type (power sector)
+    units: mUSD
+    table_name: pow_opex_by_type_yearly
+    leg_col: technology
+    yaxis_scale: # only valid when the chart does not include filters or sliders
+      min: 0
+      max: max
+    download_id: '{}_pow_opex_by_type_yearly'
+    
+  c3: 
     name: Overnight investment by type (power sector)
     units: mUSD
-    graph_type: simple_bar_yearly
     table_name: pow_overnight_inv_by_type_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
       max: max
     download_id: '{}_overnight_inv_by_type_yearly'
-    incl_sector: 'all'
     
-  c3: 
+  c4: 
     name: CAPEX by type (industry sector)
     units: mUSD
-    graph_type: simple_bar_yearly
     table_name: ind_capex_by_type_by_carrier_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
       max: max
     download_id: '{}ind_capex_by_type_by_carrier_yearly'
-    incl_sector: 'i'
     
-  c4: 
+  c5: 
     name: CAPEX by type (transport sector)
     units: mUSD
-    graph_type: simple_bar_yearly
     table_name: tran_capex_by_type_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
       max: max
     download_id: '{}_tran_capex_by_type_yearly'
-    incl_sector: 't'
     
-  c5: 
+  c6: 
     name: CAPEX by Type (all energy sectors)
     units: mUSD
-    graph_type: simple_bar_yearly
     table_name: ene_capex_by_type_by_carrier_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
       max: max
     download_id: '{}_ene_capex_by_type_by_carrier_yearly'
-    incl_sector: 'all'
     
-  c6: 
+  c7: 
     name: CAPEX and OPEX (all energy sectors)
     units: mUSD
-    graph_type: simple_bar_yearly
     table_name: ene_costs_opex_capex_yearly
     leg_col: finance
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
       max: max
     download_id: '{}_ene_costs_opex_capex_yearly'
-    incl_sector: 'all'
     
-  c7:
+  c8:
     name: Average fuel costs (all energy sectors)
     units: USD/MWh_th
-    graph_type: simple_line_yearly
     table_name: ene_avg_fuel_costs_fuel_yearly
     leg_col: carrier
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
       max: max
     download_id: '{}_ene_avg_fuel_costs_fuel_yearly'
-    incl_sector: 'all'
