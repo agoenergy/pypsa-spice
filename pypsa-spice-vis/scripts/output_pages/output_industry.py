@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Create Power page under Results section.
+Create Industry page under Results section.
 
 Page shows editable power related
 dataframes and visualisations from the modelling results.
