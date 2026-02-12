@@ -25,9 +25,8 @@ from scripts.data_utils import (
 from scripts.output_st_handler import (
     generate_sidebar,
     render_download_with_data_table,
-    render_dual_chart_layout,
+    render_chart_layout,
     render_section_header,
-    render_single_chart_layout,
     setup_country_filter,
     setup_radio_button_filter,
 )
@@ -60,7 +59,7 @@ generate_sidebar(table_of_content)
 # =========================== Render functions for each chart =========================
 
 
-def render_p1_capacity_by_carrier(graph_config: dict) -> None:
+def render_i1_capacity_by_carrier(graph_config: dict) -> None:
     """Render installed capacity by carrier (yearly bar chart).
 
     Parameters
@@ -114,7 +113,6 @@ def render_p1_capacity_by_carrier(graph_config: dict) -> None:
             scenario_2_grouped = add_nice_names(
                 scenario_2_grouped, legend_col, mapping_df
             )
-
     # Calculate common y-axis range
     y_range = prepare_y_range(scenario_1_grouped, scenario_2_grouped, "year")
 
@@ -122,37 +120,27 @@ def render_p1_capacity_by_carrier(graph_config: dict) -> None:
     has_dual_data = (
         is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
     )
-    if not has_dual_data:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_grouped,
-            table_1_display_data=scenario_1_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_data_table,
-            key=(
-                "plotly_chart_"
-                f"{graph_config['download_id'].format(st.session_state.sce1)}"
-            ),
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_grouped,
-            scenario_2_vis_display_data=scenario_2_grouped,
-            table_1_display_data=scenario_1_raw,
-            table_2_display_data=scenario_2_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_data_table,
-        )
+    render_chart_layout(
+        is_dual_scenario=has_dual_data,
+        scenario_1_vis_display_data=scenario_1_grouped,
+        scenario_2_vis_display_data=scenario_2_grouped,
+        table_1_display_data=scenario_1_raw,
+        table_2_display_data=scenario_2_raw,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_simple_bar_yearly,
+        render_download_function=render_download_with_data_table,
+        key=(
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+        ),
+    )
 
     st.divider()
 
 
-def render_p2_capacity_by_region(graph_config: dict) -> None:
+def render_i2_capacity_by_region(graph_config: dict) -> None:
     """Render installed capacity by region with filter (yearly bar chart).
 
     Parameters
@@ -198,7 +186,12 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
     ].copy()
     scenario_1_filtered = add_nice_names(scenario_1_filtered, legend_col, mapping_df)
     scenario_1_filtered = clean_df_for_plotting(legend_col, scenario_1_filtered)
-
+    # Aggregate low and heat heat
+    scenario_1_filtered = (
+        scenario_1_filtered.groupby(["region", "legend", "year"])
+        .sum()["value"]
+        .reset_index()
+    )
     # Load and process scenario 2 data (if dual mode)
     scenario_2_filtered = None
     scenario_2_raw = None
@@ -222,7 +215,12 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
                 scenario_2_filtered, legend_col, mapping_df
             )
             scenario_2_filtered = clean_df_for_plotting(legend_col, scenario_2_filtered)
-
+            # Aggregate low and heat heat
+            scenario_2_filtered = (
+                scenario_2_filtered.groupby(["region", "legend", "year"])
+                .sum()["value"]
+                .reset_index()
+            )
     # Calculate common y-axis range
     y_range = prepare_y_range(scenario_1_filtered, scenario_2_filtered, "year")
 
@@ -230,33 +228,23 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
     has_dual_data = (
         is_dual and scenario_2_filtered is not None and scenario_2_raw is not None
     )
-    if not has_dual_data:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            table_1_display_data=scenario_1_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_bar_with_filter,
-            render_download_function=render_download_with_data_table,
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            scenario_2_vis_display_data=scenario_2_filtered,
-            table_1_display_data=scenario_1_raw,
-            table_2_display_data=scenario_2_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_bar_with_filter,
-            render_download_function=render_download_with_data_table,
-        )
+    render_chart_layout(
+        is_dual_scenario=has_dual_data,
+        scenario_1_vis_display_data=scenario_1_filtered,
+        scenario_2_vis_display_data=scenario_2_filtered,
+        table_1_display_data=scenario_1_raw,
+        table_2_display_data=scenario_2_raw,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_bar_with_filter,
+        render_download_function=render_download_with_data_table,
+    )
 
     st.divider()
 
 
-def render_p3_generation_by_region(graph_config: dict) -> None:
+def render_i3_generation_by_region(graph_config: dict) -> None:
     """Render generation by region with filter (yearly bar chart).
 
     Parameters
@@ -302,7 +290,12 @@ def render_p3_generation_by_region(graph_config: dict) -> None:
     ].copy()
     scenario_1_filtered = add_nice_names(scenario_1_filtered, legend_col, mapping_df)
     scenario_1_filtered = clean_df_for_plotting(legend_col, scenario_1_filtered)
-
+    # Aggregate low and heat heat
+    scenario_1_filtered = (
+        scenario_1_filtered.groupby(["region", "legend", "year"])
+        .sum()["value"]
+        .reset_index()
+    )
     # Load and process scenario 2 data (if dual mode)
     scenario_2_filtered = None
     scenario_2_raw = None
@@ -326,7 +319,12 @@ def render_p3_generation_by_region(graph_config: dict) -> None:
                 scenario_2_filtered, legend_col, mapping_df
             )
             scenario_2_filtered = clean_df_for_plotting(legend_col, scenario_2_filtered)
-
+            # Aggregate low and heat heat
+            scenario_2_filtered = (
+                scenario_2_filtered.groupby(["region", "legend", "year"])
+                .sum()["value"]
+                .reset_index()
+            )
     # Calculate common y-axis range
     y_range = prepare_y_range(scenario_1_filtered, scenario_2_filtered, "year")
 
@@ -334,34 +332,24 @@ def render_p3_generation_by_region(graph_config: dict) -> None:
     has_dual_data = (
         is_dual and scenario_2_filtered is not None and scenario_2_raw is not None
     )
-    if not has_dual_data:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            table_1_display_data=scenario_1_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_bar_with_filter,
-            render_download_function=render_download_with_data_table,
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            scenario_2_vis_display_data=scenario_2_filtered,
-            table_1_display_data=scenario_1_raw,
-            table_2_display_data=scenario_2_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_bar_with_filter,
-            render_download_function=render_download_with_data_table,
-        )
+    render_chart_layout(
+        is_dual_scenario=has_dual_data,
+        scenario_1_vis_display_data=scenario_1_filtered,
+        scenario_2_vis_display_data=scenario_2_filtered,
+        table_1_display_data=scenario_1_raw,
+        table_2_display_data=scenario_2_raw,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_bar_with_filter,
+        render_download_function=render_download_with_data_table,
+    )
 
     st.divider()
 
 
-def render_p4_generation_by_type(graph_config: dict) -> None:
-    """Render generation by type (yearly bar chart).
+def render_i4_generation_by_type(graph_config: dict) -> None:
+    """Render generation by technology type (yearly bar chart).
 
     Parameters
     ----------
@@ -422,37 +410,27 @@ def render_p4_generation_by_type(graph_config: dict) -> None:
     has_dual_data = (
         is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
     )
-    if not has_dual_data:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_grouped,
-            table_1_display_data=scenario_1_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_data_table,
-            key=(
-                "plotly_chart_"
-                f"{graph_config['download_id'].format(st.session_state.sce1)}"
-            ),
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_grouped,
-            scenario_2_vis_display_data=scenario_2_grouped,
-            table_1_display_data=scenario_1_raw,
-            table_2_display_data=scenario_2_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_data_table,
-        )
+    render_chart_layout(
+        is_dual_scenario=has_dual_data,
+        scenario_1_vis_display_data=scenario_1_grouped,
+        scenario_2_vis_display_data=scenario_2_grouped,
+        table_1_display_data=scenario_1_raw,
+        table_2_display_data=scenario_2_raw,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_simple_bar_yearly,
+        render_download_function=render_download_with_data_table,
+        key=(
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+        ),
+    )
 
     st.divider()
 
 
-render_p1_capacity_by_carrier(config["i1"])
-render_p2_capacity_by_region(config["i2"])
-render_p3_generation_by_region(config["i3"])
-render_p4_generation_by_type(config["i4"])
+render_i1_capacity_by_carrier(config["i1"])
+render_i2_capacity_by_region(config["i2"])
+render_i3_generation_by_region(config["i3"])
+render_i4_generation_by_type(config["i4"])
