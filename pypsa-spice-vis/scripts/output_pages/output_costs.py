@@ -721,7 +721,7 @@ if show_industry:
 if show_transport:
     render_c5_tra_capex_by_type(config["c5"])
 
-# Always (energy / totals)
+# Always show energy & totals
 render_c6_ene_capex_by_type(config["c6"])
 render_c7_opex_capex_yearly(config["c7"])
 render_c8_ene_avg_fuel_costs_fuel(config["c8"])

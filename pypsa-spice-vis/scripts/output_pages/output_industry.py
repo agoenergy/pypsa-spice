@@ -24,8 +24,8 @@ from scripts.data_utils import (
 )
 from scripts.output_st_handler import (
     generate_sidebar,
-    render_download_with_data_table,
     render_chart_layout,
+    render_download_with_data_table,
     render_section_header,
     setup_country_filter,
     setup_radio_button_filter,
