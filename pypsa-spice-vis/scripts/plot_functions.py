@@ -2,11 +2,13 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-"""Plot-only helpers for Power page charts."""
+"""Plotly helper functions for pypsa-spice-vis charts."""
 
+# pylint: disable=too-many-arguments,too-many-locals, too-many-positional-arguments
 import os
 import re
-from typing import Any, Mapping, Optional
+from collections.abc import Mapping
+from typing import Any
 
 import pandas as pd
 import plotly.express as px
@@ -22,7 +24,7 @@ from scripts.plot_settings import (
 )
 
 
-def create_nice_names_and_color_mapping(table_name: str) -> Optional[pd.DataFrame]:
+def create_nice_names_and_color_mapping(table_name: str) -> pd.DataFrame | None:
     """Get the names to hex codes mapping df for a given graph.
 
     Parameters
