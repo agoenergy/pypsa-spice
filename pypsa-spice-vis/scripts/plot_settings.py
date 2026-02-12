@@ -7,26 +7,16 @@
 import datetime as dt
 import os
 import re
-from collections.abc import Callable
 from itertools import cycle
 from typing import Any
 
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from plotly.graph_objs._figure import Figure
-from plotly.subplots import make_subplots
 
 from scripts.data_utils import (
-    calculate_min_max_y_scale,
-    clean_df_for_plotting,
-    filter_dataframe_by_date_range,
-    get_filtered_df_and_date_range,
-    get_hourly_dfs_for_both_scenarios,
-    handle_small_values,
     prettify_label,
-    read_result_csv,
 )
 
 # pylint: disable=too-many-locals
