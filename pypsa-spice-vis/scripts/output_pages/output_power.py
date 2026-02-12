@@ -30,11 +30,10 @@ from scripts.data_utils import (
 from scripts.output_st_handler import (
     generate_colour_mapping_dict,
     generate_sidebar,
+    render_chart_layout,
     render_download_with_data_table,
     render_download_without_data_table,
-    render_dual_chart_layout,
     render_section_header,
-    render_single_chart_layout,
     setup_country_filter,
     setup_hourly_filters,
     setup_radio_button_filter,
@@ -144,32 +143,22 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
     has_dual_data = (
         is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
     )
-    if not has_dual_data:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_grouped,
-            table_1_display_data=scenario_1_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_data_table,
-            key=(
-                "plotly_chart_"
-                f"{graph_config['download_id'].format(st.session_state.sce1)}"
-            ),
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_grouped,
-            scenario_2_vis_display_data=scenario_2_grouped,
-            table_1_display_data=scenario_1_raw,
-            table_2_display_data=scenario_2_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_data_table,
-        )
+    render_chart_layout(
+        is_dual_scenario=has_dual_data,
+        scenario_1_vis_display_data=scenario_1_grouped,
+        scenario_2_vis_display_data=scenario_2_grouped,
+        table_1_display_data=scenario_1_raw,
+        table_2_display_data=scenario_2_raw,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_simple_bar_yearly,
+        render_download_function=render_download_with_data_table,
+        key=(
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+        ),
+    )
 
     st.divider()
 
@@ -252,28 +241,18 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
     has_dual_data = (
         is_dual and scenario_2_filtered is not None and scenario_2_raw is not None
     )
-    if not has_dual_data:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            table_1_display_data=scenario_1_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_bar_with_filter,
-            render_download_function=render_download_with_data_table,
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            scenario_2_vis_display_data=scenario_2_filtered,
-            table_1_display_data=scenario_1_raw,
-            table_2_display_data=scenario_2_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_bar_with_filter,
-            render_download_function=render_download_with_data_table,
-        )
+    render_chart_layout(
+        is_dual_scenario=has_dual_data,
+        scenario_1_vis_display_data=scenario_1_filtered,
+        scenario_2_vis_display_data=scenario_2_filtered,
+        table_1_display_data=scenario_1_raw,
+        table_2_display_data=scenario_2_raw,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_bar_with_filter,
+        render_download_function=render_download_with_data_table,
+    )
 
     st.divider()
 
@@ -340,32 +319,22 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
     has_dual_data = (
         is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
     )
-    if not has_dual_data:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_grouped,
-            table_1_display_data=scenario_1_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_data_table,
-            key=(
-                "plotly_chart_"
-                f"{graph_config['download_id'].format(st.session_state.sce1)}"
-            ),
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_grouped,
-            scenario_2_vis_display_data=scenario_2_grouped,
-            table_1_display_data=scenario_1_raw,
-            table_2_display_data=scenario_2_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_data_table,
-        )
+    render_chart_layout(
+        is_dual_scenario=has_dual_data,
+        scenario_1_vis_display_data=scenario_1_grouped,
+        scenario_2_vis_display_data=scenario_2_grouped,
+        table_1_display_data=scenario_1_raw,
+        table_2_display_data=scenario_2_raw,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_simple_bar_yearly,
+        render_download_function=render_download_with_data_table,
+        key=(
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+        ),
+    )
 
     st.divider()
 
@@ -415,32 +384,21 @@ def render_p4_share_category(graph_config: dict) -> None:
             scenario_2_plot = clean_df_for_plotting(legend_col, scenario_2_raw)
             scenario_2_plot = add_nice_names(scenario_2_plot, legend_col, mapping_df)
 
-    # Render charts (area charts don't use y_range, only dual if scenario 2 is there)
     has_dual_data = (
         is_dual and scenario_2_plot is not None and scenario_2_raw is not None
     )
-    if not has_dual_data:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_plot,
-            table_1_display_data=scenario_1_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range={},  # No y_range for area charts
-            plot_function=plot_area_share_yearly,
-            render_download_function=render_download_with_data_table,
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_plot,
-            scenario_2_vis_display_data=scenario_2_plot,
-            table_1_display_data=scenario_1_raw,
-            table_2_display_data=scenario_2_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range={},  # No y_range for area charts
-            plot_function=plot_area_share_yearly,
-            render_download_function=render_download_with_data_table,
-        )
+    render_chart_layout(
+        is_dual_scenario=has_dual_data,
+        scenario_1_vis_display_data=scenario_1_plot,
+        scenario_2_vis_display_data=scenario_2_plot,
+        table_1_display_data=scenario_1_raw,
+        table_2_display_data=scenario_2_raw,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range={},  # No y_range for area charts
+        plot_function=plot_area_share_yearly,
+        render_download_function=render_download_with_data_table,
+    )
 
     st.divider()
 
@@ -519,32 +477,21 @@ def render_p6_transmission_capacity_between_regions(graph_config: dict) -> None:
     # Calculate common y-axis range
     y_range = prepare_y_range(scenario_1_filtered, scenario_2_filtered, "year")
 
-    # Render charts (only dual if scenario 2 data is available)
     has_dual_data = (
         is_dual and scenario_2_filtered is not None and scenario_2_raw is not None
     )
-    if not has_dual_data:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            table_1_display_data=scenario_1_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_bar_with_filter,
-            render_download_function=render_download_with_data_table,
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            scenario_2_vis_display_data=scenario_2_filtered,
-            table_1_display_data=scenario_1_raw,
-            table_2_display_data=scenario_2_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_bar_with_filter,
-            render_download_function=render_download_with_data_table,
-        )
+    render_chart_layout(
+        is_dual_scenario=has_dual_data,
+        scenario_1_vis_display_data=scenario_1_filtered,
+        scenario_2_vis_display_data=scenario_2_filtered,
+        table_1_display_data=scenario_1_raw,
+        table_2_display_data=scenario_2_raw,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_bar_with_filter,
+        render_download_function=render_download_with_data_table,
+    )
 
     st.divider()
 
@@ -621,42 +568,30 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
     # Calculate common y-axis range
     y_range = prepare_y_range(scenario_1_filtered, scenario_2_filtered, "snapshot")
 
-    # Render charts
     plot_kwargs = {
         "start_date": start_date,
         "end_date": end_date,
         "is_complete": is_complete,
     }
-    if not is_dual:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            # Use filtered data for download in hourly charts
-            table_1_display_data=scenario_1_filtered,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_hourly,
-            render_download_function=render_download_without_data_table,
-            key=(
-                "plotly_chart_"
-                f"{graph_config['download_id'].format(st.session_state.sce1)}"
-            ),
-            **plot_kwargs,
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            scenario_2_vis_display_data=scenario_2_filtered,
-            # Use filtered data for download in hourly charts
-            table_1_display_data=scenario_1_filtered,
-            table_2_display_data=scenario_2_filtered,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_hourly,
-            render_download_function=render_download_without_data_table,
-            **plot_kwargs,
-        )
+
+    render_chart_layout(
+        is_dual_scenario=has_dual_filters and scenario_2_filtered is not None,
+        scenario_1_vis_display_data=scenario_1_filtered,
+        scenario_2_vis_display_data=scenario_2_filtered,
+        # Use filtered data for download in hourly charts
+        table_1_display_data=scenario_1_filtered,
+        table_2_display_data=scenario_2_filtered,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_simple_bar_hourly,
+        render_download_function=render_download_without_data_table,
+        key=(
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+        ),
+        **plot_kwargs,
+    )
 
     st.divider()
 
@@ -728,39 +663,27 @@ def render_p8_regional_hourly_generation(graph_config: dict) -> None:
             scenario_2_raw, graph_config, legend_col, mapping_df
         )
 
-    # Calculate common y-axis range
     y_range = prepare_y_range(scenario_1_filtered, scenario_2_filtered, "snapshot")
 
-    # Render charts
     plot_kwargs = {
         "start_date": start_date,
         "end_date": end_date,
         "is_complete": is_complete,
     }
-    if not is_dual:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            table_1_display_data=scenario_1_filtered,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_filtered_bar_hourly,
-            render_download_function=render_download_without_data_table,
-            **plot_kwargs,
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            scenario_2_vis_display_data=scenario_2_filtered,
-            table_1_display_data=scenario_1_filtered,
-            table_2_display_data=scenario_2_filtered,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_filtered_bar_hourly,
-            render_download_function=render_download_without_data_table,
-            **plot_kwargs,
-        )
+
+    render_chart_layout(
+        is_dual_scenario=has_dual_filters and scenario_2_filtered is not None,
+        scenario_1_vis_display_data=scenario_1_filtered,
+        scenario_2_vis_display_data=scenario_2_filtered,
+        table_1_display_data=scenario_1_filtered,
+        table_2_display_data=scenario_2_filtered,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_filtered_bar_hourly,
+        render_download_function=render_download_without_data_table,
+        **plot_kwargs,
+    )
 
     st.divider()
 
@@ -820,39 +743,27 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
                 scenario_2_grouped, legend_col, mapping_df
             )
 
-    # Calculate common y-axis range
     y_range = prepare_y_range(scenario_1_grouped, scenario_2_grouped, "year")
 
-    # Render charts (only dual if scenario 2 data is available)
     has_dual_data = (
         is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
     )
-    if not has_dual_data:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_grouped,
-            table_1_display_data=scenario_1_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_data_table,
-            key=(
-                "plotly_chart_"
-                f"{graph_config['download_id'].format(st.session_state.sce1)}"
-            ),
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_grouped,
-            scenario_2_vis_display_data=scenario_2_grouped,
-            table_1_display_data=scenario_1_raw,
-            table_2_display_data=scenario_2_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_data_table,
-        )
+    render_chart_layout(
+        is_dual_scenario=has_dual_data,
+        scenario_1_vis_display_data=scenario_1_grouped,
+        scenario_2_vis_display_data=scenario_2_grouped,
+        table_1_display_data=scenario_1_raw,
+        table_2_display_data=scenario_2_raw,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_simple_bar_yearly,
+        render_download_function=render_download_with_data_table,
+        key=(
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+        ),
+    )
 
     st.divider()
 
@@ -903,11 +814,9 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
             graph_config["shared_country"],
         )
 
-    # Setup hourly filters
     has_dual_filters = is_dual and scenario_2_raw is not None
     setup_hourly_filters(graph_config, scenario_1_raw, scenario_2_raw, has_dual_filters)
 
-    # Filter and prepare data
     scenario_1_filtered, start_date, end_date, is_complete = (
         filter_and_prepare_hourly_data(
             scenario_1_raw, graph_config, legend_col, mapping_df
@@ -924,43 +833,31 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
             scenario_2_raw, graph_config, legend_col, mapping_df
         )
 
-    # Calculate common y-axis range
     y_range = prepare_y_range(scenario_1_filtered, scenario_2_filtered, "snapshot")
 
-    # Render charts
     plot_kwargs = {
         "start_date": start_date,
         "end_date": end_date,
         "is_complete": is_complete,
     }
-    if not is_dual:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            table_1_display_data=scenario_1_filtered,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_hourly,
-            render_download_function=render_download_without_data_table,
-            key=(
-                "plotly_chart_"
-                f"{graph_config['download_id'].format(st.session_state.sce1)}"
-            ),
-            **plot_kwargs,
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            scenario_2_vis_display_data=scenario_2_filtered,
-            table_1_display_data=scenario_1_filtered,
-            table_2_display_data=scenario_2_filtered,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_hourly,
-            render_download_function=render_download_without_data_table,
-            **plot_kwargs,
-        )
+
+    render_chart_layout(
+        is_dual_scenario=has_dual_filters and scenario_2_filtered is not None,
+        scenario_1_vis_display_data=scenario_1_filtered,
+        scenario_2_vis_display_data=scenario_2_filtered,
+        table_1_display_data=scenario_1_filtered,
+        table_2_display_data=scenario_2_filtered,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_simple_bar_hourly,
+        render_download_function=render_download_without_data_table,
+        key=(
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+        ),
+        **plot_kwargs,
+    )
 
     st.divider()
 
@@ -991,7 +888,6 @@ def render_p11_hourly_elec_price(graph_config: dict) -> None:
     legend_col = graph_config["leg_col"]
     mapping_df = create_nice_names_and_color_mapping(table_name)
 
-    # Load and validate scenario data
     scenario_1_raw = load_and_validate_hourly_data(
         st.session_state.sce1,
         table_name,
@@ -1011,11 +907,9 @@ def render_p11_hourly_elec_price(graph_config: dict) -> None:
             graph_config["shared_country"],
         )
 
-    # Setup hourly filters
     has_dual_filters = is_dual and scenario_2_raw is not None
     setup_hourly_filters(graph_config, scenario_1_raw, scenario_2_raw, has_dual_filters)
 
-    # Filter and prepare data
     scenario_1_filtered, start_date, end_date, is_complete = (
         filter_and_prepare_hourly_data(
             scenario_1_raw, graph_config, legend_col, mapping_df
@@ -1032,39 +926,27 @@ def render_p11_hourly_elec_price(graph_config: dict) -> None:
             scenario_2_raw, graph_config, legend_col, mapping_df
         )
 
-    # Calculate common y-axis range (None for x_col means no grouping)
     y_range = prepare_y_range(scenario_1_filtered, scenario_2_filtered, None)
 
-    # Render charts
     plot_kwargs = {
         "start_date": start_date,
         "end_date": end_date,
         "is_complete": is_complete,
     }
-    if not is_dual:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            table_1_display_data=scenario_1_filtered,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_line_hourly,
-            render_download_function=render_download_without_data_table,
-            **plot_kwargs,
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            scenario_2_vis_display_data=scenario_2_filtered,
-            table_1_display_data=scenario_1_filtered,
-            table_2_display_data=scenario_2_filtered,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_line_hourly,
-            render_download_function=render_download_without_data_table,
-            **plot_kwargs,
-        )
+
+    render_chart_layout(
+        is_dual_scenario=has_dual_filters and scenario_2_filtered is not None,
+        scenario_1_vis_display_data=scenario_1_filtered,
+        scenario_2_vis_display_data=scenario_2_filtered,
+        table_1_display_data=scenario_1_filtered,
+        table_2_display_data=scenario_2_filtered,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_simple_line_hourly,
+        render_download_function=render_download_without_data_table,
+        **plot_kwargs,
+    )
 
     st.divider()
 
@@ -1082,7 +964,6 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
     graph_config = {**graph_config, "graph_type": "simple_line_hourly"}
     render_section_header(graph_config["name"])
 
-    # Setup filters
     is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
         graph_config, is_dual, scenario_tag=st.session_state.sce1
@@ -1090,12 +971,10 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
     shared_year = setup_year_filter(graph_config, is_dual)
     graph_config["shared_year"] = str(shared_year)
 
-    # Extract config values
     table_name = graph_config["table_name"]
     legend_col = graph_config["leg_col"]
     mapping_df = create_nice_names_and_color_mapping(table_name)
 
-    # Load and validate scenario data
     scenario_1_raw = load_and_validate_hourly_data(
         st.session_state.sce1,
         table_name,
@@ -1115,11 +994,9 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
             graph_config["shared_country"],
         )
 
-    # Setup hourly filters
     has_dual_filters = is_dual and scenario_2_raw is not None
     setup_hourly_filters(graph_config, scenario_1_raw, scenario_2_raw, has_dual_filters)
 
-    # Filter and prepare data
     scenario_1_filtered, start_date, end_date, is_complete = (
         filter_and_prepare_hourly_data(
             scenario_1_raw, graph_config, legend_col, mapping_df
@@ -1136,39 +1013,27 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
             scenario_2_raw, graph_config, legend_col, mapping_df
         )
 
-    # Calculate common y-axis range (None for x_col means no grouping)
     y_range = prepare_y_range(scenario_1_filtered, scenario_2_filtered, None)
 
-    # Render charts
     plot_kwargs = {
         "start_date": start_date,
         "end_date": end_date,
         "is_complete": is_complete,
     }
-    if not is_dual:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            table_1_display_data=scenario_1_filtered,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_line_hourly,
-            render_download_function=render_download_without_data_table,
-            **plot_kwargs,
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_filtered,
-            scenario_2_vis_display_data=scenario_2_filtered,
-            table_1_display_data=scenario_1_filtered,
-            table_2_display_data=scenario_2_filtered,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_line_hourly,
-            render_download_function=render_download_without_data_table,
-            **plot_kwargs,
-        )
+
+    render_chart_layout(
+        is_dual_scenario=has_dual_filters and scenario_2_filtered is not None,
+        scenario_1_vis_display_data=scenario_1_filtered,
+        scenario_2_vis_display_data=scenario_2_filtered,
+        table_1_display_data=scenario_1_filtered,
+        table_2_display_data=scenario_2_filtered,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_simple_line_hourly,
+        render_download_function=render_download_without_data_table,
+        **plot_kwargs,
+    )
 
     st.divider()
 
@@ -1186,18 +1051,15 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
     graph_config = {**graph_config, "graph_type": "simple_bar_yearly"}
     render_section_header(graph_config["name"])
 
-    # Setup filters
     is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
         graph_config, is_dual, scenario_tag=st.session_state.sce1
     )
 
-    # Extract config values
     table_name = graph_config["table_name"]
     legend_col = graph_config["leg_col"]
     mapping_df = create_nice_names_and_color_mapping(table_name)
 
-    # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
         st.session_state.sce1, table_name, country=graph_config["shared_country"]
     )
@@ -1211,7 +1073,6 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
     scenario_1_grouped = normalize_dataframe(scenario_1_grouped)
     scenario_1_grouped = add_nice_names(scenario_1_grouped, legend_col, mapping_df)
 
-    # Load and process scenario 2 data (if dual mode)
     scenario_2_grouped = None
     scenario_2_raw = None
     if is_dual:
@@ -1228,39 +1089,27 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
                 scenario_2_grouped, legend_col, mapping_df
             )
 
-    # Calculate common y-axis range
     y_range = prepare_y_range(scenario_1_grouped, scenario_2_grouped, "year")
 
-    # Render charts (only dual if scenario 2 data is available)
     has_dual_data = (
         is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
     )
-    if not has_dual_data:
-        render_single_chart_layout(
-            scenario_1_vis_display_data=scenario_1_grouped,
-            table_1_display_data=scenario_1_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_data_table,
-            key=(
-                "plotly_chart_"
-                f"{graph_config['download_id'].format(st.session_state.sce1)}"
-            ),
-        )
-    else:
-        render_dual_chart_layout(
-            scenario_1_vis_display_data=scenario_1_grouped,
-            scenario_2_vis_display_data=scenario_2_grouped,
-            table_1_display_data=scenario_1_raw,
-            table_2_display_data=scenario_2_raw,
-            config_dict=graph_config,
-            mapping_df=mapping_df,
-            y_range=y_range,
-            plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_data_table,
-        )
+    render_chart_layout(
+        is_dual_scenario=has_dual_data,
+        scenario_1_vis_display_data=scenario_1_grouped,
+        scenario_2_vis_display_data=scenario_2_grouped,
+        table_1_display_data=scenario_1_raw,
+        table_2_display_data=scenario_2_raw,
+        config_dict=graph_config,
+        mapping_df=mapping_df,
+        y_range=y_range,
+        plot_function=plot_simple_bar_yearly,
+        render_download_function=render_download_with_data_table,
+        key=(
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+        ),
+    )
 
     st.divider()
 
@@ -1353,7 +1202,6 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
     }
     graph_config["label_map"] = label_map
 
-    # Render charts (special handling for dual-axis plot)
     plot_kwargs = {
         "start_date": start_date,
         "end_date": end_date,

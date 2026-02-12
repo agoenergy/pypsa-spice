@@ -599,7 +599,7 @@ def map_chart_to_plot_function(
 # =============================================================================
 
 
-def render_single_chart_layout(
+def _render_single_chart_layout(
     scenario_1_vis_display_data: pd.DataFrame,
     table_1_display_data: pd.DataFrame,
     config_dict: dict[str, Any],
@@ -636,7 +636,7 @@ def render_single_chart_layout(
     render_download_function(table_1_display_data, config_dict, scenario_name)
 
 
-def render_dual_chart_layout(
+def _render_dual_chart_layout(
     scenario_1_vis_display_data: pd.DataFrame,
     scenario_2_vis_display_data: pd.DataFrame | None,
     table_1_display_data: pd.DataFrame,
@@ -699,6 +699,51 @@ def render_dual_chart_layout(
         render_download_function(table_1_display_data, config_dict, scenario_1_name)
     with col2:
         render_download_function(table_2_display_data, config_dict, scenario_2_name)
+
+
+def render_chart_layout(
+    is_dual_scenario: bool,
+    scenario_1_vis_display_data: pd.DataFrame,
+    table_1_display_data: pd.DataFrame,
+    config_dict: dict[str, Any],
+    mapping_df: pd.DataFrame | None,
+    y_range: dict[str, Any],
+    plot_function: Callable[..., Any],
+    render_download_function: Callable[..., Any],
+    scenario_2_vis_display_data: pd.DataFrame | None = None,
+    table_2_display_data: pd.DataFrame | None = None,
+    **plot_kwargs: Any,
+) -> None:
+    """
+    Render the app layout for either single-scenario or dual-scenario view.
+
+    - If is_dual_scenario is False -> calls render_single_chart_layout(...)
+    - If is_dual_scenario is True  -> calls render_dual_chart_layout(...)
+    """
+    if is_dual_scenario:
+        _render_dual_chart_layout(
+            scenario_1_vis_display_data=scenario_1_vis_display_data,
+            scenario_2_vis_display_data=scenario_2_vis_display_data,
+            table_1_display_data=table_1_display_data,
+            table_2_display_data=table_2_display_data,
+            config_dict=config_dict,
+            mapping_df=mapping_df,
+            y_range=y_range,
+            plot_function=plot_function,
+            render_download_function=render_download_function,
+            **plot_kwargs,
+        )
+    else:
+        _render_single_chart_layout(
+            scenario_1_vis_display_data=scenario_1_vis_display_data,
+            table_1_display_data=table_1_display_data,
+            config_dict=config_dict,
+            mapping_df=mapping_df,
+            y_range=y_range,
+            plot_function=plot_function,
+            render_download_function=render_download_function,
+            **plot_kwargs,
+        )
 
 
 # =============================================================================
