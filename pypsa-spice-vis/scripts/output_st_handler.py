@@ -22,8 +22,8 @@ from scripts.data_utils import (
     slugify_text,
 )
 from scripts.plot_settings import (
-    generate_default_colour_mapping_dict_for_chart,
     generate_color_mapping_dict_for_chart,
+    generate_default_colour_mapping_dict_for_chart,
 )
 
 # pylint: disable=too-many-locals, too-many-branches
