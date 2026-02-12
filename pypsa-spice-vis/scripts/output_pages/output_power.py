@@ -146,8 +146,8 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
     )
     if not has_dual_data:
         render_single_chart_layout(
-            vis_display_data=scenario_1_grouped,
-            table_display_data=scenario_1_raw,
+            scenario_1_vis_display_data=scenario_1_grouped,
+            table_1_display_data=scenario_1_raw,
             config_dict=graph_config,
             mapping_df=mapping_df,
             y_range=y_range,
@@ -254,8 +254,8 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
     )
     if not has_dual_data:
         render_single_chart_layout(
-            vis_display_data=scenario_1_filtered,
-            table_display_data=scenario_1_raw,
+            scenario_1_vis_display_data=scenario_1_filtered,
+            table_1_display_data=scenario_1_raw,
             config_dict=graph_config,
             mapping_df=mapping_df,
             y_range=y_range,
@@ -342,8 +342,8 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
     )
     if not has_dual_data:
         render_single_chart_layout(
-            vis_display_data=scenario_1_grouped,
-            table_display_data=scenario_1_raw,
+            scenario_1_vis_display_data=scenario_1_grouped,
+            table_1_display_data=scenario_1_raw,
             config_dict=graph_config,
             mapping_df=mapping_df,
             y_range=y_range,
@@ -421,8 +421,8 @@ def render_p4_share_category(graph_config: dict) -> None:
     )
     if not has_dual_data:
         render_single_chart_layout(
-            vis_display_data=scenario_1_plot,
-            table_display_data=scenario_1_raw,
+            scenario_1_vis_display_data=scenario_1_plot,
+            table_1_display_data=scenario_1_raw,
             config_dict=graph_config,
             mapping_df=mapping_df,
             y_range={},  # No y_range for area charts
@@ -525,8 +525,8 @@ def render_p6_transmission_capacity_between_regions(graph_config: dict) -> None:
     )
     if not has_dual_data:
         render_single_chart_layout(
-            vis_display_data=scenario_1_filtered,
-            table_display_data=scenario_1_raw,
+            scenario_1_vis_display_data=scenario_1_filtered,
+            table_1_display_data=scenario_1_raw,
             config_dict=graph_config,
             mapping_df=mapping_df,
             y_range=y_range,
@@ -629,9 +629,9 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
     }
     if not is_dual:
         render_single_chart_layout(
-            vis_display_data=scenario_1_filtered,
+            scenario_1_vis_display_data=scenario_1_filtered,
             # Use filtered data for download in hourly charts
-            table_display_data=scenario_1_filtered,
+            table_1_display_data=scenario_1_filtered,
             config_dict=graph_config,
             mapping_df=mapping_df,
             y_range=y_range,
@@ -739,8 +739,8 @@ def render_p8_regional_hourly_generation(graph_config: dict) -> None:
     }
     if not is_dual:
         render_single_chart_layout(
-            vis_display_data=scenario_1_filtered,
-            table_display_data=scenario_1_filtered,
+            scenario_1_vis_display_data=scenario_1_filtered,
+            table_1_display_data=scenario_1_filtered,
             config_dict=graph_config,
             mapping_df=mapping_df,
             y_range=y_range,
@@ -829,8 +829,8 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
     )
     if not has_dual_data:
         render_single_chart_layout(
-            vis_display_data=scenario_1_grouped,
-            table_display_data=scenario_1_raw,
+            scenario_1_vis_display_data=scenario_1_grouped,
+            table_1_display_data=scenario_1_raw,
             config_dict=graph_config,
             mapping_df=mapping_df,
             y_range=y_range,
@@ -935,8 +935,8 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
     }
     if not is_dual:
         render_single_chart_layout(
-            vis_display_data=scenario_1_filtered,
-            table_display_data=scenario_1_filtered,
+            scenario_1_vis_display_data=scenario_1_filtered,
+            table_1_display_data=scenario_1_filtered,
             config_dict=graph_config,
             mapping_df=mapping_df,
             y_range=y_range,
@@ -1043,8 +1043,8 @@ def render_p11_hourly_elec_price(graph_config: dict) -> None:
     }
     if not is_dual:
         render_single_chart_layout(
-            vis_display_data=scenario_1_filtered,
-            table_display_data=scenario_1_filtered,
+            scenario_1_vis_display_data=scenario_1_filtered,
+            table_1_display_data=scenario_1_filtered,
             config_dict=graph_config,
             mapping_df=mapping_df,
             y_range=y_range,
@@ -1147,8 +1147,8 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
     }
     if not is_dual:
         render_single_chart_layout(
-            vis_display_data=scenario_1_filtered,
-            table_display_data=scenario_1_filtered,
+            scenario_1_vis_display_data=scenario_1_filtered,
+            table_1_display_data=scenario_1_filtered,
             config_dict=graph_config,
             mapping_df=mapping_df,
             y_range=y_range,
@@ -1237,8 +1237,8 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
     )
     if not has_dual_data:
         render_single_chart_layout(
-            vis_display_data=scenario_1_grouped,
-            table_display_data=scenario_1_raw,
+            scenario_1_vis_display_data=scenario_1_grouped,
+            table_1_display_data=scenario_1_raw,
             config_dict=graph_config,
             mapping_df=mapping_df,
             y_range=y_range,

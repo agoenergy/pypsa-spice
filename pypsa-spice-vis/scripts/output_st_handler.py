@@ -600,8 +600,8 @@ def map_chart_to_plot_function(
 
 
 def render_single_chart_layout(
-    vis_display_data: pd.DataFrame,
-    table_display_data: pd.DataFrame,
+    scenario_1_vis_display_data: pd.DataFrame,
+    table_1_display_data: pd.DataFrame,
     config_dict: dict[str, Any],
     mapping_df: pd.DataFrame | None,
     y_range: dict[str, Any],
@@ -619,13 +619,13 @@ def render_single_chart_layout(
     colour_mapping = generate_colour_mapping_dict(
         table_name,
         mapping_df,
-        vis_display_data,
+        scenario_1_vis_display_data,
         legend_col,
     )
 
     plot_key = plot_kwargs.pop("key", f"plotly_chart_{scenario_name}_{table_name}")
     plot_function(
-        vis_display_data,
+        scenario_1_vis_display_data,
         config_dict,
         colour_mapping,
         y_range,
@@ -633,7 +633,7 @@ def render_single_chart_layout(
         **plot_kwargs,
     )
 
-    render_download_function(table_display_data, config_dict, scenario_name)
+    render_download_function(table_1_display_data, config_dict, scenario_name)
 
 
 def render_dual_chart_layout(
