@@ -202,28 +202,34 @@ transport:
 
 emissions:
   e1:
-    name: Emission (power sector)
+    name: Emission (Power sector)
     units: MtCO₂
-    graph_type: simple_bar_yearly
     table_name: pow_emi_by_carrier_yearly
     leg_col: carrier
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
       max: max
     download_id: '{}_down_pow_emi_by_carrier_yearly'
-    incl_sector: 'all' 
 
   e2: 
-    name: Emission (industry sector)
+    name: Emission (Industry sector)
     units: MtCO₂
-    graph_type: simple_bar_yearly
     table_name: ind_emi_by_carrier_yearly
     leg_col: carrier
     yaxis_scale: # only valid when the chart does not include filters or sliders
       min: 0
       max: max
     download_id: '{}_ind_emi_by_carrier_yearly'
-    incl_sector: 'i' 
+  
+  e3: 
+    name: Emission (All sectors)
+    units: MtCO₂
+    table_name: ene_emi_by_carrier_by_sector_yearly
+    leg_col: carrier
+    yaxis_scale: # only valid when the chart does not include filters or sliders
+      min: 0
+      max: max
+    download_id: '{}_ene_emi_by_carrier_by_sector_yearly'
 
 costs:
   c1: 
