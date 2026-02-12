@@ -34,6 +34,8 @@ from scripts.output_st_handler import (
     render_download_with_table,
     render_download_without_data,
     render_section_header,
+    render_single_chart_layout,
+    render_dual_chart_layout,
     setup_country_filter,
     setup_radio_button_filter,
     setup_hourly_filters,
@@ -74,116 +76,13 @@ POWER_CHART_KEYS = [
     "p14",
 ]
 
+# Only include charts in the sidebar if they are present in the config
 power_charts = [config[key] for key in POWER_CHART_KEYS if key in config]
 table_of_content = [chart["name"] for chart in power_charts]
+generate_sidebar(table_of_content)
 
 
-def _render_single_chart_layout(
-    vis_display_data: pd.DataFrame,
-    table_display_data: pd.DataFrame,
-    config_dict: dict,
-    mapping_df: pd.DataFrame,
-    y_range: dict,
-    plot_function,
-    render_download_function,
-    **plot_kwargs,
-):
-    """Render single scenario chart with download button."""
-    scenario_name = st.session_state.sce1
-    # Get table name and legend column from config_dict
-    table_name = config_dict["table_name"]
-    legend_col = config_dict["leg_col"]
-    st.markdown(f"{scenario_name}")
-
-    colour_mapping = generate_colour_mapping_dict(
-        table_name, mapping_df, vis_display_data, legend_col
-    )
-
-    plot_key = plot_kwargs.pop("key", f"plotly_chart_{scenario_name}_{table_name}")
-    plot_function(
-        vis_display_data,
-        config_dict,
-        colour_mapping,
-        y_range,
-        key=plot_key,
-        **plot_kwargs,
-    )
-
-    render_download_function(table_display_data, config_dict, scenario_name)
-
-
-def _render_dual_chart_layout(
-    scenario_1_vis_display_data: pd.DataFrame,
-    scenario_2_vis_display_data: pd.DataFrame | None,
-    table_1_display_data: pd.DataFrame,
-    table_2_display_data: pd.DataFrame | None,
-    config_dict: dict,
-    mapping_df: pd.DataFrame,
-    y_range: dict,
-    plot_function,
-    render_download_function,
-    **plot_kwargs,
-):
-    """
-    Render dual scenario charts side-by-side with download buttons.
-
-    Note: This function should only be called when scenario_2 data is confirmed
-    to be non-None via has_dual_filters check.
-    """
-    # Type guard: function should only be called with valid data
-    if scenario_2_vis_display_data is None or table_2_display_data is None:
-        raise ValueError("_render_dual_chart_layout requires non-None scenario 2 data")
-
-    scenario_1_name = st.session_state.sce1
-    scenario_2_name = st.session_state.sce2
-
-    # Remove 'key' from plot_kwargs if present (we generate our own keys)
-    plot_kwargs.pop("key", None)
-
-    # Get table name and legend column from config_dict
-    table_name = config_dict["table_name"]
-    legend_col = config_dict["leg_col"]
-
-    # Charts
-    col1, col2 = st.columns([6, 6])
-    with col1:
-        st.caption(f"{scenario_1_name}")
-        colour_mapping_1 = generate_colour_mapping_dict(
-            table_name, mapping_df, scenario_1_vis_display_data, legend_col
-        )
-        plot_key_1 = f"plotly_chart_{scenario_1_name}_{table_name}"
-        plot_function(
-            scenario_1_vis_display_data,
-            config_dict,
-            colour_mapping_1,
-            y_range,
-            key=plot_key_1,
-            **plot_kwargs,
-        )
-
-    with col2:
-        st.caption(f"{scenario_2_name}")
-        colour_mapping_2 = generate_colour_mapping_dict(
-            table_name, mapping_df, scenario_2_vis_display_data, legend_col
-        )
-        plot_key_2 = f"plotly_chart_{scenario_2_name}_{table_name}"
-        plot_function(
-            scenario_2_vis_display_data,
-            config_dict,
-            colour_mapping_2,
-            y_range,
-            key=plot_key_2,
-            **plot_kwargs,
-        )
-
-    # Download buttons
-    col1, col2 = st.columns([6, 6])
-    with col1:
-        render_download_function(table_1_display_data, config_dict, scenario_1_name)
-    with col2:
-        render_download_function(table_2_display_data, config_dict, scenario_2_name)
-
-
+# =========================== Render functions for each chart =========================
 def render_p1_capacity_by_type(graph_config: dict) -> None:
     """Render installed capacity by technology type (yearly bar chart).
 
@@ -247,7 +146,7 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
         is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
     )
     if not has_dual_data:
-        _render_single_chart_layout(
+        render_single_chart_layout(
             vis_display_data=scenario_1_grouped,
             table_display_data=scenario_1_raw,
             config_dict=graph_config,
@@ -260,7 +159,7 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
             ),
         )
     else:
-        _render_dual_chart_layout(
+        render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_grouped,
             scenario_2_vis_display_data=scenario_2_grouped,
             table_1_display_data=scenario_1_raw,
@@ -353,7 +252,7 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
         is_dual and scenario_2_filtered is not None and scenario_2_raw is not None
     )
     if not has_dual_data:
-        _render_single_chart_layout(
+        render_single_chart_layout(
             vis_display_data=scenario_1_filtered,
             table_display_data=scenario_1_raw,
             config_dict=graph_config,
@@ -363,7 +262,7 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
             render_download_function=render_download_with_table,
         )
     else:
-        _render_dual_chart_layout(
+        render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_filtered,
             scenario_2_vis_display_data=scenario_2_filtered,
             table_1_display_data=scenario_1_raw,
@@ -440,7 +339,7 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
         is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
     )
     if not has_dual_data:
-        _render_single_chart_layout(
+        render_single_chart_layout(
             vis_display_data=scenario_1_grouped,
             table_display_data=scenario_1_raw,
             config_dict=graph_config,
@@ -453,7 +352,7 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
             ),
         )
     else:
-        _render_dual_chart_layout(
+        render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_grouped,
             scenario_2_vis_display_data=scenario_2_grouped,
             table_1_display_data=scenario_1_raw,
@@ -517,7 +416,7 @@ def render_p4_share_category(graph_config: dict) -> None:
         is_dual and scenario_2_plot is not None and scenario_2_raw is not None
     )
     if not has_dual_data:
-        _render_single_chart_layout(
+        render_single_chart_layout(
             vis_display_data=scenario_1_plot,
             table_display_data=scenario_1_raw,
             config_dict=graph_config,
@@ -527,7 +426,7 @@ def render_p4_share_category(graph_config: dict) -> None:
             render_download_function=render_download_with_table,
         )
     else:
-        _render_dual_chart_layout(
+        render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_plot,
             scenario_2_vis_display_data=scenario_2_plot,
             table_1_display_data=scenario_1_raw,
@@ -620,7 +519,7 @@ def render_p6_transmission_capacity_between_regions(graph_config: dict) -> None:
         is_dual and scenario_2_filtered is not None and scenario_2_raw is not None
     )
     if not has_dual_data:
-        _render_single_chart_layout(
+        render_single_chart_layout(
             vis_display_data=scenario_1_filtered,
             table_display_data=scenario_1_raw,
             config_dict=graph_config,
@@ -630,7 +529,7 @@ def render_p6_transmission_capacity_between_regions(graph_config: dict) -> None:
             render_download_function=render_download_with_table,
         )
     else:
-        _render_dual_chart_layout(
+        render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_filtered,
             scenario_2_vis_display_data=scenario_2_filtered,
             table_1_display_data=scenario_1_raw,
@@ -723,7 +622,7 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
         "is_complete": is_complete,
     }
     if not is_dual:
-        _render_single_chart_layout(
+        render_single_chart_layout(
             vis_display_data=scenario_1_filtered,
             table_display_data=scenario_1_filtered,  # Use filtered data for download in hourly charts
             config_dict=graph_config,
@@ -737,7 +636,7 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
             **plot_kwargs,
         )
     else:
-        _render_dual_chart_layout(
+        render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_filtered,
             scenario_2_vis_display_data=scenario_2_filtered,
             table_1_display_data=scenario_1_filtered,  # Use filtered data for download in hourly charts
@@ -829,7 +728,7 @@ def render_p8_regional_hourly_generation(graph_config: dict) -> None:
         "is_complete": is_complete,
     }
     if not is_dual:
-        _render_single_chart_layout(
+        render_single_chart_layout(
             vis_display_data=scenario_1_filtered,
             table_display_data=scenario_1_filtered,
             config_dict=graph_config,
@@ -840,7 +739,7 @@ def render_p8_regional_hourly_generation(graph_config: dict) -> None:
             **plot_kwargs,
         )
     else:
-        _render_dual_chart_layout(
+        render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_filtered,
             scenario_2_vis_display_data=scenario_2_filtered,
             table_1_display_data=scenario_1_filtered,
@@ -918,7 +817,7 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
         is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
     )
     if not has_dual_data:
-        _render_single_chart_layout(
+        render_single_chart_layout(
             vis_display_data=scenario_1_grouped,
             table_display_data=scenario_1_raw,
             config_dict=graph_config,
@@ -931,7 +830,7 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
             ),
         )
     else:
-        _render_dual_chart_layout(
+        render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_grouped,
             scenario_2_vis_display_data=scenario_2_grouped,
             table_1_display_data=scenario_1_raw,
@@ -1022,7 +921,7 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
         "is_complete": is_complete,
     }
     if not is_dual:
-        _render_single_chart_layout(
+        render_single_chart_layout(
             vis_display_data=scenario_1_filtered,
             table_display_data=scenario_1_filtered,
             config_dict=graph_config,
@@ -1038,7 +937,7 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
             **plot_kwargs,
         )
     else:
-        _render_dual_chart_layout(
+        render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_filtered,
             scenario_2_vis_display_data=scenario_2_filtered,
             table_1_display_data=scenario_1_filtered,
@@ -1130,7 +1029,7 @@ def render_p11_hourly_elec_price(graph_config: dict) -> None:
         "is_complete": is_complete,
     }
     if not is_dual:
-        _render_single_chart_layout(
+        render_single_chart_layout(
             vis_display_data=scenario_1_filtered,
             table_display_data=scenario_1_filtered,
             config_dict=graph_config,
@@ -1141,7 +1040,7 @@ def render_p11_hourly_elec_price(graph_config: dict) -> None:
             **plot_kwargs,
         )
     else:
-        _render_dual_chart_layout(
+        render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_filtered,
             scenario_2_vis_display_data=scenario_2_filtered,
             table_1_display_data=scenario_1_filtered,
@@ -1233,7 +1132,7 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
         "is_complete": is_complete,
     }
     if not is_dual:
-        _render_single_chart_layout(
+        render_single_chart_layout(
             vis_display_data=scenario_1_filtered,
             table_display_data=scenario_1_filtered,
             config_dict=graph_config,
@@ -1244,7 +1143,7 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
             **plot_kwargs,
         )
     else:
-        _render_dual_chart_layout(
+        render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_filtered,
             scenario_2_vis_display_data=scenario_2_filtered,
             table_1_display_data=scenario_1_filtered,
@@ -1322,7 +1221,7 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
         is_dual and scenario_2_grouped is not None and scenario_2_raw is not None
     )
     if not has_dual_data:
-        _render_single_chart_layout(
+        render_single_chart_layout(
             vis_display_data=scenario_1_grouped,
             table_display_data=scenario_1_raw,
             config_dict=graph_config,
@@ -1337,7 +1236,7 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
             ),
         )
     else:
-        _render_dual_chart_layout(
+        render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_grouped,
             scenario_2_vis_display_data=scenario_2_grouped,
             table_1_display_data=scenario_1_raw,
@@ -1527,5 +1426,3 @@ render_p11_hourly_elec_price(config["p11"])
 render_p12_nodal_flow_between_regions(config["p12"])
 render_p13_battery_ep_ratio(config["p13"])
 render_p14_battery_charging_profile(config["p14"])
-
-generate_sidebar(table_of_content)

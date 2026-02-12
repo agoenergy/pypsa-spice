@@ -988,3 +988,109 @@ def read_and_concatenate_hourly_data(
             scenario_name=scenario_name, table_name=table_name
         )
     return df_combined
+
+
+def render_single_chart_layout(
+    vis_display_data: pd.DataFrame,
+    table_display_data: pd.DataFrame,
+    config_dict: dict,
+    mapping_df: pd.DataFrame,
+    y_range: dict,
+    plot_function,
+    render_download_function,
+    **plot_kwargs,
+):
+    """Render single scenario chart with download button."""
+    scenario_name = st.session_state.sce1
+    # Get table name and legend column from config_dict
+    table_name = config_dict["table_name"]
+    legend_col = config_dict["leg_col"]
+    st.markdown(f"{scenario_name}")
+
+    colour_mapping = generate_colour_mapping_dict(
+        table_name, mapping_df, vis_display_data, legend_col
+    )
+
+    plot_key = plot_kwargs.pop("key", f"plotly_chart_{scenario_name}_{table_name}")
+    plot_function(
+        vis_display_data,
+        config_dict,
+        colour_mapping,
+        y_range,
+        key=plot_key,
+        **plot_kwargs,
+    )
+
+    render_download_function(table_display_data, config_dict, scenario_name)
+
+
+def render_dual_chart_layout(
+    scenario_1_vis_display_data: pd.DataFrame,
+    scenario_2_vis_display_data: pd.DataFrame | None,
+    table_1_display_data: pd.DataFrame,
+    table_2_display_data: pd.DataFrame | None,
+    config_dict: dict,
+    mapping_df: pd.DataFrame,
+    y_range: dict,
+    plot_function,
+    render_download_function,
+    **plot_kwargs,
+):
+    """
+    Render dual scenario charts side-by-side with download buttons.
+
+    Note: This function should only be called when scenario_2 data is confirmed
+    to be non-None via has_dual_filters check.
+    """
+    # Type guard: function should only be called with valid data
+    if scenario_2_vis_display_data is None or table_2_display_data is None:
+        raise ValueError("_render_dual_chart_layout requires non-None scenario 2 data")
+
+    scenario_1_name = st.session_state.sce1
+    scenario_2_name = st.session_state.sce2
+
+    # Remove 'key' from plot_kwargs if present (we generate our own keys)
+    plot_kwargs.pop("key", None)
+
+    # Get table name and legend column from config_dict
+    table_name = config_dict["table_name"]
+    legend_col = config_dict["leg_col"]
+
+    # Charts
+    col1, col2 = st.columns([6, 6])
+    with col1:
+        st.caption(f"{scenario_1_name}")
+        colour_mapping_1 = generate_colour_mapping_dict(
+            table_name, mapping_df, scenario_1_vis_display_data, legend_col
+        )
+        plot_key_1 = f"plotly_chart_{scenario_1_name}_{table_name}"
+        plot_function(
+            scenario_1_vis_display_data,
+            config_dict,
+            colour_mapping_1,
+            y_range,
+            key=plot_key_1,
+            **plot_kwargs,
+        )
+
+    with col2:
+        st.caption(f"{scenario_2_name}")
+        colour_mapping_2 = generate_colour_mapping_dict(
+            table_name, mapping_df, scenario_2_vis_display_data, legend_col
+        )
+        plot_key_2 = f"plotly_chart_{scenario_2_name}_{table_name}"
+        plot_function(
+            scenario_2_vis_display_data,
+            config_dict,
+            colour_mapping_2,
+            y_range,
+            key=plot_key_2,
+            **plot_kwargs,
+        )
+
+    # Download buttons
+    col1, col2 = st.columns([6, 6])
+    with col1:
+        render_download_function(table_1_display_data, config_dict, scenario_1_name)
+    with col2:
+        render_download_function(table_2_display_data, config_dict, scenario_2_name)
