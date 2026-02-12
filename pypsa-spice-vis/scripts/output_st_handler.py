@@ -23,8 +23,8 @@ from scripts.plot_settings import (
     area_share_yearly,
     bar_with_filter,
     filtered_bar_hourly,
-    generate_default_colour_mapping,
-    handle_color_mapping_for_chart,
+    generate_default_colour_mapping_dict_for_chart,
+    generate_color_mapping_dict_for_chart,
     line_with_secondary_y_hourly,
     simple_bar_hourly,
     simple_bar_yearly,
@@ -70,8 +70,8 @@ def generate_colour_mapping_dict(table_name, mapping_df, df, leg_col):
     """Get the color mapping for a chart based on mapping files or defaults."""
     unique_legends = df["legend"].unique().tolist()
     if mapping_df is not None:
-        return handle_color_mapping_for_chart(table_name, unique_legends)
-    return generate_default_colour_mapping(df, leg_col)
+        return generate_color_mapping_dict_for_chart(table_name, unique_legends)
+    return generate_default_colour_mapping_dict_for_chart(df, leg_col)
 
 
 def render_download_with_table(
