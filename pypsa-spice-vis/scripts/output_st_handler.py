@@ -2,7 +2,7 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-"""Helper functions for handling Results section in visual app."""
+"""Helper functions for handling streamlit UI."""
 
 import datetime as dt
 from collections.abc import Callable
