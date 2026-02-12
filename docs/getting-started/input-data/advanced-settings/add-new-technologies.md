@@ -13,7 +13,7 @@ In PyPSA-SPICE, a **multi-output plant** is modeled using a PyPSA `Link`, where 
 
 To add a new gas-fired power plant type (e.g. `CCGT_Mod`), follow these steps:
 
-- In **`technologies.csv`**: Add a new row for `CCGT_Mod` and fill in the technical parameters. Note: `efficiency` applies to the conversion from **`bus0 → bus1`**, `efficiency2` to **`bus0 → bus2`**, and so on for additional outputs.
+- In **`technologies.csv`**: Add a new row for `CCGT_Mod` and fill in the technical parameters. Specify `Link` as class. Note: `efficiency` applies to the conversion from **`bus0 → bus1`**, `efficiency2` to **`bus0 → bus2`**, and so on for additional outputs.
 - In **`power_plant_costs.csv`**: Add a new row for `CCGT_Mod` for each modeled year and enter the cost assumptions.
 - In **`power_links.csv`**: Add a new row for `CCGT_Mod`, fill in the required inputs, and make sure to set the buses correctly: **`bus0` = fuel**, **`bus1` = power sector**, **`bus2` = atmosphere**.
 - In **`decomission_capacity.csv`**: Add a decommissioning plan for `CCGT_Mod`, if applicable.
@@ -26,7 +26,7 @@ To add a new gas-fired power plant type (e.g. `CCGT_Mod`), follow these steps:
 ## Example 2: Adding a single-output plant (e.g., new renewable plant with time-dependent availability)
 In PyPSA-SPICE, renewable plants with time-dependent availability are modeled as `Generator` component (hydro dams are the exception and use `StorageUnit`). To add a new renewable plant (e.g. `Wind-PV-Hybrid`), do the following:
 
-- In **`technologies.csv`**: Add a new row for `Wind-PV-Hybrid` and fill in the technical parameters. Leave `p_max_pu` and `p_min_pu` empty, as the renewable plant's availability is defined in `availability.csv`.
+- In **`technologies.csv`**: Add a new row for `Wind-PV-Hybrid` and fill in the technical parameters. Specify `Generator` as class. Leave `p_max_pu` and `p_min_pu` empty, as the renewable plant's availability is defined in `availability.csv`.
 - In **`power_plant_costs.csv`**: Add a new row for each modeled year and enter the cost assumptions for `Wind-PV-Hybrid`.
 - In **`renewables_technical_potential.csv`**: Add new rows for `Wind-PV-Hybrid` that define the maximum buildable capacity by region (per country).
 - In **`availability.csv`**: Add the time-dependent availability profile (per unit) for `Wind-PV-Hybrid` by region/country.
