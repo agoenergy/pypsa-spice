@@ -10,7 +10,7 @@ from typing import Any
 
 import pandas as pd
 import streamlit as st
-from styles import apply_radio_menu_styles, apply_sidebar_chart_nav_styles, use_flexo
+from styles import apply_sidebar_chart_nav_styles, use_flexo
 
 from scripts.data_utils import (
     convert_month_to_name,
