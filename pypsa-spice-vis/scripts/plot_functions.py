@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: PyPSA-SPICE Developers
-#
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """Plotly helper functions for pypsa-spice-vis charts."""

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: PyPSA-SPICE Developers
-#
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
@@ -30,8 +30,8 @@ from scripts.data_utils import (
 from scripts.output_st_handler import (
     generate_colour_mapping_dict,
     generate_sidebar,
-    render_download_with_table,
-    render_download_without_data,
+    render_download_with_data_table,
+    render_download_without_data_table,
     render_dual_chart_layout,
     render_section_header,
     render_single_chart_layout,
@@ -152,7 +152,7 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
             key=(
                 "plotly_chart_"
                 f"{graph_config['download_id'].format(st.session_state.sce1)}"
@@ -168,7 +168,7 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
         )
 
     st.divider()
@@ -260,7 +260,7 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_bar_with_filter,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
         )
     else:
         render_dual_chart_layout(
@@ -272,7 +272,7 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_bar_with_filter,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
         )
 
     st.divider()
@@ -348,7 +348,7 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
             key=(
                 "plotly_chart_"
                 f"{graph_config['download_id'].format(st.session_state.sce1)}"
@@ -364,7 +364,7 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
         )
 
     st.divider()
@@ -427,7 +427,7 @@ def render_p4_share_category(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range={},  # No y_range for area charts
             plot_function=plot_area_share_yearly,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
         )
     else:
         render_dual_chart_layout(
@@ -439,7 +439,7 @@ def render_p4_share_category(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range={},  # No y_range for area charts
             plot_function=plot_area_share_yearly,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
         )
 
     st.divider()
@@ -531,7 +531,7 @@ def render_p6_transmission_capacity_between_regions(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_bar_with_filter,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
         )
     else:
         render_dual_chart_layout(
@@ -543,7 +543,7 @@ def render_p6_transmission_capacity_between_regions(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_bar_with_filter,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
         )
 
     st.divider()
@@ -636,7 +636,7 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_bar_hourly,
-            render_download_function=render_download_without_data,
+            render_download_function=render_download_without_data_table,
             key=(
                 "plotly_chart_"
                 f"{graph_config['download_id'].format(st.session_state.sce1)}"
@@ -654,7 +654,7 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_bar_hourly,
-            render_download_function=render_download_without_data,
+            render_download_function=render_download_without_data_table,
             **plot_kwargs,
         )
 
@@ -745,7 +745,7 @@ def render_p8_regional_hourly_generation(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_filtered_bar_hourly,
-            render_download_function=render_download_without_data,
+            render_download_function=render_download_without_data_table,
             **plot_kwargs,
         )
     else:
@@ -758,7 +758,7 @@ def render_p8_regional_hourly_generation(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_filtered_bar_hourly,
-            render_download_function=render_download_without_data,
+            render_download_function=render_download_without_data_table,
             **plot_kwargs,
         )
 
@@ -835,7 +835,7 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
             key=(
                 "plotly_chart_"
                 f"{graph_config['download_id'].format(st.session_state.sce1)}"
@@ -851,7 +851,7 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
         )
 
     st.divider()
@@ -941,7 +941,7 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_bar_hourly,
-            render_download_function=render_download_without_data,
+            render_download_function=render_download_without_data_table,
             key=(
                 "plotly_chart_"
                 f"{graph_config['download_id'].format(st.session_state.sce1)}"
@@ -958,7 +958,7 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_bar_hourly,
-            render_download_function=render_download_without_data,
+            render_download_function=render_download_without_data_table,
             **plot_kwargs,
         )
 
@@ -1049,7 +1049,7 @@ def render_p11_hourly_elec_price(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_line_hourly,
-            render_download_function=render_download_without_data,
+            render_download_function=render_download_without_data_table,
             **plot_kwargs,
         )
     else:
@@ -1062,7 +1062,7 @@ def render_p11_hourly_elec_price(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_line_hourly,
-            render_download_function=render_download_without_data,
+            render_download_function=render_download_without_data_table,
             **plot_kwargs,
         )
 
@@ -1153,7 +1153,7 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_line_hourly,
-            render_download_function=render_download_without_data,
+            render_download_function=render_download_without_data_table,
             **plot_kwargs,
         )
     else:
@@ -1166,7 +1166,7 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_line_hourly,
-            render_download_function=render_download_without_data,
+            render_download_function=render_download_without_data_table,
             **plot_kwargs,
         )
 
@@ -1243,7 +1243,7 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
             key=(
                 "plotly_chart_"
                 f"{graph_config['download_id'].format(st.session_state.sce1)}"
@@ -1259,7 +1259,7 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_bar_yearly,
-            render_download_function=render_download_with_table,
+            render_download_function=render_download_with_data_table,
         )
 
     st.divider()
@@ -1376,7 +1376,7 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
             key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
             **plot_kwargs,
         )
-        render_download_without_data(
+        render_download_without_data_table(
             scenario_1_filtered, graph_config, st.session_state.sce1
         )
     else:
@@ -1417,11 +1417,11 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
 
         col1, _, col3 = st.columns([6, 1, 6])
         with col1:
-            render_download_without_data(
+            render_download_without_data_table(
                 scenario_1_filtered, graph_config, st.session_state.sce1
             )
         with col3:
-            render_download_without_data(
+            render_download_without_data_table(
                 scenario_2_filtered, graph_config, st.session_state.sce2
             )
 

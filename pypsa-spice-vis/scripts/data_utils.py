@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: PyPSA-SPICE Developers
-#
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """Store data utility functions used across handler modules."""
