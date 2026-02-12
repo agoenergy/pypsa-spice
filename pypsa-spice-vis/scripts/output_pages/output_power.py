@@ -11,34 +11,33 @@ dataframes and visualisations from the modelling results.
 
 import os
 
-import pandas as pd
 import streamlit as st
 import yaml
 
 from scripts.data_utils import (
-    prepare_y_range,
-    normalize_dataframe,
-    load_and_validate_hourly_data,
-    filter_and_prepare_hourly_data,
+    add_nice_names,
     clean_df_for_plotting,
+    filter_and_prepare_hourly_data,
     filter_dataframe_by_date_range,
     get_filtered_df_and_date_range,
     handle_small_values,
+    load_and_validate_hourly_data,
+    normalize_dataframe,
+    prepare_y_range,
     prettify_label,
     read_result_csv,
 )
 from scripts.output_st_handler import (
-    add_nice_names,
-    generate_sidebar,
     generate_colour_mapping_dict,
+    generate_sidebar,
     render_download_with_table,
     render_download_without_data,
+    render_dual_chart_layout,
     render_section_header,
     render_single_chart_layout,
-    render_dual_chart_layout,
     setup_country_filter,
-    setup_radio_button_filter,
     setup_hourly_filters,
+    setup_radio_button_filter,
     setup_year_filter,
 )
 from scripts.plot_functions import (
@@ -155,7 +154,8 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
             plot_function=plot_simple_bar_yearly,
             render_download_function=render_download_with_table,
             key=(
-                f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
+                "plotly_chart_"
+                f"{graph_config['download_id'].format(st.session_state.sce1)}"
             ),
         )
     else:
@@ -176,6 +176,7 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
 
 def render_p2_capacity_by_region(graph_config: dict) -> None:
     """Render installed capacity by region with filter (yearly bar chart).
+
     Parameters
     ----------
     graph_config : dict
@@ -279,6 +280,7 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
 
 def render_p3_generation_by_type(graph_config: dict) -> None:
     """Render electricity generation by technology type (yearly bar chart).
+
     Parameters
     ----------
     graph_config : dict
@@ -348,7 +350,8 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
             plot_function=plot_simple_bar_yearly,
             render_download_function=render_download_with_table,
             key=(
-                f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
+                "plotly_chart_"
+                f"{graph_config['download_id'].format(st.session_state.sce1)}"
             ),
         )
     else:
@@ -369,6 +372,7 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
 
 def render_p4_share_category(graph_config: dict) -> None:
     """Render generation share by category (yearly area chart).
+
     Parameters
     ----------
     graph_config : dict
@@ -443,6 +447,7 @@ def render_p4_share_category(graph_config: dict) -> None:
 
 def render_p6_transmission_capacity_between_regions(graph_config: dict) -> None:
     """Render transmission capacity between regions with filter (yearly bar chart).
+
     Parameters
     ----------
     graph_config : dict
@@ -546,6 +551,7 @@ def render_p6_transmission_capacity_between_regions(graph_config: dict) -> None:
 
 def render_p7_hourly_generation(graph_config: dict) -> None:
     """Render hourly electricity generation (hourly bar chart).
+
     Parameters
     ----------
     graph_config : dict
@@ -624,14 +630,16 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
     if not is_dual:
         render_single_chart_layout(
             vis_display_data=scenario_1_filtered,
-            table_display_data=scenario_1_filtered,  # Use filtered data for download in hourly charts
+            # Use filtered data for download in hourly charts
+            table_display_data=scenario_1_filtered,
             config_dict=graph_config,
             mapping_df=mapping_df,
             y_range=y_range,
             plot_function=plot_simple_bar_hourly,
             render_download_function=render_download_without_data,
             key=(
-                f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
+                "plotly_chart_"
+                f"{graph_config['download_id'].format(st.session_state.sce1)}"
             ),
             **plot_kwargs,
         )
@@ -639,7 +647,8 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
         render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_filtered,
             scenario_2_vis_display_data=scenario_2_filtered,
-            table_1_display_data=scenario_1_filtered,  # Use filtered data for download in hourly charts
+            # Use filtered data for download in hourly charts
+            table_1_display_data=scenario_1_filtered,
             table_2_display_data=scenario_2_filtered,
             config_dict=graph_config,
             mapping_df=mapping_df,
@@ -654,6 +663,7 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
 
 def render_p8_regional_hourly_generation(graph_config: dict) -> None:
     """Render regional hourly generation with filter (hourly bar chart).
+
     Parameters
     ----------
     graph_config : dict
@@ -757,6 +767,7 @@ def render_p8_regional_hourly_generation(graph_config: dict) -> None:
 
 def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
     """Render energy demand by carrier type (yearly bar chart).
+
     Parameters
     ----------
     graph_config : dict
@@ -826,7 +837,8 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
             plot_function=plot_simple_bar_yearly,
             render_download_function=render_download_with_table,
             key=(
-                f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
+                "plotly_chart_"
+                f"{graph_config['download_id'].format(st.session_state.sce1)}"
             ),
         )
     else:
@@ -847,6 +859,7 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
 
 def render_p10_hourly_demand(graph_config: dict) -> None:
     """Render hourly energy demand (hourly bar chart).
+
     Parameters
     ----------
     graph_config : dict
@@ -930,9 +943,8 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
             plot_function=plot_simple_bar_hourly,
             render_download_function=render_download_without_data,
             key=(
-                f"plotly_chart_{
-                    graph_config['download_id'].format(st.session_state.sce1)
-                }"
+                "plotly_chart_"
+                f"{graph_config['download_id'].format(st.session_state.sce1)}"
             ),
             **plot_kwargs,
         )
@@ -955,6 +967,7 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
 
 def render_p11_hourly_elec_price(graph_config: dict) -> None:
     """Render hourly electricity price (hourly line chart).
+
     Parameters
     ----------
     graph_config : dict
@@ -1058,6 +1071,7 @@ def render_p11_hourly_elec_price(graph_config: dict) -> None:
 
 def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
     """Render nodal flow between regions (hourly line chart).
+
     Parameters
     ----------
     graph_config : dict
@@ -1161,6 +1175,7 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
 
 def render_p13_battery_ep_ratio(graph_config: dict) -> None:
     """Render battery energy-to-power ratio (yearly bar chart).
+
     Parameters
     ----------
     graph_config : dict
@@ -1230,9 +1245,8 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
             plot_function=plot_simple_bar_yearly,
             render_download_function=render_download_with_table,
             key=(
-                f"plotly_chart_{
-                    graph_config['download_id'].format(st.session_state.sce1)
-                }"
+                "plotly_chart_"
+                f"{graph_config['download_id'].format(st.session_state.sce1)}"
             ),
         )
     else:
@@ -1253,6 +1267,7 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
 
 def render_p14_battery_charging_profile(graph_config: dict) -> None:
     """Render battery charging profile with dual y-axes (hourly line chart).
+
     Parameters
     ----------
     graph_config : dict

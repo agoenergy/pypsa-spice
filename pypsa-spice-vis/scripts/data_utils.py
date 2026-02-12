@@ -451,6 +451,19 @@ def load_and_validate_hourly_data(
     return raw_data
 
 
+def add_nice_names(df: pd.DataFrame, leg_col: str, mapping_df: pd.DataFrame | None):
+    """Add nice_names column using mapping or prettified labels."""
+    df = df.copy()
+    df["legend"] = df[leg_col].map(
+        lambda x: (
+            mapping_df.loc[x, "nice_names"]
+            if (mapping_df is not None and x in mapping_df.index)
+            else prettify_label(x)
+        )
+    )
+    return df
+
+
 def filter_and_prepare_hourly_data(
     raw_data: pd.DataFrame | None,
     config_dict: dict,
@@ -472,11 +485,7 @@ def filter_and_prepare_hourly_data(
         monthly_data, start_date=start_date, end_date=end_date
     )
     filtered_data = handle_small_values(filtered_data)
-
-    # Import add_nice_names lazily to avoid circular imports at module import time
     try:
-        from scripts.output_st_handler import add_nice_names
-
         filtered_data = add_nice_names(filtered_data, legend_col, mapping_df)
     except Exception:
         # If output_st_handler is not importable, return data without nice names

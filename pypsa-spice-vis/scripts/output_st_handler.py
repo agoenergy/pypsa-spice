@@ -66,19 +66,6 @@ def render_section_header(section_name: str) -> None:
     st.markdown(f"#### {section_name}")
 
 
-def add_nice_names(df: pd.DataFrame, leg_col: str, mapping_df: pd.DataFrame | None):
-    """Add nice_names column using mapping or prettified labels."""
-    df = df.copy()
-    df["legend"] = df[leg_col].map(
-        lambda x: (
-            mapping_df.loc[x, "nice_names"]
-            if (mapping_df is not None and x in mapping_df.index)
-            else prettify_label(x)
-        )
-    )
-    return df
-
-
 def generate_colour_mapping_dict(table_name, mapping_df, df, leg_col):
     """Get the color mapping for a chart based on mapping files or defaults."""
     unique_legends = df["legend"].unique().tolist()
