@@ -45,15 +45,6 @@ with open(
 ) as file:
     config = yaml.safe_load(file)["transport"]
 
-TRANSPORT_CHART_KEYS = [
-    "t1",
-]
-
-# Only include charts in the sidebar if they are present in the config
-power_charts = [config[key] for key in TRANSPORT_CHART_KEYS if key in config]
-table_of_content = [chart["name"] for chart in power_charts]
-generate_sidebar(table_of_content)
-
 # =========================== Render functions for each chart =========================
 
 
@@ -219,4 +210,15 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
     st.divider()
 
 
-render_t1_ev_load_profile(config["t1"])
+TRANSPORT_CHART_KEYS = [
+    "t1",
+]
+show_transport = "t" in str(st.session_state.get("sector", "")).lower()
+if show_transport:
+    render_t1_ev_load_profile(config["t1"])
+    # Only include charts in the sidebar if they are present in the config
+    transport_charts = [config[key] for key in TRANSPORT_CHART_KEYS if key in config]
+    table_of_content = [chart["name"] for chart in transport_charts]
+    generate_sidebar(table_of_content)
+else:
+    st.warning("Transport sector is not selected. No chart is displayed.")

@@ -44,17 +44,6 @@ with open(
 ) as file:
     config = yaml.safe_load(file)["industry"]
 
-INDUSTRY_CHART_KEYS = [
-    "i1",
-    "i2",
-    "i3",
-    "i4",
-]
-
-# Only include charts in the sidebar if they are present in the config
-power_charts = [config[key] for key in INDUSTRY_CHART_KEYS if key in config]
-table_of_content = [chart["name"] for chart in power_charts]
-generate_sidebar(table_of_content)
 
 # =========================== Render functions for each chart =========================
 
@@ -430,7 +419,22 @@ def render_i4_generation_by_type(graph_config: dict) -> None:
     st.divider()
 
 
-render_i1_capacity_by_carrier(config["i1"])
-render_i2_capacity_by_region(config["i2"])
-render_i3_generation_by_region(config["i3"])
-render_i4_generation_by_type(config["i4"])
+INDUSTRY_CHART_KEYS = [
+    "i1",
+    "i2",
+    "i3",
+    "i4",
+]
+show_industry = "i" in str(st.session_state.get("sector", "")).lower()
+if show_industry:
+    render_i1_capacity_by_carrier(config["i1"])
+    render_i2_capacity_by_region(config["i2"])
+    render_i3_generation_by_region(config["i3"])
+    render_i4_generation_by_type(config["i4"])
+
+    # Only include charts in the sidebar if they are present in the config
+    industry_charts = [config[key] for key in INDUSTRY_CHART_KEYS if key in config]
+    table_of_content = [chart["name"] for chart in industry_charts]
+    generate_sidebar(table_of_content)
+else:
+    st.warning("Industry sector is not selected. No chart is displayed.")
