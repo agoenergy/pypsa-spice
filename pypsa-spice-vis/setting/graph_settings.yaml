@@ -143,7 +143,6 @@ industry:
   i1: 
     name: Capacity by carrier
     units: GW
-    graph_type: simple_bar_yearly
     table_name: ind_cap_by_type_by_carrier_yearly
     leg_col: carrier
     yaxis_scale: # only valid when the chart does not include filters or sliders
@@ -154,7 +153,6 @@ industry:
   i2:
     name: Capacity by region
     units: GW
-    graph_type: bar_with_filter
     table_name: ind_cap_by_carrier_by_region_yearly
     leg_col: carrier
     yaxis_scale:
@@ -167,7 +165,6 @@ industry:
   i3:
     name: Generation by region
     units: TWh
-    graph_type: bar_with_filter
     table_name: ind_gen_by_carrier_by_region_yearly
     leg_col: carrier
     yaxis_scale:
@@ -180,7 +177,6 @@ industry:
   i4:
     name: Generation by type
     units: TWh
-    graph_type: simple_bar_yearly
     table_name: ind_gen_by_type_by_carrier_by_heatgroup_yearly
     leg_col: technology
     yaxis_scale: # only valid when the chart does not include filters or sliders
@@ -192,7 +188,6 @@ transport:
   t1: 
     name: EV load profile
     units: MW
-    graph_type: line_with_secondary_y_hourly
     table_name: tran_load_charging_all_hourly
     leg_col: status
     slider_id: '{}_tran_ev_profile'
