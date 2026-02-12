@@ -4,25 +4,25 @@
 
 """Plot-only helpers for Power page charts."""
 
+import os
+import re
+from typing import Any, Mapping, Optional
+
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
-import os
-import re
-import pandas as pd
 
 from scripts.plot_settings import (
     add_stackedbar_total,
+    configure_plot_layout,
     handle_y_axis_list,
     update_hourly_plot_x_axis,
-    configure_plot_layout,
 )
 
 
-def create_nice_names_and_color_mapping(
-    table_name: str,
-) -> pd.DataFrame:
+def create_nice_names_and_color_mapping(table_name: str) -> Optional[pd.DataFrame]:
     """Get the names to hex codes mapping df for a given graph.
 
     Parameters
@@ -61,7 +61,13 @@ def create_nice_names_and_color_mapping(
 
 
 @st.fragment
-def plot_simple_bar_yearly(df, graph_config, colour_mapping, y_range, key):
+def plot_simple_bar_yearly(
+    df: pd.DataFrame,
+    graph_config: Mapping[str, Any],
+    colour_mapping: Mapping[str, str],
+    y_range: Mapping[str, Any],
+    key: str,
+) -> None:
     """Plot yearly stacked bar chart from pre-processed data."""
     fig = px.bar(
         df,
@@ -83,7 +89,13 @@ def plot_simple_bar_yearly(df, graph_config, colour_mapping, y_range, key):
 
 
 @st.fragment
-def plot_simple_line_yearly(df, graph_config, colour_mapping, y_range, key):
+def plot_simple_line_yearly(
+    df: pd.DataFrame,
+    graph_config: Mapping[str, Any],
+    colour_mapping: Mapping[str, str],
+    y_range: Mapping[str, Any],
+    key: str,
+) -> None:
     """Plot yearly line chart from pre-processed data."""
     fig = px.line(
         df,
@@ -97,7 +109,13 @@ def plot_simple_line_yearly(df, graph_config, colour_mapping, y_range, key):
 
 
 @st.fragment
-def plot_area_share_yearly(df, graph_config, colour_mapping, y_range, key):
+def plot_area_share_yearly(
+    df: pd.DataFrame,
+    graph_config: Mapping[str, Any],
+    colour_mapping: Mapping[str, str],
+    y_range: Mapping[str, Any],
+    key: str,
+) -> None:
     """Plot yearly area chart from pre-processed data.
 
     Note: y_range parameter is accepted for interface consistency but not used.
@@ -114,7 +132,13 @@ def plot_area_share_yearly(df, graph_config, colour_mapping, y_range, key):
 
 
 @st.fragment
-def plot_bar_with_filter(df, graph_config, colour_mapping, y_range, key):
+def plot_bar_with_filter(
+    df: pd.DataFrame,
+    graph_config: Mapping[str, Any],
+    colour_mapping: Mapping[str, str],
+    y_range: Mapping[str, Any],
+    key: str,
+) -> None:
     """Plot yearly stacked bar chart with pre-applied filter."""
     fig = px.bar(
         df,
@@ -132,15 +156,15 @@ def plot_bar_with_filter(df, graph_config, colour_mapping, y_range, key):
 
 @st.fragment
 def plot_simple_bar_hourly(
-    df,
-    graph_config,
-    colour_mapping,
-    y_range,
-    start_date,
-    end_date,
-    is_complete,
-    key,
-):
+    df: pd.DataFrame,
+    graph_config: Mapping[str, Any],
+    colour_mapping: Mapping[str, str],
+    y_range: Mapping[str, Any],
+    start_date: Any,
+    end_date: Any,
+    is_complete: bool,
+    key: str,
+) -> None:
     """Plot hourly stacked bar chart from pre-filtered data."""
     fig = px.bar(
         df,
@@ -156,15 +180,15 @@ def plot_simple_bar_hourly(
 
 @st.fragment
 def plot_simple_line_hourly(
-    df,
-    graph_config,
-    colour_mapping,
-    y_range,
-    start_date,
-    end_date,
-    is_complete,
-    key,
-):
+    df: pd.DataFrame,
+    graph_config: Mapping[str, Any],
+    colour_mapping: Mapping[str, str],
+    y_range: Mapping[str, Any],
+    start_date: Any,
+    end_date: Any,
+    is_complete: bool,
+    key: str,
+) -> None:
     """Plot hourly line chart from pre-filtered data."""
     fig = px.line(
         df,
@@ -180,15 +204,15 @@ def plot_simple_line_hourly(
 
 @st.fragment
 def plot_filtered_bar_hourly(
-    filtered_df,
-    graph_config,
-    colour_mapping,
-    y_range,
-    start_date,
-    end_date,
-    is_complete,
-    key,
-):
+    filtered_df: pd.DataFrame,
+    graph_config: Mapping[str, Any],
+    colour_mapping: Mapping[str, str],
+    y_range: Mapping[str, Any],
+    start_date: Any,
+    end_date: Any,
+    is_complete: bool,
+    key: str,
+) -> None:
     """Plot hourly stacked bar chart with line overlay from pre-filtered data."""
     fig = px.bar(
         filtered_df[filtered_df["value"] != 0],
@@ -215,15 +239,15 @@ def plot_filtered_bar_hourly(
 
 @st.fragment
 def plot_line_with_secondary_y_hourly(
-    df,
-    graph_config,
-    colour_mapping,
-    y_range,
-    start_date,
-    end_date,
-    is_complete,
-    key,
-):
+    df: pd.DataFrame,
+    graph_config: Mapping[str, Any],
+    colour_mapping: Mapping[str, str],
+    y_range: Mapping[str, Any],
+    start_date: Any,
+    end_date: Any,
+    is_complete: bool,
+    key: str,
+) -> None:
     """Plot hourly line chart with secondary y-axis from pre-filtered data."""
     leg_col = graph_config["leg_col"]
     primary_y_lab = graph_config["primary_y_lab"]
