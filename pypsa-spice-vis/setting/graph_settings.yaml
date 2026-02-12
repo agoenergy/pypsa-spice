@@ -228,7 +228,7 @@ emissions:
 
 costs:
   c1: 
-    name: CAPEX by type (power sector)
+    name: CAPEX by type (Power sector)
     units: mUSD
     table_name: pow_capex_by_type_yearly
     leg_col: technology
@@ -238,7 +238,7 @@ costs:
     download_id: '{}_pow_capex_by_type_yearly'
 
   c2: 
-    name: OPEX by type (power sector)
+    name: OPEX by type (Power sector)
     units: mUSD
     table_name: pow_opex_by_type_yearly
     leg_col: technology
@@ -248,7 +248,7 @@ costs:
     download_id: '{}_pow_opex_by_type_yearly'
     
   c3: 
-    name: Overnight investment by type (power sector)
+    name: Overnight investment by type (Power sector)
     units: mUSD
     table_name: pow_overnight_inv_by_type_yearly
     leg_col: technology
@@ -258,7 +258,7 @@ costs:
     download_id: '{}_overnight_inv_by_type_yearly'
     
   c4: 
-    name: CAPEX by type (industry sector)
+    name: CAPEX by type (Industry sector)
     units: mUSD
     table_name: ind_capex_by_type_by_carrier_yearly
     leg_col: technology
@@ -268,7 +268,7 @@ costs:
     download_id: '{}ind_capex_by_type_by_carrier_yearly'
     
   c5: 
-    name: CAPEX by type (transport sector)
+    name: CAPEX by type (Transport sector)
     units: mUSD
     table_name: tran_capex_by_type_yearly
     leg_col: technology
@@ -278,7 +278,7 @@ costs:
     download_id: '{}_tran_capex_by_type_yearly'
     
   c6: 
-    name: CAPEX by Type (all energy sectors)
+    name: CAPEX by Type (All sectors)
     units: mUSD
     table_name: ene_capex_by_type_by_carrier_yearly
     leg_col: technology
@@ -288,7 +288,7 @@ costs:
     download_id: '{}_ene_capex_by_type_by_carrier_yearly'
     
   c7: 
-    name: CAPEX and OPEX (all energy sectors)
+    name: CAPEX and OPEX (All sectors)
     units: mUSD
     table_name: ene_costs_opex_capex_yearly
     leg_col: finance
@@ -298,7 +298,7 @@ costs:
     download_id: '{}_ene_costs_opex_capex_yearly'
     
   c8:
-    name: Average fuel costs (all energy sectors)
+    name: Average fuel costs (All sectors)
     units: USD/MWh_th
     table_name: ene_avg_fuel_costs_fuel_yearly
     leg_col: carrier

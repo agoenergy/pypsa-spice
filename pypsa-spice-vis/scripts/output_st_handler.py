@@ -22,16 +22,8 @@ from scripts.data_utils import (
     slugify_text,
 )
 from scripts.plot_settings import (
-    area_share_yearly,
-    bar_with_filter,
-    filtered_bar_hourly,
     generate_default_colour_mapping_dict_for_chart,
     generate_color_mapping_dict_for_chart,
-    line_with_secondary_y_hourly,
-    simple_bar_hourly,
-    simple_bar_yearly,
-    simple_line_hourly,
-    simple_line_yearly,
 )
 
 # pylint: disable=too-many-locals, too-many-branches
@@ -569,32 +561,6 @@ def setup_hourly_data_filters(
 
 
 # =============================================================================
-# Plot function mapping + misc helpers
-# =============================================================================
-
-
-def map_chart_to_plot_function(
-    func_name: str | None = None,
-) -> Callable[..., Any] | None:
-    """Map plot function name to the corresponding chart function."""
-    mapping: dict[str, Callable[..., Any]] = {
-        "simple_bar_yearly": simple_bar_yearly,
-        "simple_line_yearly": simple_line_yearly,
-        "bar_with_filter": bar_with_filter,
-        "area_share_yearly": area_share_yearly,
-        "simple_bar_hourly": simple_bar_hourly,
-        "simple_line_hourly": simple_line_hourly,
-        "filtered_bar_hourly": filtered_bar_hourly,
-        "line_with_secondary_y_hourly": line_with_secondary_y_hourly,
-    }
-
-    func = mapping.get(func_name or "")
-    if func is None:
-        st.write(f"Function not mapped: {func_name}")
-    return func
-
-
-# =============================================================================
 # Layout renderers (single/dual chart layout)
 # =============================================================================
 
@@ -811,106 +777,3 @@ def generate_diff_arrows(data: pd.DataFrame) -> pd.DataFrame:
                 """  # noqa: E501
 
     return styled
-
-
-# =============================================================================
-# Main page renderer
-# =============================================================================
-
-
-def render_st_page_and_plot(
-    graph_type_func: Callable[..., Any],
-    config_plot: dict[str, Any],
-) -> None:
-    """Render and plot all graphs based on the provided graph type and configuration."""
-    is_dual_scenario = bool(st.session_state.sce2)
-
-    if is_dual_scenario:
-        apply_radio_menu_styles()
-
-    config_plot["shared_country"] = setup_country_filter(
-        config_plot,
-        is_dual_scenario,
-        scenario_tag=st.session_state.sce1,
-    )
-
-    if config_plot.get("graph_type") == "bar_with_filter":
-        shared_filter = setup_radio_button_filter(config_plot, is_dual_scenario)
-        if shared_filter:
-            config_plot["shared_filter"] = shared_filter
-
-    elif config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
-        shared_year = setup_year_filter(config_plot, is_dual_scenario)
-        config_plot["shared_year"] = str(shared_year)
-
-        df1 = read_result_csv(
-            st.session_state.sce1,
-            config_plot["table_name"],
-            year=str(shared_year),
-        )
-        if df1 is None or df1.empty:
-            return
-        df1 = df1.copy()
-        df1["snapshot"] = pd.to_datetime(df1["snapshot"])
-
-        df2 = None
-        if is_dual_scenario:
-            df2 = read_result_csv(
-                st.session_state.sce2,
-                config_plot["table_name"],
-                year=str(shared_year),
-            )
-            if df2 is not None and not df2.empty:
-                df2 = df2.copy()
-                df2["snapshot"] = pd.to_datetime(df2["snapshot"])
-
-        config_plot["shared_region"] = setup_region_filter(
-            config_plot,
-            df1,
-            df2,
-            is_dual_scenario,
-        )
-
-        filter_results = setup_hourly_data_filters(
-            df1, df2, config_plot, is_dual_scenario
-        )
-        config_plot.update(filter_results)
-
-    if not is_dual_scenario:
-        config_plot["years"] = st.session_state.sce1_years
-        st.markdown(f"#### {st.session_state.sce1} ")
-        graph_type_func(scenario_name=st.session_state.sce1, graph_config=config_plot)
-
-        if config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
-            display_download_button_without_data(st.session_state.sce1, config_plot)
-        else:
-            display_download_button_with_data(st.session_state.sce1, config_plot)
-    else:
-        col1, _, col3 = st.columns([6, 1, 6])
-        with col1:
-            config_plot["years"] = st.session_state.sce1_years
-            st.markdown(f"#### {st.session_state.sce1} ")
-            graph_type_func(
-                scenario_name=st.session_state.sce1, graph_config=config_plot
-            )
-
-        with col3:
-            config_plot["years"] = st.session_state.sce2_years
-            st.markdown(f"#### {st.session_state.sce2} ")
-            graph_type_func(
-                scenario_name=st.session_state.sce2, graph_config=config_plot
-            )
-
-        col1, _, col3 = st.columns([6, 1, 6])
-        if config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
-            with col1:
-                display_download_button_without_data(st.session_state.sce1, config_plot)
-            with col3:
-                display_download_button_without_data(st.session_state.sce2, config_plot)
-        else:
-            with col1:
-                display_download_button_with_data(st.session_state.sce1, config_plot)
-            with col3:
-                display_download_button_with_data(st.session_state.sce2, config_plot)
-
-    st.divider()
