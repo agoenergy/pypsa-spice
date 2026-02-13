@@ -314,48 +314,6 @@ def get_filtered_df_and_date_range(
     return df_m, start_date, end_date, is_complete
 
 
-def get_hourly_dfs_for_both_scenarios(
-    graph_config: dict[str, Any],
-) -> list[pd.DataFrame]:
-    """Get the filtered hourly dataframes for two scenarios.
-
-    Parameters
-    ----------
-    graph_config : dict[str, Any]
-        Configuration dictionary for the current graph.
-
-    Returns
-    -------
-    list[pd.DataFrame]
-        List of filtered hourly dataframes (1 or 2 elements depending on
-        whether both scenarios have data).
-    """
-    start_date: dt.datetime | None = None
-    end_date: dt.datetime | None = None
-
-    filtered_dfs: list[pd.DataFrame] = []
-    for i, scenario in enumerate([st.session_state.sce1, st.session_state.sce2]):
-        df = read_result_csv(
-            scenario,
-            graph_config["table_name"],
-            year=str(graph_config["shared_years"]),
-            country=graph_config["shared_country"],
-        )
-        if df is None or df.empty:
-            continue
-
-        df_m, s_date, e_date, _ = get_filtered_df_and_date_range(df, graph_config)
-        if i == 0:
-            start_date, end_date = s_date, e_date
-
-        filtered_df = filter_dataframe_by_date_range(
-            df_m, start_date=start_date, end_date=end_date
-        )
-        filtered_dfs.append(handle_small_values(filtered_df))
-
-    return filtered_dfs
-
-
 # pylint: disable=too-many-arguments
 def filter_and_prepare_hourly_data(
     raw_data: pd.DataFrame | None,
