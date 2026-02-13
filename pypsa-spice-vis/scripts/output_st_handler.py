@@ -20,6 +20,7 @@ from scripts.data_utils import (
     prettify_label,
     read_result_csv,
     slugify_text,
+    sort_scenario_data_for_yearly_chart,
 )
 from scripts.plot_settings import (
     generate_color_mapping_dict_for_chart,
@@ -96,7 +97,6 @@ def render_download_with_data_table(
     ]
     group_cols = ["year", leg_col] + additional_group_cols
     df_grouped = df.groupby(group_cols, as_index=False)["value"].sum(min_count=1)
-
     with st.expander(f":material/database: Data ({scenario_name}):", expanded=False):
         pivot_index = (
             [leg_col] + additional_group_cols
@@ -714,7 +714,15 @@ def render_chart_layout(
     - If is_dual_scenario is False -> calls render_single_chart_layout(...)
     - If is_dual_scenario is True  -> calls render_dual_chart_layout(...)
     """
+    base_year = st.session_state.sce1_years[0] if st.session_state.sce1_years else None
+    # Sort data descending for plotting
+    scenario_1_vis_display_data = sort_scenario_data_for_yearly_chart(
+        scenario_1_vis_display_data, year_to_sort=int(base_year), ascending=False
+    )
     if is_dual_scenario:
+        scenario_2_vis_display_data = sort_scenario_data_for_yearly_chart(
+            scenario_2_vis_display_data, year_to_sort=int(base_year), ascending=False
+        )
         _render_dual_chart_layout(
             scenario_1_vis_display_data=scenario_1_vis_display_data,
             scenario_2_vis_display_data=scenario_2_vis_display_data,

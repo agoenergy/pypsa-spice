@@ -164,6 +164,42 @@ def normalize_dataframe(df: pd.DataFrame | pd.Series) -> pd.DataFrame:
     return df.reset_index() if isinstance(df, pd.Series) else df
 
 
+def sort_scenario_data_for_yearly_chart(
+    df: pd.DataFrame, year_to_sort: str, ascending: bool = False
+) -> pd.DataFrame:
+    """Sort the yearly DataFrame by the specified column in descending order.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The scenario dataframe to sort.
+    sort_by_column : str
+        The column name to sort by.
+    ascending : bool, optional
+        Whether to sort in ascending order (default is False for descending).
+
+    Returns
+    -------
+    pd.DataFrame
+        The sorted dataframe.
+    """
+    # Skip sorting if required columns are missing (e.g., for non-yearly charts)
+    if "year" not in df.columns or "value" not in df.columns:
+        return df
+    # Fill NaN values with 0 to ensure they are sorted to the end
+    df = df.fillna(0)
+    # Set index to all columns except value for unstacking
+    index_cololumns = [x for x in df.columns if x != "value"]
+    df = df.set_index(index_cololumns)
+    # Unstack the year column to sort by the specified year
+    df = df["value"].unstack(level="year")
+    if year_to_sort in df.columns:
+        df = df.sort_values(by=year_to_sort, ascending=ascending, na_position="last")
+    # Melt back to original format after sorting by the specified year column
+    df = df.melt(ignore_index=False, var_name="year", value_name="value").reset_index()
+    return df.dropna(subset=["value"])  # Remove rows where value is NaN
+
+
 def add_nice_names(
     df: pd.DataFrame, leg_col: str, mapping_df: pd.DataFrame | None
 ) -> pd.DataFrame:
