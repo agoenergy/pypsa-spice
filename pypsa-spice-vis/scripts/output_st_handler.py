@@ -69,7 +69,7 @@ def render_section_header(section_name: str) -> None:
 # =============================================================================
 
 
-def create_download_csv_button(csv_data: bytes, download_id: str) -> None:
+def _create_download_csv_button(csv_data: bytes, download_id: str) -> None:
     """Create a CSV download button for each data table."""
     st.download_button(
         label="Download CSV",
@@ -85,31 +85,37 @@ def render_download_with_data_table(
     graph_config: dict[str, Any],
     scenario_name: str,
 ) -> None:
-    """Render data table and CSV download for yearly charts."""
-    leg_col = graph_config["leg_col"]
-    download_id = graph_config["download_id"].format(scenario_name)
-    base_group_cols = {"year", leg_col}
+    """Render data table + CSV download for yearly charts (grouped + pivoted)."""
+    leg_col: str = graph_config["leg_col"]
+    download_id: str = graph_config["download_id"].format(scenario_name)
 
-    additional_group_cols = [
-        col
-        for col in df.columns
-        if col not in base_group_cols.union({"value"}) and df[col].dtype == "object"
-    ]
-    group_cols = ["year", leg_col] + additional_group_cols
-    df_grouped = df.groupby(group_cols, as_index=False)["value"].sum(min_count=1)
+    year_col = "year"
+    value_col = "value"
+
+    # Additional groupers: object-typed columns except year/legend/value
+    exclude = {year_col, leg_col, value_col}
+    extra_cols = [c for c in df.columns if c not in exclude and df[c].dtype == "object"]
+
+    group_cols = [year_col, leg_col, *extra_cols]
+    df_grouped = df.groupby(group_cols, as_index=False)[value_col].sum(min_count=1)
+
+    # Index order: put "from" first, otherwise last
+    pivot_index = (
+        [leg_col, *extra_cols] if leg_col == "from" else [*extra_cols, leg_col]
+    )
+
     with st.expander(f":material/database: Data ({scenario_name}):", expanded=False):
-        pivot_index = (
-            [leg_col] + additional_group_cols
-            if leg_col == "from"
-            else additional_group_cols + [leg_col]
-        )
         df_pivot = pd.pivot_table(
             df_grouped,
-            values="value",
-            columns="year",
+            values=value_col,
+            columns=year_col,
             index=pivot_index,
+            aggfunc="sum",
+            fill_value=0,
         )
-        df_pivot = df_pivot.loc[~(df_pivot == 0).all(axis=1)].fillna(0)
+
+        # Drop rows that are all zeros across years
+        df_pivot = df_pivot.loc[~(df_pivot == 0).all(axis=1)]
         df_pivot.index.names = pivot_index
 
         styled_df = df_pivot.style.apply(generate_diff_arrows, axis=None).format(
@@ -118,7 +124,7 @@ def render_download_with_data_table(
         st.table(styled_df)
 
         csv_data = df_pivot.to_csv().encode("utf-8")
-        create_download_csv_button(csv_data, download_id)
+        _create_download_csv_button(csv_data, download_id)
 
 
 def render_download_without_data_table(
@@ -127,99 +133,20 @@ def render_download_without_data_table(
     scenario_name: str,
 ) -> None:
     """Render CSV download for hourly charts using pre-filtered data."""
-    leg_col = graph_config["leg_col"]
-    download_id = graph_config["download_id"].format(scenario_name)
-    graph_type = graph_config["graph_type"]
-
     if filtered_df is None or filtered_df.empty:
         return
 
-    csv_data = (
-        filtered_df.to_csv().encode("utf-8")
-        if graph_type == "filtered_bar_hourly"
-        else filtered_df[["snapshot", leg_col, "value"]].to_csv().encode("utf-8")
-    )
-    create_download_csv_button(csv_data, download_id)
+    leg_col: str = graph_config["leg_col"]
+    download_id: str = graph_config["download_id"].format(scenario_name)
+    graph_type: str = graph_config["graph_type"]
 
+    if graph_type == "filtered_bar_hourly":
+        export_df = filtered_df
+    else:
+        export_df = filtered_df.loc[:, ["snapshot", leg_col, "value"]]
 
-def display_download_button_without_data(
-    scenario_name: str,
-    graph_config: dict[str, Any],
-) -> None:
-    """Display CSV download button for a graph without showing a data table."""
-    leg_col = graph_config["leg_col"]
-    download_id = graph_config["download_id"].format(scenario_name)
-    graph_type = graph_config["graph_type"]
-
-    df = read_result_csv(
-        scenario_name,
-        graph_config["table_name"],
-        year=str(graph_config["shared_years"]),
-        country=graph_config["shared_country"],
-    )
-    if df is None or df.empty:
-        return
-
-    df_m, start_date, end_date, _ = get_filtered_df_and_date_range(df, graph_config)
-    filtered_df = filter_dataframe_by_date_range(
-        df_m, start_date=start_date, end_date=end_date
-    )
-
-    csv_data = (
-        filtered_df.to_csv().encode("utf-8")
-        if graph_type == "filtered_bar_hourly"
-        else filtered_df[["snapshot", leg_col, "value"]].to_csv().encode("utf-8")
-    )
-    create_download_csv_button(csv_data, download_id)
-
-
-def display_download_button_with_data(
-    scenario_name: str,
-    graph_config: dict[str, Any],
-) -> None:
-    """Display data table + CSV download button for yearly graphs."""
-    leg_col = graph_config["leg_col"]
-    download_id = graph_config["download_id"].format(scenario_name)
-
-    df = read_result_csv(
-        scenario_name,
-        graph_config["table_name"],
-        country=graph_config["shared_country"],
-    )
-    if df is None or df.empty:
-        return
-
-    base_group_cols = {"year", leg_col}
-    additional_group_cols = [
-        col
-        for col in df.columns
-        if col not in base_group_cols.union({"value"}) and df[col].dtype == "object"
-    ]
-    group_cols = ["year", leg_col] + additional_group_cols
-    df_grouped = df.groupby(group_cols, as_index=False)["value"].sum(min_count=1)
-
-    with st.expander(f":material/database: Data ({scenario_name}):", expanded=False):
-        pivot_index = (
-            [leg_col] + additional_group_cols
-            if leg_col == "from"
-            else additional_group_cols + [leg_col]
-        )
-        df_pivot = pd.pivot_table(
-            df_grouped,
-            values="value",
-            columns="year",
-            index=pivot_index,
-        )
-        df_pivot = df_pivot.loc[~(df_pivot == 0).all(axis=1)].fillna(0)
-        df_pivot.index.names = pivot_index
-
-        styled_df = df_pivot.style.apply(generate_diff_arrows, axis=None).format(
-            "{:.2f}"
-        )
-        st.table(styled_df)
-
-        csv_data = df_pivot.to_csv().encode("utf-8")
-        create_download_csv_button(csv_data, download_id)
+    csv_data = export_df.to_csv(index=False).encode("utf-8")
+    _create_download_csv_button(csv_data, download_id)
 
 
 # =============================================================================
