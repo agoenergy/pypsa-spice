@@ -449,28 +449,39 @@ def setup_radio_button_filter(
     config_plot: dict[str, Any], is_dual_scenario: bool
 ) -> str | None:
     """Set up the radio button filter that appears in bar_with_filter graphs."""
+    # Only handle bar_with_filter graph type
     if config_plot.get("graph_type") != "bar_with_filter":
         return None
 
-    df1 = read_result_csv(st.session_state.sce1, config_plot["table_name"])
-    if df1 is None or df1.empty:
-        return None
-
+    # This widget is only meaningful when comparing two scenarios
     if not is_dual_scenario:
         return None
 
-    df2 = read_result_csv(st.session_state.sce2, config_plot["table_name"])
+    table_name = config_plot["table_name"]
+    filter_col = config_plot["fil_col"]
+    country_filter = config_plot.get("shared_country")  # None if not provided
+
+    # Read both scenario result tables (fail fast if missing/empty)
+    df1 = read_result_csv(st.session_state.sce1, table_name)
+    if df1 is None or df1.empty:
+        return None
+
+    df2 = read_result_csv(st.session_state.sce2, table_name)
     if df2 is None or df2.empty:
         return None
 
-    fil_col = config_plot["fil_col"]
-    filter_options = sorted(
-        set(df1[fil_col].unique().tolist() + df2[fil_col].unique().tolist())
-    )
-    slider_id = config_plot["slider_id"].format("both")
+    if country_filter:
+        df1 = df1[df1["country"] == country_filter]
+        df2 = df2[df2["country"] == country_filter]
 
+    # Build the union of available filter values from both scenarios.
+    filter_series = pd.concat([df1[filter_col], df2[filter_col]], ignore_index=True)
+    filter_options = sorted(filter_series.dropna().unique())
+
+    # Streamlit radio
+    slider_id = config_plot["slider_id"].format("both")
     return st.radio(
-        f"{slider_id} Select {fil_col} (both):",
+        f"{slider_id} Select {filter_col} (both):",
         options=[str(x) for x in filter_options],
         format_func=prettify_label,
         horizontal=True,
