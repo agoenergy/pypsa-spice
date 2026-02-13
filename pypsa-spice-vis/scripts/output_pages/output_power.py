@@ -511,12 +511,11 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
 
     # Setup filters
     is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    shared_year = setup_year_filter(graph_config, is_dual)
+    graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
         graph_config, is_dual, scenario_tag=st.session_state.sce1
     )
-    shared_year = setup_year_filter(graph_config, is_dual)
-    graph_config["shared_year"] = str(shared_year)
-
     # Extract config values
     table_name = graph_config["table_name"]
     legend_col = graph_config["leg_col"]
@@ -611,11 +610,11 @@ def render_p8_regional_hourly_generation(graph_config: dict) -> None:
 
     # Setup filters
     is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    shared_year = setup_year_filter(graph_config, is_dual)
+    graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
         graph_config, is_dual, scenario_tag=st.session_state.sce1
     )
-    shared_year = setup_year_filter(graph_config, is_dual)
-    graph_config["shared_year"] = str(shared_year)
 
     # Extract config values
     table_name = graph_config["table_name"]
@@ -783,11 +782,11 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
 
     # Setup filters
     is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    shared_year = setup_year_filter(graph_config, is_dual)
+    graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
         graph_config, is_dual, scenario_tag=st.session_state.sce1
     )
-    shared_year = setup_year_filter(graph_config, is_dual)
-    graph_config["shared_year"] = str(shared_year)
 
     # Extract config values
     table_name = graph_config["table_name"]
@@ -877,11 +876,11 @@ def render_p11_hourly_elec_price(graph_config: dict) -> None:
 
     # Setup filters
     is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    shared_year = setup_year_filter(graph_config, is_dual)
+    graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
         graph_config, is_dual, scenario_tag=st.session_state.sce1
     )
-    shared_year = setup_year_filter(graph_config, is_dual)
-    graph_config["shared_year"] = str(shared_year)
 
     # Extract config values
     table_name = graph_config["table_name"]
@@ -964,12 +963,13 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
     graph_config = {**graph_config, "graph_type": "simple_line_hourly"}
     render_section_header(graph_config["name"])
 
+    # Setup filters
     is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    shared_year = setup_year_filter(graph_config, is_dual)
+    graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
         graph_config, is_dual, scenario_tag=st.session_state.sce1
     )
-    shared_year = setup_year_filter(graph_config, is_dual)
-    graph_config["shared_year"] = str(shared_year)
 
     table_name = graph_config["table_name"]
     legend_col = graph_config["leg_col"]
@@ -1129,11 +1129,11 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
 
     # Setup filters
     is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    shared_year = setup_year_filter(graph_config, is_dual)
+    graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
         graph_config, is_dual, scenario_tag=st.session_state.sce1
     )
-    shared_year = setup_year_filter(graph_config, is_dual)
-    graph_config["shared_year"] = str(shared_year)
 
     # Extract config values
     table_name = graph_config["table_name"]

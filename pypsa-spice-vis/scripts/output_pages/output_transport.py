@@ -63,11 +63,11 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
 
     # Setup filters
     is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    shared_year = setup_year_filter(graph_config, is_dual)
+    graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
         graph_config, is_dual, scenario_tag=st.session_state.sce1
     )
-    shared_year = setup_year_filter(graph_config, is_dual)
-    graph_config["shared_year"] = str(shared_year)
 
     # Extract config values
     table_name = graph_config["table_name"]

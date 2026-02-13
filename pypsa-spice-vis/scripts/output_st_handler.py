@@ -280,7 +280,8 @@ def setup_country_filter(
     """Set up the country filter (pills) for charts that support country selection."""
     units = config_plot.get("units")
     table_name = config_plot.get("table_name", "")
-    df = read_result_csv(scenario_tag, table_name)
+    year = config_plot.get("shared_year", None)
+    df = read_result_csv(scenario_tag, table_name, year=year)
     if df is None or df.empty or "country" not in df.columns:
         return None
     if is_dual_scenario:
