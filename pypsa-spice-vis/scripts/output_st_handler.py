@@ -311,29 +311,46 @@ def setup_country_filter(
     )
 
 
-def setup_region_filter(
+def setup_radio_button_filter_for_hourly_graph(
     config_plot: dict[str, Any],
     df1: pd.DataFrame,
     df2: pd.DataFrame | None = None,
     is_dual_scenario: bool = False,
 ) -> str | None:
-    """Set up the region filter (pills) for filtered_bar_hourly graphs."""
-    if "fil_col" not in config_plot:
+    """Set up the filter (pills) for filtered_bar_hourly graphs."""
+    filter_col = config_plot.get("fil_col")
+    if not filter_col:
         return None
 
-    fil_col = config_plot["fil_col"]
+    # Optional shared country filter
+    country_filter = config_plot.get("shared_country", None)
+    if country_filter:
+        # Only apply if the column exists; otherwise just leave dfs unchanged
+        if "country" in df1.columns:
+            df1 = df1[df1["country"] == country_filter]
+        if df2 is not None and "country" in df2.columns:
+            df2 = df2[df2["country"] == country_filter]
+
     if is_dual_scenario and df2 is not None:
-        region_options = sorted(
-            set(df1[fil_col].unique().tolist() + df2[fil_col].unique().tolist())
-        )
+        # Union of values from both scenarios; dropna avoids na
+        combined = pd.concat([df1[filter_col], df2[filter_col]], ignore_index=True)
+        region_options = sorted(combined.dropna().unique())
         scenario_text = "both"
+        key_prefix = "shared"
     else:
-        region_options = df1[fil_col].unique()
+        region_options = sorted(pd.Series(df1[filter_col]).dropna().unique())
         scenario_text = st.session_state.sce1
+        key_prefix = "single"
+
+    # prevents IndexError on region_options[0] when no valid options after filtering
+    if not region_options:
+        return None
 
     slider_id = config_plot["slider_id"].format(scenario_text)
-    key = f"shared_region_{config_plot['table_name']}"
-    label = f"{slider_id} Select {fil_col}:"
+    label = f"{slider_id} Select {filter_col}:"
+
+    # Include mode + table to reduce key collisions across different widgets/tabs
+    key = f"{key_prefix}_region_{config_plot['table_name']}"
 
     return st.pills(
         label,
@@ -496,7 +513,7 @@ def setup_hourly_filters(
     has_dual: bool,
 ) -> None:
     """Set up region and date filters for hourly data and update config_dict."""
-    config_dict["shared_region"] = setup_region_filter(
+    config_dict["shared_region"] = setup_radio_button_filter_for_hourly_graph(
         config_dict,
         scenario_1_raw,
         scenario_2_raw,
