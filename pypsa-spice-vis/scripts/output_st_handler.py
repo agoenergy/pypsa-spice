@@ -278,17 +278,16 @@ def setup_country_filter(
     scenario_tag: str | None = None,
 ) -> str | None:
     """Set up the country filter (pills) for charts that support country selection."""
-    df = read_result_csv(scenario_tag, "pow_cap_by_type_yearly")
+    units = config_plot.get("units")
+    table_name = config_plot.get("table_name", "")
+    df = read_result_csv(scenario_tag, table_name)
     if df is None or df.empty or "country" not in df.columns:
         return None
-
     if is_dual_scenario:
         country_options = sorted(set(df["country"].unique().tolist()))
     else:
         country_options = df["country"].unique().tolist()
 
-    units = config_plot.get("units")
-    table_name = config_plot.get("table_name", "")
     is_regional_hourly = (
         "flow" in table_name
         or "charging" in table_name
