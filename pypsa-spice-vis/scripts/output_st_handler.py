@@ -113,7 +113,11 @@ def render_download_with_data_table(
             aggfunc="sum",
             fill_value=0,
         )
-
+        # Sort by base year column descending, with NaNs at the end
+        base_year = st.session_state.sce1_years[0]
+        df_pivot = df_pivot.sort_values(
+            by=int(base_year), ascending=False, na_position="last"
+        )
         # Drop rows that are all zeros across years
         df_pivot = df_pivot.loc[~(df_pivot == 0).all(axis=1)]
         df_pivot.index.names = pivot_index
