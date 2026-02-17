@@ -388,13 +388,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#v100-2026-01-19" class="md-nav__link">
+  <a href="#v110-2026-02-17" class="md-nav__link">
     <span class="md-ellipsis">
-      v1.0.0 (2026-01-19)
+      v1.1.0 (2026-02-17)
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="v1.0.0 (2026-01-19)">
+    <nav class="md-nav" aria-label="v1.1.0 (2026-02-17)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -408,6 +408,39 @@
         
           <li class="md-nav__item">
   <a href="#changed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changed
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v100-2026-01-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      v1.0.0 (2026-01-19)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1.0.0 (2026-01-19)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fixed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_2" class="md-nav__link">
     <span class="md-ellipsis">
       Changed
     </span>
@@ -774,13 +807,25 @@
 <h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">¶</a></h3>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">¶</a></h3>
 <h3 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">¶</a></h3>
+<h2 id="v110-2026-02-17">v1.1.0 (2026-02-17)<a class="headerlink" href="#v110-2026-02-17" title="Permanent link">¶</a></h2>
+<h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">¶</a></h3>
+<ul>
+<li>Allow user to clean up/remove default custom constraints from <code>scenario_config.yaml</code>.(<a href="https://github.com/agoenergy/pypsa-spice/pull/67"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M6 3a3 3 0 0 1 3 3c0 1.31-.83 2.42-2 2.83v6.34c1.17.41 2 1.52 2 2.83a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V8.83A2.99 2.99 0 0 1 3 6a3 3 0 0 1 3-3m0 2a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m0 12a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m15 1a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V7h-2v3.25L10.75 6 15 1.75V5h2a2 2 0 0 1 2 2v8.17c1.17.41 2 1.52 2 2.83m-3-1a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1"></path></svg></span>67</a> by <a class="magiclink magiclink-github magiclink-mention" href="https://github.com/nhlong2701" title="GitHub User: nhlong2701">@nhlong2701</a> &amp; <a class="magiclink magiclink-github magiclink-mention" href="https://github.com/RichChang963" title="GitHub User: RichChang963">@RichChang963</a>)</li>
+<li>Prevent accidental submodule/subproject commits by ignoring data directories except for templates and sample data (<a href="https://github.com/agoenergy/pypsa-spice/pull/70"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M6 3a3 3 0 0 1 3 3c0 1.31-.83 2.42-2 2.83v6.34c1.17.41 2 1.52 2 2.83a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V8.83A2.99 2.99 0 0 1 3 6a3 3 0 0 1 3-3m0 2a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m0 12a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m15 1a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V7h-2v3.25L10.75 6 15 1.75V5h2a2 2 0 0 1 2 2v8.17c1.17.41 2 1.52 2 2.83m-3-1a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1"></path></svg></span>70</a> by <a class="magiclink magiclink-github magiclink-mention" href="https://github.com/nhlong2701" title="GitHub User: nhlong2701">@nhlong2701</a>)</li>
+</ul>
+<h3 id="changed_1">Changed<a class="headerlink" href="#changed_1" title="Permanent link">¶</a></h3>
+<ul>
+<li>Added a new documentation file explaining how to set up a decommissioning/retrofit approach in <strong>pypsa-spice</strong> (<a href="https://github.com/agoenergy/pypsa-spice/pull/68"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M6 3a3 3 0 0 1 3 3c0 1.31-.83 2.42-2 2.83v6.34c1.17.41 2 1.52 2 2.83a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V8.83A2.99 2.99 0 0 1 3 6a3 3 0 0 1 3-3m0 2a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m0 12a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m15 1a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V7h-2v3.25L10.75 6 15 1.75V5h2a2 2 0 0 1 2 2v8.17c1.17.41 2 1.52 2 2.83m-3-1a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1"></path></svg></span>68</a> by <a class="magiclink magiclink-github magiclink-mention" href="https://github.com/nhlong2701" title="GitHub User: nhlong2701">@nhlong2701</a>)</li>
+<li>Added a new documentation file explaining how to add new technologies in <strong>pypsa-spice</strong> and to better explain the model code and data repositories set up (<a href="https://github.com/agoenergy/pypsa-spice/pull/73"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M6 3a3 3 0 0 1 3 3c0 1.31-.83 2.42-2 2.83v6.34c1.17.41 2 1.52 2 2.83a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V8.83A2.99 2.99 0 0 1 3 6a3 3 0 0 1 3-3m0 2a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m0 12a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m15 1a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V7h-2v3.25L10.75 6 15 1.75V5h2a2 2 0 0 1 2 2v8.17c1.17.41 2 1.52 2 2.83m-3-1a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1"></path></svg></span>73</a> by <a class="magiclink magiclink-github magiclink-mention" href="https://github.com/RichChang963" title="GitHub User: RichChang963">@RichChang963</a> &amp; <a class="magiclink magiclink-github magiclink-mention" href="https://github.com/nhlong2701" title="GitHub User: nhlong2701">@nhlong2701</a>)</li>
+<li>Add 'ALL` option in the charts of pypsa-spice-vis (<a href="https://github.com/agoenergy/pypsa-spice/pull/72"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M6 3a3 3 0 0 1 3 3c0 1.31-.83 2.42-2 2.83v6.34c1.17.41 2 1.52 2 2.83a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V8.83A2.99 2.99 0 0 1 3 6a3 3 0 0 1 3-3m0 2a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m0 12a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m15 1a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V7h-2v3.25L10.75 6 15 1.75V5h2a2 2 0 0 1 2 2v8.17c1.17.41 2 1.52 2 2.83m-3-1a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1"></path></svg></span>72</a> by <a class="magiclink magiclink-github magiclink-mention" href="https://github.com/RichChang963" title="GitHub User: RichChang963">@RichChang963</a>)</li>
+</ul>
 <h2 id="v100-2026-01-19">v1.0.0 (2026-01-19)<a class="headerlink" href="#v100-2026-01-19" title="Permanent link">¶</a></h2>
 <p>This is the first tagged release of PyPSA-SPICE <img alt="🥳" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f973.svg" title=":partying_face:"> and represents a complete, fully functional implementation of the model. It establishes the baseline for all future development and includes the core model formulation, execution and post-analysis workflows, the scenario configuration system, and comprehensive documentation.</p>
-<h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">¶</a></h3>
+<h3 id="fixed_2">Fixed<a class="headerlink" href="#fixed_2" title="Permanent link">¶</a></h3>
 <ul>
 <li>Resolve the filtering issue with regional filters when adding load for non-electricity ones and missing interconnection (<a href="https://github.com/agoenergy/pypsa-spice/pull/51"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M6 3a3 3 0 0 1 3 3c0 1.31-.83 2.42-2 2.83v6.34c1.17.41 2 1.52 2 2.83a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V8.83A2.99 2.99 0 0 1 3 6a3 3 0 0 1 3-3m0 2a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m0 12a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m15 1a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V7h-2v3.25L10.75 6 15 1.75V5h2a2 2 0 0 1 2 2v8.17c1.17.41 2 1.52 2 2.83m-3-1a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1"></path></svg></span>51</a> by <a class="magiclink magiclink-github magiclink-mention" href="https://github.com/nhlong2701" title="GitHub User: nhlong2701">@nhlong2701</a>)</li>
 </ul>
-<h3 id="changed_1">Changed<a class="headerlink" href="#changed_1" title="Permanent link">¶</a></h3>
+<h3 id="changed_2">Changed<a class="headerlink" href="#changed_2" title="Permanent link">¶</a></h3>
 <ul>
 <li>Update PyPSA version to <code>1.0.6</code> and refactor code to adapt to new changes (<a href="https://github.com/agoenergy/pypsa-spice/pull/54"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M6 3a3 3 0 0 1 3 3c0 1.31-.83 2.42-2 2.83v6.34c1.17.41 2 1.52 2 2.83a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V8.83A2.99 2.99 0 0 1 3 6a3 3 0 0 1 3-3m0 2a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m0 12a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m15 1a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V7h-2v3.25L10.75 6 15 1.75V5h2a2 2 0 0 1 2 2v8.17c1.17.41 2 1.52 2 2.83m-3-1a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1"></path></svg></span>54</a> by <a class="magiclink magiclink-github magiclink-mention" href="https://github.com/nhlong2701" title="GitHub User: nhlong2701">@nhlong2701</a>)</li>
 <li>Update <code>scenario_config</code> workflow and template structure (<a href="https://github.com/agoenergy/pypsa-spice/pull/58"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M6 3a3 3 0 0 1 3 3c0 1.31-.83 2.42-2 2.83v6.34c1.17.41 2 1.52 2 2.83a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V8.83A2.99 2.99 0 0 1 3 6a3 3 0 0 1 3-3m0 2a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m0 12a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m15 1a3 3 0 0 1-3 3 3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V7h-2v3.25L10.75 6 15 1.75V5h2a2 2 0 0 1 2 2v8.17c1.17.41 2 1.52 2 2.83m-3-1a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1"></path></svg></span>58</a> by <a class="magiclink magiclink-github magiclink-mention" href="https://github.com/RichChang963" title="GitHub User: RichChang963">@RichChang963</a>)</li>

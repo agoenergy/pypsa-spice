@@ -8,28 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://agora-energiewende.org/getting-started/installation/">
+        <link rel="canonical" href="https://agora-energiewende.org/getting-started/input-data/advanced-settings/add-new-technologies/">
       
       
-        <link rel="prev" href="../overview/">
+        <link rel="prev" href="../../regional_csv_template/">
       
       
-        <link rel="next" href="../input-data/new-model/">
+        <link rel="next" href="../decommissioning-and-retrofit-logic/">
       
       
-      <link rel="icon" href="../../assets/favicon/favicon.ico">
+      <link rel="icon" href="../../../../assets/favicon/favicon.ico">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
     
     
       
-        <title>Installation - Model Builder Documentation</title>
+        <title>Adding a new technology - Model Builder Documentation</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.7e37652d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -48,9 +48,9 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/css/custom.css">
+      <link rel="stylesheet" href="../../../../assets/css/custom.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#installation" class="md-skip">
+        <a href="#adding-new-technologies-in-pypsa-spice" class="md-skip">
           Skip to content
         </a>
       
@@ -92,17 +92,17 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Model Builder Documentation" class="md-header__button md-logo" aria-label="Model Builder Documentation" data-md-component="logo">
+    <a href="../../../.." title="Model Builder Documentation" class="md-header__button md-logo" aria-label="Model Builder Documentation" data-md-component="logo">
       
-<a href="../.."
+<a href="../../../.."
    class="md-header__button md-logo"
    title="Model Builder Documentation"
    aria-label="Model Builder Documentation">
   <img id="logo_light_mode"
-       src="../../assets/images/pypsa-logo_rgb.png"
+       src="../../../../assets/images/pypsa-logo_rgb.png"
        alt="Model Builder Documentation">
   <img id="logo_dark_mode"
-       src="../../assets/images/pypsa-logo_rgb_dark.png"
+       src="../../../../assets/images/pypsa-logo_rgb_dark.png"
        alt="Model Builder Documentation">
 </a>
     </a>
@@ -120,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Installation
+              Adding a new technology
             
           </span>
         </div>
@@ -240,17 +240,17 @@
 
 <nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Model Builder Documentation" class="md-nav__button md-logo" aria-label="Model Builder Documentation" data-md-component="logo">
+    <a href="../../../.." title="Model Builder Documentation" class="md-nav__button md-logo" aria-label="Model Builder Documentation" data-md-component="logo">
       
-<a href="../.."
+<a href="../../../.."
    class="md-header__button md-logo"
    title="Model Builder Documentation"
    aria-label="Model Builder Documentation">
   <img id="logo_light_mode"
-       src="../../assets/images/pypsa-logo_rgb.png"
+       src="../../../../assets/images/pypsa-logo_rgb.png"
        alt="Model Builder Documentation">
   <img id="logo_dark_mode"
-       src="../../assets/images/pypsa-logo_rgb_dark.png"
+       src="../../../../assets/images/pypsa-logo_rgb_dark.png"
        alt="Model Builder Documentation">
 </a>
     </a>
@@ -278,7 +278,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../../.." class="md-nav__link">
         
   
   
@@ -300,7 +300,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../releases/" class="md-nav__link">
+      <a href="../../../../releases/" class="md-nav__link">
         
   
   
@@ -351,7 +351,7 @@
   
   
   
-    <a href="../../user-guide/model-builder-methodology/" class="md-nav__link">
+    <a href="../../../../user-guide/model-builder-methodology/" class="md-nav__link">
       
   
   
@@ -429,7 +429,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../overview/" class="md-nav__link">
+      <a href="../../../overview/" class="md-nav__link">
         
   
   
@@ -444,6 +444,202 @@
   
 
               
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Input data
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            Input data
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../new-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Defining a new model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../global_csv_template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Global CSV template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../regional_csv_template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Regional CSV template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_3_4" id="__nav_4_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Advanced settings
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_3_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced settings
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -466,7 +662,7 @@
   
   
   <span class="md-ellipsis">
-    Installation
+    Adding a new technology
     
   </span>
   
@@ -479,7 +675,7 @@
   
   
   <span class="md-ellipsis">
-    Installation
+    Adding a new technology
     
   </span>
   
@@ -502,45 +698,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#clone-the-repository" class="md-nav__link">
+  <a href="#example-1-adding-a-multi-output-plant-eg-a-new-fossil-plant-with-co2-emissions" class="md-nav__link">
     <span class="md-ellipsis">
-      Clone the repository
+      Example 1: Adding a multi-output plant (e.g., a new fossil plant with CO₂ emissions)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#install-python-dependencies" class="md-nav__link">
+  <a href="#example-2-adding-a-single-output-plant-eg-new-renewable-plant-with-time-dependent-availability" class="md-nav__link">
     <span class="md-ellipsis">
-      Install Python dependencies
+      Example 2: Adding a single-output plant (e.g., new renewable plant with time-dependent availability)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#install-a-solver" class="md-nav__link">
+  <a href="#example-3-adding-a-storage-plant-with-a-fixed-energy-to-power-ratio" class="md-nav__link">
     <span class="md-ellipsis">
-      Install a solver
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#set-up-the-default-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Set up the default configuration
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quick-execution-of-the-model-builder-using-template-data" class="md-nav__link">
-    <span class="md-ellipsis">
-      Quick execution of the model builder using template data
+      Example 3: Adding a storage plant with a fixed energy-to-power ratio
     </span>
   </a>
   
@@ -561,52 +739,79 @@
   
   
   
-    
-    
-      
+    <li class="md-nav__item">
+      <a href="../decommissioning-and-retrofit-logic/" class="md-nav__link">
         
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-    
-      
-        
-        
-      
-    
-    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
-      
-        
-  
-  
-  
-    <a href="../input-data/new-model/" class="md-nav__link">
-      
   
   
   <span class="md-ellipsis">
-    Input data
+    Decommissioning and retrofit
     
   </span>
   
 
-      
-        <span class="md-nav__icon md-icon"></span>
-      
-    </a>
+      </a>
+    </li>
   
 
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../model-builder-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../model-builder-execution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Execution
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
       
     </li>
   
@@ -650,7 +855,7 @@
   
   
   
-    <a href="../../visualisation-tool/pypsa-spice-vis/" class="md-nav__link">
+    <a href="../../../../visualisation-tool/pypsa-spice-vis/" class="md-nav__link">
       
   
   
@@ -701,7 +906,7 @@
   
   
   
-    <a href="../../tutorials-and-examples/training_materials/" class="md-nav__link">
+    <a href="../../../../tutorials-and-examples/training_materials/" class="md-nav__link">
       
   
   
@@ -750,7 +955,7 @@
   
   
   
-    <a href="../../contributing/contributing/" class="md-nav__link">
+    <a href="../../../../contributing/contributing/" class="md-nav__link">
       
   
   
@@ -799,7 +1004,7 @@
   
   
   
-    <a href="../../references/citation_and_license/" class="md-nav__link">
+    <a href="../../../../references/citation_and_license/" class="md-nav__link">
       
   
   
@@ -839,121 +1044,44 @@
   
 
 
-<div><h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">¶</a></h1>
-<h2 id="clone-the-repository">Clone the repository<a class="headerlink" href="#clone-the-repository" title="Permanent link">¶</a></h2>
-<p>First, clone the <a href="https://github.com/agoenergy/pypsa-spice" target="_blank">PyPSA-SPICE repository</a> using the <strong>Git</strong> version control system. <strong>Important:</strong> the path to the directory where the repository is cloned <strong>must not contain any spaces</strong>.</p>
-<p>If Git is not installed on your system, please follow the <a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git" target="_blank">Git installation instructions</a>.</p>
-<div class="language-shell highlight"><span class="filename">Cloning the repository</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/agoenergy/pypsa-spice.git
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>pypsa-spice
-</span></code></pre></div>
-<h2 id="install-python-dependencies">Install Python dependencies<a class="headerlink" href="#install-python-dependencies" title="Permanent link">¶</a></h2>
-<p>PyPSA-SPICE needs a set of Python packages to function. We recommend using <strong>Conda</strong>, a package and environment management system, to handle these dependencies.</p>
-<p>Start by installing <a href="https://docs.conda.io/en/latest/miniconda.html" target="_blank">Miniconda</a>, a lightweight version of <a href="https://www.anaconda.com/" target="_blank">Anaconda</a> that includes only Conda and its core dependencies. If you already have Conda installed, you can skip this step. For installation instructions tailored to your operating system, refer to the <a href="https://docs.conda.io/projects/conda/en/latest/user-guide/install/" target="_blank">official Conda installation guide</a>.</p>
-<p>Once Conda is installed, we recommend installing <strong>Mamba</strong>, a fast drop-in replacement for Conda that significantly speeds up environment installation. According to the <a href="https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html" target="_blank">official mamba documentation</a>, the recommended way to install it is via <strong>Miniforge3</strong>, a minimal Conda installer bundled with Mamba.</p>
-<p>Installation steps for Miniforge3 vary depending on your operating system. You can find platform-specific instructions in the <a href="https://github.com/conda-forge/miniforge" target="_blank">official Miniforge guide</a>.</p>
-<p>For example, if you’re using Linux system, you can install Miniforge3 by running the following command outside the PyPSA-SPICE folder and following the prompts:</p>
-<div class="language-shell highlight"><span class="filename">Installing Miniforge3 on Linux</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>..
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>curl<span class="w"> </span>-L<span class="w"> </span>-O<span class="w"> </span><span class="s2">"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh"</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>bash<span class="w"> </span>Miniforge3-$<span class="w"> </span>Miniforge3-Linux-x86_64.sh
-</span></code></pre></div>
-<p>You can switch to any other directory outside the folder you cloned PyPSA-SPICE.</p>
-<p><strong>Important notes:</strong></p>
-<ol>
-<li><strong>Mambaforge</strong> is deprecated as of July 2024 and was officially retired after January 2025. For this reason, we recommend using Miniforge3 instead.</li>
-<li>Install Miniforge3 or mamba packages only in the base Conda environment. Installing them in other environments may lead to compatibility issues or unexpected errors.</li>
-<li>Miniforge3 and Mambaforge use different environment paths. If you switch from one to the other, you will need to recreate all Conda environments, as they are not shared between the two setups.</li>
-</ol>
-<p>The required Python packages for PyPSA-SPICE are listed in the <code>environment.yaml</code> (via conda or mamba) and <code>requirements.txt</code> (via pip). You can create and activate the environment (which is called <code>hotpot</code>) using the following commands:</p>
-<div class="language-bash highlight"><span class="filename">Installing and activating the virtual environment</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>mamba<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-f<span class="w"> </span>envs/environment.yaml
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>conda<span class="w"> </span>activate<span class="w"> </span>hotpot
-</span></code></pre></div>
-<p>Note that the environment activation is local to the currently open terminal session. If you open a new terminal window, you will need to re-run the activation command.</p>
-<h2 id="install-a-solver">Install a solver<a class="headerlink" href="#install-a-solver" title="Permanent link">¶</a></h2>
-<p>Th network model created in PyPSA-SPICE model builder is passed to an external solver to perform total annual system cost minimisation and obtain optimal power flows. PyPSA-SPICE is compatible with several solvers that can be installed via Python. In our default environment, Gurobi and HiGHs solvers are installed (packages installed not licenses). Below is a list of supported solvers along with links to their official installation guides for different operating systems:</p>
-<table>
-<thead>
-<tr>
-<th>Solver</th>
-<th>License type</th>
-<th>Installation guide</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ipopt</td>
-<td>Free and open-source</td>
-<td><a href="https://coin-or.github.io/Ipopt/INSTALL.html" target="_blank">Ipopt</a></td>
-</tr>
-<tr>
-<td>Cbc</td>
-<td>Free and open-source</td>
-<td><a href="https://github.com/coin-or/Cbc?tab=readme-ov-file#download" target="_blank">Cbc</a></td>
-</tr>
-<tr>
-<td>GLPK</td>
-<td>Free and open-source</td>
-<td><a href="https://www.gnu.org/software/glpk/" target="_blank">GLPK</a> /<a href="http://winglpk.sourceforge.net/" target="_blank">WinGLPK</a></td>
-</tr>
-<tr>
-<td>HiGHs</td>
-<td>Free and open-source</td>
-<td><a href="https://ergo-code.github.io/HiGHS/dev/interfaces/python/#Install" target="_blank">highspy</a></td>
-</tr>
-<tr>
-<td>Gurobi</td>
-<td>commercial</td>
-<td><a href="https://support.gurobi.com/hc/en-us/articles/360044290292-How-do-I-install-Gurobi-for-Python" target="_blank">gurobipy</a></td>
-</tr>
-<tr>
-<td>CPLEX</td>
-<td>commercial</td>
-<td><a href="https://www.ibm.com/products/ilog-cplex-optimization-studio" target="_blank">CPLEX</a></td>
-</tr>
-<tr>
-<td>FICO® Xpress Solver</td>
-<td>commercial</td>
-<td><a href="https://www.fico.com/de/products/fico-xpress-solver" target="_blank">FICO® Xpress Solver</a></td>
-</tr>
-</tbody>
-</table>
-<p>Commercial solvers such as Gurobi currently significantly outperform open-source solvers for large-scale problems. In some cases, using a commercial solver may be necessary to obtain a feasible solution. However, open-source solvers are being improved recently, and some of them already perform very well for small to medium-sized problems. Please check the <a href="https://openenergybenchmark.org/dashboard/main-results" target="_blank">solver benchmarking results</a> to compare their performance.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked id="__tabbed_1_1" name="__tabbed_1" type="radio"><input id="__tabbed_1_2" name="__tabbed_1" type="radio"><div class="tabbed-labels"><label for="__tabbed_1_1">on Mac or Linux</label><label for="__tabbed_1_2">on Windows</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>conda<span class="w"> </span>activate<span class="w"> </span>hotpot
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>ipopt<span class="w"> </span>coincbc
-</span></code></pre></div>
+<div><h1 id="adding-new-technologies-in-pypsa-spice">Adding new technologies in PyPSA-SPICE<a class="headerlink" href="#adding-new-technologies-in-pypsa-spice" title="Permanent link">¶</a></h1>
+<p>This note explains how to add new or custom technologies in PyPSA-SPICE that are not included in the default set. In PyPSA-SPICE, some energy technologies are modeled by combining multiple PyPSA components to capture the characteristics of a specific plant type. Below are a few common examples for reference.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>Adding new or custom technologies often requires a good understanding of both the PyPSA framework and PyPSA-SPICE to avoid errors during model execution.</p>
+<p>If you are uncertain about making these changes, please reach out to us at <a href="mailto:modelling@agora-thinktanks.org">modelling@agora-thinktanks.org</a>. We would be happy to help you get started.</p>
 </div>
-<div class="tabbed-block">
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>conda<span class="w"> </span>activate<span class="w"> </span>hotpot
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>ipopt<span class="w"> </span>glpk
-</span></code></pre></div>
+<h2 id="example-1-adding-a-multi-output-plant-eg-a-new-fossil-plant-with-co2-emissions">Example 1: Adding a multi-output plant (e.g., a new fossil plant with CO₂ emissions)<a class="headerlink" href="#example-1-adding-a-multi-output-plant-eg-a-new-fossil-plant-with-co2-emissions" title="Permanent link">¶</a></h2>
+<p>In PyPSA-SPICE, a <strong>multi-output plant</strong> is modeled using a PyPSA <code>Link</code>, where the fuel bus (<code>bus0</code>) provides the input and the output buses (<code>bus1</code>, <code>bus2</code>, etc.) represent the plant’s different outputs. For example, a gas-fired power plant (CCGT) can be implemented as a <code>Link</code> that connects the <strong>gas bus</strong> (<code>bus0</code>) to the <strong>electricity/power sector bus</strong> (<code>bus1</code>) as its main output, and to an <strong>atmosphere bus</strong> (<code>bus2</code>) as a second output to represent CO₂ emissions released as a by-product of combustion; additional outputs can be included by connecting to further buses such as <code>bus3</code>, <code>bus4</code>, and so on.</p>
+<p>To add a new gas-fired power plant type (e.g. <code>CCGT_Mod</code>), follow these steps:</p>
+<ul>
+<li>In <strong><code>technologies.csv</code></strong>: Add a new row for <code>CCGT_Mod</code> and fill in the technical parameters. Specify <code>Link</code> as class. Note: <code>efficiency</code> applies to the conversion from <strong><code>bus0 → bus1</code></strong>, <code>efficiency2</code> to <strong><code>bus0 → bus2</code></strong>, and so on for additional outputs.</li>
+<li>In <strong><code>power_plant_costs.csv</code></strong>: Add a new row for <code>CCGT_Mod</code> for each modeled year and enter the cost assumptions.</li>
+<li>In <strong><code>power_links.csv</code></strong>: Add a new row for <code>CCGT_Mod</code>, fill in the required inputs, and make sure to set the buses correctly: <strong><code>bus0</code> = fuel</strong>, <strong><code>bus1</code> = power sector</strong>, <strong><code>bus2</code> = atmosphere</strong>.</li>
+<li>In <strong><code>decomission_capacity.csv</code></strong>: Add a decommissioning plan for <code>CCGT_Mod</code>, if applicable.</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>In most cases, the new plant type is only slightly different from an existing one (e.g. <code>CCGT_Mod</code> vs <code>CCGT</code>).</p>
+<p>To save time and reduce errors, copy the <code>CCGT</code> rows in all four files, change the relevant text to <code>CCGT_Mod</code>, and then modify only the parameters that differ.</p>
 </div>
-</div>
-</div>
-<p>On Windows, new versions of <code>ipopt</code> have caused problems. Consider downgrading to version 3.11.1.</p>
-<h2 id="set-up-the-default-configuration">Set up the default configuration<a class="headerlink" href="#set-up-the-default-configuration" title="Permanent link">¶</a></h2>
-<p>PyPSA-SPICE requires two configuration files:</p>
-<ol>
-<li>
-<p><strong><code>base_config.yaml</code></strong>: Located in the project root directory, this file contains general configurations needed to set up the initial input data structure.</p>
-</li>
-<li>
-<p><strong><code>scenario_config.yaml</code></strong>: Located inside each scenario folder, this file contains scenario-specific configurations. It is only used after the input data structure has been created.</p>
-</li>
-</ol>
-<p>To get started, configure <code>base_config.yaml</code> first, then run the data setup process. Once complete, you can configure individual scenarios using their respective <code>scenario_config.yaml</code> files. For detailed configuration options, refer to <a href="../input-data/model-builder-configuration/">model-builder-configuration</a>.</p>
-<h2 id="quick-execution-of-the-model-builder-using-template-data">Quick execution of the model builder using template data<a class="headerlink" href="#quick-execution-of-the-model-builder-using-template-data" title="Permanent link">¶</a></h2>
-<p>To have a first glance of how the model builder works, template data in <code>data/example</code> folder can be used. You can run the entire workflow with the following command:</p>
-<div class="language-bash highlight"><span class="filename">Running the entire workflow using this single command</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>snakemake<span class="w"> </span>-j1<span class="w"> </span>-c4<span class="w"> </span>solve_all_networks<span class="w"> </span><span class="c1"># (1)!</span>
-</span></code></pre></div>
-<ol>
-<li><code>-j1</code> means running only 1 job in parallel at a time and <code>-c4</code> means allowing each job to use up to 4 CPU threads.</li>
-</ol>
-<p>or</p>
-<div class="language-bash highlight"><span class="filename">Running the entire workflow using this call command</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>snakemake<span class="w"> </span>-call
-</span></code></pre></div>
-<p>For more information, please refer to the <a href="https://snakemake.readthedocs.io/en/stable/index.html" target="_blank">Snakemake documentation</a> to adjust the cores and threads to use.</p></div>
+<h2 id="example-2-adding-a-single-output-plant-eg-new-renewable-plant-with-time-dependent-availability">Example 2: Adding a single-output plant (e.g., new renewable plant with time-dependent availability)<a class="headerlink" href="#example-2-adding-a-single-output-plant-eg-new-renewable-plant-with-time-dependent-availability" title="Permanent link">¶</a></h2>
+<p>In PyPSA-SPICE, renewable plants with time-dependent availability are modeled as <code>Generator</code> component (hydro dams are the exception and use <code>StorageUnit</code>). To add a new renewable plant (e.g. <code>Wind-PV-Hybrid</code>), do the following:</p>
+<ul>
+<li>In <strong><code>technologies.csv</code></strong>: Add a new row for <code>Wind-PV-Hybrid</code> and fill in the technical parameters. Specify <code>Generator</code> as class. Leave <code>p_max_pu</code> and <code>p_min_pu</code> empty, as the renewable plant's availability is defined in <code>availability.csv</code>.</li>
+<li>In <strong><code>power_plant_costs.csv</code></strong>: Add a new row for each modeled year and enter the cost assumptions for <code>Wind-PV-Hybrid</code>.</li>
+<li>In <strong><code>renewables_technical_potential.csv</code></strong>: Add new rows for <code>Wind-PV-Hybrid</code> that define the maximum buildable capacity by region (per country).</li>
+<li>In <strong><code>availability.csv</code></strong>: Add the time-dependent availability profile (per unit) for <code>Wind-PV-Hybrid</code> by region/country.</li>
+<li>In <strong><code>power_generator.csv</code></strong>: Add a new row for <code>Wind-PV-Hybrid</code>, fill in the required inputs, and make sure to set the bus information correctly.</li>
+</ul>
+<h2 id="example-3-adding-a-storage-plant-with-a-fixed-energy-to-power-ratio">Example 3: Adding a storage plant with a fixed energy-to-power ratio<a class="headerlink" href="#example-3-adding-a-storage-plant-with-a-fixed-energy-to-power-ratio" title="Permanent link">¶</a></h2>
+<p>In PyPSA-SPICE, by default, all storage plants are built from a combination of PyPSA <code>Store</code> and <code>Link</code> components, which lets the model optimize <strong>energy capacity</strong> and <strong>power capacity</strong> independently. If you want a custom storage type with a <strong>fixed energy-to-power ratio</strong>, use a PyPSA <code>StorageUnit</code> instead. For example, to add a battery storage plant (<code>BATS_8</code>) with an <strong>energy-to-power ratio of 8</strong>, follow these steps:</p>
+<ul>
+<li>In <strong><code>technologies.csv</code></strong>: Add a new row for <code>BATS_8</code> and fill in the technical parameters. Set <code>max_hours = 8</code>. Note that storage can have different charge/discharge efficiencies: use <code>efficiency</code> for <strong>discharging</strong> and <code>efficiency_store</code> for <strong>charging</strong>. Specify <code>StorageUnit</code> as class.</li>
+<li>In <strong><code>power_plant_costs.csv</code></strong>: Add a new row for each modeled year and enter cost assumptions for <code>BATS_8</code>. CAPEX and FOM in the CSV are in <strong>\$/MW</strong>. If your costs are in <strong>\$/MWh</strong>, multiply by <strong>8</strong> to convert to <strong>\$/MW</strong>.</li>
+<li>In <strong><code>storage_inflows.csv</code></strong>: Add the time-dependent inflow profile (MW) for <code>BATS_8</code> by region/country (not applicable for batteries, but might apply for technologies like hydro dam).</li>
+<li>In <strong><code>storage_capacity.csv</code></strong>: Add a new row for <code>BATS_8</code>, fill in the required inputs, and make sure to set the bus information correctly.</li>
+</ul></div>
 
 
 
@@ -989,7 +1117,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../overview/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Overview">
+          <a href="../../regional_csv_template/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Regional CSV template">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -999,20 +1127,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Overview
+                Regional CSV template
               </div>
             </div>
           </a>
         
         
           
-          <a href="../input-data/new-model/" class="md-footer__link md-footer__link--next" aria-label="Next: Defining a new model">
+          <a href="../decommissioning-and-retrofit-logic/" class="md-footer__link md-footer__link--next" aria-label="Next: Decommissioning and retrofit">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Defining a new model
+                Decommissioning and retrofit
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1118,10 +1246,10 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["toc.integrate", "toc.follow", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.footer", "navigation.tracking", "navigation.prune", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../../../..", "features": ["toc.integrate", "toc.follow", "navigation.expand", "navigation.indexes", "navigation.top", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.footer", "navigation.tracking", "navigation.prune", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.50899def.min.js"></script>
+      <script src="../../../../assets/javascripts/bundle.50899def.min.js"></script>
       
         <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
       

@@ -489,6 +489,8 @@
       
         
       
+        
+      
     
     
     
@@ -597,9 +599,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#step-3-fill-in-the-skeleton-csvs" class="md-nav__link">
+  <a href="#step-3-save-your-input-data-systematically" class="md-nav__link">
     <span class="md-ellipsis">
-      Step 3: fill in the skeleton CSVs
+      Step 3: Save your input data systematically
     </span>
   </a>
   
@@ -609,6 +611,15 @@
   <a href="#step-4-fill-in-the-skeleton-csvs" class="md-nav__link">
     <span class="md-ellipsis">
       Step 4: fill in the skeleton CSVs
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-fill-in-the-scenario-assumptions-and-constraints-in-scenario_configyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 5: fill in the scenario assumptions and constraints in scenario_config.yaml
     </span>
   </a>
   
@@ -664,6 +675,56 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../advanced-settings/add-new-technologies/" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    Advanced settings
+    
+  </span>
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
     </li>
   
 
@@ -950,20 +1011,21 @@
 
 
 <div><h1 id="input-data-define-a-new-model">Input data: define a new model<a class="headerlink" href="#input-data-define-a-new-model" title="Permanent link">¶</a></h1>
-<p>This section explains how to set up a new model for a particular country/region using the PyPSA-SPICE model builder. Once your model is step you can run the model as described in <a href="../model-builder-execution/">Model execution</a>.</p>
-<p>Steps of setting up a new model:</p>
+<p>This section explains how to set up a new model for a particular country/region using the PyPSA-SPICE model builder. Once your model is established you can run the model as described in <a href="../model-builder-execution/">Model execution</a>.</p>
+<p>Recommended Steps of setting up a new model:</p>
 <ol>
-<li>Adjust the information inside <code>base_config.yaml</code>.</li>
-<li>Run <code>snakemake -c1 build_skeleton</code> to create a folder structure and template CSV files for your input data. All input folders and files shall be created inside the <code>data</code> folder after this command is executed.</li>
-<li>Fill in the skeleton CSVs with the required data manually or using available resources.</li>
-<li>Fill the scenario assumptions and constraints in <code>scenario_config.yaml</code> in your scenario folder.</li>
+<li><a href="#step-1-set-up-the-base-configuration-file">Adjust the information inside <code>base_config.yaml</code></a>.</li>
+<li><a href="#step-2-build-the-skeleton">Run <code>snakemake -c1 build_skeleton</code></a> to create a folder structure and template CSV files for your input data. All input folders and files shall be created inside the <code>data</code> folder after this command is executed.</li>
+<li><a href="#step-3-save-your-input-data-systematically">Save your input data systematically</a></li>
+<li><a href="#step-4-fill-in-the-skeleton-csvs">Fill in the skeleton CSVs</a> with the required data manually or using available resources.</li>
+<li><a href="#step-5-fill-in-the-scenario-assumptions-and-constraints-in-scenario_configyaml">Fill the scenario assumptions and constraints in <code>scenario_config.yaml</code> in your scenario folder</a>.</li>
 </ol>
 <p>An example structure created by <code>build_skeleton</code> is displayed below. The following sections will use this example to explain the settings.</p>
 <h2 id="step-1-set-up-the-base-configuration-file">Step 1: set up the base configuration file<a class="headerlink" href="#step-1-set-up-the-base-configuration-file" title="Permanent link">¶</a></h2>
 <p>Setting up the base config requires defining the scope and resolution of the model. Specifically, defining which countries/regions will be represented in the model and for which year the model will be run. While it is possible to change these after initial model is created, it would require significant effort to add new regions/years in the input CSVs.  </p>
 <p>The <code>base_config.yaml</code> contains two parts which will be used both for folder structure building and model executions:</p>
 <div class="language-yaml highlight"><span class="filename">Init settings in the config.yaml file</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">path_configs</span><span class="p">:</span><span class="w"> </span><span class="c1">#(1)!</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">data_folder_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pypsa-spice-data</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">data_folder_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">project_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">project_01</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">input_scenario_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scenario_01</span><span class="w"> </span><span class="c1"># (2)!</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">output_scenario_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scenario_01_tag1</span><span class="w"> </span><span class="c1"># (3)!</span>
@@ -993,7 +1055,7 @@
 </span></code></pre></div>
 <p>This step creates your skeleton folder and files which can be feed with your data.</p>
 <div class="language-text highlight"><span class="filename">Structure of Folder and files created by build skeleton script</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>📦 data
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a> ┗ 📂 pypsa-spice-data
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a> ┗ 📂 example
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    ┗ 📂 project_01
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>       ┣ 📂 input
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>       ┃ ┣ 📂 global_input
@@ -1038,7 +1100,27 @@
 <p class="admonition-title">Tip</p>
 <p>Once you’ve created a skeleton data folder for one scenario, you can simply duplicate the scenario folder and rename the folder name to set up additional scenarios. However, we recommend doing this only after you’ve completed filling in the data for the first one.  </p>
 </div>
-<h2 id="step-3-fill-in-the-skeleton-csvs">Step 3: fill in the skeleton CSVs<a class="headerlink" href="#step-3-fill-in-the-skeleton-csvs" title="Permanent link">¶</a></h2>
+<h2 id="step-3-save-your-input-data-systematically">Step 3: Save your input data systematically<a class="headerlink" href="#step-3-save-your-input-data-systematically" title="Permanent link">¶</a></h2>
+<p>If you change the parameters in Step 1—especially <code>data_folder_name</code>—and then run the <code>build_skeleton</code> command in Step 2, the workflow creates a new folder under <code>data/</code> with that name (for example, <code>data/&lt;data_folder_name&gt;/</code>).</p>
+<p>By default, any newly created folders inside <code>data/</code> are ignored via <code>.gitignore</code>, so they won’t be committed to the main PyPSA-SPICE repository. This helps protect sensitive or proprietary input data from being accidentally pushed.</p>
+<p>We also recommend creating a new repository under your private GitHub account (or your team/organization). You can create a new empty repository with the same name as in <code>&lt;data_folder_name&gt;</code>, and push your data there by following Git instructions.</p>
+<div class="language-bash highlight"><span class="filename">push your data folder into your private repository</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>data/&lt;data_folder_name&gt;/
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>git<span class="w"> </span>init<span class="w"> </span>-b<span class="w"> </span>main
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>git<span class="w"> </span>add<span class="w"> </span>&lt;data_folder_name&gt;/<span class="w"> </span><span class="c1"># or: git add .</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"initialize data folder"</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>git<span class="w"> </span>remote<span class="w"> </span>add<span class="w"> </span>origin<span class="w"> </span>https://github.com/YOUR_ACCOUNT/YOUR_REPO_NAME.git
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>git<span class="w"> </span>push<span class="w"> </span>-u<span class="w"> </span>origin<span class="w"> </span>main
+</span></code></pre></div>
+<p>Use these Git commands to create your own data folder for working with PyPSA-SPICE. This data repository lives under <code>data/</code> in the PyPSA-SPICE working tree while remaining a separate Git repository, so it won’t interfere with the main PyPSA-SPICE Git workflow.
+​
+You can reuse this pattern whenever you need a new, self-contained data folder, making long-term maintenance straightforward. In the next steps, you’ll edit the input CSVs and configuration files, then commit and push your changes to your private GitHub repository (or repositories) with clear versioning and access control. An example multi–data-folder structure looks like this:</p>
+<div class="language-text highlight"><span class="filename">Structure of multi-data-folder</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>📦 data
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a> ┣ 📂 example
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a> ┣ 📂 DATA_FOLDER_NAME_REPO1
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a> ┣ 📂 DATA_FOLDER_NAME_REPO2
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a> ┗ 📂 DATA_FOLDER_NAME_REPO3
+</span></code></pre></div>
+<h2 id="step-4-fill-in-the-skeleton-csvs">Step 4: fill in the skeleton CSVs<a class="headerlink" href="#step-4-fill-in-the-skeleton-csvs" title="Permanent link">¶</a></h2>
 <p>Once a new skeleton folder is created, project-specific CSV templates will be setup. Each CSV will include placeholders marked with <code>Please fill here</code>. These need to be completed with relevant data so the model can perform more accurate optimisations.</p>
 <p>To help you fill these files:</p>
 <ul>
@@ -1049,7 +1131,7 @@
 <p class="admonition-title">Tip</p>
 <p>By default, the input structure considers large number of technologies represented in the model. If the particular technologies are not needed in your model, it is good practice to remove the input data for these technologies. You can also define your own technologies and customise the model accordingly.  </p>
 </div>
-<h2 id="step-4-fill-in-the-skeleton-csvs">Step 4: fill in the skeleton CSVs<a class="headerlink" href="#step-4-fill-in-the-skeleton-csvs" title="Permanent link">¶</a></h2>
+<h2 id="step-5-fill-in-the-scenario-assumptions-and-constraints-in-scenario_configyaml">Step 5: fill in the scenario assumptions and constraints in <code>scenario_config.yaml</code><a class="headerlink" href="#step-5-fill-in-the-scenario-assumptions-and-constraints-in-scenario_configyaml" title="Permanent link">¶</a></h2>
 <p>Once all the necessary input data is provided, you can adjust model and solver settings in <a href="../model-builder-configuration/">Model configuration</a> and follow <a href="../model-builder-execution/">Model execution</a> to understand the model logic and how to run the model.</p></div>
 
 
