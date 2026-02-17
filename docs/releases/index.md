@@ -5,15 +5,11 @@
 
 ### Fixed
 
-- Allow user to clean up/remove default custom constraints from `scenario_config.yaml`.([:material-source-pull:67](https://github.com/agoenergy/pypsa-spice/pull/67) by @nhlong2701 & @RichChang963)
-- Prevent accidental submodule/subproject commits by ignoring data directories except for templates and sample data ([:material-source-pull:70](https://github.com/agoenergy/pypsa-spice/pull/70) by @nhlong2701)
 
 ### Changed
 
-- Added a new documentation file explaining how to set up a decommissioning/retrofit approach in **pypsa-spice** ([:material-source-pull:68](https://github.com/agoenergy/pypsa-spice/pull/68) by @nhlong2701)
-- Added a new documentation file explaining how to add new technologies in **pypsa-spice** and to better explain the model code and data repositories set up ([:material-source-pull:73](https://github.com/agoenergy/pypsa-spice/pull/73) by @RichChang963 & @nhlong2701)
-- Add 'ALL` option in the charts of pypsa-spice-vis ([:material-source-pull:72](https://github.com/agoenergy/pypsa-spice/pull/72) by @RichChang963)
 
 ### Notes
 
+--8<-- "releases/v1.1.0.md"
 --8<-- "releases/v1.0.0.md"
