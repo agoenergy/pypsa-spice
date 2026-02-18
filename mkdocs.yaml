@@ -2,7 +2,8 @@
 
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# to preview the documentation website in local server, run `mkdocs serve --config-file mkdocs.yaml` and get the url in the terminal to paste it in the browser
+# to preview the documentation website in local server, run `mkdocs serve --config-file mkdocs.yaml` and get the url in the terminal to paste it in the browser. 
+# run `BUILD_PDF=1 mkdocs build` will update the pypsa-spice-documentation.pdf inside docs folder.
 
 site_name: "Model Builder Documentation"
 site_url: https://agora-energiewende.org
@@ -98,6 +99,7 @@ nav:
       - Global CSV template: getting-started/input-data/global_csv_template.md
       - Regional CSV template: getting-started/input-data/regional_csv_template.md
       - Advanced settings: 
+        - Adding a new technology: getting-started/input-data/advanced-settings/add-new-technologies.md
         - Decommissioning and retrofit: getting-started/input-data/advanced-settings/decommissioning-and-retrofit-logic.md
       - Configuration: getting-started/input-data/model-builder-configuration.md
       - Execution: getting-started/input-data/model-builder-execution.md

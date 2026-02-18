@@ -96,7 +96,7 @@ To get started, configure `base_config.yaml` first, then run the data setup proc
 
 ## Quick execution of the model builder using template data
 
-To have a first glance of how the model builder works, template data in `data/pypsa-spice-data` folder can be used. You can run the entire workflow with the following command:
+To have a first glance of how the model builder works, template data in `data/example` folder can be used. You can run the entire workflow with the following command:
 
 ```bash title="Running the entire workflow using this single command"
 snakemake -j1 -c4 solve_all_networks # (1)!

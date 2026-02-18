@@ -8,7 +8,6 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 The diagram below outlines the process for preparing and entering input data, running the model, and performing post-analysis along with visualisation. The following sections provide additional details and guidance for each step.
 
-<!-- Where can I find the file to edit this so I can make some changes?-->
 <!-- markdownlint-disable MD033 -->
 <a href="../../assets/images/pypsa-spice_workflow.jpg"> 
 <picture>

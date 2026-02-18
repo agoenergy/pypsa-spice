@@ -11,7 +11,7 @@ Global CSVs contain parameters that are typically kept constant accross scenario
 ```text title="Structure of the global CSV template files"
 📦 data
  ┗ 📂 global_input_template
- ┗ 📂 pypsa-spice-data
+ ┗ 📂 example
     ┗ 📂 project_01
        ┗ 📂 input
          ┗ 📂 global_input

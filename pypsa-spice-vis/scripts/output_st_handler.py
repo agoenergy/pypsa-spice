@@ -130,10 +130,19 @@ def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None)
         # Set widget configuration params based on one or two scenarios
         if is_dual_scenario:
             country_options = sorted(set(df["country"].unique().tolist()))
-            scenario_text = "both"  # noqa: F841
         else:
-            country_options = df["country"].unique()
-            scenario_text = st.session_state.sce1  # noqa: F841
+            country_options = df["country"].unique().tolist()
+
+        units = config_plot.get("units")  # None if missing
+
+        table_name = config_plot.get("table_name", "")
+        is_regional_hourly = (
+            "flow" in table_name
+            or "charging" in table_name
+            or ("region" in table_name and "price" not in table_name)
+        )
+        if units and not is_regional_hourly:
+            country_options += ["ALL"]
 
         units = config_plot.get("units")  # None if missing
 
@@ -149,7 +158,7 @@ def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None)
         if "shared_country" in config_plot:
             country_id = config_plot["shared_country"]
         else:
-            country_id = "all"
+            country_id = "ALL"
         key = f"shared_country_{country_id}_{scenario_tag}_{slider_id}"
         label = f"{slider_id} Select country:"
 
@@ -517,7 +526,7 @@ def setup_hourly_data_filters(
     }
 
 
-def render_st_page_and_plot(graph_type, config_plot: dict):
+def render_st_page_and_plot(graph_type_func, config_plot: dict):
     """Render and plot all graphs based on the provided graph type and configuration."""
     st.markdown(
         f"<div id='{config_plot['name'].replace(' ', '-')}'></div>",
@@ -589,7 +598,7 @@ def render_st_page_and_plot(graph_type, config_plot: dict):
         # Display the graph for single scenario
         config_plot["years"] = st.session_state.sce1_years
         st.markdown(f"#### {st.session_state.sce1} ")
-        graph_type(scenario_name=st.session_state.sce1, graph_config=config_plot)
+        graph_type_func(scenario_name=st.session_state.sce1, graph_config=config_plot)
 
         # Display the data download part
         if config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
@@ -603,11 +612,15 @@ def render_st_page_and_plot(graph_type, config_plot: dict):
         with col1:
             config_plot["years"] = st.session_state.sce1_years
             st.markdown(f"#### {st.session_state.sce1} ")
-            graph_type(scenario_name=st.session_state.sce1, graph_config=config_plot)
+            graph_type_func(
+                scenario_name=st.session_state.sce1, graph_config=config_plot
+            )
         with col3:
             config_plot["years"] = st.session_state.sce2_years
             st.markdown(f"#### {st.session_state.sce2} ")
-            graph_type(scenario_name=st.session_state.sce2, graph_config=config_plot)
+            graph_type_func(
+                scenario_name=st.session_state.sce2, graph_config=config_plot
+            )
 
         # Display the data download part
         col1, col2, col3 = st.columns([6, 1, 6])
