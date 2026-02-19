@@ -176,6 +176,10 @@ def capacity_factor_constraint(n: pypsa.Network, country: str, cf_dict: dict):
     """
     lhs = 0
     for gen_type in cf_dict:
+        print(
+            "....adding maximum capacity factor constraint: "
+            f"{gen_type} - {(cf_dict[gen_type]*100):.2f}%"
+        )
         for c in ["Generator", "StorageUnit", "Link"]:
             df = n.df(c)
             p_gen = "p" if c != "StorageUnit" else "p_dispatch"
