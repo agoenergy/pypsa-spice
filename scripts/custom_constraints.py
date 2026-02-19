@@ -544,28 +544,40 @@ def add_maximum_power_generation_constraint(
         dims="snapshot",
         coords={"snapshot": n.snapshots},
     )
-    lhs = 0
+
     for gen_type in gen_dict.keys():
         if year in gen_dict[gen_type].keys():
+            lhs = 0
             for c in ["Generator", "StorageUnit", "Link"]:
                 df = n.df(c)
                 p_gen = "p" if c != "StorageUnit" else "p_dispatch"
                 bus_name = "bus1" if c == "Link" else "bus"
+
                 if not df.empty:
+
                     gen_index = df[
                         (df.country == country)
                         & (df.type == gen_type)
                         & (df[bus_name].str.contains("HVELEC"))
                     ].index
 
-                    if not gen_index.empty:
+                    if gen_index.empty:
+                        continue
+                    else:
                         # Get var and weights
                         gen_var = n.model[f"{c}-{p_gen}"].loc[:, gen_index]
+
                         if c == "Link":
-                            eff = xr.DataArray(df.loc[gen_index, "efficiency"])
-                            lhs += (gen_var.mul(eff) * weight_da).sum("name").sum()
+                            eff = xr.DataArray(
+                                df.loc[gen_index, "efficiency"],
+                                dims="name",
+                                coords={"name": gen_index},
+                            )
+                            lhs += (
+                                (gen_var * eff * weight_da).sum("snapshot").sum("name")
+                            )
                         else:
-                            lhs += (gen_var * weight_da).sum("name").sum()
+                            lhs += (gen_var * weight_da).sum("snapshot").sum("name")
 
             # rhs = maximum generation from gen_dict in converted from TWh to MWh
             total_gen = gen_dict[gen_type][year]
