@@ -74,11 +74,9 @@ def extra_functionality_linopt(
         country_constraints = scenario_configs["custom_constraints"][country]
 
         # Capacity factor constraint
-        if (
-            "capacity_factor_constraint" in country_constraints
-            and country_constraints["capacity_factor_constraint"].get("activate", False)
-            and year > base_year
-        ):
+        if "capacity_factor_constraint" in country_constraints and country_constraints[
+            "capacity_factor_constraint"
+        ].get("activate", False):
             capacity_factor_constraint(
                 network,
                 country=country,
