@@ -784,7 +784,7 @@ if __name__ == "__main__":
     if snakemake is None:
         from _helpers import mock_snakemake  # pylint: disable=ungrouped-imports
 
-        snakemake = mock_snakemake("add_baseyear", sector="p-i-t", years=2025)
+        snakemake = mock_snakemake("add_baseyear", sector="p", years=2023)
     # Getting global config params
     configure_logging(snakemake)
     selected_year = int(snakemake.wildcards.years)

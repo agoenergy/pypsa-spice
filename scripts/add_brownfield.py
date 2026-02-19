@@ -944,7 +944,7 @@ if __name__ == "__main__":
     if snakemake is None:
         from _helpers import mock_snakemake  # pylint: disable=ungrouped-imports
 
-        snakemake = mock_snakemake("add_brownfield", sector="p-i-t", years=2030)
+        snakemake = mock_snakemake("add_brownfield", sector="p", years=2030)
     configure_logging(snakemake)
     scenario_configs = load_scenario_config(
         "data/"
