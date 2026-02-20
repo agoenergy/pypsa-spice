@@ -989,7 +989,7 @@ def update_tech_fact_table(
             .fillna(0)
             .loc[(row["type"], row["country"])]
         )
-        if result["class"].values == "Link":
+        if result["class"].values in ["Link", "Store"]:
             for column in [
                 "capital_cost",
                 "marginal_cost",
