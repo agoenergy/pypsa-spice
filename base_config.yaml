@@ -16,8 +16,8 @@ logging:
 path_configs:
   data_folder_name: mod-data-CentralAsia-ltes
   project_name: LTES_CentralAsia
-  input_scenario_name: ref_central_asia
-  output_scenario_name: ref_central_asia
+  input_scenario_name: ref
+  output_scenario_name: ref
 
 base_configs:
   countries: ["KZ", "UZ", "KG"] # list of countries in ISO2 format
