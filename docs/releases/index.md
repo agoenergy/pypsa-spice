@@ -11,5 +11,6 @@
 
 ### Notes
 
+--8<-- "releases/v1.1.1.md"
 --8<-- "releases/v1.1.0.md"
 --8<-- "releases/v1.0.0.md"
