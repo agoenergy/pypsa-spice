@@ -1515,10 +1515,10 @@ class OutputTables(Plots):
                 )
             # Flip side for storage dispatch since they are positive in p
             # but should be negative in the visualization
-            storage_gen_idx = [
-                x for x in region_generation_dispatch.columns if "STORE" in x
-            ]
-            region_generation_dispatch[storage_gen_idx] *= -1
+            storage_gen_cols = region_generation_dispatch.columns.get_level_values(
+                1
+            ).str.contains("STORE")
+            region_generation_dispatch.loc[:, storage_gen_cols] *= -1
             region_generation_dispatch = region_generation_dispatch.loc[
                 :,
                 ~region_generation_dispatch.columns.get_level_values("type").isin(
