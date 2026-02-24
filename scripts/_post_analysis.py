@@ -2001,9 +2001,9 @@ class OutputTables(Plots):
                 .set_index("snapshot")
             )
             flow["country"] = country
-            flow = flow.set_index("country", append=True)
-            all_country_df = pd.concat([all_country_df, flow], axis=1)
-        return all_country_df
+            all_country_df = pd.concat([all_country_df, flow], axis=0)
+
+        return all_country_df.set_index("country", append=True)
 
     def pow_hphs_flows_by_region_hourly(self, year: int, nth_hour: int) -> pd.DataFrame:
         """Calculate hourly hydro pumped-storage flow by country.
@@ -2047,9 +2047,9 @@ class OutputTables(Plots):
                 .set_index("snapshot")
             )
             flow["country"] = country
-            flow = flow.set_index("country", append=True)
-            all_country_df = pd.concat([all_country_df, flow], axis=1)
-        return all_country_df
+            all_country_df = pd.concat([all_country_df, flow], axis=0)
+
+        return all_country_df.set_index("country", append=True)
 
     # Electricity hourly load by sector (MW)
     def pow_elec_load_by_sector_hourly(self, year: int, nth_hour: int) -> pd.DataFrame:
