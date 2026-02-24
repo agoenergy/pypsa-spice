@@ -1471,7 +1471,7 @@ class OutputTables(Plots):
                 # Pre-compute the mask for bus_column contains any of the relevant
                 # substrings
                 is_electric_bus = component.df[bus_column].str.contains(
-                    "HVELEC|LVELEC", regex=True
+                    "HVELEC|LVELEC|HPHSN|BATSN", regex=True
                 )
                 supply_indices = component.df[
                     (component.df.country == country) & is_electric_bus
@@ -1513,7 +1513,12 @@ class OutputTables(Plots):
                 region_generation_dispatch = pd.concat(
                     [region_generation_dispatch, generation], axis=1
                 )
-
+            # Flip side for storage dispatch since they are positive in p
+            # but should be negative in the visualization
+            storage_gen_idx = [
+                x for x in region_generation_dispatch.columns if "STORE" in x
+            ]
+            region_generation_dispatch[storage_gen_idx] *= -1
             region_generation_dispatch = region_generation_dispatch.loc[
                 :,
                 ~region_generation_dispatch.columns.get_level_values("type").isin(
