@@ -1631,8 +1631,6 @@ def update_technologies(
 def create_folders(save_path: FilePath, sector_folder: bool = False):
     """Create the main output directory and subdirectories for each sector.
 
-    If the directory already exists, it will be deleted and recreated.
-
     Parameters
     ----------
     save_path : FilePath (str or path object)
@@ -1645,9 +1643,6 @@ def create_folders(save_path: FilePath, sector_folder: bool = False):
         for sector in ["power", "industry", "transport"]:
             os.makedirs(os.path.join(save_path, sector), exist_ok=True)
     else:  # general input folder structure
-        # Remove existing directory if present, then create a fresh one
-        if os.path.exists(save_path):
-            shutil.rmtree(save_path)
         os.makedirs(save_path, exist_ok=True)
         os.makedirs(os.path.join(save_path, "input"), exist_ok=True)
         os.makedirs(os.path.join(save_path, "input", "global_input"), exist_ok=True)
@@ -1703,6 +1698,12 @@ if __name__ == "__main__":
         + "/"
         + configurations["path_configs"]["project_name"]
     )
+
+    # Remove existing directory if present, then create a fresh one
+    if os.path.exists(project_folder_path):
+        raise FileExistsError(
+            f"The project folder `{project_folder_path}` already exists."
+        )
 
     # create_skeleton_inputs
     global_input_path = project_folder_path + "/input/global_input/"
