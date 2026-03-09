@@ -1699,77 +1699,82 @@ if __name__ == "__main__":
         + configurations["path_configs"]["project_name"]
     )
 
-    # Remove existing directory if present, then create a fresh one
-    if os.path.exists(project_folder_path):
-        raise FileExistsError(
-            f"The project folder `{project_folder_path}` already exists."
-        )
-
-    # create_skeleton_inputs
-    global_input_path = project_folder_path + "/input/global_input/"
-    create_folders(save_path=project_folder_path)
-    check_and_create_global_template_csv(
-        save_path=global_input_path,
-        global_template_path=global_csv_skeletons_path,
-    )
-
     # Skeleton input scenario folder path
     input_scenario_folder_path = (
         project_folder_path
         + "/input/"
         + configurations["path_configs"]["input_scenario_name"]
     )
+
+    # Only a new project folder, or a new scenario folder in the existed project folder
+    # is allowed.
+    if os.path.exists(project_folder_path) and os.path.exists(
+        input_scenario_folder_path
+    ):
+        raise FileExistsError(
+            f"The scenario folder `{input_scenario_folder_path}` already exists."
+        )
+
+    # create_skeleton_inputs for global templates
+    global_input_path = project_folder_path + "/input/global_input/"
     cfg_currency = configurations["base_configs"]["currency"]
 
-    # output paths for global templates csvs
-    path_availability = global_input_path + "/availability.csv"
-    path_demand_profiles = global_input_path + "/demand_profile.csv"
-    path_ev_params = global_input_path + "/ev_parameters.csv"
-    path_power_plant_cost = global_input_path + "/power_plant_costs.csv"
-    path_potentials = global_input_path + "/renewables_technical_potential.csv"
-    path_storage_costs = global_input_path + "/storage_costs.csv"
-    path_storage_inflows = global_input_path + "/storage_inflows.csv"
-    path_technologies = global_input_path + "/technologies.csv"
+    if not os.path.exists(project_folder_path):
+        create_folders(save_path=project_folder_path)
+        check_and_create_global_template_csv(
+            save_path=global_input_path,
+            global_template_path=global_csv_skeletons_path,
+        )
 
-    # # Creating global template CSVs and save to defined output paths
-    update_availability(
-        save_path=path_availability,
-        countries=cfg_countries,
-        nodes=cfg_nodes,
-    )
-    update_demand_profiles(
-        save_path=path_demand_profiles,
-        countries=cfg_countries,
-        nodes=cfg_nodes,
-    )
-    update_ev_param(
-        save_path=path_ev_params,
-        countries=cfg_countries,
-    )
-    update_power_plant_costs(
-        save_path=path_power_plant_cost,
-        countries=cfg_countries,
-        currency=cfg_currency,
-    )
-    update_technical_potentials(
-        save_path=path_potentials,
-        nodes=cfg_nodes,
-    )
-    update_storage_costs(
-        save_path=path_storage_costs,
-        countries=cfg_countries,
-        currency=cfg_currency,
-    )
-    update_storage_inflows(
-        save_path=path_storage_inflows,
-        nodes=cfg_nodes,
-    )
-    update_technologies(
-        save_path=path_technologies,
-        countries=cfg_countries,
-    )
+        # output paths for global templates csvs
+        path_availability = global_input_path + "/availability.csv"
+        path_demand_profiles = global_input_path + "/demand_profile.csv"
+        path_ev_params = global_input_path + "/ev_parameters.csv"
+        path_power_plant_cost = global_input_path + "/power_plant_costs.csv"
+        path_potentials = global_input_path + "/renewables_technical_potential.csv"
+        path_storage_costs = global_input_path + "/storage_costs.csv"
+        path_storage_inflows = global_input_path + "/storage_inflows.csv"
+        path_technologies = global_input_path + "/technologies.csv"
 
-    # create_skeleton_inputs
+        # # Creating global template CSVs and save to defined output paths
+        update_availability(
+            save_path=path_availability,
+            countries=cfg_countries,
+            nodes=cfg_nodes,
+        )
+        update_demand_profiles(
+            save_path=path_demand_profiles,
+            countries=cfg_countries,
+            nodes=cfg_nodes,
+        )
+        update_ev_param(
+            save_path=path_ev_params,
+            countries=cfg_countries,
+        )
+        update_power_plant_costs(
+            save_path=path_power_plant_cost,
+            countries=cfg_countries,
+            currency=cfg_currency,
+        )
+        update_technical_potentials(
+            save_path=path_potentials,
+            nodes=cfg_nodes,
+        )
+        update_storage_costs(
+            save_path=path_storage_costs,
+            countries=cfg_countries,
+            currency=cfg_currency,
+        )
+        update_storage_inflows(
+            save_path=path_storage_inflows,
+            nodes=cfg_nodes,
+        )
+        update_technologies(
+            save_path=path_technologies,
+            countries=cfg_countries,
+        )
+
+    # create_skeleton_inputs for regional templates
     create_folders(save_path=input_scenario_folder_path, sector_folder=True)
 
     # output paths for regional templates csvs
