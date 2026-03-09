@@ -153,3 +153,8 @@ To help you fill these files:
 ## Step 5: fill in the scenario assumptions and constraints in `scenario_config.yaml`
 
 Once all the necessary input data is provided, you can adjust model and solver settings in [Model configuration](model-builder-configuration.md) and follow [Model execution](model-builder-execution.md) to understand the model logic and how to run the model.
+
+!!! Tip
+    Most of the time, after creating the first project folder and an initial scenario (for example, the base or reference scenario), you can simply copy that scenario folder and rename it to create a new scenario. Since new scenarios are usually compared to the base or reference scenario, this approach saves time because you don’t need to re-enter all the input data.
+
+    Alternatively, you can use build_skeleton to create a new empty scenario folder inside an existing project. This will generate the correct folder structure but leave all input files empty, so you will need to fill in the data manually.
