@@ -1132,7 +1132,12 @@ You can reuse this pattern whenever you need a new, self-contained data folder, 
 <p>By default, the input structure considers large number of technologies represented in the model. If the particular technologies are not needed in your model, it is good practice to remove the input data for these technologies. You can also define your own technologies and customise the model accordingly.  </p>
 </div>
 <h2 id="step-5-fill-in-the-scenario-assumptions-and-constraints-in-scenario_configyaml">Step 5: fill in the scenario assumptions and constraints in <code>scenario_config.yaml</code><a class="headerlink" href="#step-5-fill-in-the-scenario-assumptions-and-constraints-in-scenario_configyaml" title="Permanent link">¶</a></h2>
-<p>Once all the necessary input data is provided, you can adjust model and solver settings in <a href="../model-builder-configuration/">Model configuration</a> and follow <a href="../model-builder-execution/">Model execution</a> to understand the model logic and how to run the model.</p></div>
+<p>Once all the necessary input data is provided, you can adjust model and solver settings in <a href="../model-builder-configuration/">Model configuration</a> and follow <a href="../model-builder-execution/">Model execution</a> to understand the model logic and how to run the model.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Most of the time, after creating the first project folder and an initial scenario (for example, the base or reference scenario), you can simply copy that scenario folder and rename it to create a new scenario. Since new scenarios are usually compared to the base or reference scenario, this approach saves time because you don’t need to re-enter all the input data.</p>
+<p>Alternatively, you can use build_skeleton to create a new empty scenario folder inside an existing project. This will generate the correct folder structure but leave all input files empty, so you will need to fill in the data manually.</p>
+</div></div>
 
 
 
