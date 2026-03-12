@@ -5,6 +5,7 @@
 """Helper functions for handling Input section in visual app."""
 
 import csv
+import datetime as dt
 import hashlib
 import os
 import re
@@ -731,6 +732,17 @@ class InputUiHandler:
             filtered_df = df[df["country"] == selected_country]
             resampled = self.resample_to_monthly(df, "technology")
 
+            start_date = dt.date(2000, 1, 1)
+            end_date = dt.date(2000, 12, 31)
+            selected_range = st.date_input(
+                "Select month range",
+                value=(start_date, end_date),
+                min_value=start_date,
+                max_value=end_date,
+                key=f"avail_date_range_{selected_country}",
+            )
+            start_month, end_month = selected_range[0].month, selected_range[1].month
+
             node_avail_toggle = st.toggle(
                 "Include node filter in the Availability Profiles", value=False
             )
@@ -754,12 +766,28 @@ class InputUiHandler:
                 filtered_df = resampled[(resampled["country"] == selected_country)]
                 leg_col = "node"
 
+            filtered_df = filtered_df[
+                (filtered_df["month"] >= start_month)
+                & (filtered_df["month"] <= end_month)
+            ]
+
             x, y = "month", "value"
             labels = {"month": "Month", "value": "Value"}
 
         elif csv_identifier == "demand":
             filtered_df = df[df["country"] == selected_country]
             resampled = self.resample_to_monthly(df, "profile_type")
+
+            start_date = dt.date(2000, 1, 1)
+            end_date = dt.date(2000, 12, 31)
+            selected_range = st.date_input(
+                "Select month range",
+                value=(start_date, end_date),
+                min_value=start_date,
+                max_value=end_date,
+                key=f"demand_date_range_{selected_country}",
+            )
+            start_month, end_month = selected_range[0].month, selected_range[1].month
 
             node_demand_toggle = st.toggle(
                 "Include node filter in the Demand Profile", value=False
@@ -783,6 +811,11 @@ class InputUiHandler:
             else:
                 filtered_df = resampled[(resampled["country"] == selected_country)]
                 leg_col = "node"
+
+            filtered_df = filtered_df[
+                (filtered_df["month"] >= start_month)
+                & (filtered_df["month"] <= end_month)
+            ]
 
             x, y = "month", "value"
             labels = {"month": "Month", "value": "Value"}

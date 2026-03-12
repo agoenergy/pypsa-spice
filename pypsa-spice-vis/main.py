@@ -11,7 +11,7 @@ import streamlit as st
 from styles import apply_sidebar_styles, apply_title_styles, use_flexo
 
 from scripts.getters import Getters
-from scripts.input_pages import input_power_demand, input_power_supply
+from scripts.input_pages import input_static, input_timeseries
 from scripts.output_pages import (output_costs, output_emissions,
                                   output_industry, output_power,
                                   output_transport)
@@ -109,14 +109,24 @@ def input_main():
     """Render all Input views in one subpage."""
     st.title(":material/input: Input")
 
-    getters = Getters()
-    supply_tab, demand_tab = st.tabs(["Power - Supply", "Power - Demand"])
+    input_sections = ["Static", "Timeseries"]
+    selected_input_section = st.segmented_control(
+        "Input section",
+        options=input_sections,
+        default=input_sections[0],
+        selection_mode="single",
+        label_visibility="collapsed",
+        key="selected_input_section",
+    )
 
-    with supply_tab:
-        input_power_supply.main(getters)
+    if selected_input_section is None:
+        st.error("Please select a tab to view and edit the input data.")
+        st.stop()
 
-    with demand_tab:
-        input_power_demand.main(getters)
+    if selected_input_section == "Static":
+        input_static.main(getters)
+    else:
+        input_timeseries.main(getters)
 
 
 def output_main():
@@ -136,8 +146,14 @@ def output_main():
         "Output section",
         options=output_tabs,
         default=output_tabs[0],
+        selection_mode="single",
         label_visibility="collapsed",
+        key="selected_output_tab",
     )
+
+    if selected_output_tab is None:
+        st.error("Please select a tab to view the output charts.")
+        st.stop()
 
     output_page_mapping = {
         "Power": output_power.main,
