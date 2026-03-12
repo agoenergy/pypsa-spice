@@ -11,6 +11,10 @@ import streamlit as st
 from styles import apply_sidebar_styles, apply_title_styles, use_flexo
 
 from scripts.getters import Getters
+from scripts.input_pages import input_power_demand, input_power_supply
+from scripts.output_pages import (output_costs, output_emissions,
+                                  output_industry, output_power,
+                                  output_transport)
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 if ROOT_DIR not in sys.path:
@@ -100,12 +104,53 @@ try:
 except FileNotFoundError as e:
     st.write(e)
 
-in_page = st.Page(
-    "scripts/input_pages/input_main.py", title="Input", icon=":material/input:"
-)
-out_page = st.Page(
-    "scripts/output_pages/output_main.py", title="Output", icon=":material/monitoring:"
-)
+
+def input_main():
+    """Render all Input views in one subpage."""
+    st.title(":material/input: Input")
+
+    getters = Getters()
+    supply_tab, demand_tab = st.tabs(["Power - Supply", "Power - Demand"])
+
+    with supply_tab:
+        input_power_supply.main(getters)
+
+    with demand_tab:
+        input_power_demand.main(getters)
+
+
+def output_main():
+    """Render all Output views in one subpage."""
+    st.title(":material/monitoring: Output")
+
+    output_tabs = ["Power", "Emissions", "Costs"]
+    include_industry = "i" in st.session_state.sector
+    include_transport = "t" in st.session_state.sector
+
+    if include_industry:
+        output_tabs.insert(1, "Industry")
+    if include_transport:
+        output_tabs.insert(2 if include_industry else 1, "Transport")
+
+    selected_output_tab = st.segmented_control(
+        "Output section",
+        options=output_tabs,
+        default=output_tabs[0],
+        label_visibility="collapsed",
+    )
+
+    output_page_mapping = {
+        "Power": output_power.main,
+        "Industry": output_industry.main,
+        "Transport": output_transport.main,
+        "Emissions": output_emissions.main,
+        "Costs": output_costs.main,
+    }
+    output_page_mapping[selected_output_tab]()
+
+
+in_page = st.Page(input_main, title="Input", icon=":material/input:")
+out_page = st.Page(output_main, title="Output", icon=":material/monitoring:")
 
 pg = st.navigation([in_page, out_page], position="sidebar")
 pg.run()

@@ -8,27 +8,19 @@ import datetime as dt
 
 import pandas as pd
 import streamlit as st
-from styles import apply_radio_menu_styles, apply_sidebar_chart_nav_styles, use_flexo
+from styles import (apply_radio_menu_styles, apply_sidebar_chart_nav_styles,
+                    use_flexo)
 
-from scripts.data_utils import (
-    convert_month_to_name,
-    filter_dataframe_by_date_range,
-    filter_dataframe_by_month,
-    get_filtered_df_and_date_range,
-    prettify_label,
-    read_result_csv,
-    slugify_text,
-)
-from scripts.plot_settings import (
-    area_share_yearly,
-    bar_with_filter,
-    filtered_bar_hourly,
-    line_with_secondary_y_hourly,
-    simple_bar_hourly,
-    simple_bar_yearly,
-    simple_line_hourly,
-    simple_line_yearly,
-)
+from scripts.data_utils import (convert_month_to_name,
+                                filter_dataframe_by_date_range,
+                                filter_dataframe_by_month,
+                                get_filtered_df_and_date_range, prettify_label,
+                                read_result_csv, slugify_text)
+from scripts.plot_settings import (area_share_yearly, bar_with_filter,
+                                   filtered_bar_hourly,
+                                   line_with_secondary_y_hourly,
+                                   simple_bar_hourly, simple_bar_yearly,
+                                   simple_line_hourly, simple_line_yearly)
 
 use_flexo()
 
@@ -48,7 +40,6 @@ def generate_sidebar(table_of_content):
         st.divider()
 
         apply_sidebar_chart_nav_styles()
-
         for section in table_of_content:
             anchor_id = slugify_text(section)
             st.markdown(
