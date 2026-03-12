@@ -839,7 +839,7 @@ class InputUiHandler:
         )
         fig.update_yaxes(range=[0, 1.2 * filtered_df[y].max()])
 
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     def resample_to_monthly(self, df: pd.DataFrame, leg_col: str) -> pd.DataFrame:
         """Resamples dataframe from hourly to monthly.

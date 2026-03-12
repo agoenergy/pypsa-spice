@@ -23,4 +23,4 @@ with open(
     tech_info.columns = ["Abbreviations", "Full names"]
     tech_info = tech_info.set_index("Abbreviations")
 
-st.dataframe(tech_info, use_container_width=True)
+st.dataframe(tech_info, width="stretch")

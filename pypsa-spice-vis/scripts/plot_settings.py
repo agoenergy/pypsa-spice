@@ -17,16 +17,13 @@ import streamlit as st
 from plotly.graph_objs._figure import Figure
 from plotly.subplots import make_subplots
 
-from scripts.data_utils import (
-    calculate_min_max_y_scale,
-    clean_df_for_plotting,
-    filter_dataframe_by_date_range,
-    get_filtered_df_and_date_range,
-    get_hourly_dfs_for_both_scenarios,
-    handle_small_values,
-    prettify_label,
-    read_result_csv,
-)
+from scripts.data_utils import (calculate_min_max_y_scale,
+                                clean_df_for_plotting,
+                                filter_dataframe_by_date_range,
+                                get_filtered_df_and_date_range,
+                                get_hourly_dfs_for_both_scenarios,
+                                handle_small_values, prettify_label,
+                                read_result_csv)
 
 # pylint: disable=too-many-locals, broad-exception-caught
 
@@ -511,9 +508,7 @@ def simple_bar_yearly(scenario_name: str, graph_config: dict) -> None:
         )
 
         # Display the chart with a unique key
-        st.plotly_chart(
-            fig, use_container_width=True, key=f"plotly_chart_{download_id}"
-        )
+        st.plotly_chart(fig, width="stretch", key=f"plotly_chart_{download_id}")
 
     except ValueError as e:
         st.error(f"ValueError encountered: {e}")
@@ -567,7 +562,7 @@ def simple_line_yearly(scenario_name: str, graph_config: dict):
 
     fig = update_layout(fig, df, {"max_scale": max_y, "min_scale": min_y}, graph_config)
     st.plotly_chart(
-        fig, use_container_width=True, key=f"plotly_chart_{scenario_name}_{table_name}"
+        fig, width="stretch", key=f"plotly_chart_{scenario_name}_{table_name}"
     )
 
 
@@ -646,7 +641,7 @@ def bar_with_filter(scenario_name: str, graph_config: dict):
         fig, df_reg, {"max_scale": max_y, "min_scale": min_y}, graph_config
     )
     st.plotly_chart(
-        fig, use_container_width=True, key=f"plotly_chart_{scenario_name}_{table_name}"
+        fig, width="stretch", key=f"plotly_chart_{scenario_name}_{table_name}"
     )
 
 
@@ -690,7 +685,7 @@ def area_share_yearly(scenario_name: str, graph_config: dict):
 
     fig = update_layout(fig, df, None, graph_config)
     st.plotly_chart(
-        fig, use_container_width=True, key=f"plotly_chart_{scenario_name}_{table_name}"
+        fig, width="stretch", key=f"plotly_chart_{scenario_name}_{table_name}"
     )
 
 
@@ -766,9 +761,7 @@ def simple_bar_hourly(scenario_name: str, graph_config: dict[str, str]) -> None:
             graph_config,
         )
         # Display the chart with a unique key
-        st.plotly_chart(
-            fig, use_container_width=True, key=f"plotly_chart_{download_id}"
-        )
+        st.plotly_chart(fig, width="stretch", key=f"plotly_chart_{download_id}")
 
 
 @st.fragment
@@ -843,7 +836,7 @@ def simple_line_hourly(scenario_name: str, graph_config: dict):
         )
         st.plotly_chart(
             fig,
-            use_container_width=True,
+            width="stretch",
             key=f"plotly_chart_{scenario_name}_{table_name}",
         )
 
@@ -942,7 +935,7 @@ def filtered_bar_hourly(scenario_name: str, graph_config: dict):
 
         st.plotly_chart(
             fig,
-            use_container_width=True,
+            width="stretch",
             key=f"plotly_chart_{scenario_name}_{table_name}",
         )
 
@@ -993,10 +986,11 @@ def line_with_secondary_y_hourly(scenario_name: str, graph_config: dict):
                 else prettify_label(prim_y)
             )
             fig.add_trace(
-                go.Line(
+                go.Scatter(
                     y=filtered_df[filtered_df[leg_col] == prim_y]["value"],
                     x=filtered_df["snapshot"],
                     name=nice_name,
+                    mode="lines",
                     line={"color": colour_mapping.get(nice_name, "#a0a0a0")},
                 ),
                 secondary_y=False,
@@ -1009,10 +1003,11 @@ def line_with_secondary_y_hourly(scenario_name: str, graph_config: dict):
                 else prettify_label(secd_y)
             )
             fig.add_trace(
-                go.Line(
+                go.Scatter(
                     y=filtered_df[filtered_df[leg_col] == secd_y]["value"],
                     x=filtered_df["snapshot"],
                     name=nice_name,
+                    mode="lines",
                     line={"color": colour_mapping.get(nice_name, "#a0a0a0")},
                 ),
                 secondary_y=True,
@@ -1042,6 +1037,6 @@ def line_with_secondary_y_hourly(scenario_name: str, graph_config: dict):
         )
         st.plotly_chart(
             fig,
-            use_container_width=True,
+            width="stretch",
             key=f"plotly_chart_{scenario_name}_{table_name}",
         )
