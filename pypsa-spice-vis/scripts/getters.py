@@ -17,6 +17,13 @@ from streamlit_js_eval import streamlit_js_eval
 class Getters:
     """Functions that handle retrieval of app-related params."""
 
+    SECTOR_DISPLAY_NAMES = {
+        "p-i-t": "Power+Industry+Transport",
+        "p": "Power only",
+        "p-i": "Power+Industry",
+        "p-t": "Power+Transport",
+    }
+
     def __init__(self):
         # Directory of app's entry point file (pypsa-spice/pypsa-spice-vis)
         self.streamlit_base_dir = os.path.dirname(
@@ -190,6 +197,21 @@ class Getters:
         ]
 
         return sector_list
+
+    def get_sector_display_name(self, sector_code: str) -> str:
+        """Get display name for a sector code.
+
+        Parameters
+        ----------
+        sector_code : str
+            Sector code as used in folder names.
+
+        Returns
+        -------
+        str
+            Human-readable display name for the UI.
+        """
+        return self.SECTOR_DISPLAY_NAMES.get(sector_code, sector_code)
 
     def get_year_list(self, scenario: str, sector: str) -> list[str]:
         """Get the list of years from the scenario/sector/ folder in a given project.

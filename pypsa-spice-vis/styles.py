@@ -117,6 +117,12 @@ def apply_sidebar_styles():
         div[data-testid="stSidebarNavSeparator"] {
             margin: 0.68em 1.2rem 0.5rem;
         }
+        /* Make page names in sidebar navigation larger */
+        div[data-testid="stSidebarNav"] ul li a[data-testid="stSidebarNavLink"] p,
+        div[data-testid="stSidebarNav"] ul li a[data-testid="stSidebarNavLink"] span {
+            font-size: 1.08rem;
+            font-weight: 600;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -189,5 +195,14 @@ def apply_radio_menu_styles():
         }
         </style>
         """,
+        unsafe_allow_html=True,
+    )
+
+
+def apply_title_styles(title_name: str):
+    """Style the title of the app."""
+    st.markdown(
+        f"""<p style='font-size: 1.2em; font-weight: 600; margin-bottom: 12px;'>
+        {title_name}</p>""",
         unsafe_allow_html=True,
     )

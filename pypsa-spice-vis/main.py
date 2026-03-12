@@ -8,7 +8,7 @@ import os
 import sys
 
 import streamlit as st
-from styles import apply_sidebar_styles, use_flexo
+from styles import apply_sidebar_styles, apply_title_styles, use_flexo
 
 from scripts.getters import Getters
 
@@ -33,15 +33,6 @@ init_conf = getters.init_config
 # Initialize input_data_folder_path in session state
 st.session_state.input_data_folder_path = init_conf["input_folder_path"]
 
-# st.logo( # noqa: E800
-#     os.path.join( # noqa: E800
-#       st.session_state.current_dir, "design/pypsa-spice-long.png" # noqa: E800
-#     ),  # noqa: E800
-#     icon_image=os.path.join( # noqa: E800
-#       st.session_state.current_dir, "design/agora-icon.png" # noqa: E800
-#     ),  # noqa: E800
-# ) # noqa: E800
-
 apply_sidebar_styles()
 
 # Set window_width in session state
@@ -50,13 +41,7 @@ st.session_state.window_width = getters.get_window_width(
 )
 
 with st.sidebar:
-    st.markdown(
-        """<p style='font-size: 1.2em; font-weight: 600; margin-bottom: 12px;'>
-                Parameters for settings
-                </p>
-                """,
-        unsafe_allow_html=True,
-    )
+    apply_title_styles("Parameters for settings")
 
     # Set project in session state
     st.session_state.project = st.sidebar.selectbox(
@@ -95,6 +80,7 @@ with st.sidebar:
     st.session_state.sector = st.sidebar.selectbox(
         ":material/crossword: Sector:",  # init_conf["sector"]
         options=getters.get_sector_list(st.session_state.sce1),
+        format_func=getters.get_sector_display_name,
         index=0,
     )
 
@@ -114,52 +100,12 @@ try:
 except FileNotFoundError as e:
     st.write(e)
 
-p_page = st.Page(
-    "scripts/output_pages/output_power.py", title="Power", icon=":material/bolt:"
+in_page = st.Page(
+    "scripts/input_pages/input_main.py", title="Input", icon=":material/input:"
 )
-i_page = st.Page(
-    "scripts/output_pages/output_industry.py",
-    title="Industry",
-    icon=":material/construction:",
-)
-t_page = st.Page(
-    "scripts/output_pages/output_transport.py",
-    title="Transport",
-    icon=":material/directions_car:",
-)
-e_page = st.Page(
-    "scripts/output_pages/output_emissions.py",
-    title="Emissions",
-    icon=":material/thermostat:",
-)
-c_page = st.Page(
-    "scripts/output_pages/output_costs.py",
-    title="Costs",
-    icon=":material/attach_money:",
-)
-info_page = st.Page("scripts/info.py", title="Info", icon=":material/info:")
-in_p_supply_page = st.Page(
-    "scripts/input_pages/input_power_supply.py",
-    title="Power - Supply",
-    icon=":material/bolt:",
+out_page = st.Page(
+    "scripts/output_pages/output_main.py", title="Output", icon=":material/monitoring:"
 )
 
-in_p_demand_page = st.Page(
-    "scripts/input_pages/input_power_demand.py",
-    title="Power - Demand",
-    icon=":material/bolt:",
-)
-
-pages_list = {
-    "General": [info_page],  # in_setting_page
-    "Input": [in_p_supply_page, in_p_demand_page],
-    "Results": [p_page, i_page, t_page, e_page, c_page],
-}
-
-if "i" not in st.session_state.sector:
-    pages_list["Results"].remove(i_page)
-if "t" not in st.session_state.sector:
-    pages_list["Results"].remove(t_page)
-
-pg = st.navigation(pages_list, position="sidebar")
+pg = st.navigation([in_page, out_page], position="sidebar")
 pg.run()
