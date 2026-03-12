@@ -70,18 +70,48 @@ def use_flexo():
 
 def apply_sidebar_styles():
     """Style the Page navigation and Parameters part of the sidebar."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    logo_path = os.path.join(base_dir, "design", "pypsa-logo_rgb.png")
+
+    logo_styles = """
+        content: "Page Navigation";
+        margin-left: 20px;
+        margin-bottom: 12px;
+        font-size: 1.2em;
+        font-weight: 600;
+        position: relative;
+        top: 4px;
+        display: block;
+    """
+
+    if os.path.exists(logo_path):
+        try:
+            with open(logo_path, "rb") as logo_file:
+                logo_data = base64.b64encode(logo_file.read()).decode("utf-8")
+
+            logo_styles = f"""
+                content: "";
+                display: block;
+                width: 180px;
+                height: 42px;
+                margin-bottom: 12px;
+                position: relative;
+                top: 4px;
+                background: url(data:image/png;base64,{
+                logo_data
+                }) no-repeat left center;
+                background-size: contain;
+            """
+        except OSError as e:
+            st.error(f"Error loading sidebar logo: {e}")
+
     st.markdown(
         """
         <style>
         div[data-testid="stSidebarNav"]::before {
-            content: "Page Navigation";
-            margin-left: 20px;
-            margin-bottom: 12px;
-            font-size: 1.2em;
-            font-weight: 600;
-            position: relative;
-            top: 4px;
-            display: block;
+        """
+        + logo_styles
+        + """
         }
         /* Make the navigation divider match st.divider() style (shorter) */
         div[data-testid="stSidebarNavSeparator"] {
@@ -109,7 +139,6 @@ def apply_sidebar_chart_nav_styles():
             .nav-link {
                 display: flex;
                 align-items: center;
-                padding-left: 16px;
                 text-decoration: none !important;
                 color: inherit !important;
                 border-radius: 6px;
@@ -118,7 +147,7 @@ def apply_sidebar_chart_nav_styles():
                 box-sizing: border-box;
                 transition: all 0.2s ease !important;
                 font-family: inherit !important;
-                line-height: 2;
+                line-height: 3;
                 margin-bottom: -24px;
                 background-color: transparent;
             }
