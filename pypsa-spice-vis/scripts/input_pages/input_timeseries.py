@@ -7,7 +7,9 @@
 import pandas as pd
 import streamlit as st
 
-from scripts.input_st_handler import DFWidgetsHandler
+from scripts.data_utils import (render_countries_n_scenario_pills,
+                                render_widgets_from_config)
+from scripts.input_st_handler import DataFrameWidgetsHandler
 
 pd.set_option("future.no_silent_downcasting", True)
 
@@ -17,64 +19,29 @@ TIMESERIES_SUPPLY_WIDGETS = [
         "csv_key": "availability",
         "df_key": "avail_df",
         "widget": "double",
-        "extra_kwargs": lambda dfs: {"secondary_df": dfs["tech_df"]},
+        "extra_kwargs": lambda render_context: {
+            "secondary_df": render_context["dfs"]["tech_df"]
+        },
     },
     {
         "csv_key": "storage_inflows",
         "df_key": "storage_inflows_df",
-        "widget": "single",
+        "widget": "double",
     },
 ]
 
 TIMESERIES_DEMAND_WIDGETS = [
     {"csv_key": "demand", "df_key": "demand_df", "widget": "double"},
-    {"csv_key": "load", "df_key": "load_df", "widget": "double"},
 ]
-
-
-def _render_timeseries_widgets(
-    input_ui_handler,
-    widget_configs,
-    dfs,
-    csvs_dict,
-    selected_types,
-    selected_countries,
-):
-    """Render one configured timeseries widget group."""
-    for widget_config in widget_configs:
-        render_fn = (
-            input_ui_handler.set_up_double_tab_widget
-            if widget_config["widget"] == "double"
-            else input_ui_handler.set_up_single_tab_widget
-        )
-
-        extra_kwargs = {}
-        if "extra_kwargs" in widget_config:
-            extra_kwargs = widget_config["extra_kwargs"](dfs)
-
-        csv_key = widget_config["csv_key"]
-        df_key = widget_config["df_key"]
-
-        render_fn(
-            csv_key,
-            dfs[df_key],
-            selected_types,
-            csvs_dict[csv_key].path,
-            selected_countries,
-            **extra_kwargs,
-        )
 
 
 def main(get_params):
     """Render the Timeseries input page."""
-    df_widgets_handler = DFWidgetsHandler()
-    input_ui_handler = df_widgets_handler.input_ui_handler
+    df_widgets_handler = DataFrameWidgetsHandler()
 
     dfs = df_widgets_handler.load_all_dfs()
     if not dfs:
         return
-
-    csvs_dict = df_widgets_handler.csvs_dict
 
     all_countries = set()
     for df in [
@@ -87,44 +54,11 @@ def main(get_params):
 
     st.header(":material/bolt: Power")
 
-    col11, col12 = st.columns([1, 1])
-
-    with col11:
-        if all_countries:
-            selected_countries = st.pills(
-                "Select Countries:",
-                options=sorted(all_countries),
-                default=sorted(all_countries),
-                help="Select countries to filter the data.",
-                selection_mode="multi",
-                key="timeseries_selection_pills",
-            )
-        else:
-            selected_countries = None
-            st.info("No countries found")
-
-    with col12:
-        scenario_options = get_params.get_input_scenario_list()
-        if "scenario" not in st.session_state:
-            st.session_state.scenario = (
-                scenario_options[0] if scenario_options else None
-            )
-
-        selected_scenario = st.pills(
-            "Select Scenario:",
-            options=scenario_options,
-            default=(
-                st.session_state.scenario
-                if st.session_state.scenario in scenario_options
-                else scenario_options[0]
-            ),
-            help="Select scenario to view/edit data.",
-            selection_mode="single",
-            key="timeseries_scenario_pills",
-        )
-
-        if selected_scenario:
-            st.session_state.scenario = selected_scenario
+    selected_countries, selected_scenario = render_countries_n_scenario_pills(
+        get_params=get_params,
+        all_countries=all_countries,
+        key="timeseries_scenario_pills",
+    )
 
     df_widgets_handler.reload_scenario_dfs(dfs, selected_scenario)
 
@@ -151,13 +85,17 @@ def main(get_params):
         reverse_mapping.get(v, v) for v in selected_supply_types_full
     ]
 
-    _render_timeseries_widgets(
-        input_ui_handler=input_ui_handler,
+    supply_render_context = {
+        "dfs": dfs,
+        "selected_types": selected_supply_types,
+        "selected_countries": selected_countries,
+    }
+
+    render_widgets_from_config(
+        input_ui_handler=df_widgets_handler.input_ui_handler,
+        csvs_dict=df_widgets_handler.csvs_dict,
         widget_configs=TIMESERIES_SUPPLY_WIDGETS,
-        dfs=dfs,
-        csvs_dict=csvs_dict,
-        selected_types=selected_supply_types,
-        selected_countries=selected_countries,
+        render_context=supply_render_context,
     )
 
     st.subheader("Demand Profiles")
@@ -182,11 +120,15 @@ def main(get_params):
         reverse_load_mapping.get(v, v) for v in selected_profile_types_full
     ]
 
-    _render_timeseries_widgets(
-        input_ui_handler=input_ui_handler,
+    demand_render_context = {
+        "dfs": dfs,
+        "selected_types": selected_profile_types,
+        "selected_countries": selected_countries,
+    }
+
+    render_widgets_from_config(
+        input_ui_handler=df_widgets_handler.input_ui_handler,
+        csvs_dict=df_widgets_handler.csvs_dict,
         widget_configs=TIMESERIES_DEMAND_WIDGETS,
-        dfs=dfs,
-        csvs_dict=csvs_dict,
-        selected_types=selected_profile_types,
-        selected_countries=selected_countries,
+        render_context=demand_render_context,
     )

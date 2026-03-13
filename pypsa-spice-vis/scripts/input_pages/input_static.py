@@ -6,7 +6,9 @@
 
 import streamlit as st
 
-from scripts.input_st_handler import DFWidgetsHandler
+from scripts.data_utils import (render_countries_n_scenario_pills,
+                                render_widgets_from_config)
+from scripts.input_st_handler import DataFrameWidgetsHandler
 
 STATIC_WIDGETS = [
     {"csv_key": "technologies", "df_key": "tech_df", "widget": "single"},
@@ -15,15 +17,15 @@ STATIC_WIDGETS = [
     {
         "csv_key": "storage_cost",
         "df_key": "storage_cost_df",
-        "widget": "single",
+        "widget": "double",
     },
     {
         "csv_key": "fuel_costs",
         "df_key": "fuel_costs_df",
         "widget": "single",
-        "extra_kwargs": lambda dfs, selected_classes: {
-            "selected_classes": selected_classes,
-            "secondary_df": dfs["tech_df"],
+        "extra_kwargs": lambda render_context: {
+            "selected_classes": render_context["selected_classes"],
+            "secondary_df": render_context["dfs"]["tech_df"],
         },
     },
     {"csv_key": "links", "df_key": "links_df", "widget": "single"},
@@ -32,6 +34,7 @@ STATIC_WIDGETS = [
         "df_key": "decomission_capacity_df",
         "widget": "single",
     },
+    {"csv_key": "load", "df_key": "load_df", "widget": "double"},
 ]
 
 
@@ -42,49 +45,8 @@ CLASS_DEPENDENT_WIDGETS = {
 }
 
 
-def _render_widget(
-    widget_config: dict,
-    render_context: dict,
-):
-    """Render one widget from config."""
-    input_ui_handler = render_context["input_ui_handler"]
-    dfs = render_context["dfs"]
-    csvs_dict = render_context["csvs_dict"]
-    selected_types = render_context["selected_types"]
-    selected_countries = render_context["selected_countries"]
-    selected_classes = render_context["selected_classes"]
-
-    render_fn = (
-        input_ui_handler.set_up_double_tab_widget
-        if widget_config["widget"] == "double"
-        else input_ui_handler.set_up_single_tab_widget
-    )
-
-    extra_kwargs = {}
-    if "extra_kwargs" in widget_config:
-        extra_kwargs = widget_config["extra_kwargs"](dfs, selected_classes)
-
-    csv_key = widget_config["csv_key"]
-    df_key = widget_config["df_key"]
-
-    render_fn(
-        csv_key,
-        dfs[df_key],
-        selected_types,
-        csvs_dict[csv_key].path,
-        selected_countries,
-        **extra_kwargs,
-    )
-
-
-def main(get_params):
-    """Render the Static input page."""
-    df_widgets_handler = DFWidgetsHandler()
-
-    dfs = df_widgets_handler.load_all_dfs()
-    if not dfs:
-        return
-
+def _collect_all_countries(dfs: dict, get_params) -> set:
+    """Collect all countries used across static power tables."""
     all_countries = set()
     for df in [
         dfs["decomission_capacity_df"],
@@ -96,57 +58,18 @@ def main(get_params):
         dfs["store_df"],
     ]:
         all_countries.update(get_params.get_country_list(df))
+    return all_countries
 
-    st.header(":material/bolt: Power")
 
-    col11, col12 = st.columns([1, 1])
+def _render_type_and_class_filters(dfs: dict, get_params) -> tuple[list, list]:
+    """Render type and class controls, and return selected values."""
     col21, col22 = st.columns([1, 1])
-
-    with col11:
-        if all_countries:
-            selected_countries = st.pills(
-                "Select Countries (can be multiple countries):",
-                options=sorted(all_countries),
-                default=sorted(all_countries),
-                help="Select countries to filter the data.",
-                selection_mode="multi",
-                key="static_selection_pills",
-            )
-        else:
-            selected_countries = None
-            st.info("No countries found")
-
-    with col12:
-        scenario_options = get_params.get_input_scenario_list()
-        if "scenario" not in st.session_state:
-            st.session_state.scenario = (
-                scenario_options[0] if scenario_options else None
-            )
-
-        selected_scenario = st.pills(
-            "Select Scenario:",
-            options=scenario_options,
-            default=(
-                st.session_state.scenario
-                if st.session_state.scenario in scenario_options
-                else scenario_options[0]
-            ),
-            help="Select scenario to view/edit data.",
-            selection_mode="single",
-            key="static_scenario_pills",
-        )
-
-        if selected_scenario:
-            st.session_state.scenario = selected_scenario
-
-    df_widgets_handler.reload_scenario_dfs(dfs, selected_scenario)
 
     types = get_params.get_mapping_list(dfs["tech_df"])
     tech_mapping = dict(
         zip(dfs["tech_df"]["technology"], dfs["tech_df"]["technology_nomenclature"])
     )
-    types_full_names = [tech_mapping.get(t, t) for t in types]
-    types_full_names.sort()
+    types_full_names = sorted([tech_mapping.get(t, t) for t in types])
 
     with col21:
         reverse_mapping = {v: k for k, v in tech_mapping.items()}
@@ -176,21 +99,17 @@ def main(get_params):
         st.markdown(f"Tech: **{', '.join(selected_types)}**")
         st.markdown(f"Class: **{', '.join(selected_classes)}**")
 
-    render_context = {
-        "input_ui_handler": df_widgets_handler.input_ui_handler,
-        "dfs": dfs,
-        "csvs_dict": df_widgets_handler.csvs_dict,
-        "selected_types": selected_types,
-        "selected_countries": selected_countries,
-        "selected_classes": selected_classes,
-    }
+    return selected_types, selected_classes
 
-    for widget_config in STATIC_WIDGETS:
-        _render_widget(
-            widget_config=widget_config,
-            render_context=render_context,
-        )
 
+def _render_class_dependent_widgets(
+    df_widgets_handler: DataFrameWidgetsHandler,
+    dfs: dict,
+    selected_types: list,
+    selected_countries: list | None,
+    selected_classes: list,
+):
+    """Render widgets that depend on selected technology classes."""
     for class_name, class_widget in CLASS_DEPENDENT_WIDGETS.items():
         if class_name in selected_classes:
             df_widgets_handler.input_ui_handler.set_up_single_tab_widget(
@@ -201,25 +120,30 @@ def main(get_params):
                 selected_countries,
             )
 
+
+def _render_interconnections_widget(
+    all_countries: set,
+    df_widgets_handler: DataFrameWidgetsHandler,
+    dfs: dict,
+):
+    """Render interconnections section."""
     st.header(":material/diagonal_line: Interconnections")
 
     if all_countries:
-        base_country = st.selectbox(
+        st.selectbox(
             "Select Base Country (single country):",
             options=sorted(all_countries),
             index=0,
             key="static_intercon_country",
         )
     else:
-        base_country = None
         st.info("No countries found")
 
     st.markdown("Tech: **ITCN**")
     st.markdown("Class: **Link**")
 
-    if all_countries and (
-        base_country := st.session_state.get("static_intercon_country", None)
-    ):
+    base_country = st.session_state.get("static_intercon_country", None)
+    if all_countries and base_country:
         df_widgets_handler.input_ui_handler.set_up_single_tab_widget(
             csv_dict_key="interconnector",
             input_df=dfs["intercon_df"],
@@ -227,3 +151,49 @@ def main(get_params):
             input_csv_path=df_widgets_handler.csvs_dict["interconnector"].path,
             selected_countries=[base_country],
         )
+
+
+def main(get_params):
+    """Render the Static input page."""
+    df_widgets_handler = DataFrameWidgetsHandler()
+
+    dfs = df_widgets_handler.load_all_dfs()
+    if not dfs:
+        return
+
+    all_countries = _collect_all_countries(dfs, get_params)
+
+    st.header(":material/bolt: Power")
+    selected_countries, selected_scenario = render_countries_n_scenario_pills(
+        get_params=get_params,
+        all_countries=all_countries,
+        key="static_scenario_pills",
+    )
+
+    df_widgets_handler.reload_scenario_dfs(dfs, selected_scenario)
+    selected_types, selected_classes = _render_type_and_class_filters(dfs, get_params)
+
+    render_context = {
+        "input_ui_handler": df_widgets_handler.input_ui_handler,
+        "dfs": dfs,
+        "csvs_dict": df_widgets_handler.csvs_dict,
+        "selected_types": selected_types,
+        "selected_countries": selected_countries,
+        "selected_classes": selected_classes,
+    }
+
+    render_widgets_from_config(
+        input_ui_handler=df_widgets_handler.input_ui_handler,
+        csvs_dict=df_widgets_handler.csvs_dict,
+        widget_configs=STATIC_WIDGETS,
+        render_context=render_context,
+    )
+
+    _render_class_dependent_widgets(
+        df_widgets_handler,
+        dfs,
+        selected_types,
+        selected_countries,
+        selected_classes,
+    )
+    _render_interconnections_widget(all_countries, df_widgets_handler, dfs)

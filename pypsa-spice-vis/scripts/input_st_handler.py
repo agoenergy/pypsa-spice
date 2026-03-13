@@ -22,15 +22,15 @@ import streamlit as st
 
 from scripts.get_params import GetParams
 
-# pylint: disable=too-many-arguments, broad-exception-caught
 
-
-class DFWidgetsHandler:
+class DataFrameWidgetsHandler:
     """Handle the DataFrame widget."""
 
     def __init__(self):
         self.get_params = GetParams()
-        self.input_ui_handler = InputUiHandler()
+        self.input_ui_handler = InputUiHandler(
+            year_list=self.get_params.init_config["base_configs"]["years"]
+        )
         self.csvs_dict = self.input_ui_handler.csvs_dict
         self.data_folder_path = self.get_params.init_config["data_folder_path"]
         project_folders = self.get_params.get_project_folder_list(self.data_folder_path)
@@ -38,24 +38,6 @@ class DFWidgetsHandler:
             st.error(f"No valid project folders found in {self.data_folder_path}")
 
         self.input_data_project = project_folders[0]
-
-        self.base_input_path = os.path.join(
-            self.data_folder_path,
-            self.input_data_project,
-            "input",
-        )
-
-        self.global_input_path = os.path.join(
-            self.base_input_path,
-            "global_input",
-        )
-        sub_folder = (
-            st.session_state["scenario"]
-            if "scenario" in st.session_state
-            else self.get_params.init_config["path_configs"]["input_scenario_name"]
-        )
-
-        self.scenario_input_path = os.path.join(self.base_input_path, sub_folder)
 
         self.scenario_input_file_keys = [
             "decomission",
@@ -95,23 +77,40 @@ class DFWidgetsHandler:
         dict
             Contains all the loaded dataframes.
         """
+        base_input_path = os.path.join(
+            self.data_folder_path,
+            self.input_data_project,
+            "input",
+        )
+
+        global_input_path = os.path.join(
+            base_input_path,
+            "global_input",
+        )
+
+        sub_folder = (
+            st.session_state["scenario"]
+            if "scenario" in st.session_state
+            else self.get_params.init_config["path_configs"]["input_scenario_name"]
+        )
+
+        scenario_input_path = os.path.join(base_input_path, sub_folder)
+
         # Update csvs_dict with paths to all csvs
         for key, parts in self.csv_files_path_parts.items():
             if key in self.csvs_dict:
                 base_folder = (
-                    self.scenario_input_path
+                    scenario_input_path
                     if key in self.scenario_input_file_keys
-                    else self.global_input_path
+                    else global_input_path
                 )
                 self.csvs_dict[key].path = os.path.join(base_folder, *parts)
 
-        # Check if files exist
         for key, csv_config in self.csvs_dict.items():
             if not os.path.exists(csv_config.path):
                 st.error(f"{key} file not found at {csv_config.path}")
                 return {}
 
-        # Load all dataframes
         dfs = {
             "tech_df": pd.read_csv(self.csvs_dict["technologies"].path),
             "avail_df": pd.read_csv(self.csvs_dict["availability"].path),
@@ -159,7 +158,6 @@ class DFWidgetsHandler:
                 *parts,
             )
 
-        # Reload the dataframes
         for key in self.scenario_input_file_keys:
             dfs[f"{key}_df"] = pd.read_csv(self.csvs_dict[key].path)
 
@@ -174,6 +172,7 @@ class CsvDictConfig:
     filter_col: str
     title: str
     filter_fn: Callable
+    uniform_unit: str | None = None
     empty_df_fn: Callable | None = None
     empty_df_kwargs: dict | None = None
     path: str = ""  # Populate after user selections are made
@@ -182,31 +181,34 @@ class CsvDictConfig:
 class InputUiHandler:
     """Handler class for input UI."""
 
-    def __init__(self):
+    def __init__(self, year_list: list):
+        self.year_list = year_list
         self.csvs_dict = {
             "technologies": CsvDictConfig(
                 identifier="tech",
                 filter_col="technology",
-                title="Techonology Parameters",
+                title="Technology Parameters",
                 filter_fn=self.filter_df_generic,
                 empty_df_fn=self.empty_df_message_generic,
             ),
             "availability": CsvDictConfig(
-                identifier="avail",
+                identifier="hourly_avail",
                 filter_col="technology",
                 title="Availability",
+                uniform_unit="Dimensionless",
                 filter_fn=self.filter_df_generic,
                 empty_df_fn=self.empty_df_message_generic,
             ),
             "demand": CsvDictConfig(
-                identifier="demand",
+                identifier="hourly_demand",
                 filter_col="profile_type",
                 title="Demand Profiles",
+                uniform_unit="MW",
                 filter_fn=self.filter_df_generic,
                 empty_df_fn=self.empty_df_message_generic,
             ),
             "pp_costs": CsvDictConfig(
-                identifier="costs",
+                identifier="powerplant_costs",
                 filter_col="powerplant_type",
                 title="Power Plant Costs",
                 filter_fn=self.filter_df_generic,
@@ -227,9 +229,10 @@ class InputUiHandler:
                 empty_df_fn=self.empty_df_message_generic,
             ),
             "storage_inflows": CsvDictConfig(
-                identifier="storage_inflows",
+                identifier="hourly_storage_inflows",
                 filter_col="technology",
                 title="Storage Inflows",
+                uniform_unit="MW",
                 filter_fn=self.filter_df_generic,
                 empty_df_fn=self.empty_df_message_generic,
             ),
@@ -369,9 +372,9 @@ class InputUiHandler:
         ----------
         filtered_df : pd.DataFrame
             The filtered dataframe based on the user's selection.
-        edited_df:
+        edited_df: pd.DataFrame
             The edited dataframe with changes made by the user.
-        has_changes:
+        has_changes: bool
             True if df has been edited, False otherwise.
         has_changes_key : str
             Key to session_state var for whether dataframe has changed.
@@ -379,7 +382,8 @@ class InputUiHandler:
             Button key.
         output_file_path : str
             Path to save the csv to.
-        message_delay:
+        message_delay: float
+            How long (s)to display the 'success message' after saving for.
             How long (s)to display the 'success message' after saving for.
         """
         if st.button(
@@ -388,35 +392,25 @@ class InputUiHandler:
             type="primary" if has_changes else "secondary",
             disabled=not has_changes,
         ):
-
-            try:
-                success = True
-                # Iterate through each row in the edited dataframe
-                for idx in range(len(edited_df)):
-                    # Get the original dataframe index
-                    current_index = filtered_df.index[idx]
-                    for col in filtered_df.columns:
-                        if filtered_df[col].iloc[idx] != edited_df[col].iloc[idx]:
-                            success &= self.update_csv_file(
-                                file_path=output_file_path,
-                                row_identifier=str(current_index),
-                                column_name=col,
-                                new_value=str(edited_df[col].iloc[idx]),
-                                # Use "Index" as indentifier column
-                                identifier_column="Index",
-                            )
-                if success:
-                    st.success("Changes saved successfully!")
-                    st.session_state[has_changes_key] = False
-                    time.sleep(message_delay)
-                    # Force a complete reset cycle - resets widget internal states and
-                    # makes sure our save button behaves normally (wait a bit first to
-                    # allow the success message to stay on screen)
-                    st.rerun()
-                else:
-                    st.error("Error saving some changes")
-            except Exception as e:
-                st.error(f"Error saving changes: {e}")
+            success = True
+            # Iterate through each row in the edited dataframe
+            for idx in range(len(edited_df)):
+                current_index = filtered_df.index[idx]
+                for col in filtered_df.columns:
+                    if filtered_df[col].iloc[idx] != edited_df[col].iloc[idx]:
+                        success &= self.update_csv_file(
+                            file_path=output_file_path,
+                            row_identifier=str(current_index),
+                            column_name=col,
+                            new_value=str(edited_df[col].iloc[idx]),
+                        )
+            if success:
+                st.success("Changes saved successfully!")
+                st.session_state[has_changes_key] = False
+                time.sleep(message_delay)
+                st.rerun()
+            else:
+                st.error("Error saving some changes")
 
     def set_up_single_tab_widget(
         self,
@@ -463,27 +457,20 @@ class InputUiHandler:
         filtered_df = pd.DataFrame()
         no_data_msg = None
 
-        # Filter the input df based on user's selection
         if csv_dict_key == "fuel_costs":
             if "Link" in selected_classes and secondary_df is not None:
-                # Set up filtered_df and no_data_msg for the fuel_costs df
-                try:
-                    fuels = self.get_fuel_mapping(secondary_df, selected_types)
-                    filtered_df = csv_config.filter_fn(
-                        input_df, filter_col, list(fuels.values())
-                    )
-                except IndexError:
-                    no_data_msg = f"No carrier found for {selected_types} in links data"
+                fuels = self.get_fuel_mapping(secondary_df, selected_types)
+                filtered_df = csv_config.filter_fn(
+                    input_df, filter_col, list(fuels.values())
+                )
             else:
                 no_data_msg = (
                     f"No fuel costs for technologies: {', '.join(selected_types)}"
                 )
 
         else:
-            # Apply the default filtering for all other csvs
             filtered_df = csv_config.filter_fn(input_df, filter_col, selected_types)
 
-        # Apply country filter if available
         if selected_countries and "country" in filtered_df.columns:
             filtered_df = filtered_df[filtered_df["country"].isin(selected_countries)]
 
@@ -500,7 +487,6 @@ class InputUiHandler:
                     filtered_df, edited_df_key, has_changes_key
                 )
 
-                # Check for changes to the dataframe
                 has_changes = st.session_state.get(has_changes_key, False)
 
                 if to_save:
@@ -554,7 +540,6 @@ class InputUiHandler:
 
         csv_identifier = csv_config.identifier
 
-        # Create session state var keys based on the current csv
         list_key = self.list_to_key(selected_types)
         edited_df_key = f"{csv_identifier}_editor_{list_key}"
         has_changes_key = f"has_changes_{csv_identifier}_{list_key}"
@@ -567,7 +552,6 @@ class InputUiHandler:
             selected_types,
         )
 
-        # Apply country filter if available
         if selected_countries and "country" in filtered_df.columns:
             filtered_df = filtered_df[filtered_df["country"].isin(selected_countries)]
 
@@ -597,7 +581,7 @@ class InputUiHandler:
                     has_changes = st.session_state.get(has_changes_key, False)
 
                 with tab2:
-                    self.visualise_data(filtered_df, csv_identifier)
+                    self.visualise_data(filtered_df, csv_config)
 
                 if to_save:
                     self.create_save_button(
@@ -701,14 +685,13 @@ class InputUiHandler:
         )
         st.info(info_message)
 
-    # pylint: disable=too-many-statements
-    def visualise_data(self, df: pd.DataFrame, csv_identifier: str):
+    def visualise_data(self, df: pd.DataFrame, csv_config: CsvDictConfig):
         """Visualise cost data with a line graph.
 
         Parameters
         ----------
-        csv_identifier : str
-            The csv identifier from the csv_config dict (avail or costs).
+        csv_config : CsvDictConfig
+            The csv configuration containing the csv identifier and other settings.
         df : pd.DataFrame
             The dataframe already filtered by technology type.
         """
@@ -720,150 +703,77 @@ class InputUiHandler:
         name_map = dict(zip(tech_mapping["original_names"], tech_mapping["nice_names"]))
 
         countries = df["country"].unique()
-        country_select_key = f"country_select_key{csv_identifier}"
+        country_select_key = f"country_select_key{csv_config.identifier}"
 
-        # Country filter within the vis tab
         selected_country = st.pills(
             "Select a country",
             options=countries,
-            default=countries[0],  # Use the first country in the list as default
+            default=countries[0],
             selection_mode="single",
             key=country_select_key,
         )
 
-        if csv_identifier == "avail":
-            filtered_df = df[df["country"] == selected_country]
-            resampled = self.resample_to_monthly(df, "technology")
+        filtered_df = df[df["country"] == selected_country]
 
-            start_date = dt.date(2000, 1, 1)
-            end_date = dt.date(2000, 12, 31)
+        if "hourly" in csv_config.identifier:
+            filtered_df = self.resample_to_monthly(filtered_df, csv_config.filter_col)
+            start_date = dt.date(self.year_list[0], 1, 1)
+            end_date = dt.date(self.year_list[0], 12, 31)
             selected_range = st.date_input(
                 "Select month range",
                 value=(start_date, end_date),
                 min_value=start_date,
                 max_value=end_date,
-                key=f"avail_date_range_{selected_country}",
+                key=f"{csv_config.identifier}_date_range_{selected_country}",
             )
+
+            selected_tech = st.selectbox(
+                "Select specific technology",
+                options=filtered_df[csv_config.filter_col].unique(),
+                index=0,
+                key=(
+                    f"{csv_config.identifier}_tech_select_{csv_config.filter_col}"
+                    f"_{selected_country}"
+                ),
+            )
+
             start_month, end_month = selected_range[0].month, selected_range[1].month
-
-            node_avail_toggle = st.toggle(
-                "Include node filter in the Availability Profiles", value=False
-            )
-
-            if node_avail_toggle:
-                nodes = df.loc[df["country"] == selected_country, "node"].unique()
-                # # Node filter within the vis tab, only for Availability
-                selected_avail_node = st.pills(
-                    "Select a node",
-                    options=nodes,
-                    default=nodes[0],  # First node in the list as default
-                    selection_mode="single",
-                    key="node_select_key_avail",
-                )
-                filtered_df = resampled[
-                    (resampled["country"] == selected_country)
-                    & (resampled["node"] == selected_avail_node)
-                ]
-                leg_col = "technology"
-            else:
-                filtered_df = resampled[(resampled["country"] == selected_country)]
-                leg_col = "node"
-
             filtered_df = filtered_df[
                 (filtered_df["month"] >= start_month)
                 & (filtered_df["month"] <= end_month)
+                & (filtered_df[csv_config.filter_col] == selected_tech)
             ]
 
-            x, y = "month", "value"
-            labels = {"month": "Month", "value": "Value"}
-
-        elif csv_identifier == "demand":
-            filtered_df = df[df["country"] == selected_country]
-            resampled = self.resample_to_monthly(df, "profile_type")
-
-            start_date = dt.date(2000, 1, 1)
-            end_date = dt.date(2000, 12, 31)
-            selected_range = st.date_input(
-                "Select month range",
-                value=(start_date, end_date),
-                min_value=start_date,
-                max_value=end_date,
-                key=f"demand_date_range_{selected_country}",
-            )
-            start_month, end_month = selected_range[0].month, selected_range[1].month
-
-            node_demand_toggle = st.toggle(
-                "Include node filter in the Demand Profile", value=False
-            )
-
-            if node_demand_toggle:
-                nodes = df.loc[df["country"] == selected_country, "node"].unique()
-                # # Node filter within the vis tab
-                selected_demand_node = st.pills(
-                    "Select a node",
-                    options=nodes,
-                    default=nodes[0],  # First node in the list as default
-                    selection_mode="single",
-                    key="node_select_key_avail",
-                )
-                filtered_df = resampled[
-                    (resampled["country"] == selected_country)
-                    & (resampled["node"] == selected_demand_node)
-                ]
-                leg_col = "profile_type"
-            else:
-                filtered_df = resampled[(resampled["country"] == selected_country)]
-                leg_col = "node"
-
-            filtered_df = filtered_df[
-                (filtered_df["month"] >= start_month)
-                & (filtered_df["month"] <= end_month)
-            ]
-
-            x, y = "month", "value"
-            labels = {"month": "Month", "value": "Value"}
-
-        elif csv_identifier == "load":
-            filtered_df = df[df["country"] == selected_country]
-
-            node_load_toggle = st.toggle("Include node filter in the load", value=False)
-
-            if node_load_toggle:
-                nodes = df.loc[df["country"] == selected_country, "node"].unique()
-                # # Node filter within the vis tab
-                selected_load_node = st.pills(
-                    "Select a node",
-                    options=nodes,
-                    default=nodes[0],  # First node in the list as default
-                    selection_mode="single",
-                    key="node_select_key_avail",
-                )
-                filtered_df = filtered_df[
-                    (filtered_df["country"] == selected_country)
-                    & (filtered_df["node"] == selected_load_node)
-                ]
-                leg_col = "profile_type"
-            else:
-                filtered_df = filtered_df[(filtered_df["country"] == selected_country)]
-                leg_col = "node"
-
-            x, y = "year", "total_load__mwh"
-            labels = {"total_load__mwh": "Total Load (MW)", "year": "Year"}
-
-        elif csv_identifier == "costs":
-            filtered_df = df[df["country"] == selected_country]
-
-            x, y = "year", "cap__usd_mw"
-            leg_col = "powerplant_type"
-            labels = {"cap__usd_mw": "Capital Cost (USD/MW)", "year": "Year"}
+            x = "month"
+            leg_col = "node"
         else:
-            raise ValueError(f"Unknown csv_identifier: {csv_identifier}")
+            x = "year"
+            leg_col = csv_config.filter_col
+
+        y_options = [
+            col
+            for col in filtered_df.columns
+            if col not in {"country", "node", x}
+            and (
+                pd.api.types.is_float_dtype(filtered_df[col])
+                or pd.api.types.is_integer_dtype(filtered_df[col])
+            )
+        ]
+
+        y = st.selectbox(
+            "Legend column",
+            options=y_options,
+            index=0,
+            key=f"{csv_config.identifier}_legend_col_{selected_country}",
+        )
+
+        labels = [csv_config.uniform_unit if csv_config.uniform_unit else y]
 
         fig = px.line(
             filtered_df,
             x=x,
             y=y,
-            labels=labels,
+            labels={y: labels[0]},
             color=leg_col,
             color_discrete_map=colour_map,
         )
@@ -875,7 +785,8 @@ class InputUiHandler:
         )
         fig.update_yaxes(range=[0, 1.2 * filtered_df[y].max()])
 
-        st.plotly_chart(fig, width="stretch")
+        chart_key = f"plot_{csv_config.identifier}_{selected_country}_{x}_{y}_{leg_col}"
+        st.plotly_chart(fig, width="stretch", key=chart_key)
 
     def resample_to_monthly(self, df: pd.DataFrame, leg_col: str) -> pd.DataFrame:
         """Resamples dataframe from hourly to monthly.
@@ -978,7 +889,7 @@ class InputUiHandler:
 
             shutil.move(temp_file.name, file_path)
             return True
-        except Exception as e:
+        except Exception as exc:
             if os.path.exists(temp_file.name):
                 os.unlink(temp_file.name)
-            raise e
+            raise exc

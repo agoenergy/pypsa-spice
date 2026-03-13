@@ -34,12 +34,10 @@ st.session_state.current_dir = current_dir
 
 init_conf = get_params.init_config
 
-# Initialize input_data_folder_path in session state
 st.session_state.input_data_folder_path = init_conf["input_folder_path"]
 
 apply_sidebar_styles()
 
-# Set window_width in session state
 st.session_state.window_width = get_params.get_window_width(
     st.session_state.get("window_width")
 )
@@ -47,17 +45,14 @@ st.session_state.window_width = get_params.get_window_width(
 with st.sidebar:
     apply_title_styles("Parameters for settings")
 
-    # Set project in session state
     st.session_state.project = st.sidebar.selectbox(
         ":material/globe: Project :",
         options=get_params.get_project_folder_list(init_conf["data_folder_path"]),
         index=0,
     )
 
-    # Set result_path in session state (note this includes the project dir)
     st.session_state.result_path = os.path.join(init_conf["results_folder_path"])
 
-    # Set sce1 name in session state
     st.session_state.sce1 = st.sidebar.selectbox(
         ":material/looks_one: Scenario 1:",
         options=get_params.get_output_scenario_list(
@@ -66,7 +61,6 @@ with st.sidebar:
         index=0,
     )
 
-    # Set sce2 name in session state
     scenario_list = get_params.get_output_scenario_list(
         selected_project_name=st.session_state.project
     )
@@ -80,9 +74,8 @@ with st.sidebar:
         if st.session_state.sce2 == "None":
             st.session_state.sce2 = ""
 
-    # Set sector in session state
     st.session_state.sector = st.sidebar.selectbox(
-        ":material/crossword: Sector:",  # init_conf["sector"]
+        ":material/crossword: Sector:",
         options=get_params.get_sector_list(st.session_state.sce1),
         format_func=get_params.get_sector_display_name,
         index=0,
@@ -92,7 +85,6 @@ with st.sidebar:
         st.sidebar.error("⚠️ The two scenarios should not be the same!")
         st.stop()
 
-# Set year in session state
 try:
     st.session_state.sce1_years = get_params.get_year_list(
         st.session_state.sce1, st.session_state.sector

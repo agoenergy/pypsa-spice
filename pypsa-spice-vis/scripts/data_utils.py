@@ -357,3 +357,82 @@ def slugify_text(text: str):
     text = re.sub(r"[^a-z0-9]+", "-", text)  # Replace special characters with hyphens
     text = text.strip("-")  # Remove trailing/leading hyphens
     return text
+
+
+def render_countries_n_scenario_pills(
+    get_params, all_countries: str, key: str
+) -> tuple | None:
+    """Render country andscenario selector and sync selected value to session state."""
+    col11, col12 = st.columns([1, 1])
+
+    with col11:
+        if all_countries:
+            selected_countries = st.pills(
+                "Select Countries:",
+                options=sorted(all_countries),
+                default=sorted(all_countries),
+                help="Select countries to filter the data.",
+                selection_mode="multi",
+                key="timeseries_selection_pills",
+            )
+        else:
+            selected_countries = None
+            st.info("No countries found")
+
+    with col12:
+        scenario_options = get_params.get_input_scenario_list()
+        if "scenario" not in st.session_state:
+            st.session_state.scenario = (
+                scenario_options[0] if scenario_options else None
+            )
+
+        if not scenario_options:
+            return None
+
+        selected_scenario = st.pills(
+            "Select Scenario:",
+            options=scenario_options,
+            default=(
+                st.session_state.scenario
+                if st.session_state.scenario in scenario_options
+                else scenario_options[0]
+            ),
+            help="Select scenario to view/edit data.",
+            selection_mode="single",
+            key=key,
+        )
+
+        if selected_scenario:
+            st.session_state.scenario = selected_scenario
+
+    return selected_countries, selected_scenario
+
+
+def render_widgets_from_config(
+    input_ui_handler,
+    csvs_dict: dict,
+    widget_configs: list,
+    render_context: dict,
+):
+    """Render widgets using per-page configuration."""
+    for widget_config in widget_configs:
+        render_fn = (
+            input_ui_handler.set_up_double_tab_widget
+            if widget_config["widget"] == "double"
+            else input_ui_handler.set_up_single_tab_widget
+        )
+
+        extra_kwargs_fn = widget_config.get("extra_kwargs")
+        extra_kwargs = extra_kwargs_fn(render_context) if extra_kwargs_fn else {}
+
+        csv_key = widget_config["csv_key"]
+        df_key = widget_config["df_key"]
+
+        render_fn(
+            csv_key,
+            render_context["dfs"][df_key],
+            render_context["selected_types"],
+            csvs_dict[csv_key].path,
+            render_context["selected_countries"],
+            **extra_kwargs,
+        )
