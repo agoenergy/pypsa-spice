@@ -43,6 +43,7 @@ from scripts.plot_functions import (
     create_nice_names_and_color_mapping,
     plot_area_share_yearly,
     plot_bar_with_filter,
+    plot_diff_bar_yearly,
     plot_filtered_bar_hourly,
     plot_line_with_secondary_y_hourly,
     plot_simple_bar_hourly,
@@ -78,6 +79,54 @@ POWER_CHART_KEYS = [
 power_charts = [config[key] for key in POWER_CHART_KEYS if key in config]
 table_of_content = [chart["name"] for chart in power_charts]
 generate_sidebar(table_of_content)
+
+
+# =========================== Shared helpers =========================
+
+
+def _render_scenario_diff_chart(
+    df1: "pd.DataFrame",
+    df2: "pd.DataFrame",
+    graph_config: dict,
+    mapping_df: "pd.DataFrame | None",
+) -> None:
+    """Compute (df2 - df1) per year × legend and render a grouped diff bar chart."""
+    import pandas as pd
+
+    s1_pivot = df1.pivot_table(
+        index="year", columns="legend", values="value", aggfunc="sum"
+    ).fillna(0)
+    s2_pivot = df2.pivot_table(
+        index="year", columns="legend", values="value", aggfunc="sum"
+    ).fillna(0)
+    all_cols = s1_pivot.columns.union(s2_pivot.columns)
+    diff_df = (
+        s2_pivot.reindex(columns=all_cols, fill_value=0)
+        - s1_pivot.reindex(columns=all_cols, fill_value=0)
+    )
+    diff_df = (
+        diff_df.reset_index()
+        .melt(id_vars="year", var_name="legend", value_name="value")
+        .query("value != 0")
+    )
+    if diff_df.empty:
+        return
+
+    colour_mapping_diff = generate_colour_mapping_dict(
+        graph_config["table_name"], mapping_df, diff_df, graph_config["leg_col"]
+    )
+    st.caption(
+        f"Difference ({st.session_state.sce2} \u2212 {st.session_state.sce1})"
+    )
+    plot_diff_bar_yearly(
+        diff_df,
+        graph_config,
+        colour_mapping_diff,
+        key=(
+            "plotly_chart_diff_"
+            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+        ),
+    )
 
 
 # =========================== Render functions for each chart =========================
@@ -159,6 +208,11 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
             f"{graph_config['download_id'].format(st.session_state.sce1)}"
         ),
     )
+
+    if has_dual_data:
+        _render_scenario_diff_chart(
+            scenario_1_grouped, scenario_2_grouped, graph_config, mapping_df
+        )
 
     st.divider()
 
@@ -254,6 +308,11 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
     )
 
+    if has_dual_data:
+        _render_scenario_diff_chart(
+            scenario_1_filtered, scenario_2_filtered, graph_config, mapping_df
+        )
+
     st.divider()
 
 
@@ -335,6 +394,11 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
             f"{graph_config['download_id'].format(st.session_state.sce1)}"
         ),
     )
+
+    if has_dual_data:
+        _render_scenario_diff_chart(
+            scenario_1_grouped, scenario_2_grouped, graph_config, mapping_df
+        )
 
     st.divider()
 
@@ -763,6 +827,11 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
             f"{graph_config['download_id'].format(st.session_state.sce1)}"
         ),
     )
+
+    if has_dual_data:
+        _render_scenario_diff_chart(
+            scenario_1_grouped, scenario_2_grouped, graph_config, mapping_df
+        )
 
     st.divider()
 
