@@ -45,7 +45,7 @@ CLASS_DEPENDENT_WIDGETS = {
 }
 
 
-def _collect_all_countries(dfs: dict, get_params) -> set:
+def collect_all_countries(dfs: dict, get_params) -> set:
     """Collect all countries used across static power tables."""
     all_countries = set()
     for df in [
@@ -61,7 +61,7 @@ def _collect_all_countries(dfs: dict, get_params) -> set:
     return all_countries
 
 
-def _render_type_and_class_filters(dfs: dict, get_params) -> tuple[list, list]:
+def render_type_and_class_filters(dfs: dict, get_params) -> tuple[list, list]:
     """Render type and class controls, and return selected values."""
     col21, col22 = st.columns([1, 1])
 
@@ -102,7 +102,7 @@ def _render_type_and_class_filters(dfs: dict, get_params) -> tuple[list, list]:
     return selected_types, selected_classes
 
 
-def _render_class_dependent_widgets(
+def render_class_dependent_widgets(
     df_widgets_handler: DataFrameWidgetsHandler,
     dfs: dict,
     selected_types: list,
@@ -121,7 +121,7 @@ def _render_class_dependent_widgets(
             )
 
 
-def _render_interconnections_widget(
+def render_interconnections_widget(
     all_countries: set,
     df_widgets_handler: DataFrameWidgetsHandler,
     dfs: dict,
@@ -129,28 +129,51 @@ def _render_interconnections_widget(
     """Render interconnections section."""
     st.header(":material/diagonal_line: Interconnections")
 
-    if all_countries:
-        st.selectbox(
-            "Select Base Country (single country):",
-            options=sorted(all_countries),
-            index=0,
-            key="static_intercon_country",
-        )
-    else:
-        st.info("No countries found")
+    col21, col22 = st.columns([1, 1])
 
-    st.markdown("Tech: **ITCN**")
-    st.markdown("Class: **Link**")
+    with col21:
+        if all_countries:
+            st.selectbox(
+                "Select Base Country (single country):",
+                options=sorted(all_countries),
+                index=0,
+                key="static_intercon_country",
+            )
+        else:
+            st.info("No countries found")
+
+        st.markdown("Tech: **ITCN**")
+
+    with col22:
+        st.selectbox(
+            "Select type of interconnection:",
+            options=["Transmission", "Distribution"],
+            index=0,
+            key="static_intercon_type",
+        )
+        st.markdown("Class: **Link**")
 
     base_country = st.session_state.get("static_intercon_country", None)
-    if all_countries and base_country:
-        df_widgets_handler.input_ui_handler.set_up_single_tab_widget(
-            csv_dict_key="interconnector",
-            input_df=dfs["intercon_df"],
-            selected_types=["ITCN"],
-            input_csv_path=df_widgets_handler.csvs_dict["interconnector"].path,
-            selected_countries=[base_country],
-        )
+    grid_type = st.session_state.get("static_intercon_type", None)
+
+    if grid_type == "Transmission":
+        intercon_df = dfs["intercon_df"][
+            (dfs["intercon_df"]["bus0"].str.contains("HVELEC"))
+            & (dfs["intercon_df"]["bus1"].str.contains("HVELEC"))
+        ]
+    else:
+        intercon_df = dfs["intercon_df"][
+            (dfs["intercon_df"]["bus0"].str.contains("LVELEC"))
+            & (dfs["intercon_df"]["bus1"].str.contains("LVELEC"))
+        ]
+
+    df_widgets_handler.input_ui_handler.set_up_single_tab_widget(
+        csv_dict_key="interconnector",
+        input_df=intercon_df,
+        selected_types=["ITCN"],
+        input_csv_path=df_widgets_handler.csvs_dict["interconnector"].path,
+        selected_countries=[base_country],
+    )
 
 
 def main(get_params):
@@ -161,7 +184,7 @@ def main(get_params):
     if not dfs:
         return
 
-    all_countries = _collect_all_countries(dfs, get_params)
+    all_countries = collect_all_countries(dfs, get_params)
 
     st.header(":material/bolt: Power")
     selected_countries, selected_scenario = render_countries_n_scenario_pills(
@@ -171,7 +194,7 @@ def main(get_params):
     )
 
     df_widgets_handler.reload_scenario_dfs(dfs, selected_scenario)
-    selected_types, selected_classes = _render_type_and_class_filters(dfs, get_params)
+    selected_types, selected_classes = render_type_and_class_filters(dfs, get_params)
 
     render_context = {
         "input_ui_handler": df_widgets_handler.input_ui_handler,
@@ -189,11 +212,11 @@ def main(get_params):
         render_context=render_context,
     )
 
-    _render_class_dependent_widgets(
+    render_class_dependent_widgets(
         df_widgets_handler,
         dfs,
         selected_types,
         selected_countries,
         selected_classes,
     )
-    _render_interconnections_widget(all_countries, df_widgets_handler, dfs)
+    render_interconnections_widget(all_countries, df_widgets_handler, dfs)
