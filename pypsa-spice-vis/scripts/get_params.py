@@ -14,7 +14,7 @@ import yaml
 from streamlit_js_eval import streamlit_js_eval
 
 
-class Getters:
+class GetParams:
     """Functions that handle retrieval of app-related params."""
 
     SECTOR_DISPLAY_NAMES = {
@@ -41,15 +41,15 @@ class Getters:
                 encoding="utf-8",
             ) as file:
                 self.init_config = yaml.safe_load(file)
-        except FileNotFoundError:
+        except FileNotFoundError as exc:
             raise FileNotFoundError(
                 "Please ensure your working directory is at the pypsa-spice root level."
-            )
-        except Exception as e:
+            ) from exc
+        except Exception as exc:
             raise Exception(
-                f"Error loading configuration file: {str(e)}. "
+                f"Error loading configuration file: {str(exc)}. "
                 + "Please ensure that the base_config.yaml file exists."
-            )
+            ) from exc
 
         # data/data_folder_name
         data_folder_path = os.path.join(
@@ -311,9 +311,8 @@ class Getters:
         int
           The window width in px.
         """
-        default_width = 1200  # Default fallback width
+        default_width = 1200
 
-        # Return current width if it is valid
         if current_width is not None and current_width > 0:
             return current_width
 
@@ -321,14 +320,10 @@ class Getters:
             try:
                 result = streamlit_js_eval(
                     js_expressions="window.innerWidth",
-                    key=f"SCR_{attempt}",  # Use a different key for each attempt
+                    key=f"SCR_{attempt}",
                     want_output=True,
                 )
-                # Note that this does not actually correspond to the true
-                # window.innerWidth possibly because of streamlit's iframe context -
-                # it seems to be smaller
 
-                # Check for a valid result
                 if (
                     result is not None
                     and isinstance(result, (int, float))
@@ -340,14 +335,13 @@ class Getters:
                 if attempt < max_attempts - 1:
                     time.sleep(delay)
 
-            except Exception as e:
-                st.write(f"Attempt {attempt + 1} failed: {e}")
+            except Exception as exc:
+                st.write(f"Attempt {attempt + 1} failed: {exc}")
                 continue
 
-        # Use the default fallback if all attempts fail
         return default_width
 
 
 if __name__ == "__main__":
-    getters = Getters()
+    getters = GetParams()
     print(getters.get_project_folder_list(getters.init_config["data_folder_path"]))

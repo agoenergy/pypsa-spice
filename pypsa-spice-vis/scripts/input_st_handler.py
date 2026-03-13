@@ -20,7 +20,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from scripts.getters import Getters
+from scripts.get_params import GetParams
 
 # pylint: disable=too-many-arguments, broad-exception-caught
 
@@ -29,11 +29,11 @@ class DFWidgetsHandler:
     """Handle the DataFrame widget."""
 
     def __init__(self):
-        self.getters = Getters()
+        self.get_params = GetParams()
         self.input_ui_handler = InputUiHandler()
         self.csvs_dict = self.input_ui_handler.csvs_dict
-        self.data_folder_path = self.getters.init_config["data_folder_path"]
-        project_folders = self.getters.get_project_folder_list(self.data_folder_path)
+        self.data_folder_path = self.get_params.init_config["data_folder_path"]
+        project_folders = self.get_params.get_project_folder_list(self.data_folder_path)
         if not project_folders:
             st.error(f"No valid project folders found in {self.data_folder_path}")
 
@@ -52,7 +52,7 @@ class DFWidgetsHandler:
         sub_folder = (
             st.session_state["scenario"]
             if "scenario" in st.session_state
-            else self.getters.init_config["path_configs"]["input_scenario_name"]
+            else self.get_params.init_config["path_configs"]["input_scenario_name"]
         )
 
         self.scenario_input_path = os.path.join(self.base_input_path, sub_folder)
@@ -189,6 +189,7 @@ class InputUiHandler:
                 filter_col="technology",
                 title="Techonology Parameters",
                 filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
             ),
             "availability": CsvDictConfig(
                 identifier="avail",
@@ -196,7 +197,6 @@ class InputUiHandler:
                 title="Availability",
                 filter_fn=self.filter_df_generic,
                 empty_df_fn=self.empty_df_message_generic,
-                empty_df_kwargs={"msg": "Taking availability from availability.csv"},
             ),
             "demand": CsvDictConfig(
                 identifier="demand",
@@ -204,25 +204,27 @@ class InputUiHandler:
                 title="Demand Profiles",
                 filter_fn=self.filter_df_generic,
                 empty_df_fn=self.empty_df_message_generic,
-                empty_df_kwargs={"msg": "Taking demand from demand_profile.csv"},
             ),
             "pp_costs": CsvDictConfig(
                 identifier="costs",
                 filter_col="powerplant_type",
                 title="Power Plant Costs",
                 filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
             ),
             "potentials": CsvDictConfig(
                 identifier="potentials",
                 filter_col="type",
                 title="Renewable Technical Potentials",
                 filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
             ),
             "storage_cost": CsvDictConfig(
                 identifier="storage_cost",
                 filter_col="storage_type",
                 title="Storage Costs",
                 filter_fn=self.filter_df_generic,
+                empty_df_fn=self.empty_df_message_generic,
             ),
             "storage_inflows": CsvDictConfig(
                 identifier="storage_inflows",
@@ -230,7 +232,6 @@ class InputUiHandler:
                 title="Storage Inflows",
                 filter_fn=self.filter_df_generic,
                 empty_df_fn=self.empty_df_message_generic,
-                empty_df_kwargs={"msg": "Taking inflows from storage_inflows.csv"},
             ),
             "decomission": CsvDictConfig(
                 identifier="decomission",
@@ -238,7 +239,6 @@ class InputUiHandler:
                 title="Decomissioning",
                 filter_fn=self.filter_df_decomission,
                 empty_df_fn=self.empty_df_message_generic,
-                empty_df_kwargs={"msg": "No decomissioning"},
             ),
             "fuel_costs": CsvDictConfig(
                 identifier="fuel",
@@ -618,7 +618,7 @@ class InputUiHandler:
                             "selected_types": selected_types,
                         }
                     )
-                csv_config.empty_df_fn(**kwargs)
+                csv_config.empty_df_fn()
 
     def get_tech_mapping(self):
         """Load the technology mapping csv."""
@@ -693,9 +693,12 @@ class InputUiHandler:
         """
         return df[df[filter_col].str.split("_").str[-1].isin(selected_types)]
 
-    def empty_df_message_generic(self, **kwargs):
+    def empty_df_message_generic(self):
         """Display a generic info message when the dataframe is empty."""
-        info_message = kwargs.get("msg")
+        info_message = (
+            "No data required in this table for the selected technology "
+            "type(s) and country(ies)."
+        )
         st.info(info_message)
 
     # pylint: disable=too-many-statements

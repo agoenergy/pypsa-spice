@@ -65,7 +65,7 @@ def _render_timeseries_widgets(
         )
 
 
-def main(getters):
+def main(get_params):
     """Render the Timeseries input page."""
     df_widgets_handler = DFWidgetsHandler()
     input_ui_handler = df_widgets_handler.input_ui_handler
@@ -83,9 +83,9 @@ def main(getters):
         dfs["load_df"],
         dfs["storage_inflows_df"],
     ]:
-        all_countries.update(getters.get_country_list(df))
+        all_countries.update(get_params.get_country_list(df))
 
-    st.header(":material/timeline: Timeseries")
+    st.header(":material/bolt: Power")
 
     col11, col12 = st.columns([1, 1])
 
@@ -104,7 +104,7 @@ def main(getters):
             st.info("No countries found")
 
     with col12:
-        scenario_options = getters.get_input_scenario_list()
+        scenario_options = get_params.get_input_scenario_list()
         if "scenario" not in st.session_state:
             st.session_state.scenario = (
                 scenario_options[0] if scenario_options else None
@@ -130,7 +130,7 @@ def main(getters):
 
     st.subheader("Supply Profiles")
 
-    types = getters.get_mapping_list(dfs["tech_df"])
+    types = get_params.get_mapping_list(dfs["tech_df"])
     tech_mapping = dict(
         zip(dfs["tech_df"]["technology"], dfs["tech_df"]["technology_nomenclature"])
     )

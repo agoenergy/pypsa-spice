@@ -10,7 +10,7 @@ import sys
 import streamlit as st
 from styles import apply_sidebar_styles, apply_title_styles, use_flexo
 
-from scripts.getters import Getters
+from scripts.get_params import GetParams
 from scripts.input_pages import input_static, input_timeseries
 from scripts.output_pages import (output_costs, output_emissions,
                                   output_industry, output_power,
@@ -27,12 +27,12 @@ use_flexo()
 
 DEPLOY = False
 
-getters = Getters()
+get_params = GetParams()
 
-current_dir = getters.streamlit_base_dir
+current_dir = get_params.streamlit_base_dir
 st.session_state.current_dir = current_dir
 
-init_conf = getters.init_config
+init_conf = get_params.init_config
 
 # Initialize input_data_folder_path in session state
 st.session_state.input_data_folder_path = init_conf["input_folder_path"]
@@ -40,7 +40,7 @@ st.session_state.input_data_folder_path = init_conf["input_folder_path"]
 apply_sidebar_styles()
 
 # Set window_width in session state
-st.session_state.window_width = getters.get_window_width(
+st.session_state.window_width = get_params.get_window_width(
     st.session_state.get("window_width")
 )
 
@@ -50,7 +50,7 @@ with st.sidebar:
     # Set project in session state
     st.session_state.project = st.sidebar.selectbox(
         ":material/globe: Project :",
-        options=getters.get_project_folder_list(init_conf["data_folder_path"]),
+        options=get_params.get_project_folder_list(init_conf["data_folder_path"]),
         index=0,
     )
 
@@ -60,14 +60,14 @@ with st.sidebar:
     # Set sce1 name in session state
     st.session_state.sce1 = st.sidebar.selectbox(
         ":material/looks_one: Scenario 1:",
-        options=getters.get_output_scenario_list(
+        options=get_params.get_output_scenario_list(
             selected_project_name=st.session_state.project
         ),
         index=0,
     )
 
     # Set sce2 name in session state
-    scenario_list = getters.get_output_scenario_list(
+    scenario_list = get_params.get_output_scenario_list(
         selected_project_name=st.session_state.project
     )
     if len(scenario_list) == 1:
@@ -83,8 +83,8 @@ with st.sidebar:
     # Set sector in session state
     st.session_state.sector = st.sidebar.selectbox(
         ":material/crossword: Sector:",  # init_conf["sector"]
-        options=getters.get_sector_list(st.session_state.sce1),
-        format_func=getters.get_sector_display_name,
+        options=get_params.get_sector_list(st.session_state.sce1),
+        format_func=get_params.get_sector_display_name,
         index=0,
     )
 
@@ -94,11 +94,11 @@ with st.sidebar:
 
 # Set year in session state
 try:
-    st.session_state.sce1_years = getters.get_year_list(
+    st.session_state.sce1_years = get_params.get_year_list(
         st.session_state.sce1, st.session_state.sector
     )
     if st.session_state.sce2:
-        st.session_state.sce2_years = getters.get_year_list(
+        st.session_state.sce2_years = get_params.get_year_list(
             st.session_state.sce2, st.session_state.sector
         )
 except FileNotFoundError as e:
@@ -124,9 +124,9 @@ def input_main():
         st.stop()
 
     if selected_input_section == "Static":
-        input_static.main(getters)
+        input_static.main(get_params)
     else:
-        input_timeseries.main(getters)
+        input_timeseries.main(get_params)
 
 
 def output_main():

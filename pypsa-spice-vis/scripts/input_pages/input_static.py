@@ -4,13 +4,9 @@
 
 """Create Static page under Input section."""
 
-import pandas as pd
 import streamlit as st
 
 from scripts.input_st_handler import DFWidgetsHandler
-
-pd.set_option("future.no_silent_downcasting", True)
-
 
 STATIC_WIDGETS = [
     {"csv_key": "technologies", "df_key": "tech_df", "widget": "single"},
@@ -47,8 +43,8 @@ CLASS_DEPENDENT_WIDGETS = {
 
 
 def _render_widget(
-    widget_config,
-    render_context,
+    widget_config: dict,
+    render_context: dict,
 ):
     """Render one widget from config."""
     input_ui_handler = render_context["input_ui_handler"]
@@ -81,16 +77,13 @@ def _render_widget(
     )
 
 
-def main(getters):
+def main(get_params):
     """Render the Static input page."""
     df_widgets_handler = DFWidgetsHandler()
-    input_ui_handler = df_widgets_handler.input_ui_handler
 
     dfs = df_widgets_handler.load_all_dfs()
     if not dfs:
         return
-
-    csvs_dict = df_widgets_handler.csvs_dict
 
     all_countries = set()
     for df in [
@@ -102,9 +95,9 @@ def main(getters):
         dfs["storageunit_df"],
         dfs["store_df"],
     ]:
-        all_countries.update(getters.get_country_list(df))
+        all_countries.update(get_params.get_country_list(df))
 
-    st.header(":material/view_list: Static")
+    st.header(":material/bolt: Power")
 
     col11, col12 = st.columns([1, 1])
     col21, col22 = st.columns([1, 1])
@@ -124,7 +117,7 @@ def main(getters):
             st.info("No countries found")
 
     with col12:
-        scenario_options = getters.get_input_scenario_list()
+        scenario_options = get_params.get_input_scenario_list()
         if "scenario" not in st.session_state:
             st.session_state.scenario = (
                 scenario_options[0] if scenario_options else None
@@ -148,7 +141,7 @@ def main(getters):
 
     df_widgets_handler.reload_scenario_dfs(dfs, selected_scenario)
 
-    types = getters.get_mapping_list(dfs["tech_df"])
+    types = get_params.get_mapping_list(dfs["tech_df"])
     tech_mapping = dict(
         zip(dfs["tech_df"]["technology"], dfs["tech_df"]["technology_nomenclature"])
     )
@@ -172,7 +165,6 @@ def main(getters):
             selected_type_full = default_type_selection
 
         selected_types = [reverse_mapping.get(v, v) for v in selected_type_full]
-        selected_types_str = ", ".join(selected_types)
 
     with col22:
         selected_classes = (
@@ -181,14 +173,13 @@ def main(getters):
             .unique()
             .tolist()
         )
-        selected_classes_str = ", ".join(selected_classes)
-        st.markdown(f"Tech: **{selected_types_str}**")
-        st.markdown(f"Class: **{selected_classes_str}**")
+        st.markdown(f"Tech: **{', '.join(selected_types)}**")
+        st.markdown(f"Class: **{', '.join(selected_classes)}**")
 
     render_context = {
-        "input_ui_handler": input_ui_handler,
+        "input_ui_handler": df_widgets_handler.input_ui_handler,
         "dfs": dfs,
-        "csvs_dict": csvs_dict,
+        "csvs_dict": df_widgets_handler.csvs_dict,
         "selected_types": selected_types,
         "selected_countries": selected_countries,
         "selected_classes": selected_classes,
@@ -202,18 +193,17 @@ def main(getters):
 
     for class_name, class_widget in CLASS_DEPENDENT_WIDGETS.items():
         if class_name in selected_classes:
-            input_ui_handler.set_up_single_tab_widget(
+            df_widgets_handler.input_ui_handler.set_up_single_tab_widget(
                 class_widget["csv_key"],
                 dfs[class_widget["df_key"]],
                 selected_types,
-                csvs_dict[class_widget["csv_key"]].path,
+                df_widgets_handler.csvs_dict[class_widget["csv_key"]].path,
                 selected_countries,
             )
 
     st.header(":material/diagonal_line: Interconnections")
 
     if all_countries:
-        default_base = sorted(all_countries)[0]
         base_country = st.selectbox(
             "Select Base Country (single country):",
             options=sorted(all_countries),
@@ -222,17 +212,18 @@ def main(getters):
         )
     else:
         base_country = None
-        default_base = None
         st.info("No countries found")
 
     st.markdown("Tech: **ITCN**")
     st.markdown("Class: **Link**")
 
-    if base_country or default_base:
-        input_ui_handler.set_up_single_tab_widget(
+    if all_countries and (
+        base_country := st.session_state.get("static_intercon_country", None)
+    ):
+        df_widgets_handler.input_ui_handler.set_up_single_tab_widget(
             csv_dict_key="interconnector",
             input_df=dfs["intercon_df"],
             selected_types=["ITCN"],
-            input_csv_path=csvs_dict["interconnector"].path,
-            selected_countries=[base_country or default_base],
+            input_csv_path=df_widgets_handler.csvs_dict["interconnector"].path,
+            selected_countries=[base_country],
         )
