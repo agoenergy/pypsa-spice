@@ -4,13 +4,18 @@
 
 """Create Static page under Input section."""
 
+from copy import deepcopy
+from typing import Any
+
 import streamlit as st
 
-from scripts.data_utils import (render_countries_n_scenario_pills,
-                                render_widgets_from_config)
+from scripts.data_utils import (
+    render_countries_n_scenario_pills,
+    render_widgets_from_config,
+)
 from scripts.input_st_handler import DataFrameWidgetsHandler
 
-STATIC_WIDGETS = [
+STATIC_WIDGETS: list[dict[str, Any]] = [
     {"csv_key": "technologies", "df_key": "tech_df", "widget": "single"},
     {"csv_key": "pp_costs", "df_key": "pp_costs_df", "widget": "double"},
     {"csv_key": "potentials", "df_key": "potentials_df", "widget": "single"},
@@ -23,10 +28,6 @@ STATIC_WIDGETS = [
         "csv_key": "fuel_costs",
         "df_key": "fuel_costs_df",
         "widget": "single",
-        "extra_kwargs": lambda render_context: {
-            "selected_classes": render_context["selected_classes"],
-            "secondary_df": render_context["dfs"]["tech_df"],
-        },
     },
     {"csv_key": "links", "df_key": "links_df", "widget": "single"},
     {
@@ -37,8 +38,7 @@ STATIC_WIDGETS = [
     {"csv_key": "load", "df_key": "load_df", "widget": "double"},
 ]
 
-
-CLASS_DEPENDENT_WIDGETS = {
+POWER_CLASS_DEPENDENT_WIDGETS = {
     "Generator": {"csv_key": "generator", "df_key": "generator_df"},
     "Storage Unit": {"csv_key": "storageunit", "df_key": "storageunit_df"},
     "Store": {"csv_key": "store", "df_key": "store_df"},
@@ -110,7 +110,7 @@ def render_class_dependent_widgets(
     selected_classes: list,
 ):
     """Render widgets that depend on selected technology classes."""
-    for class_name, class_widget in CLASS_DEPENDENT_WIDGETS.items():
+    for class_name, class_widget in POWER_CLASS_DEPENDENT_WIDGETS.items():
         if class_name in selected_classes:
             df_widgets_handler.input_ui_handler.set_up_single_tab_widget(
                 class_widget["csv_key"],
@@ -186,7 +186,7 @@ def main(get_params):
 
     all_countries = collect_all_countries(dfs, get_params)
 
-    st.header(":material/bolt: Power")
+    st.header(":globe_with_meridians: Global input")
     selected_countries, selected_scenario = render_countries_n_scenario_pills(
         get_params=get_params,
         all_countries=all_countries,
@@ -205,13 +205,24 @@ def main(get_params):
         "selected_classes": selected_classes,
     }
 
+    # Add extra kwargs for fuel_costs widget to filter by selected classes
+    static_widgets = deepcopy(STATIC_WIDGETS)
+    for widget_config in static_widgets:
+        if widget_config["csv_key"] == "fuel_costs":
+            widget_config["extra_kwargs"] = lambda render_context: {
+                "selected_classes": render_context["selected_classes"],
+                "secondary_df": render_context["dfs"]["tech_df"],
+            }
+            break
+
     render_widgets_from_config(
         input_ui_handler=df_widgets_handler.input_ui_handler,
         csvs_dict=df_widgets_handler.csvs_dict,
-        widget_configs=STATIC_WIDGETS,
+        widget_configs=static_widgets,
         render_context=render_context,
     )
 
+    st.header(":material/bolt: Power")
     render_class_dependent_widgets(
         df_widgets_handler,
         dfs,
