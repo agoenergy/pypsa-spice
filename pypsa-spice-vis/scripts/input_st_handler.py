@@ -11,8 +11,6 @@ import os
 import re
 import shutil
 import time
-from collections.abc import Callable
-from dataclasses import dataclass
 from tempfile import NamedTemporaryFile
 
 import numpy as np
@@ -22,48 +20,26 @@ import streamlit as st
 
 from scripts.get_params import GetParams
 
+pd.set_option("future.no_silent_downcasting", True)
+
 
 class DataFrameWidgetsHandler:
     """Handle the DataFrame widget."""
 
-    def __init__(self):
+    def __init__(self, config: dict):
+        self.config = config
         self.get_params = GetParams()
-        self.input_ui_handler = InputUiHandler(
-            year_list=self.get_params.init_config["base_configs"]["years"]
-        )
-        self.csvs_dict = self.input_ui_handler.csvs_dict
+        self.year_list = self.get_params.init_config["base_configs"]["years"]
         self.data_folder_path = self.get_params.init_config["data_folder_path"]
         project_folders = self.get_params.get_project_folder_list(self.data_folder_path)
         if not project_folders:
             st.error(f"No valid project folders found in {self.data_folder_path}")
 
-        self.input_data_project = project_folders[0]
-
-        # Global input csvs
-        self.csv_files_path_parts = {
-            "availability": ["availability.csv"],
-            "demand": ["demand_profile.csv"],
-            "ev_params": ["ev_parameters.csv"],
-            "pp_costs": ["power_plant_costs.csv"],
-            "potentials": ["renewables_technical_potential.csv"],
-            "storage_cost": ["storage_costs.csv"],
-            "storage_inflows": ["storage_inflows.csv"],
-            "technologies": ["technologies.csv"],
-        }
-
-        # Power input csvs remain flat because current pages expect flat csvs_dict/dfs
-        self.power_csv_files_path_parts = {
-            "decomission": ["power", "decomission_capacity.csv"],
-            "fuel_costs": ["power", "fuel_supplies.csv"],
-            "interconnector": ["power", "interconnector.csv"],
-            "load": ["power", "loads.csv"],
-            "generator": ["power", "power_generators.csv"],
-            "links": ["power", "power_links.csv"],
-            "storageunit": ["power", "storage_capacity.csv"],
-            "store": ["power", "storage_energy.csv"],
-        }
-
-        self.optional_sector_csv_files_path_parts = {}
+        self.base_input_path = os.path.join(
+            self.data_folder_path,
+            project_folders[0],
+            "input",
+        )
 
         sectors = self.get_params.init_config["base_configs"]["sector"]
         self.has_industry_sector = (
@@ -71,267 +47,82 @@ class DataFrameWidgetsHandler:
             if isinstance(sectors, str)
             else any("i" in sector for sector in sectors)
         )
-        if self.has_industry_sector:
-            self.optional_sector_csv_files_path_parts.update(
-                {
-                    "ind_decomission": ["industry", "decomission_capacity.csv"],
-                    "dac": ["industry", "direct_air_capture.csv"],
-                    "fuel_conversion": ["industry", "fuel_conversion.csv"],
-                    "ind_load": ["industry", "loads.csv"],
-                    "ind_generator": ["industry", "heat_generators.csv"],
-                    "ind_links": ["industry", "heat_links.csv"],
-                    "ind_storageunit": ["industry", "storage_capacity.csv"],
-                    "ind_store": ["industry", "storage_energy.csv"],
-                }
-            )
-
         self.has_transport_sector = (
             "t" in sectors
             if isinstance(sectors, str)
             else any("t" in sector for sector in sectors)
         )
-        if self.has_transport_sector:
-            self.optional_sector_csv_files_path_parts.update(
-                {
-                    "tra_load": ["transport", "loads.csv"],
-                    "tra_chragers": ["transport", "pev_chargers.csv"],
-                    "tra_storages": ["transport", "pev_storages.csv"],
-                }
-            )
 
-    def load_all_dfs(self) -> dict:
+    def load_all_dfs(
+        self, selected_scenario: str | None = None, specific_sector: str | None = None
+    ) -> dict:
         """Load all the dataframes.
 
         Returns
         -------
         dict
             Contains all the loaded dataframes.
+        selected_scenario : str, optional
+            The scenario selected by the user.
+        specific_sector : str, optional
+            Power, Industry, or Transport - only load dataframes related to that sector.
         """
-        base_input_path = os.path.join(
-            self.data_folder_path,
-            self.input_data_project,
-            "input",
-        )
-
-        global_input_path = os.path.join(
-            base_input_path,
-            "global_input",
-        )
-
         sub_folder = (
-            st.session_state["scenario"]
-            if "scenario" in st.session_state
+            selected_scenario
+            if selected_scenario
             else self.get_params.init_config["path_configs"]["input_scenario_name"]
         )
+        scenario_input_path = os.path.join(self.base_input_path, sub_folder)
 
-        scenario_input_path = os.path.join(base_input_path, sub_folder)
+        csvs_dict = {}
+        if not specific_sector:
+            global_input_path = os.path.join(
+                self.base_input_path,
+                "global_input",
+            )
+            # Update csvs_dict with paths to all global input csvs
+            for title in self.config["Global_input"].keys():
+                csvs_dict[title] = os.path.join(
+                    global_input_path, self.config["Global_input"][title]["csv_name"]
+                )
+        elif specific_sector == "Power":
+            # Update csvs_dict with paths to power csvs
+            for title in self.config["Power"].keys():
+                csvs_dict[title] = os.path.join(
+                    scenario_input_path,
+                    "power",
+                    self.config["Power"][title]["csv_name"],
+                )
+        elif specific_sector == "Industry":
+            # Update csvs_dict with paths to industry csvs
+            for title in self.config["Industry"].keys():
+                csvs_dict[title] = os.path.join(
+                    scenario_input_path,
+                    "industry",
+                    self.config["Industry"][title]["csv_name"],
+                )
+        elif specific_sector == "Transport":
+            # Update csvs_dict with paths to transport csvs
+            for title in self.config["Transport"].keys():
+                csvs_dict[title] = os.path.join(
+                    scenario_input_path,
+                    "transport",
+                    self.config["Transport"][title]["csv_name"],
+                )
+        else:
+            st.error(f"Invalid specific_sector value: {specific_sector}")
+            return {}
 
-        # Update csvs_dict with paths to all global input csvs
-        for key, parts in self.csv_files_path_parts.items():
-            if key in self.csvs_dict:
-                self.csvs_dict[key].path = os.path.join(global_input_path, *parts)
-
-        # Update csvs_dict with paths to scenario-dependent power csvs
-        for key, parts in self.power_csv_files_path_parts.items():
-            if key in self.csvs_dict:
-                self.csvs_dict[key].path = os.path.join(scenario_input_path, *parts)
-
-        if self.optional_sector_csv_files_path_parts:
-            # Update csvs_dict with paths to optional sector csvs
-            for key, parts in self.optional_sector_csv_files_path_parts.items():
-                if key in self.csvs_dict:
-                    self.csvs_dict[key].path = os.path.join(scenario_input_path, *parts)
-
-        for key, csv_config in self.csvs_dict.items():
-            if not os.path.exists(csv_config.path):
-                st.error(f"{key} file not found at {csv_config.path}")
+        for key, csv_path in csvs_dict.items():
+            if not os.path.exists(csv_path):
+                st.error(f"{key} file not found at {csv_path}")
                 return {}
 
         dfs = {}
-        for names in self.csvs_dict.keys():
-            dfs[names + "_df"] = pd.read_csv(self.csvs_dict[names].path)
+        for names in csvs_dict.keys():
+            dfs[names + "_df"] = pd.read_csv(csvs_dict[names])
 
         return dfs
-
-    def reload_scenario_dfs(self, dfs: dict, selected_scenario: str) -> dict:
-        """Reload the scenario-related dataframes after user has selected a scenario.
-
-        Parameters
-        ----------
-        dfs : dict
-            Dictionary containing all the loaded dataframes.
-        selected_scenario : str
-            The scenario selected by the user.
-
-        Returns
-        -------
-        dict
-            Dictionary of all loaded dataframes with updated versions for the scenario-
-            dependent dataframes.
-        """
-        # Update csvs_dict with paths to scenario-dependent power csvs
-        for key in self.power_csv_files_path_parts.keys():
-            parts = self.power_csv_files_path_parts[key]
-            self.csvs_dict[key].path = os.path.join(
-                self.data_folder_path,
-                self.input_data_project,
-                "input",
-                selected_scenario,
-                *parts,
-            )
-
-        if self.optional_sector_csv_files_path_parts:
-            # Update csvs_dict with paths to optional sector csvs
-            for key in self.optional_sector_csv_files_path_parts.keys():
-                parts = self.optional_sector_csv_files_path_parts[key]
-                self.csvs_dict[key].path = os.path.join(
-                    self.data_folder_path,
-                    self.input_data_project,
-                    "input",
-                    selected_scenario,
-                    *parts,
-                )
-            scenario_df_keys = list(self.power_csv_files_path_parts.keys()) + list(
-                self.optional_sector_csv_files_path_parts.keys()
-            )
-        else:
-            scenario_df_keys = list(self.power_csv_files_path_parts.keys())
-
-        for names in scenario_df_keys:
-            dfs[names + "_df"] = pd.read_csv(self.csvs_dict[names].path)
-
-        return dfs
-
-
-@dataclass
-class CsvDictConfig:
-    """Configuration for different csvs."""
-
-    identifier: str
-    filter_col: str
-    title: str
-    filter_fn: Callable
-    uniform_unit: str | None = None
-    empty_df_fn: Callable | None = None
-    empty_df_kwargs: dict | None = None
-    path: str = ""  # Populate after user selections are made
-
-
-class InputUiHandler:
-    """Handler class for input UI."""
-
-    def __init__(self, year_list: list):
-        self.year_list = year_list
-        self.csvs_dict = {
-            "technologies": CsvDictConfig(
-                identifier="tech",
-                filter_col="technology",
-                title="Technology Parameters",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "availability": CsvDictConfig(
-                identifier="hourly_avail",
-                filter_col="technology",
-                title="Availability",
-                uniform_unit="Dimensionless",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "demand": CsvDictConfig(
-                identifier="hourly_demand",
-                filter_col="profile_type",
-                title="Demand Profiles",
-                uniform_unit="MW",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "pp_costs": CsvDictConfig(
-                identifier="powerplant_costs",
-                filter_col="powerplant_type",
-                title="Power Plant Costs",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "potentials": CsvDictConfig(
-                identifier="potentials",
-                filter_col="type",
-                title="Renewable Technical Potentials",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "storage_cost": CsvDictConfig(
-                identifier="storage_cost",
-                filter_col="storage_type",
-                title="Storage Costs",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "storage_inflows": CsvDictConfig(
-                identifier="hourly_storage_inflows",
-                filter_col="technology",
-                title="Storage Inflows",
-                uniform_unit="MW",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "decomission": CsvDictConfig(
-                identifier="decomission",
-                filter_col="name",
-                title="Decomissioning",
-                filter_fn=self.filter_df_decomission,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "fuel_costs": CsvDictConfig(
-                identifier="fuel",
-                filter_col="carrier",
-                title="Fuel Costs",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "interconnector": CsvDictConfig(
-                identifier="interconnector",
-                filter_col="type",
-                title="Interconnector",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "load": CsvDictConfig(
-                identifier="load",
-                filter_col="profile_type",
-                title="Load",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "generator": CsvDictConfig(
-                identifier="generator",
-                filter_col="type",
-                title="Assest Parameters - Generators",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "links": CsvDictConfig(
-                identifier="links",
-                filter_col="carrier",
-                title="Assest Parameters - Links",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "storageunit": CsvDictConfig(
-                identifier="storageunit",
-                filter_col="carrier",
-                title="Assest Parameters - StorageUnits",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-            "store": CsvDictConfig(
-                identifier="store",
-                filter_col="carrier",
-                title="Assest Parameters - Stores",
-                filter_fn=self.filter_df_generic,
-                empty_df_fn=self.empty_df_message_generic,
-            ),
-        }
 
     def create_editable_df(
         self,
@@ -348,7 +139,7 @@ class InputUiHandler:
         edited_df_key : str
             Unique key that references the edited df.
         has_changes_key : str
-            _description_
+            Key to session_state var for whether dataframe has changed.
 
         Returns
         -------
@@ -375,6 +166,7 @@ class InputUiHandler:
         )
 
         result_df = edited_df.replace({"inf": np.inf})
+
         # Validate float columns: only float or "inf" accepted
         for col in filtered_df.select_dtypes(include=[float]).columns:
             try:
@@ -451,80 +243,102 @@ class InputUiHandler:
             else:
                 st.error("Error saving some changes")
 
-    def set_up_single_tab_widget(
+    def set_up_df_with_charts(
         self,
-        csv_dict_key: str,
+        sector: str,
+        title: str,
         input_df: pd.DataFrame,
         selected_types: list,
-        input_csv_path: str,
-        selected_countries: list = None,
-        selected_classes: list | None = None,
-        secondary_df: pd.DataFrame | None = None,
+        selected_classes: list = None,
+        selected_countries: list | None = None,
     ):
-        """Set up the widget with a single tab.
+        """Set up the widget with a df and a chart (if it's enabled).
 
-        The tab contains the editable df and save
-        button that handles saving of the edited df.
+        First tab contains the editable df and save button. Second tab contains the
+        visualisation of the selected data if enabled.
 
         Parameters
         ----------
-        csv_dict_key : str
-            Key to the csv in csvs_dict.
+        sector : str
+            Global_input, Power, Industry, or Transport.
+        title : str
+            Title to the csv in the csvs_dict.
         input_df : pd.DataFrame
             The input dataframe.
-        selected_type : str
-            Technology type selected by the user.
-        input_csv_path : str
-            Path to the input csv.
-        selected_countries : list,
+        selected_types : list
+            Technology types selected by the user.
+        selected_classes : list
+            Class(es) selected by the user in the global class select widget.
+        selected_countries : list, optional
             Country(s) selected by the user in the global country select widget.
-        selected_class : list, optional
-            Class(es) associated with technologies selected by the user.
-        secondary_df : pd.DataFrame, optional
-            Additional df if needed (e.g., Availability may need Technologies.csv).
         """
-        csv_config = self.csvs_dict[csv_dict_key]
-        csv_identifier = csv_config.identifier
+        table_config = self.config[sector][title]
+        input_csv_path = (
+            self.base_input_path + sector.lower() + table_config["csv_name"]
+        )
+        csv_identifier = table_config["identifier"]
 
-        # Create session state var keys based on the current csv
         list_key = self.list_to_key(selected_types)
         edited_df_key = f"{csv_identifier}_editor_{list_key}"
         has_changes_key = f"has_changes_{csv_identifier}_{list_key}"
         save_button_key = f"save_{csv_identifier}_{list_key}"
 
-        filter_col = csv_config.filter_col
-        filtered_df = pd.DataFrame()
-        no_data_msg = None
-
-        if csv_dict_key == "fuel_costs":
-            if "Link" in selected_classes and secondary_df is not None:
-                fuels = self.get_fuel_mapping(secondary_df, selected_types)
-                filtered_df = csv_config.filter_fn(
-                    input_df, filter_col, list(fuels.values())
-                )
-            else:
-                no_data_msg = (
-                    f"No fuel costs for technologies: {', '.join(selected_types)}"
-                )
-
+        if table_config["tag_name"] == "decommission":
+            filtered_df = self.filter_df_decommission(
+                df=input_df,
+                filter_col=table_config["filter_col"],
+                selected_types=selected_types,
+            )
+        elif table_config["tag_name"] == "fuel_costs":
+            if "Link" in selected_classes:
+                fuels = self.get_fuel_mapping(selected_types)
+            filtered_df = self.filter_df_generic(
+                df=input_df,
+                filter_col=table_config["filter_col"],
+                selected_types=list(fuels.values()),
+            )
+        elif table_config["tag_name"] == "direct_air_capture":
+            filtered_df = input_df
         else:
-            filtered_df = csv_config.filter_fn(input_df, filter_col, selected_types)
+            filtered_df = self.filter_df_generic(
+                df=input_df,
+                filter_col=table_config["filter_col"],
+                selected_types=selected_types,
+            )
 
         if selected_countries and "country" in filtered_df.columns:
             filtered_df = filtered_df[filtered_df["country"].isin(selected_countries)]
 
         with st.container(border=True):
-            st.write(f"### {csv_config.title}")
+            st.write(f"### {title}")
 
             path_to_display = os.path.normpath(input_csv_path)
+            if table_config["tag_name"] == "availability" and filtered_df.empty:
+                path_to_display = path_to_display.replace(
+                    "Availability", "Technologies"
+                )
+
             st.markdown(
                 f"<small><i>{path_to_display}</i></small>", unsafe_allow_html=True
             )
 
             if not filtered_df.empty:
-                edited_df, to_save = self.create_editable_df(
-                    filtered_df, edited_df_key, has_changes_key
-                )
+                if table_config["with_charts"]:
+                    tab1, tab2 = st.tabs(["Table", "Visualisation"])
+
+                    with tab1:
+                        edited_df, to_save = self.create_editable_df(
+                            filtered_df,
+                            edited_df_key,
+                            has_changes_key,
+                        )
+
+                    with tab2:
+                        self.visualise_data(filtered_df, table_config)
+                else:
+                    edited_df, to_save = self.create_editable_df(
+                        filtered_df, edited_df_key, has_changes_key
+                    )
 
                 has_changes = st.session_state.get(has_changes_key, False)
 
@@ -538,110 +352,8 @@ class InputUiHandler:
                         input_csv_path,
                         message_delay=1,
                     )
-
-            elif no_data_msg:
-                st.info(no_data_msg)
-            elif csv_config.empty_df_fn:
-                # Fallback if defined in csvs_config
-                kwargs = dict(csv_config.empty_df_kwargs or {})
-                csv_config.empty_df_fn(**kwargs)
-
-    def set_up_double_tab_widget(
-        self,
-        csv_dict_key: str,
-        input_df: pd.DataFrame,
-        selected_types: list,
-        input_csv_path: str,
-        selected_countries: list = None,
-        secondary_df: pd.DataFrame | None = None,
-    ):
-        """Set up the widget with a double tab.
-
-        First tab contains the editable df and save button. Second tab contains the
-        visualisation of the selected data.
-
-        Parameters
-        ----------
-        csv_dict_key : str
-            Key to the csv in the csvs_dict.
-        input_df : pd.DataFrame
-            The input dataframe.
-        selected_type : str
-            Technology type selected by the user.
-        input_csv_path : str
-            Path to the input csv.
-        selected_countries : list, optional
-            Country(s) selected by the user in the global country select widget.
-        secondary_df : pd.DataFrame, optional
-            Additional df if needed (e.g., Availability may need technologies.csv).
-        """
-        csv_config = self.csvs_dict[csv_dict_key]
-
-        csv_identifier = csv_config.identifier
-
-        list_key = self.list_to_key(selected_types)
-        edited_df_key = f"{csv_identifier}_editor_{list_key}"
-        has_changes_key = f"has_changes_{csv_identifier}_{list_key}"
-        save_button_key = f"save_{csv_identifier}_{list_key}"
-
-        filter_col = csv_config.filter_col
-        filtered_df = csv_config.filter_fn(
-            input_df,
-            filter_col,
-            selected_types,
-        )
-
-        if selected_countries and "country" in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df["country"].isin(selected_countries)]
-
-        with st.container(border=True):
-            st.write(f"### {csv_config.title}")
-
-            path_to_display = os.path.normpath(input_csv_path)
-            if csv_dict_key == "availability" and filtered_df.empty:
-                path_to_display = path_to_display.replace(
-                    "Availability", "Technologies"
-                )
-
-            st.markdown(
-                f"<small><i>{path_to_display}</i></small>", unsafe_allow_html=True
-            )
-
-            if not filtered_df.empty:
-                tab1, tab2 = st.tabs(["Table", "Visualisation"])
-
-                with tab1:
-                    edited_df, to_save = self.create_editable_df(
-                        filtered_df,
-                        edited_df_key,
-                        has_changes_key,
-                    )
-
-                    has_changes = st.session_state.get(has_changes_key, False)
-
-                with tab2:
-                    self.visualise_data(filtered_df, csv_config)
-
-                if to_save:
-                    self.create_save_button(
-                        filtered_df,
-                        edited_df,
-                        has_changes,
-                        has_changes_key,
-                        save_button_key,
-                        input_csv_path,
-                        message_delay=1,
-                    )
             else:
-                kwargs = dict(csv_config.empty_df_kwargs or {})
-                if csv_dict_key == "availability":
-                    kwargs.update(
-                        {
-                            "tech_df": secondary_df,
-                            "selected_types": selected_types,
-                        }
-                    )
-                csv_config.empty_df_fn()
+                self.empty_df_message_generic()
 
     def get_tech_mapping(self):
         """Load the technology mapping csv."""
@@ -692,7 +404,7 @@ class InputUiHandler:
         """
         return df[df[filter_col].isin(selected_types)]
 
-    def filter_df_decomission(
+    def filter_df_decommission(
         self,
         df: pd.DataFrame,
         filter_col: str,
@@ -724,13 +436,13 @@ class InputUiHandler:
         )
         st.info(info_message)
 
-    def visualise_data(self, df: pd.DataFrame, csv_config: CsvDictConfig):
+    def visualise_data(self, df: pd.DataFrame, table_config):
         """Visualise cost data with a line graph.
 
         Parameters
         ----------
-        csv_config : CsvDictConfig
-            The csv configuration containing the csv identifier and other settings.
+        table_config : dict
+            The table configuration containing the table identifier and other settings.
         df : pd.DataFrame
             The dataframe already filtered by technology type.
         """
@@ -740,9 +452,9 @@ class InputUiHandler:
             zip(tech_mapping["original_names"], tech_mapping["hex_codes"])
         )
         name_map = dict(zip(tech_mapping["original_names"], tech_mapping["nice_names"]))
-
+        identifier = table_config["identifier"]
         countries = df["country"].unique()
-        country_select_key = f"country_select_key{csv_config.identifier}"
+        country_select_key = f"country_select_key_{identifier}"
 
         selected_country = st.pills(
             "Select a country",
@@ -754,8 +466,10 @@ class InputUiHandler:
 
         filtered_df = df[df["country"] == selected_country]
 
-        if "hourly" in csv_config.identifier:
-            filtered_df = self.resample_to_monthly(filtered_df, csv_config.filter_col)
+        if "hourly" in identifier:
+            filtered_df = self.resample_to_monthly(
+                filtered_df, table_config["filter_col"]
+            )
             start_date = dt.date(self.year_list[0], 1, 1)
             end_date = dt.date(self.year_list[0], 12, 31)
             selected_range = st.date_input(
@@ -763,31 +477,40 @@ class InputUiHandler:
                 value=(start_date, end_date),
                 min_value=start_date,
                 max_value=end_date,
-                key=f"{csv_config.identifier}_date_range_{selected_country}",
+                key=f"{identifier}_date_range_{selected_country}",
             )
 
             selected_tech = st.selectbox(
                 "Select specific technology",
-                options=filtered_df[csv_config.filter_col].unique(),
+                options=filtered_df[table_config["filter_col"]].unique(),
                 index=0,
                 key=(
-                    f"{csv_config.identifier}_tech_select_{csv_config.filter_col}"
+                    f"{identifier}_tech_select_{table_config["filter_col"]}"
                     f"_{selected_country}"
                 ),
             )
 
-            start_month, end_month = selected_range[0].month, selected_range[1].month
+            if isinstance(selected_range, tuple) and len(selected_range) == 2:
+                start_month, end_month = (
+                    selected_range[0].month,
+                    selected_range[1].month,
+                )
+            else:
+                st.error(
+                    "Please select a valid date range with both start and end dates."
+                )
+                return
             filtered_df = filtered_df[
                 (filtered_df["month"] >= start_month)
                 & (filtered_df["month"] <= end_month)
-                & (filtered_df[csv_config.filter_col] == selected_tech)
+                & (filtered_df[table_config["filter_col"]] == selected_tech)
             ]
 
             x = "month"
             leg_col = "node"
         else:
             x = "year"
-            leg_col = csv_config.filter_col
+            leg_col = table_config["filter_col"]
 
         y_options = [
             col
@@ -803,16 +526,16 @@ class InputUiHandler:
             "Legend column",
             options=y_options,
             index=0,
-            key=f"{csv_config.identifier}_legend_col_{selected_country}",
+            key=f"{identifier}_legend_col_{selected_country}",
         )
-
-        labels = [csv_config.uniform_unit if csv_config.uniform_unit else y]
+        label = table_config.get("uniform_unit") or y
+        labels = ({y: label},)
 
         fig = px.line(
             filtered_df,
             x=x,
             y=y,
-            labels={y: labels[0]},
+            labels=labels,
             color=leg_col,
             color_discrete_map=colour_map,
         )
@@ -824,7 +547,7 @@ class InputUiHandler:
         )
         fig.update_yaxes(range=[0, 1.2 * filtered_df[y].max()])
 
-        chart_key = f"plot_{csv_config.identifier}_{selected_country}_{x}_{y}_{leg_col}"
+        chart_key = f"plot_{identifier}_{selected_country}_{x}_{y}_{leg_col}"
         st.plotly_chart(fig, width="stretch", key=chart_key)
 
     def resample_to_monthly(self, df: pd.DataFrame, leg_col: str) -> pd.DataFrame:
@@ -833,7 +556,7 @@ class InputUiHandler:
         Parameters
         ----------
         df : pd.DataFrame
-            Input df to resample. Assumes country, node, and techology columns in
+            Input df to resample. Assumes country, node, and technology columns in
             addition to the hourly data.
 
         Returns
@@ -868,14 +591,12 @@ class InputUiHandler:
 
         return df_monthly
 
-    def get_fuel_mapping(self, tech_df: pd.DataFrame, selected_types: str) -> dict:
+    def get_fuel_mapping(self, selected_types: list) -> dict:
         """Get mapping of technology types to their carriers.
 
         Parameters
         ----------
-        tech_df : pd.DataFrame
-            Dataframe containing technology data.
-        selected_types : str
+        selected_types : list
             Selected technology hash string from list_to_key.
 
         Returns
@@ -883,6 +604,12 @@ class InputUiHandler:
         dict
             Dictionary of technology type to carrier.
         """
+        tech_path = os.path.join(
+            self.base_input_path,
+            "global_input",
+            self.config["Global_input"]["Technologies"]["csv_name"],
+        )
+        tech_df = pd.read_csv(tech_path)
         type_to_carrier = (
             tech_df.loc[
                 tech_df["technology"].isin(selected_types), ["technology", "carrier"]
@@ -910,7 +637,7 @@ class InputUiHandler:
                 temp_file,
             ):
                 reader = csv.DictReader(csvfile)
-                fieldnames = reader.fieldnames
+                fieldnames = reader.fieldnames or []
                 writer = csv.DictWriter(temp_file, fieldnames=fieldnames)
                 writer.writeheader()
 

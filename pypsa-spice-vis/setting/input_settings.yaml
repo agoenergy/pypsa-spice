@@ -1,0 +1,191 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# coding: utf-8
+
+Static:
+  Global_input:
+    EV_parameters:
+      tag_name: "ev_parameters"
+      csv_name: "ev_parameters.csv"
+      with_charts: False
+      identifier: "ev_parameters"
+      filter_col: "technology_nomenclature"
+      uniform_unit: "N/A"
+    Power_plant_costs:
+      tag_name: "pp_costs"
+      csv_name: "power_plant_costs.csv"
+      with_charts: True
+      identifier: "pp_costs"
+      filter_col: "powerplant_type"
+    Renewables_technical_potentials:
+      tag_name: "potentials"
+      csv_name: "renewables_technical_potential.csv"
+      with_charts: False
+      identifier: "potentials"
+      filter_col: "type"
+      uniform_unit: "MW"
+    Storage_costs:
+      tag_name: "storage_cost"
+      csv_name: "storage_costs.csv"
+      with_charts: True
+      identifier: "storage_cost"
+      filter_col: "storage_type"
+    Technologies:
+      tag_name: "technologies"
+      csv_name: "technologies.csv"
+      with_charts: False
+      identifier: "technologies"
+      filter_col: "technology"
+
+  Power:
+    Power_decommission:
+      tag_name: "power_decommission"
+      csv_name: "decommission_capacity.csv"
+      with_charts: False
+      identifier: "power_decommission"
+      filter_col: "name"
+    Fuel_costs:
+      tag_name: "fuel_costs"
+      csv_name: "fuel_supplies.csv"
+      with_charts: True
+      identifier: "fuel_costs"
+      filter_col: "carrier"
+    Power_loads:
+      tag_name: "power_load"
+      csv_name: "loads.csv"
+      with_charts: True
+      identifier: "power_load"
+      filter_col: "profile_type"
+    Power_generators:
+      tag_name: "power_generators"
+      csv_name: "power_generators.csv"
+      with_charts: False
+      identifier: "power_generators"
+      filter_col: "type"
+    Power_links:
+      tag_name: "links"
+      csv_name: "power_links.csv"
+      with_charts: False
+      identifier: "power_links"
+      filter_col: "carrier"
+    Storage_units:
+      tag_name: "power_storageunit"
+      csv_name: "storage_capacity.csv"
+      with_charts: False
+      identifier: "storageunit"
+      filter_col: "carrier"
+    Stores:
+      tag_name: "power_store"
+      csv_name: "storage_energy.csv"
+      with_charts: False
+      identifier: "power_store"
+      filter_col: "carrier"
+
+  Grids:
+    Interconnectors:
+      tag_name: "interconnectors"
+      csv_name: "interconnector.csv"
+      with_charts: False
+      identifier: "interconnectors"
+      filter_col: "type"
+
+  Industry:
+    Industry_decommission:
+      tag_name: "industry_decommission"
+      csv_name: "decommission_capacity.csv"
+      with_charts: False
+      identifier: "industry_decommission"
+      filter_col: "name"
+    Direct_air_capture:
+      tag_name: "direct_air_capture"
+      csv_name: "decommission_capacity.csv"
+      with_charts: False
+      identifier: "dac"
+      filter_col: "type"
+    Fuel_conversion:
+      tag_name: "fuel_conversion"
+      csv_name: "fuel_conversion.csv"
+      with_charts: False
+      identifier: "fuel_conversion"
+      filter_col: "carrier"
+    Heat_loads:
+      tag_name: "load"
+      csv_name: "loads.csv"
+      with_charts: False
+      identifier: "heat_load"
+      filter_col: "profile_type"
+    Heat_generators:
+      tag_name: "heat_generators"
+      csv_name: "heat_generators.csv"
+      with_charts: False
+      identifier: "heat_generators"
+      filter_col: "type"
+    Heat_links:
+      tag_name: "heat_links"
+      csv_name: "heat_links.csv"
+      with_charts: False
+      identifier: "heat_links"
+      filter_col: "carrier"
+    Industry_storage_units:
+      tag_name: "industry_storageunit"
+      csv_name: "storage_capacity.csv"
+      with_charts: False
+      identifier: "industry_storageunit"
+      filter_col: "carrier"
+    Industry_stores:
+      tag_name: "industry_store"
+      csv_name: "storage_energy.csv"
+      with_charts: False
+      identifier: "industry_store"
+      filter_col: "carrier"
+
+  Transport:
+    Transport_load:
+      tag_name: "transport_load"
+      csv_name: "loads.csv"
+      with_charts: False
+      identifier: "transport_load"
+      filter_col: "profile_type"
+    Transport_chargers:
+      tag_name: "pev_chargers"
+      csv_name: "pev_chargers.csv"
+      with_charts: False
+      identifier: "pev_chargers"
+      filter_col: "type"
+    Transport_storages:
+      tag_name: "pev_storages"
+      csv_name: "pev_storages.csv"
+      with_charts: False
+      identifier: "pev_storages"
+      filter_col: "type"
+
+Time_series:
+  Global_input:
+    Availability:
+      tag_name: "availability"
+      sector: "global_input"
+      csv_name: "availability.csv"
+      with_charts: True
+      identifier: "hourly_avail"
+      filter_col: "technology"
+      uniform_unit: "Dimensionless"
+
+    Demand_Profiles:
+      tag_name: "demand"
+      sector: "global_input"
+      csv_name: "demand_profile.csv"
+      with_charts: True
+      identifier: "hourly_demand"
+      filter_col: "profile_type"
+      uniform_unit: "MW"
+      
+    Storage_inflows:
+      tag_name: "storage_inflows"
+      sector: "global_input"
+      csv_name: "storage_inflows.csv"
+      with_charts: True
+      identifier: "hourly_storage_inflows"
+      filter_col: "technology"
+      uniform_unit: "MW"
