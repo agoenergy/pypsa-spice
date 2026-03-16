@@ -360,8 +360,8 @@ def slugify_text(text: str):
 
 
 def render_countries_n_scenario_pills(
-    get_params, all_countries: str, key: str
-) -> tuple | None:
+    get_params, all_countries: list, key: str
+) -> tuple:
     """Render country andscenario selector and sync selected value to session state."""
     col11, col12 = st.columns([1, 1])
 
@@ -385,9 +385,6 @@ def render_countries_n_scenario_pills(
             st.session_state.scenario = (
                 scenario_options[0] if scenario_options else None
             )
-
-        if not scenario_options:
-            return None
 
         selected_scenario = st.pills(
             "Select Scenario:",
@@ -426,11 +423,10 @@ def render_widgets_from_config(
         extra_kwargs = extra_kwargs_fn(render_context) if extra_kwargs_fn else {}
 
         csv_key = widget_config["csv_key"]
-        df_key = widget_config["df_key"]
 
         render_fn(
             csv_key,
-            render_context["dfs"][df_key],
+            render_context["dfs"][csv_key + "_df"],
             render_context["selected_types"],
             csvs_dict[csv_key].path,
             render_context["selected_countries"],

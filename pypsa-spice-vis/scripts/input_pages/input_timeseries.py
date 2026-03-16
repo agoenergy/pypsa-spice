@@ -7,8 +7,10 @@
 import pandas as pd
 import streamlit as st
 
-from scripts.data_utils import (render_countries_n_scenario_pills,
-                                render_widgets_from_config)
+from scripts.data_utils import (
+    render_countries_n_scenario_pills,
+    render_widgets_from_config,
+)
 from scripts.input_st_handler import DataFrameWidgetsHandler
 
 pd.set_option("future.no_silent_downcasting", True)
@@ -17,21 +19,16 @@ pd.set_option("future.no_silent_downcasting", True)
 TIMESERIES_SUPPLY_WIDGETS = [
     {
         "csv_key": "availability",
-        "df_key": "avail_df",
         "widget": "double",
         "extra_kwargs": lambda render_context: {
-            "secondary_df": render_context["dfs"]["tech_df"]
+            "secondary_df": render_context["dfs"]["technologies_df"]
         },
     },
-    {
-        "csv_key": "storage_inflows",
-        "df_key": "storage_inflows_df",
-        "widget": "double",
-    },
+    {"csv_key": "storage_inflows", "widget": "double"},
 ]
 
 TIMESERIES_DEMAND_WIDGETS = [
-    {"csv_key": "demand", "df_key": "demand_df", "widget": "double"},
+    {"csv_key": "demand", "widget": "double"},
 ]
 
 
@@ -43,17 +40,9 @@ def main(get_params):
     if not dfs:
         return
 
-    all_countries = set()
-    for df in [
-        dfs["avail_df"],
-        dfs["demand_df"],
-        dfs["load_df"],
-        dfs["storage_inflows_df"],
-    ]:
-        all_countries.update(get_params.get_country_list(df))
+    all_countries = get_params.init_config["base_configs"]["regions"].keys()
 
-    st.header(":material/bolt: Power")
-
+    st.header("Supply Profiles")
     selected_countries, selected_scenario = render_countries_n_scenario_pills(
         get_params=get_params,
         all_countries=all_countries,
@@ -62,12 +51,10 @@ def main(get_params):
 
     df_widgets_handler.reload_scenario_dfs(dfs, selected_scenario)
 
-    st.subheader("Supply Profiles")
+    tech_df = dfs["technologies_df"]
 
-    types = get_params.get_mapping_list(dfs["tech_df"])
-    tech_mapping = dict(
-        zip(dfs["tech_df"]["technology"], dfs["tech_df"]["technology_nomenclature"])
-    )
+    types = get_params.get_mapping_list(tech_df)
+    tech_mapping = dict(zip(tech_df["technology"], tech_df["technology_nomenclature"]))
     types_full_names = [tech_mapping.get(t, t) for t in types]
     types_full_names.sort()
     reverse_mapping = {v: k for k, v in tech_mapping.items()}
@@ -98,7 +85,7 @@ def main(get_params):
         render_context=supply_render_context,
     )
 
-    st.subheader("Demand Profiles")
+    st.header("Demand Profiles")
 
     load_mapping = {
         "HV_LOAD": "Wholesale market load (High voltage level)",

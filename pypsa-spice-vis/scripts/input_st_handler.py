@@ -39,26 +39,20 @@ class DataFrameWidgetsHandler:
 
         self.input_data_project = project_folders[0]
 
-        self.scenario_input_file_keys = [
-            "decomission",
-            "fuel_costs",
-            "interconnector",
-            "load",
-            "generator",
-            "links",
-            "storageunit",
-            "store",
-        ]
-
-        # Path parts to all the csvs
+        # Global input csvs
         self.csv_files_path_parts = {
-            "technologies": ["technologies.csv"],
             "availability": ["availability.csv"],
             "demand": ["demand_profile.csv"],
+            "ev_params": ["ev_parameters.csv"],
             "pp_costs": ["power_plant_costs.csv"],
             "potentials": ["renewables_technical_potential.csv"],
             "storage_cost": ["storage_costs.csv"],
             "storage_inflows": ["storage_inflows.csv"],
+            "technologies": ["technologies.csv"],
+        }
+
+        # Power input csvs remain flat because current pages expect flat csvs_dict/dfs
+        self.power_csv_files_path_parts = {
             "decomission": ["power", "decomission_capacity.csv"],
             "fuel_costs": ["power", "fuel_supplies.csv"],
             "interconnector": ["power", "interconnector.csv"],
@@ -68,6 +62,42 @@ class DataFrameWidgetsHandler:
             "storageunit": ["power", "storage_capacity.csv"],
             "store": ["power", "storage_energy.csv"],
         }
+
+        self.optional_sector_csv_files_path_parts = {}
+
+        sectors = self.get_params.init_config["base_configs"]["sector"]
+        self.has_industry_sector = (
+            "i" in sectors
+            if isinstance(sectors, str)
+            else any("i" in sector for sector in sectors)
+        )
+        if self.has_industry_sector:
+            self.optional_sector_csv_files_path_parts.update(
+                {
+                    "ind_decomission": ["industry", "decomission_capacity.csv"],
+                    "dac": ["industry", "direct_air_capture.csv"],
+                    "fuel_conversion": ["industry", "fuel_conversion.csv"],
+                    "ind_load": ["industry", "loads.csv"],
+                    "ind_generator": ["industry", "heat_generators.csv"],
+                    "ind_links": ["industry", "heat_links.csv"],
+                    "ind_storageunit": ["industry", "storage_capacity.csv"],
+                    "ind_store": ["industry", "storage_energy.csv"],
+                }
+            )
+
+        self.has_transport_sector = (
+            "t" in sectors
+            if isinstance(sectors, str)
+            else any("t" in sector for sector in sectors)
+        )
+        if self.has_transport_sector:
+            self.optional_sector_csv_files_path_parts.update(
+                {
+                    "tra_load": ["transport", "loads.csv"],
+                    "tra_chragers": ["transport", "pev_chargers.csv"],
+                    "tra_storages": ["transport", "pev_storages.csv"],
+                }
+            )
 
     def load_all_dfs(self) -> dict:
         """Load all the dataframes.
@@ -96,38 +126,30 @@ class DataFrameWidgetsHandler:
 
         scenario_input_path = os.path.join(base_input_path, sub_folder)
 
-        # Update csvs_dict with paths to all csvs
+        # Update csvs_dict with paths to all global input csvs
         for key, parts in self.csv_files_path_parts.items():
             if key in self.csvs_dict:
-                base_folder = (
-                    scenario_input_path
-                    if key in self.scenario_input_file_keys
-                    else global_input_path
-                )
-                self.csvs_dict[key].path = os.path.join(base_folder, *parts)
+                self.csvs_dict[key].path = os.path.join(global_input_path, *parts)
+
+        # Update csvs_dict with paths to scenario-dependent power csvs
+        for key, parts in self.power_csv_files_path_parts.items():
+            if key in self.csvs_dict:
+                self.csvs_dict[key].path = os.path.join(scenario_input_path, *parts)
+
+        if self.optional_sector_csv_files_path_parts:
+            # Update csvs_dict with paths to optional sector csvs
+            for key, parts in self.optional_sector_csv_files_path_parts.items():
+                if key in self.csvs_dict:
+                    self.csvs_dict[key].path = os.path.join(scenario_input_path, *parts)
 
         for key, csv_config in self.csvs_dict.items():
             if not os.path.exists(csv_config.path):
                 st.error(f"{key} file not found at {csv_config.path}")
                 return {}
 
-        dfs = {
-            "tech_df": pd.read_csv(self.csvs_dict["technologies"].path),
-            "avail_df": pd.read_csv(self.csvs_dict["availability"].path),
-            "demand_df": pd.read_csv(self.csvs_dict["demand"].path),
-            "pp_costs_df": pd.read_csv(self.csvs_dict["pp_costs"].path),
-            "potentials_df": pd.read_csv(self.csvs_dict["potentials"].path),
-            "storage_cost_df": pd.read_csv(self.csvs_dict["storage_cost"].path),
-            "storage_inflows_df": pd.read_csv(self.csvs_dict["storage_inflows"].path),
-            "decomission_capacity_df": pd.read_csv(self.csvs_dict["decomission"].path),
-            "fuel_costs_df": pd.read_csv(self.csvs_dict["fuel_costs"].path),
-            "intercon_df": pd.read_csv(self.csvs_dict["interconnector"].path),
-            "load_df": pd.read_csv(self.csvs_dict["load"].path),
-            "generator_df": pd.read_csv(self.csvs_dict["generator"].path),
-            "links_df": pd.read_csv(self.csvs_dict["links"].path),
-            "storageunit_df": pd.read_csv(self.csvs_dict["storageunit"].path),
-            "store_df": pd.read_csv(self.csvs_dict["store"].path),
-        }
+        dfs = {}
+        for names in self.csvs_dict.keys():
+            dfs[names + "_df"] = pd.read_csv(self.csvs_dict[names].path)
 
         return dfs
 
@@ -147,9 +169,9 @@ class DataFrameWidgetsHandler:
             Dictionary of all loaded dataframes with updated versions for the scenario-
             dependent dataframes.
         """
-        # Update csvs_dict with new paths based on selected scenario
-        for key in self.scenario_input_file_keys:
-            parts = self.csv_files_path_parts[key]
+        # Update csvs_dict with paths to scenario-dependent power csvs
+        for key in self.power_csv_files_path_parts.keys():
+            parts = self.power_csv_files_path_parts[key]
             self.csvs_dict[key].path = os.path.join(
                 self.data_folder_path,
                 self.input_data_project,
@@ -158,8 +180,25 @@ class DataFrameWidgetsHandler:
                 *parts,
             )
 
-        for key in self.scenario_input_file_keys:
-            dfs[f"{key}_df"] = pd.read_csv(self.csvs_dict[key].path)
+        if self.optional_sector_csv_files_path_parts:
+            # Update csvs_dict with paths to optional sector csvs
+            for key in self.optional_sector_csv_files_path_parts.keys():
+                parts = self.optional_sector_csv_files_path_parts[key]
+                self.csvs_dict[key].path = os.path.join(
+                    self.data_folder_path,
+                    self.input_data_project,
+                    "input",
+                    selected_scenario,
+                    *parts,
+                )
+            scenario_df_keys = list(self.power_csv_files_path_parts.keys()) + list(
+                self.optional_sector_csv_files_path_parts.keys()
+            )
+        else:
+            scenario_df_keys = list(self.power_csv_files_path_parts.keys())
+
+        for names in scenario_df_keys:
+            dfs[names + "_df"] = pd.read_csv(self.csvs_dict[names].path)
 
         return dfs
 
