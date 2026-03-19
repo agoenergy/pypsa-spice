@@ -90,8 +90,8 @@ class DataFrameWidgetsHandler:
                 return {}
 
         dfs = {}
-        for names in csvs_dict.keys():
-            dfs[names + "_df"] = pd.read_csv(csvs_dict[names])
+        for name, csv_path in csvs_dict.items():
+            dfs[f"{name}_df"] = pd.read_csv(csv_path)
 
         return dfs
 
@@ -217,11 +217,12 @@ class DataFrameWidgetsHandler:
     def set_up_df_with_charts(
         self,
         title: str,
-        input_df: pd.DataFrame,
         selected_types: list,
+        input_df: pd.DataFrame | None = None,
         sector: str | None = None,
         selected_classes: list | None = None,
         selected_countries: list | None = None,
+        selected_scenario: str | None = None,
     ):
         """Set up the widget with a df and a chart (if it's enabled).
 
@@ -245,16 +246,11 @@ class DataFrameWidgetsHandler:
         """
         selected_classes = selected_classes or []
 
-        if sector:
-            table_config = self.input_config[sector][title]
-            input_csv_path = (
-                self.base_input_path + sector.lower() + table_config["csv_name"]
-            )
-        else:
-            table_config = self.input_config["Global_input"][title]
-            input_csv_path = (
-                self.base_input_path + "/global_input/" + table_config["csv_name"]
-            )
+        table_config, input_csv_path = self.find_table_config_and_path(
+            title=title,
+            sector=sector,
+            selected_scenario=selected_scenario,
+        )
 
         csv_identifier = table_config["identifier"]
 
@@ -269,44 +265,51 @@ class DataFrameWidgetsHandler:
         has_changes_key = f"has_changes_{title}_{csv_identifier}_{widget_scope}"
         save_button_key = f"save_{title}_{csv_identifier}_{widget_scope}"
 
-        if table_config["tag_name"] == "decommission":
-            filtered_df = self.filter_df_decommission(
-                df=input_df,
-                filter_col=table_config["filter_col"],
-                selected_types=selected_types,
-            )
-        elif table_config["tag_name"] == "fuel_costs":
-            if "Link" in selected_classes:
-                fuels = self.get_fuel_mapping(selected_types)
-            filtered_df = self.filter_df_generic(
-                df=input_df,
-                filter_col=table_config["filter_col"],
-                selected_types=list(fuels.values()),
-            )
-        elif table_config["tag_name"] == "direct_air_capture":
-            filtered_df = input_df
-        else:
-            filtered_df = self.filter_df_generic(
-                df=input_df,
-                filter_col=table_config["filter_col"],
-                selected_types=selected_types,
-            )
-
-        if selected_countries and "country" in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df["country"].isin(selected_countries)]
-
         with st.expander(f"{title}"):
             st.write(f"### {title}")
 
             path_to_display = os.path.normpath(input_csv_path)
-            if table_config["tag_name"] == "availability" and filtered_df.empty:
-                path_to_display = path_to_display.replace(
-                    "Availability", "Technologies"
-                )
 
             st.markdown(
                 f"<small><i>{path_to_display}</i></small>", unsafe_allow_html=True
             )
+
+            if input_df is None:
+                if not os.path.exists(input_csv_path):
+                    st.error(f"File not found: {input_csv_path}")
+                    return
+                input_df = pd.read_csv(input_csv_path)
+
+            if table_config["tag_name"] == "decommission":
+                filtered_df = self.filter_df_decommission(
+                    df=input_df,
+                    filter_col=table_config["filter_col"],
+                    selected_types=selected_types,
+                )
+            elif table_config["tag_name"] == "fuel_costs":
+                fuels = (
+                    self.get_fuel_mapping(selected_types)
+                    if "Link" in selected_classes
+                    else {}
+                )
+                filtered_df = self.filter_df_generic(
+                    df=input_df,
+                    filter_col=table_config["filter_col"],
+                    selected_types=list(fuels.values()),
+                )
+            elif table_config["tag_name"] == "direct_air_capture":
+                filtered_df = input_df
+            else:
+                filtered_df = self.filter_df_generic(
+                    df=input_df,
+                    filter_col=table_config["filter_col"],
+                    selected_types=selected_types,
+                )
+
+            if selected_countries and "country" in filtered_df.columns:
+                filtered_df = filtered_df[
+                    filtered_df["country"].isin(selected_countries)
+                ]
 
             if not filtered_df.empty:
                 if table_config["with_charts"]:
@@ -340,6 +343,44 @@ class DataFrameWidgetsHandler:
                     )
             else:
                 self.empty_df_message_generic()
+
+    def find_table_config_and_path(
+        self,
+        title: str,
+        sector: str | None,
+        selected_scenario: str | None = None,
+    ) -> tuple[dict, str]:
+        """Find table config and CSV path for a section."""
+        if not sector or sector == "Global_input":
+            table_config = self.input_config["Global_input"][title]
+            input_csv_path = os.path.join(
+                self.base_input_path,
+                "global_input",
+                table_config["csv_name"],
+            )
+            return table_config, input_csv_path
+
+        table_config = self.input_config[sector][title]
+
+        if sector in {"Power", "Industry", "Transport"}:
+            scenario_name = (
+                selected_scenario
+                or self.base_config["path_configs"]["input_scenario_name"]
+            )
+            input_csv_path = os.path.join(
+                self.base_input_path,
+                scenario_name,
+                sector.lower(),
+                table_config["csv_name"],
+            )
+        else:
+            input_csv_path = os.path.join(
+                self.base_input_path,
+                sector.lower(),
+                table_config["csv_name"],
+            )
+
+        return table_config, input_csv_path
 
     def get_tech_mapping(self):
         """Load the technology mapping csv."""

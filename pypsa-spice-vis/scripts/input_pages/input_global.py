@@ -20,7 +20,6 @@ from scripts.input_st_handler import DataFrameWidgetsHandler
 def render_demand_profiles_widget(
     sector_selected_countries: list,
     df_widgets_handler: DataFrameWidgetsHandler,
-    demand_profile_df: pd.DataFrame,
     specify_sector: str,
 ):
     """Render demand profile section."""
@@ -38,7 +37,7 @@ def render_demand_profiles_widget(
         "Transport": ["HPV_LOAD", "LPV_LOAD"],
     }
     default_profile_keys = [
-        p for p in default_by_sector.get(specify_sector) if p in load_mapping
+        p for p in default_by_sector.get(specify_sector, []) if p in load_mapping
     ]
     default_profile_selection = [load_mapping[p] for p in default_profile_keys]
 
@@ -52,10 +51,13 @@ def render_demand_profiles_widget(
     selected_profile_label = st.session_state.get("timeseries_demand_type")
     selected_profile_key = reverse_load_mapping.get(selected_profile_label)
 
+    if selected_profile_key is None:
+        st.info("Select a demand profile type to load data.")
+        return
+
     df_widgets_handler.set_up_df_with_charts(
         sector="Global_input",
         title="Demand_Profiles",
-        input_df=demand_profile_df,
         selected_types=[selected_profile_key],
         selected_countries=sector_selected_countries,
     )
@@ -77,6 +79,10 @@ if __name__ == "__main__":
     else:
         SECTOR_TITLE = ":material/directions_car: Transport"
 
+    # =============================================================================
+    # Global input
+    # =============================================================================
+
     st.subheader(":globe_with_meridians: Global input  | " + SECTOR_TITLE)
 
     sector_lower = selected_sector.lower()
@@ -86,11 +92,6 @@ if __name__ == "__main__":
             all_countries=all_countries,
             key=f"{sector_lower}_global_pills",
         )
-    )
-
-    # Reload dfs
-    dfs = df_widgets_handler.load_all_dfs(
-        selected_scenario=sector_selected_scenario, specify_sector="Global_input"
     )
 
     tech_path = os.path.join(
@@ -107,12 +108,16 @@ if __name__ == "__main__":
     for title in input_config["Global_input"].keys():
         if not input_config["Global_input"][title].get("timeseries"):
             df_widgets_handler.set_up_df_with_charts(
+                sector="Global_input",
                 title=title,
-                input_df=dfs[title + "_df"],
                 selected_types=sector_selected_types,
                 selected_classes=sector_selected_classes,
                 selected_countries=sector_selected_countries,
             )
+
+    # =============================================================================
+    # Timeseries profiles
+    # =============================================================================
 
     st.subheader(":material/timer: Timeseries Profiles  | " + SECTOR_TITLE)
 
@@ -140,7 +145,6 @@ if __name__ == "__main__":
             df_widgets_handler.set_up_df_with_charts(
                 sector="Global_input",
                 title=title,
-                input_df=dfs[title + "_df"],
                 selected_types=sector_selected_types,
                 selected_countries=sector_selected_countries,
             )
@@ -155,16 +159,8 @@ if __name__ == "__main__":
         )
     )
 
-    demand_profile_path = os.path.join(
-        df_widgets_handler.base_input_path,
-        "global_input",
-        input_config["Global_input"]["Demand_Profiles"]["csv_name"],
-    )
-    demand_profile_df = pd.read_csv(demand_profile_path)
-
     render_demand_profiles_widget(
         sector_selected_countries=sector_selected_countries,
         df_widgets_handler=df_widgets_handler,
-        demand_profile_df=demand_profile_df,
         specify_sector=selected_sector,
     )

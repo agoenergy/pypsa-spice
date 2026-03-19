@@ -59,8 +59,8 @@ def render_interconnections_widget(
     df_widgets_handler.set_up_df_with_charts(
         sector="Grids",
         title="Interconnectors",
-        input_df=intercon_df,
         selected_types=["ITCN"],
+        input_df=intercon_df,
         selected_classes=["Link"],
         selected_countries=grid_selected_countries,
     )
@@ -94,11 +94,6 @@ if __name__ == "__main__":
         )
     )
 
-    # Reload dfs after the scenario is selected
-    dfs = df_widgets_handler.load_all_dfs(
-        selected_scenario=sector_selected_scenario, specify_sector=selected_sector
-    )
-
     tech_path = os.path.join(
         df_widgets_handler.base_input_path,
         "global_input",
@@ -113,11 +108,11 @@ if __name__ == "__main__":
     for title in input_config[selected_sector].keys():
         df_widgets_handler.set_up_df_with_charts(
             title=title,
-            input_df=dfs[title + "_df"],
             sector=selected_sector,
             selected_types=sector_selected_types,
             selected_classes=sector_selected_classes,
             selected_countries=sector_selected_countries,
+            selected_scenario=sector_selected_scenario,
         )
 
     if selected_sector == "Power":
