@@ -9,6 +9,8 @@
 
 ### Changed
 
+- Refactor GUI for input data and scenario configs.([:material-source-pull:92](https://github.com/agoenergy/pypsa-spice/pull/92) by @RichChang963)
+
 ### Notes
 
 --8<-- "releases/v1.1.1.md"
