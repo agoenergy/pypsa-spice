@@ -11,6 +11,7 @@ import streamlit as st
 
 from scripts.data_utils import (
     get_input_scenario_list,
+    load_tech_info_mapping_df,
     render_countries_n_scenario_pills,
     render_type_and_class_filters,
 )
@@ -76,12 +77,18 @@ if __name__ == "__main__":
 
     all_countries = list(base_config["base_configs"]["regions"].keys())
 
+    # df loaded from setting/tech_mapping.csv
+    tech_info_df = load_tech_info_mapping_df()
+
     if selected_sector == "Power":
         SECTOR_TITLE = ":material/bolt: Power"
+        tech_info_df = tech_info_df[tech_info_df["sector"] == "Power"]
     elif selected_sector == "Industry":
         SECTOR_TITLE = ":material/construction: Industry"
+        tech_info_df = tech_info_df[tech_info_df["sector"] == "Industry"]
     else:
         SECTOR_TITLE = ":material/directions_car: Transport"
+        tech_info_df = tech_info_df[tech_info_df["sector"] == "Transport"]
 
     st.subheader(":material/timeline: Scenario specific input | " + SECTOR_TITLE)
 
@@ -94,12 +101,31 @@ if __name__ == "__main__":
         )
     )
 
+    # df from global input technology csv
     tech_path = os.path.join(
         df_widgets_handler.base_input_path,
         "global_input",
         input_config["Global_input"]["Technologies"]["csv_name"],
     )
     tech_df = pd.read_csv(tech_path)
+
+    # Keep only technologies defined in the technical mapping/info table.
+    allowed_technologies = set()
+    if isinstance(tech_info_df, pd.DataFrame):
+        if not tech_info_df.index.empty:
+            allowed_technologies.update(
+                tech_info_df.index.astype(str).str.strip().tolist()
+            )
+
+        for col in ["original_names", "nice_names"]:
+            if col in tech_info_df.columns:
+                allowed_technologies.update(
+                    tech_info_df[col].dropna().astype(str).str.strip().tolist()
+                )
+
+    if "technology" in tech_df.columns and allowed_technologies:
+        tech_df["technology"] = tech_df["technology"].astype(str).str.strip()
+        tech_df = tech_df[tech_df["technology"].isin(allowed_technologies)]
 
     sector_selected_types, sector_selected_classes = render_type_and_class_filters(
         tech_df, key=f"{sector_lower}_scenario"
@@ -116,7 +142,7 @@ if __name__ == "__main__":
         )
 
     if selected_sector == "Power":
-        st.header(":material/diagonal_line: Interconnections")
+        st.subheader(":material/diagonal_line: Interconnections")
         grid_selected_countries, grid_selected_scenario = (
             render_countries_n_scenario_pills(
                 scenario_options=get_input_scenario_list(base_config),

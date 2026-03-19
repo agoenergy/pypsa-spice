@@ -70,6 +70,20 @@ def convert_month_to_name(month_num: int) -> str:
 # =============================================================================
 
 
+def load_tech_info_mapping_df() -> pd.DataFrame:
+    """Load the technology info mapping CSV into a DataFrame."""
+    tech_mapping_path = os.path.join(
+        st.session_state.streamlit_base_dir, "setting", "tech_mapping.csv"
+    )
+    try:
+        tech_info_df = pd.read_csv(tech_mapping_path)
+        tech_info_df = tech_info_df.set_index("original_names")
+        return tech_info_df
+    except FileNotFoundError:
+        st.warning(f"Technology mapping file not found: {tech_mapping_path}")
+        return pd.DataFrame()
+
+
 def render_type_and_class_filters(
     tech_df: pd.DataFrame,
     key: str = "default",
