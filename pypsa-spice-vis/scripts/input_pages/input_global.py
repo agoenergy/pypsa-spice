@@ -92,6 +92,16 @@ if __name__ == "__main__":
 
     st.subheader(":globe_with_meridians: Global input  | " + SECTOR_TITLE)
 
+    st.markdown(
+        """
+        <p style="color:orange; font-weight:bold;">
+        ⚠️ Changes made to the global input files will be automatically applied
+        across all scenarios.
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
+
     sector_lower = selected_sector.lower()
     sector_selected_countries, sector_selected_scenario = (
         render_countries_n_scenario_pills(
