@@ -258,8 +258,9 @@ class DataFrameWidgetsHandler:
                     filtered_df["country"].isin(selected_countries)
                 ]
 
+            edited_df = pd.DataFrame()
             if not filtered_df.empty:
-                if table_config["with_charts"]:
+                if table_config["with_charts"] and not table_config.get("timeseries"):
                     tab1, tab2 = st.tabs(["Table", "Visualisation"])
 
                     with tab1:
@@ -271,6 +272,9 @@ class DataFrameWidgetsHandler:
 
                     with tab2:
                         self.visualise_data(filtered_df, table_config, widget_scope)
+                elif table_config.get("timeseries"):
+                    self.visualise_data(filtered_df, table_config, widget_scope)
+                    to_save = False
                 else:
                     edited_df, to_save = self.create_editable_df(
                         filtered_df, edited_df_key, has_changes_key
@@ -627,10 +631,7 @@ class DataFrameWidgetsHandler:
         temp_file = NamedTemporaryFile(mode="w", delete=False, newline="")
 
         try:
-            with (
-                open(file_path, encoding="utf-8") as csvfile,
-                temp_file,
-            ):
+            with open(file_path, encoding="utf-8") as csvfile, temp_file:
                 reader = csv.DictReader(csvfile)
                 fieldnames = reader.fieldnames or []
                 writer = csv.DictWriter(temp_file, fieldnames=fieldnames)
