@@ -10,9 +10,8 @@ import pandas as pd
 import streamlit as st
 
 from scripts.data_utils import (
-    get_input_scenario_list,
     load_tech_info_mapping_df,
-    render_countries_n_scenario_pills,
+    render_countries_pills,
     render_type_and_class_filters,
 )
 from scripts.input_st_handler import DataFrameWidgetsHandler
@@ -70,6 +69,7 @@ def render_interconnections_widget(
 if __name__ == "__main__":
     base_config = st.session_state.base_config
     input_config = st.session_state.input_config
+    sector_selected_scenario = st.session_state.input_sce1
     selected_sector = st.session_state.get("selected_input_sector", "Power")
     sector_lower = selected_sector.lower()
 
@@ -93,12 +93,9 @@ if __name__ == "__main__":
     st.subheader(":material/timeline: Scenario specific input | " + SECTOR_TITLE)
 
     sector_lower = selected_sector.lower()
-    sector_selected_countries, sector_selected_scenario = (
-        render_countries_n_scenario_pills(
-            scenario_options=get_input_scenario_list(base_config),
-            all_countries=all_countries,
-            key=f"{sector_lower}_global_pills",
-        )
+    sector_selected_countries = render_countries_pills(
+        all_countries=all_countries,
+        key=f"{sector_lower}_global_pills",
     )
 
     # df from global input technology csv
@@ -143,16 +140,16 @@ if __name__ == "__main__":
 
     if selected_sector == "Power":
         st.subheader(":material/diagonal_line: Interconnections")
-        grid_selected_countries, grid_selected_scenario = (
-            render_countries_n_scenario_pills(
-                scenario_options=get_input_scenario_list(base_config),
+        grid_selected_countries = (
+            render_countries_pills(
                 all_countries=all_countries,
                 key="grid_scenario_pills",
             )
+            or []
         )
         grid_path = os.path.join(
             df_widgets_handler.base_input_path,
-            grid_selected_scenario,
+            sector_selected_scenario,
             "power",
             input_config["Grids"]["Interconnectors"]["csv_name"],
         )

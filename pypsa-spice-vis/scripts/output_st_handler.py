@@ -111,7 +111,7 @@ def render_download_with_data_table(
             fill_value=0,
         )
         # Sort by base year column descending, with NaNs at the end
-        base_year = st.session_state.sce1_years[0]
+        base_year = st.session_state.output_sce1_years[0]
         try:
             df_pivot = df_pivot.sort_values(
                 by=int(base_year), ascending=False, na_position="last"
@@ -180,12 +180,14 @@ def generate_colour_mapping_dict(
 def setup_year_filter(config_plot: dict[str, Any], is_dual_scenario: bool) -> str:
     """Set up the year filter (pills) for graphs with hourly data."""
     if is_dual_scenario:
-        years = sorted(set(st.session_state.sce1_years + st.session_state.sce2_years))
+        years = sorted(
+            set(st.session_state.output_sce1_years + st.session_state.output_sce2_years)
+        )
         scenario_text = "both"
         key_prefix = "shared"
     else:
-        years = st.session_state.sce1_years
-        scenario_text = st.session_state.sce1
+        years = st.session_state.output_sce1_years
+        scenario_text = st.session_state.output_sce1
         key_prefix = "single"
 
     slider_id = config_plot["slider_id"].format(scenario_text)
@@ -271,7 +273,7 @@ def setup_radio_button_filter_for_hourly_graph(
         key_prefix = "shared"
     else:
         region_options = sorted(pd.Series(df1[filter_col]).dropna().unique())
-        scenario_text = st.session_state.sce1
+        scenario_text = st.session_state.output_sce1
         key_prefix = "single"
 
     # prevents IndexError on region_options[0] when no valid options after filtering
@@ -307,7 +309,7 @@ def setup_month_filter(
         scenario_text = "both"
     else:
         months_all = df1["snapshot"].dt.month.unique()
-        scenario_text = st.session_state.sce1
+        scenario_text = st.session_state.output_sce1
 
     slider_id = config_plot["slider_id"].format(scenario_text)
     key = f"shared_month_{config_plot['table_name']}"
@@ -340,7 +342,7 @@ def setup_date_filter_complete(
     else:
         min_date = df1_m["snapshot"].min()
         max_date = df1_m["snapshot"].max()
-        scenario_text = st.session_state.sce1
+        scenario_text = st.session_state.output_sce1
 
     slider_id = config_plot["slider_id"].format(scenario_text)
     label = f"{slider_id} Select Date Range:"
@@ -377,7 +379,7 @@ def setup_date_filter_incomplete(
         scenario_text = "both"
     else:
         all_timestamps = df1_m["snapshot"].unique()
-        scenario_text = st.session_state.sce1
+        scenario_text = st.session_state.output_sce1
 
     slider_id = config_plot["slider_id"].format(scenario_text)
     label = f"{slider_id} Select Range:"
@@ -411,11 +413,11 @@ def setup_radio_button_filter(
     country_filter = config_plot.get("shared_country")  # None if not provided
 
     # Read both scenario result tables (fail fast if missing/empty)
-    df1 = read_result_csv(st.session_state.sce1, table_name)
+    df1 = read_result_csv(st.session_state.output_sce1, table_name)
     if df1 is None or df1.empty:
         return None
 
-    df2 = read_result_csv(st.session_state.sce2, table_name)
+    df2 = read_result_csv(st.session_state.output_sce2, table_name)
     if df2 is None or df2.empty:
         return None
 
@@ -536,7 +538,7 @@ def _render_single_chart_layout(
     **plot_kwargs: Any,
 ) -> None:
     """Render single scenario chart with download button."""
-    scenario_name = st.session_state.sce1
+    scenario_name = st.session_state.output_sce1
     table_name = config_dict["table_name"]
     legend_col = config_dict["leg_col"]
 
@@ -578,8 +580,8 @@ def _render_dual_chart_layout(
     if scenario_2_vis_display_data is None or table_2_display_data is None:
         raise ValueError("render_dual_chart_layout requires non-None scenario 2 data")
 
-    scenario_1_name = st.session_state.sce1
-    scenario_2_name = st.session_state.sce2
+    scenario_1_name = st.session_state.output_sce1
+    scenario_2_name = st.session_state.output_sce2
     table_name = config_dict["table_name"]
     legend_col = config_dict["leg_col"]
 
@@ -646,7 +648,11 @@ def render_chart_layout(
     - If is_dual_scenario is False -> calls render_single_chart_layout(...)
     - If is_dual_scenario is True  -> calls render_dual_chart_layout(...)
     """
-    base_year = st.session_state.sce1_years[0] if st.session_state.sce1_years else None
+    base_year = (
+        st.session_state.output_sce1_years[0]
+        if st.session_state.output_sce1_years
+        else None
+    )
     # Sort data descending for plotting
     scenario_1_vis_display_data = sort_scenario_data_for_yearly_chart(
         scenario_1_vis_display_data, year_to_sort=int(base_year), ascending=False

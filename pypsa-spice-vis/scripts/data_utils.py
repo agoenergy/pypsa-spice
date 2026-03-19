@@ -547,9 +547,7 @@ def prepare_y_range(
     return {"max_scale": y_range["max"], "min_scale": y_range["min"]}
 
 
-def render_countries_n_scenario_pills(
-    scenario_options: list[str], all_countries: list, key: str
-) -> tuple:
+def render_countries_pills(all_countries: list, key: str) -> list | None:
     """Render country and scenario selector and sync selected value to session state."""
     col11, col12 = st.columns([1, 1])
 
@@ -567,26 +565,4 @@ def render_countries_n_scenario_pills(
             selected_countries = None
             st.info("No countries found")
 
-    with col12:
-        if "scenario" not in st.session_state:
-            st.session_state.scenario = (
-                scenario_options[0] if scenario_options else None
-            )
-
-        selected_scenario = st.pills(
-            "Select Scenario:",
-            options=scenario_options,
-            default=(
-                st.session_state.scenario
-                if st.session_state.scenario in scenario_options
-                else scenario_options[0]
-            ),
-            help="Select scenario to view/edit data.",
-            selection_mode="single",
-            key=key + "_scenario",
-        )
-
-        if selected_scenario:
-            st.session_state.scenario = selected_scenario
-
-    return selected_countries, selected_scenario
+    return selected_countries

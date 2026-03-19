@@ -10,16 +10,15 @@ import pandas as pd
 import streamlit as st
 
 from scripts.data_utils import (
-    get_input_scenario_list,
     load_tech_info_mapping_df,
-    render_countries_n_scenario_pills,
+    render_countries_pills,
     render_type_and_class_filters,
 )
 from scripts.input_st_handler import DataFrameWidgetsHandler
 
 
 def render_demand_profiles_widget(
-    sector_selected_countries: list,
+    sector_selected_countries: list | None,
     df_widgets_handler: DataFrameWidgetsHandler,
     specify_sector: str,
 ):
@@ -103,12 +102,9 @@ if __name__ == "__main__":
     )
 
     sector_lower = selected_sector.lower()
-    sector_selected_countries, sector_selected_scenario = (
-        render_countries_n_scenario_pills(
-            scenario_options=get_input_scenario_list(base_config),
-            all_countries=all_countries,
-            key=f"{sector_lower}_global_pills",
-        )
+    sector_selected_countries = render_countries_pills(
+        all_countries=all_countries,
+        key=f"{sector_lower}_global_pills",
     )
 
     # df from global input technology csv
@@ -187,16 +183,13 @@ if __name__ == "__main__":
 
     st.subheader(":material/timer: Demand Profiles  | " + SECTOR_TITLE)
 
-    demand_selected_countries, demand_selected_scenario = (
-        render_countries_n_scenario_pills(
-            scenario_options=get_input_scenario_list(base_config),
-            all_countries=all_countries,
-            key="demand_global_pills",
-        )
+    demand_selected_countries = render_countries_pills(
+        all_countries=all_countries,
+        key="demand_global_pills",
     )
 
     render_demand_profiles_widget(
-        sector_selected_countries=sector_selected_countries,
+        sector_selected_countries=demand_selected_countries,
         df_widgets_handler=df_widgets_handler,
         specify_sector=selected_sector,
     )

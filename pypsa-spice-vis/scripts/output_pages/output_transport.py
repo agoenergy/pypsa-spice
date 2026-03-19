@@ -51,11 +51,11 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     shared_year = setup_year_filter(graph_config, is_dual)
     graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -65,7 +65,7 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
 
     # Load and validate scenario data
     scenario_1_raw = load_and_validate_hourly_data(
-        st.session_state.sce1,
+        st.session_state.output_sce1,
         table_name,
         str(shared_year),
         graph_config["shared_country"],
@@ -77,7 +77,7 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = load_and_validate_hourly_data(
-            st.session_state.sce2,
+            st.session_state.output_sce2,
             table_name,
             str(shared_year),
             graph_config["shared_country"],
@@ -132,7 +132,7 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
     }
 
     if not is_dual or scenario_2_filtered is None:
-        st.caption(f"{st.session_state.sce1}")
+        st.caption(f"{st.session_state.output_sce1}")
         colour_mapping = generate_colour_mapping_dict(
             table_name,
             mapping_df,
@@ -144,16 +144,16 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
             graph_config,
             colour_mapping,
             y_range,
-            key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
+            key=f"plotly_chart_{st.session_state.output_sce1}_{table_name}",
             **plot_kwargs,
         )
         render_download_without_data_table(
-            scenario_1_filtered, graph_config, st.session_state.sce1
+            scenario_1_filtered, graph_config, st.session_state.output_sce1
         )
     else:
         col1, _, col3 = st.columns([6, 1, 6])
         with col1:
-            st.caption(f"{st.session_state.sce1}")
+            st.caption(f"{st.session_state.output_sce1}")
             colour_mapping_1 = generate_colour_mapping_dict(
                 table_name,
                 mapping_df,
@@ -165,12 +165,12 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
                 graph_config,
                 colour_mapping_1,
                 y_range,
-                key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
+                key=f"plotly_chart_{st.session_state.output_sce1}_{table_name}",
                 **plot_kwargs,
             )
 
         with col3:
-            st.caption(f"{st.session_state.sce2}")
+            st.caption(f"{st.session_state.output_sce2}")
             colour_mapping_2 = generate_colour_mapping_dict(
                 table_name,
                 mapping_df,
@@ -182,18 +182,18 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
                 graph_config,
                 colour_mapping_2,
                 y_range,
-                key=f"plotly_chart_{st.session_state.sce2}_{table_name}",
+                key=f"plotly_chart_{st.session_state.output_sce2}_{table_name}",
                 **plot_kwargs,
             )
 
         col1, _, col3 = st.columns([6, 1, 6])
         with col1:
             render_download_without_data_table(
-                scenario_1_filtered, graph_config, st.session_state.sce1
+                scenario_1_filtered, graph_config, st.session_state.output_sce1
             )
         with col3:
             render_download_without_data_table(
-                scenario_2_filtered, graph_config, st.session_state.sce2
+                scenario_2_filtered, graph_config, st.session_state.output_sce2
             )
 
     st.divider()

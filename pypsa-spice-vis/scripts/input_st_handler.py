@@ -42,59 +42,6 @@ class DataFrameWidgetsHandler:
             else any("t" in sector for sector in sectors)
         )
 
-    def load_all_dfs(
-        self, selected_scenario: str | None = None, specify_sector: str | None = None
-    ) -> dict:
-        """Load all the dataframes.
-
-        Returns
-        -------
-        dict
-            Contains all the loaded dataframes.
-        selected_scenario : str, optional
-            The scenario selected by the user.
-        specify_sector : str, optional
-            Global_input, Power, Industry, or Transport
-        """
-        sub_folder = (
-            selected_scenario
-            if selected_scenario
-            else self.base_config["path_configs"]["input_scenario_name"]
-        )
-        scenario_input_path = os.path.join(self.base_input_path, sub_folder)
-        global_input_path = os.path.join(self.base_input_path, "global_input")
-
-        csvs_dict = {}
-        if specify_sector == "Global_input":
-            middle_path = global_input_path
-            sector = None
-        elif specify_sector in ["Power", "Industry", "Transport"]:
-            middle_path = scenario_input_path
-            sector = specify_sector.lower()
-        else:
-            st.error(f"Invalid specify_sector value: {specify_sector}")
-            return {}
-
-        for title in self.input_config[specify_sector].keys():
-            csv_name = self.input_config[specify_sector][title]["csv_name"]
-            parts = (
-                [middle_path, csv_name]
-                if not sector
-                else [middle_path, sector, csv_name]
-            )
-            csvs_dict[title] = os.path.join(*parts)
-
-        for key, csv_path in csvs_dict.items():
-            if not os.path.exists(csv_path):
-                st.error(f"{key} file not found at {csv_path}")
-                return {}
-
-        dfs = {}
-        for name, csv_path in csvs_dict.items():
-            dfs[f"{name}_df"] = pd.read_csv(csv_path)
-
-        return dfs
-
     def create_editable_df(
         self,
         filtered_df: pd.DataFrame,
