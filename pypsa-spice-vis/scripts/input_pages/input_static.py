@@ -126,6 +126,7 @@ def render_interconnections_widget(
 if __name__ == "__main__":
     base_config = st.session_state.base_config
     input_config = st.session_state.input_config["Static"]
+    selected_sector = st.session_state.get("selected_input_sector", "Power")
 
     df_widgets_handler = DataFrameWidgetsHandler(input_config=input_config)
 
@@ -138,139 +139,51 @@ if __name__ == "__main__":
 
     all_countries = list(base_config["base_configs"]["regions"].keys())
 
-    # ============================== Global input ==============================
-    st.header(":globe_with_meridians: Global input")
-    dfs = df_widgets_handler.load_all_dfs()
+    st.subheader(f":material/database: Static | {selected_sector}")
 
-    selected_countries, selected_scenario = render_countries_n_scenario_pills(
-        scenario_options=get_input_scenario_list(base_config),
-        all_countries=all_countries,
-        key="global_static_pills",
-    )
-
-    # Reload dfs after the scenario is selected
-    dfs = df_widgets_handler.load_all_dfs(selected_scenario=selected_scenario)
-
-    selected_types, selected_classes = render_type_and_class_filters(
-        tech_df, key="global"
-    )
-
-    for title in input_config["Global_input"].keys():
-        df_widgets_handler.set_up_df_with_charts(
-            sector="Global_input",
-            title=title,
-            input_df=dfs[title + "_df"],
-            selected_types=selected_types,
-            selected_classes=selected_classes,
-            selected_countries=selected_countries,
-        )
-
-    # ============================== Power ==============================
-    st.header(":material/bolt: Power")
-
-    power_dfs = df_widgets_handler.load_all_dfs(specific_sector="Power")
-
-    power_selected_countries, power_selected_scenario = (
+    sector_lower = selected_sector.lower()
+    sector_selected_countries, sector_selected_scenario = (
         render_countries_n_scenario_pills(
             scenario_options=get_input_scenario_list(base_config),
             all_countries=all_countries,
-            key="power_static_pills",
+            key=f"{sector_lower}_static_pills",
         )
     )
 
-    # Reload power_dfs after the scenario is selected
-    power_dfs = df_widgets_handler.load_all_dfs(
-        specific_sector="Power", selected_scenario=power_selected_scenario
+    sector_dfs = df_widgets_handler.load_all_dfs(
+        specific_sector=selected_sector, selected_scenario=sector_selected_scenario
     )
-    power_selected_types, power_selected_classes = render_type_and_class_filters(
-        tech_df, key="power"
+    sector_selected_types, sector_selected_classes = render_type_and_class_filters(
+        tech_df, key=f"{sector_lower}_static"
     )
 
-    for title in input_config["Power"].keys():
+    for title in input_config[selected_sector].keys():
         df_widgets_handler.set_up_df_with_charts(
-            sector="Power",
+            sector=selected_sector,
             title=title,
-            input_df=power_dfs[title + "_df"],
-            selected_types=power_selected_types,
-            selected_classes=power_selected_classes,
-            selected_countries=power_selected_countries,
+            input_df=sector_dfs[title + "_df"],
+            selected_types=sector_selected_types,
+            selected_classes=sector_selected_classes,
+            selected_countries=sector_selected_countries,
         )
 
-    # ===================== Industry (if exists in base_config) =====================
-    if df_widgets_handler.has_industry_sector:
-        st.header(":material/factory: Industry sector")
-        industry_selected_countries, industry_selected_scenario = (
+    if selected_sector == "Power":
+        st.header(":material/diagonal_line: Interconnections")
+        grid_selected_countries, grid_selected_scenario = (
             render_countries_n_scenario_pills(
                 scenario_options=get_input_scenario_list(base_config),
                 all_countries=all_countries,
-                key="industry_static_pills",
+                key="grid_static_pills",
             )
         )
-
-        industry_dfs = df_widgets_handler.load_all_dfs(specific_sector="Industry")
-
-        # Reload dfs after the scenario is selected
-        industry_dfs = df_widgets_handler.load_all_dfs(
-            specific_sector="Industry", selected_scenario=industry_selected_scenario
+        grid_path = os.path.join(
+            df_widgets_handler.base_input_path,
+            grid_selected_scenario,
+            "power",
+            input_config["Grids"]["Interconnectors"]["csv_name"],
         )
-        industry_selected_types, industry_selected_classes = (
-            render_type_and_class_filters(tech_df, key="industry")
+        grid_df = pd.read_csv(grid_path)
+
+        render_interconnections_widget(
+            grid_selected_countries, df_widgets_handler, grid_df
         )
-
-        for title in input_config["Industry"].keys():
-            df_widgets_handler.set_up_df_with_charts(
-                sector="Industry",
-                title=title,
-                input_df=industry_dfs[title + "_df"],
-                selected_types=industry_selected_types,
-                selected_classes=industry_selected_classes,
-                selected_countries=industry_selected_countries,
-            )
-
-    # ===================== Transport (if exists in base_config) =====================
-    if df_widgets_handler.has_transport_sector:
-        st.header(":material/factory: Transport sector")
-        transport_selected_countries, transport_selected_scenario = (
-            render_countries_n_scenario_pills(
-                scenario_options=get_input_scenario_list(base_config),
-                all_countries=all_countries,
-                key="transport_static_pills",
-            )
-        )
-
-        transport_dfs = df_widgets_handler.load_all_dfs(specific_sector="Transport")
-
-        # Reload dfs after the scenario is selected
-        transport_dfs = df_widgets_handler.load_all_dfs(
-            specific_sector="Transport", selected_scenario=transport_selected_scenario
-        )
-        transport_selected_types, transport_selected_classes = (
-            render_type_and_class_filters(tech_df, key="transport")
-        )
-
-        for title in input_config["Transport"].keys():
-            df_widgets_handler.set_up_df_with_charts(
-                sector="Transport",
-                title=title,
-                input_df=transport_dfs[title + "_df"],
-                selected_types=transport_selected_types,
-                selected_classes=transport_selected_classes,
-                selected_countries=transport_selected_countries,
-            )
-
-    # ===================== Interconnections =====================
-    st.header(":material/diagonal_line: Interconnections")
-    grid_selected_countries, grid_selected_scenario = render_countries_n_scenario_pills(
-        scenario_options=get_input_scenario_list(base_config),
-        all_countries=all_countries,
-        key="grid_static_pills",
-    )
-    grid_path = os.path.join(
-        df_widgets_handler.base_input_path,
-        grid_selected_scenario,
-        "power",
-        input_config["Grids"]["Interconnectors"]["csv_name"],
-    )
-    grid_df = pd.read_csv(grid_path)
-
-    render_interconnections_widget(grid_selected_countries, df_widgets_handler, grid_df)

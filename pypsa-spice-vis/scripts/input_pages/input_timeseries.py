@@ -47,8 +47,9 @@ def get_mapping_list(*dfs: pd.DataFrame) -> list[str]:
 
 
 if __name__ == "__main__":
-    st.title(":chart_with_upwards_trend: Supply Profiles")
     base_config = st.session_state.base_config
+    selected_sector = st.session_state.get("selected_input_sector", "Power")
+    sector_lower = selected_sector.lower()
 
     tech_config = st.session_state.input_config["Static"]
     time_series_config = st.session_state.input_config["Time_series"]
@@ -57,13 +58,14 @@ if __name__ == "__main__":
 
     all_countries = base_config["base_configs"]["regions"].keys()
 
-    # ===================== Supply Profiles =====================
+    st.subheader(f":material/timeline: Timeseries | {selected_sector}")
+
     dfs = df_widgets_handler.load_all_dfs()
 
     selected_countries, selected_scenario = render_countries_n_scenario_pills(
         scenario_options=get_input_scenario_list(base_config),
         all_countries=all_countries,
-        key="supply_timeseries_pills",
+        key=f"{sector_lower}_timeseries_pills",
     )
 
     # Reload dfs after the scenario is selected
@@ -84,10 +86,10 @@ if __name__ == "__main__":
 
     default_supply_selection = [types_full_names[0]] if types_full_names else []
     selected_supply_types_full = st.multiselect(
-        "Select technology types for supply timeseries:",
+        f"Select technology types for {selected_sector.lower()} supply timeseries:",
         types_full_names,
         default=default_supply_selection,
-        key="timeseries_supply_types",
+        key=f"timeseries_supply_types_{sector_lower}",
     )
     if not selected_supply_types_full and default_supply_selection:
         selected_supply_types_full = default_supply_selection
@@ -95,6 +97,23 @@ if __name__ == "__main__":
         reverse_mapping.get(v, v) for v in selected_supply_types_full
     ]
 
+    # Filter availability/storage inflow technologies by selected sector where possible.
+    if "class" in tech_df.columns:
+        class_mapping = dict(zip(tech_df["technology"], tech_df["class"]))
+        if selected_sector == "Power":
+            allowed_classes = {"Generator", "StorageUnit", "Store", "Link"}
+        elif selected_sector == "Industry":
+            allowed_classes = {"Link", "StorageUnit", "Store"}
+        else:
+            allowed_classes = {"Link", "StorageUnit", "Store"}
+
+        filtered_supply_types = [
+            t for t in selected_supply_types if class_mapping.get(t) in allowed_classes
+        ]
+        if filtered_supply_types:
+            selected_supply_types = filtered_supply_types
+
+    st.markdown("#### Supply Profiles")
     for title in time_series_config["Global_input"].keys():
         if "demand" not in time_series_config["Global_input"][title]["tag_name"]:
             df_widgets_handler.set_up_df_with_charts(
@@ -105,35 +124,30 @@ if __name__ == "__main__":
                 selected_countries=selected_countries,
             )
 
-    # ===================== Demand Profiles =====================
-    st.title(":chart_with_downwards_trend: Demand Profiles")
-
-    demand_dfs = df_widgets_handler.load_all_dfs()
-
-    demand_selected_countries, demand_selected_scenario = (
-        render_countries_n_scenario_pills(
-            scenario_options=get_input_scenario_list(base_config),
-            all_countries=all_countries,
-            key="demand_timeseries_pills",
-        )
-    )
-
-    # Reload demand_dfs after the scenario is selected
-    dfs = df_widgets_handler.load_all_dfs(selected_scenario=demand_selected_scenario)
-
+    st.markdown("#### Demand Profiles")
     load_mapping = {
         "HV_LOAD": "Wholesale market load (High voltage level)",
         "LV_LOAD": "Building load (low/medium voltage level)",
     }
     profile_full_names = list(load_mapping.values())
     reverse_load_mapping = {v: k for k, v in load_mapping.items()}
-    default_profile_selection = [profile_full_names[0]] if profile_full_names else []
+    default_by_sector = {
+        "Power": ["HV_LOAD", "LV_LOAD"],
+        "Industry": ["LV_LOAD"],
+        "Transport": ["LV_LOAD"],
+    }
+    default_profile_keys = [
+        p
+        for p in default_by_sector.get(selected_sector, ["HV_LOAD"])
+        if p in load_mapping
+    ]
+    default_profile_selection = [load_mapping[p] for p in default_profile_keys]
 
     selected_profile_types_full = st.multiselect(
-        "Select demand/load profiles:",
+        f"Select demand/load profiles for {selected_sector.lower()}:",
         profile_full_names,
         default=default_profile_selection,
-        key="timeseries_demand_types",
+        key=f"timeseries_demand_types_{sector_lower}",
     )
     if not selected_profile_types_full and default_profile_selection:
         selected_profile_types_full = default_profile_selection
@@ -146,5 +160,5 @@ if __name__ == "__main__":
         title="Demand_Profiles",
         input_df=dfs["Demand_Profiles_df"],
         selected_types=selected_profile_types,
-        selected_countries=demand_selected_countries,
+        selected_countries=selected_countries,
     )

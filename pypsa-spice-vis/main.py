@@ -107,6 +107,28 @@ def input_main():
     """Render all Input views in one page with tab-like controls."""
     st.title(":material/input: Input")
 
+    input_sector_tabs = ["Power"]
+    include_industry = "i" in st.session_state.sector
+    include_transport = "t" in st.session_state.sector
+
+    if include_industry:
+        input_sector_tabs.append("Industry")
+    if include_transport:
+        input_sector_tabs.append("Transport")
+
+    selected_input_sector = st.segmented_control(
+        "Input sector",
+        options=input_sector_tabs,
+        default=input_sector_tabs[0],
+        selection_mode="single",
+        label_visibility="collapsed",
+        key="selected_input_sector",
+    )
+
+    if selected_input_sector is None:
+        st.error("Please select a sector to view and edit input data.")
+        st.stop()
+
     input_page_mapping = {
         "Static": "scripts/input_pages/input_static.py",
         "Timeseries": "scripts/input_pages/input_timeseries.py",
