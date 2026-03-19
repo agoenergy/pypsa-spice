@@ -66,8 +66,82 @@ def convert_month_to_name(month_num: int) -> str:
 
 
 # =============================================================================
-# I/O helpers (reading model results)
+# I/O helpers (reading model input and results)
 # =============================================================================
+
+
+def render_type_and_class_filters(
+    tech_df: pd.DataFrame,
+    key: str = "default",
+) -> tuple[list, list]:
+    """Render type and class controls, and return selected values."""
+    col21, col22 = st.columns([1, 1])
+    types = get_mapping_list(tech_df)
+    tech_mapping = dict(zip(tech_df["technology"], tech_df["technology_nomenclature"]))
+    types_full_names = sorted([tech_mapping.get(t, t) for t in types])
+
+    with col21:
+        reverse_mapping = {v: k for k, v in tech_mapping.items()}
+        default_type_selection = [types_full_names[0]] if types_full_names else []
+
+        selected_type_full = st.multiselect(
+            "Select Technology types:",
+            types_full_names,
+            default=default_type_selection,
+            key=f"type_filter_multiselect_{key}",
+        )
+
+        if not selected_type_full and default_type_selection:
+            st.warning(
+                "At least one technology type must be selected. Resetting to default."
+            )
+            selected_type_full = default_type_selection
+
+        selected_types = [reverse_mapping.get(v, v) for v in selected_type_full]
+
+    with col22:
+        selected_classes = (
+            tech_df.loc[tech_df["technology"].isin(selected_types), "class"]
+            .unique()
+            .tolist()
+        )
+        st.markdown(f"Tech: **{', '.join(selected_types)}**")
+        st.markdown(f"Class: **{', '.join(selected_classes)}**")
+
+    return selected_types, selected_classes
+
+
+def get_input_scenario_list(base_config: dict) -> list[str]:
+    """Return available input scenarios with the default scenario first."""
+    data_folder_path = base_config["input_folder_path"]
+
+    if not os.path.exists(data_folder_path):
+        raise FileNotFoundError(f"folder not found: {data_folder_path}")
+
+    scenario_list = [
+        scenario
+        for scenario in os.listdir(data_folder_path)
+        if scenario not in [".DS_Store"] and scenario != "global_input"
+    ]
+
+    for sce in (base_config["path_configs"]["input_scenario_name"], ""):
+        if sce in scenario_list:
+            scenario_list.insert(0, scenario_list.pop(scenario_list.index(sce)))
+
+    return scenario_list
+
+
+def get_mapping_list(*dfs: pd.DataFrame) -> list[str]:
+    """Get sorted technology/profile types from one or more dataframes."""
+    type_set = set()
+
+    for df in dfs:
+        if "technology" in df.columns:
+            type_set |= set(df["technology"].unique())
+        if "profile_type" in df.columns:
+            type_set |= set(df["profile_type"].unique())
+
+    return sorted(type_set)
 
 
 def read_result_csv(

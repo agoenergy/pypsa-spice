@@ -130,8 +130,8 @@ def input_main():
         st.stop()
 
     input_page_mapping = {
-        "Static": "scripts/input_pages/input_static.py",
-        "Timeseries": "scripts/input_pages/input_timeseries.py",
+        "Global input": "scripts/input_pages/input_global.py",
+        "Scenario specific input": "scripts/input_pages/input_scenario.py",
     }
     selected_input_tab = st.segmented_control(
         "Input section",

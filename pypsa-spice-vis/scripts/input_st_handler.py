@@ -43,7 +43,7 @@ class DataFrameWidgetsHandler:
         )
 
     def load_all_dfs(
-        self, selected_scenario: str | None = None, specific_sector: str | None = None
+        self, selected_scenario: str | None = None, specify_sector: str | None = None
     ) -> dict:
         """Load all the dataframes.
 
@@ -53,8 +53,8 @@ class DataFrameWidgetsHandler:
             Contains all the loaded dataframes.
         selected_scenario : str, optional
             The scenario selected by the user.
-        specific_sector : str, optional
-            Power, Industry, or Transport - only load dataframes related to that sector.
+        specify_sector : str, optional
+            Global_input, Power, Industry, or Transport
         """
         sub_folder = (
             selected_scenario
@@ -62,46 +62,27 @@ class DataFrameWidgetsHandler:
             else self.base_config["path_configs"]["input_scenario_name"]
         )
         scenario_input_path = os.path.join(self.base_input_path, sub_folder)
+        global_input_path = os.path.join(self.base_input_path, "global_input")
 
         csvs_dict = {}
-        if not specific_sector:
-            global_input_path = os.path.join(
-                self.base_input_path,
-                "global_input",
-            )
-            # Update csvs_dict with paths to all global input csvs
-            for title in self.input_config["Global_input"].keys():
-                csvs_dict[title] = os.path.join(
-                    global_input_path,
-                    self.input_config["Global_input"][title]["csv_name"],
-                )
-        elif specific_sector == "Power":
-            # Update csvs_dict with paths to power csvs
-            for title in self.input_config["Power"].keys():
-                csvs_dict[title] = os.path.join(
-                    scenario_input_path,
-                    "power",
-                    self.input_config["Power"][title]["csv_name"],
-                )
-        elif specific_sector == "Industry":
-            # Update csvs_dict with paths to industry csvs
-            for title in self.input_config["Industry"].keys():
-                csvs_dict[title] = os.path.join(
-                    scenario_input_path,
-                    "industry",
-                    self.input_config["Industry"][title]["csv_name"],
-                )
-        elif specific_sector == "Transport":
-            # Update csvs_dict with paths to transport csvs
-            for title in self.input_config["Transport"].keys():
-                csvs_dict[title] = os.path.join(
-                    scenario_input_path,
-                    "transport",
-                    self.input_config["Transport"][title]["csv_name"],
-                )
+        if specify_sector == "Global_input":
+            middle_path = global_input_path
+            sector = None
+        elif specify_sector in ["Power", "Industry", "Transport"]:
+            middle_path = scenario_input_path
+            sector = specify_sector.lower()
         else:
-            st.error(f"Invalid specific_sector value: {specific_sector}")
+            st.error(f"Invalid specify_sector value: {specify_sector}")
             return {}
+
+        for title in self.input_config[specify_sector].keys():
+            csv_name = self.input_config[specify_sector][title]["csv_name"]
+            parts = (
+                [middle_path, csv_name]
+                if not sector
+                else [middle_path, sector, csv_name]
+            )
+            csvs_dict[title] = os.path.join(*parts)
 
         for key, csv_path in csvs_dict.items():
             if not os.path.exists(csv_path):
@@ -235,11 +216,11 @@ class DataFrameWidgetsHandler:
 
     def set_up_df_with_charts(
         self,
-        sector: str,
         title: str,
         input_df: pd.DataFrame,
         selected_types: list,
-        selected_classes: list = None,
+        sector: str | None = None,
+        selected_classes: list | None = None,
         selected_countries: list | None = None,
     ):
         """Set up the widget with a df and a chart (if it's enabled).
@@ -262,16 +243,31 @@ class DataFrameWidgetsHandler:
         selected_countries : list, optional
             Country(s) selected by the user in the global country select widget.
         """
-        table_config = self.input_config[sector][title]
-        input_csv_path = (
-            self.base_input_path + sector.lower() + table_config["csv_name"]
-        )
+        selected_classes = selected_classes or []
+
+        if sector:
+            table_config = self.input_config[sector][title]
+            input_csv_path = (
+                self.base_input_path + sector.lower() + table_config["csv_name"]
+            )
+        else:
+            table_config = self.input_config["Global_input"][title]
+            input_csv_path = (
+                self.base_input_path + "/global_input/" + table_config["csv_name"]
+            )
+
         csv_identifier = table_config["identifier"]
 
-        list_key = self.list_to_key(selected_types)
-        edited_df_key = f"{csv_identifier}_editor_{list_key}"
-        has_changes_key = f"has_changes_{csv_identifier}_{list_key}"
-        save_button_key = f"save_{csv_identifier}_{list_key}"
+        widget_scope = self.build_widget_scope_key(
+            sector or "Global_input",
+            title,
+            selected_types,
+            selected_classes,
+            selected_countries,
+        )
+        edited_df_key = f"{title}_{csv_identifier}_editor_{widget_scope}"
+        has_changes_key = f"has_changes_{title}_{csv_identifier}_{widget_scope}"
+        save_button_key = f"save_{title}_{csv_identifier}_{widget_scope}"
 
         if table_config["tag_name"] == "decommission":
             filtered_df = self.filter_df_decommission(
@@ -299,7 +295,7 @@ class DataFrameWidgetsHandler:
         if selected_countries and "country" in filtered_df.columns:
             filtered_df = filtered_df[filtered_df["country"].isin(selected_countries)]
 
-        with st.container(border=True):
+        with st.expander(f"{title}"):
             st.write(f"### {title}")
 
             path_to_display = os.path.normpath(input_csv_path)
@@ -324,7 +320,7 @@ class DataFrameWidgetsHandler:
                         )
 
                     with tab2:
-                        self.visualise_data(filtered_df, table_config)
+                        self.visualise_data(filtered_df, table_config, widget_scope)
                 else:
                     edited_df, to_save = self.create_editable_df(
                         filtered_df, edited_df_key, has_changes_key
@@ -368,6 +364,20 @@ class DataFrameWidgetsHandler:
             An eight character hash
         """
         joined = ",".join(sorted(selected_types))
+        return hashlib.md5(joined.encode(), usedforsecurity=False).hexdigest()[:8]
+
+    def build_widget_scope_key(self, *parts) -> str:
+        """Hash widget context into a short stable key."""
+        flattened_parts = []
+        for part in parts:
+            if part is None:
+                flattened_parts.append("")
+            elif isinstance(part, list):
+                flattened_parts.append("|".join(map(str, sorted(part))))
+            else:
+                flattened_parts.append(str(part))
+
+        joined = "::".join(flattened_parts)
         return hashlib.md5(joined.encode(), usedforsecurity=False).hexdigest()[:8]
 
     def filter_df_generic(
@@ -426,7 +436,12 @@ class DataFrameWidgetsHandler:
         )
         st.info(info_message)
 
-    def visualise_data(self, df: pd.DataFrame, table_config):
+    def visualise_data(
+        self,
+        df: pd.DataFrame,
+        table_config: dict,
+        widget_scope: str,
+    ):
         """Visualise cost data with a line graph.
 
         Parameters
@@ -444,7 +459,7 @@ class DataFrameWidgetsHandler:
         name_map = dict(zip(tech_mapping["original_names"], tech_mapping["nice_names"]))
         identifier = table_config["identifier"]
         countries = df["country"].unique()
-        country_select_key = f"country_select_key_{identifier}"
+        country_select_key = f"country_select_key_{identifier}_{widget_scope}"
 
         selected_country = st.pills(
             "Select a country",
@@ -476,7 +491,7 @@ class DataFrameWidgetsHandler:
                 index=0,
                 key=(
                     f"{identifier}_tech_select_{table_config["filter_col"]}"
-                    f"_{selected_country}"
+                    f"_{selected_country}_{widget_scope}"
                 ),
             )
 
@@ -516,7 +531,7 @@ class DataFrameWidgetsHandler:
             "Legend column",
             options=y_options,
             index=0,
-            key=f"{identifier}_legend_col_{selected_country}",
+            key=f"{identifier}_legend_col_{selected_country}_{widget_scope}",
         )
         label = table_config.get("uniform_unit") or y
         labels = ({y: label},)
@@ -537,7 +552,9 @@ class DataFrameWidgetsHandler:
         )
         fig.update_yaxes(range=[0, 1.2 * filtered_df[y].max()])
 
-        chart_key = f"plot_{identifier}_{selected_country}_{x}_{y}_{leg_col}"
+        chart_key = (
+            f"plot_{identifier}_{selected_country}_{x}_{y}_{leg_col}_{widget_scope}"
+        )
         st.plotly_chart(fig, width="stretch", key=chart_key)
 
     def resample_to_monthly(self, df: pd.DataFrame, leg_col: str) -> pd.DataFrame:
