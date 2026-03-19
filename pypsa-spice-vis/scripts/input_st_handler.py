@@ -464,46 +464,74 @@ class DataFrameWidgetsHandler:
         filtered_df = df[df["country"] == selected_country]
 
         if "hourly" in identifier:
-            filtered_df = self.resample_to_monthly(
-                filtered_df, table_config["filter_col"]
+            selected_tech = st.selectbox(
+                "Select specific technology",
+                options=filtered_df[table_config["filter_col"]].unique(),
+                index=0,
+                key=(
+                    f"{identifier}_tech_select_{table_config['filter_col']}"
+                    f"_{selected_country}_{widget_scope}"
+                ),
             )
+
+            averaging_period = st.segmented_control(
+                "Averaging period",
+                options=["hourly", "daily", "monthly"],
+                default="daily",
+                selection_mode="single",
+                key=f"{identifier}_avg_period_{selected_country}_{widget_scope}",
+            )
+            averaging_period = averaging_period or "daily"
+
             start_date = dt.date(self.year_list[0], 1, 1)
             end_date = dt.date(self.year_list[0], 12, 31)
             selected_range = st.date_input(
-                "Select month range",
+                "Select date range",
                 value=(start_date, end_date),
                 min_value=start_date,
                 max_value=end_date,
                 key=f"{identifier}_date_range_{selected_country}",
             )
 
-            selected_tech = st.selectbox(
-                "Select specific technology",
-                options=filtered_df[table_config["filter_col"]].unique(),
-                index=0,
-                key=(
-                    f"{identifier}_tech_select_{table_config["filter_col"]}"
-                    f"_{selected_country}_{widget_scope}"
-                ),
-            )
-
             if isinstance(selected_range, tuple) and len(selected_range) == 2:
-                start_month, end_month = (
-                    selected_range[0].month,
-                    selected_range[1].month,
-                )
+                start_datetime = pd.Timestamp(selected_range[0])
+                end_datetime = pd.Timestamp(selected_range[1]) + pd.Timedelta(days=1)
             else:
                 st.error(
                     "Please select a valid date range with both start and end dates."
                 )
                 return
+
             filtered_df = filtered_df[
-                (filtered_df["month"] >= start_month)
-                & (filtered_df["month"] <= end_month)
-                & (filtered_df[table_config["filter_col"]] == selected_tech)
+                filtered_df[table_config["filter_col"]] == selected_tech
+            ]
+            filtered_df = self.resample_data_time_resolution(
+                filtered_df,
+                table_config["filter_col"],
+                averaging_period,
+            )
+            filtered_df = filtered_df[
+                (filtered_df["datetime"] >= start_datetime)
+                & (filtered_df["datetime"] < end_datetime)
             ]
 
-            x = "month"
+            if filtered_df.empty:
+                st.info("No data available for the selected technology/date range.")
+                return
+
+            if averaging_period == "hourly":
+                year_start = pd.Timestamp(f"{self.year_list[0]}-01-01 00:00:00")
+                filtered_df["hour"] = (
+                    (filtered_df["datetime"] - year_start).dt.total_seconds() // 3600
+                ).astype(int)
+                x = "hour"
+            elif averaging_period == "daily":
+                filtered_df["day"] = filtered_df["datetime"].dt.dayofyear
+                x = "day"
+            else:
+                filtered_df["month"] = filtered_df["datetime"].dt.month
+                x = "month"
+
             leg_col = "node"
         else:
             x = "year"
@@ -512,7 +540,7 @@ class DataFrameWidgetsHandler:
         y_options = [
             col
             for col in filtered_df.columns
-            if col not in {"country", "node", x}
+            if col not in {"country", "node", x, "datetime"}
             and (
                 pd.api.types.is_float_dtype(filtered_df[col])
                 or pd.api.types.is_integer_dtype(filtered_df[col])
@@ -549,8 +577,13 @@ class DataFrameWidgetsHandler:
         )
         st.plotly_chart(fig, width="stretch", key=chart_key)
 
-    def resample_to_monthly(self, df: pd.DataFrame, leg_col: str) -> pd.DataFrame:
-        """Resamples dataframe from hourly to monthly.
+    def resample_data_time_resolution(
+        self,
+        df: pd.DataFrame,
+        leg_col: str,
+        averaging_period: str,
+    ) -> pd.DataFrame:
+        """Resample dataframe to selected averaging period.
 
         Parameters
         ----------
@@ -573,22 +606,24 @@ class DataFrameWidgetsHandler:
         )
         df_melted["hour"] = df_melted["hour"].astype(int)
 
-        start = pd.Timestamp("2000-01-01 00:00:00")  # Assume an arbitrary year
+        start = pd.Timestamp(f"{self.year_list[0]}-01-01 00:00:00")
         df_melted["datetime"] = start + pd.to_timedelta(df_melted["hour"], unit="h")
 
-        # Resample to monthly
-        df_monthly = (
+        resample_rule = {
+            "hourly": "h",
+            "daily": "D",
+            "monthly": "ME",
+        }.get(averaging_period, "D")
+
+        df_resampled = (
             df_melted.set_index("datetime")
             .groupby(["country", "node", leg_col])
-            .resample("ME")["value"]
+            .resample(resample_rule)["value"]
             .mean()
             .reset_index()
         )
 
-        df_monthly["month"] = df_monthly["datetime"].dt.month
-        df_monthly = df_monthly.drop(columns=["datetime"])
-
-        return df_monthly
+        return df_resampled
 
     def get_fuel_mapping(self, selected_types: list) -> dict:
         """Get mapping of technology types to their carriers.
