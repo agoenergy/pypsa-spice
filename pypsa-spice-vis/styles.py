@@ -94,8 +94,8 @@ def apply_sidebar_styles():
                 display: block;
                 width: 180px;
                 height: 42px;
-                margin-left: 20px;
-                margin-bottom: 12px;
+                margin-left: 5px;
+                margin-bottom: 20px;
                 position: relative;
                 top: 4px;
                 background: url(data:image/png;base64,{

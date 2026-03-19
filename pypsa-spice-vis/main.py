@@ -23,6 +23,26 @@ def render_script_page(relative_script_path: str):
     runpy.run_path(script_path, run_name="__main__")
 
 
+def scenario_config_main():
+    """Render the scenario config editor page."""
+    st.title(":material/settings: Scenario Config Editor")
+
+    st.session_state.input_sce1 = st.session_state.get("input_sce1", "")
+    st.session_state.scenario_config_path = os.path.join(
+        st.session_state.input_path, st.session_state.input_sce1, "scenario_config.yaml"
+    )
+
+    st.caption(f"{st.session_state.scenario_config_path}")
+
+    with open(
+        st.session_state.scenario_config_path,
+        encoding="utf-8",
+    ) as file:
+        st.session_state.scenario_config = yaml.safe_load(file)
+
+    render_script_page("scripts/input_pages/input_config.py")
+
+
 def input_main():
     """Render all Input views in one page with tab-like controls."""
     st.title(":material/input: Input")
@@ -173,9 +193,12 @@ if __name__ == "__main__":
     apply_sidebar_styles()
 
     info_page = st.Page("scripts/info.py", title="Info", icon=":material/info:")
+    config_page = st.Page(
+        scenario_config_main, title="Scenario config", icon=":material/settings:"
+    )
     in_page = st.Page(input_main, title="Input", icon=":material/input:")
     out_page = st.Page(output_main, title="Output", icon=":material/monitoring:")
-    pg = st.navigation([info_page, in_page, out_page], position="sidebar")
+    pg = st.navigation([info_page, config_page, in_page, out_page], position="sidebar")
     current_page_title = getattr(pg, "title", "")
 
     get_params = GetParams(st.session_state.base_config)
@@ -197,7 +220,9 @@ if __name__ == "__main__":
         input_scenario_list = get_params.get_input_scenario_list()
 
         # Input side bar setup
-        show_input_sce = current_page_title == "Input"
+        show_input_sce = (
+            current_page_title == "Input" or current_page_title == "Scenario config"
+        )
         if not show_input_sce:
             st.session_state.input_sce1 = ""
         else:
