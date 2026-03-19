@@ -18,30 +18,19 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from scripts.get_params import GetParams
-
 pd.set_option("future.no_silent_downcasting", True)
 
 
 class DataFrameWidgetsHandler:
     """Handle the DataFrame widget."""
 
-    def __init__(self, config: dict):
-        self.config = config
-        self.get_params = GetParams()
-        self.year_list = self.get_params.init_config["base_configs"]["years"]
-        self.data_folder_path = self.get_params.init_config["data_folder_path"]
-        project_folders = self.get_params.get_project_folder_list(self.data_folder_path)
-        if not project_folders:
-            st.error(f"No valid project folders found in {self.data_folder_path}")
+    def __init__(self, input_config: dict):
+        self.input_config = input_config
+        self.base_config = st.session_state.base_config
+        self.base_input_path = st.session_state.input_path
+        self.year_list = self.base_config["base_configs"]["years"]
 
-        self.base_input_path = os.path.join(
-            self.data_folder_path,
-            project_folders[0],
-            "input",
-        )
-
-        sectors = self.get_params.init_config["base_configs"]["sector"]
+        sectors = self.base_config["base_configs"]["sector"]
         self.has_industry_sector = (
             "i" in sectors
             if isinstance(sectors, str)
@@ -70,7 +59,7 @@ class DataFrameWidgetsHandler:
         sub_folder = (
             selected_scenario
             if selected_scenario
-            else self.get_params.init_config["path_configs"]["input_scenario_name"]
+            else self.base_config["path_configs"]["input_scenario_name"]
         )
         scenario_input_path = os.path.join(self.base_input_path, sub_folder)
 
@@ -81,33 +70,34 @@ class DataFrameWidgetsHandler:
                 "global_input",
             )
             # Update csvs_dict with paths to all global input csvs
-            for title in self.config["Global_input"].keys():
+            for title in self.input_config["Global_input"].keys():
                 csvs_dict[title] = os.path.join(
-                    global_input_path, self.config["Global_input"][title]["csv_name"]
+                    global_input_path,
+                    self.input_config["Global_input"][title]["csv_name"],
                 )
         elif specific_sector == "Power":
             # Update csvs_dict with paths to power csvs
-            for title in self.config["Power"].keys():
+            for title in self.input_config["Power"].keys():
                 csvs_dict[title] = os.path.join(
                     scenario_input_path,
                     "power",
-                    self.config["Power"][title]["csv_name"],
+                    self.input_config["Power"][title]["csv_name"],
                 )
         elif specific_sector == "Industry":
             # Update csvs_dict with paths to industry csvs
-            for title in self.config["Industry"].keys():
+            for title in self.input_config["Industry"].keys():
                 csvs_dict[title] = os.path.join(
                     scenario_input_path,
                     "industry",
-                    self.config["Industry"][title]["csv_name"],
+                    self.input_config["Industry"][title]["csv_name"],
                 )
         elif specific_sector == "Transport":
             # Update csvs_dict with paths to transport csvs
-            for title in self.config["Transport"].keys():
+            for title in self.input_config["Transport"].keys():
                 csvs_dict[title] = os.path.join(
                     scenario_input_path,
                     "transport",
-                    self.config["Transport"][title]["csv_name"],
+                    self.input_config["Transport"][title]["csv_name"],
                 )
         else:
             st.error(f"Invalid specific_sector value: {specific_sector}")
@@ -272,7 +262,7 @@ class DataFrameWidgetsHandler:
         selected_countries : list, optional
             Country(s) selected by the user in the global country select widget.
         """
-        table_config = self.config[sector][title]
+        table_config = self.input_config[sector][title]
         input_csv_path = (
             self.base_input_path + sector.lower() + table_config["csv_name"]
         )
@@ -607,7 +597,7 @@ class DataFrameWidgetsHandler:
         tech_path = os.path.join(
             self.base_input_path,
             "global_input",
-            self.config["Global_input"]["Technologies"]["csv_name"],
+            self.input_config["Global_input"]["Technologies"]["csv_name"],
         )
         tech_df = pd.read_csv(tech_path)
         type_to_carrier = (

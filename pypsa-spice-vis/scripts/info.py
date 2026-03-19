@@ -16,7 +16,7 @@ st.title("PyPSA-SPICE technological nomenclature")
 st.divider()
 
 with open(
-    os.path.join(st.session_state.current_dir, "setting/tech_mapping.csv"),
+    os.path.join(st.session_state.streamlit_base_dir, "setting/tech_mapping.csv"),
     encoding="utf-8",
 ) as file:
     tech_info = pd.read_csv(file)[["original_names", "nice_names"]]

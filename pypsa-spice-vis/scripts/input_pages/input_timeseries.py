@@ -8,34 +8,60 @@ import os
 
 import pandas as pd
 import streamlit as st
-import yaml
 
 from scripts.data_utils import render_countries_n_scenario_pills
 from scripts.input_st_handler import DataFrameWidgetsHandler
 
 
-def main(get_params):
-    """Render the Timeseries input page."""
-    with open(
-        os.path.join(st.session_state.current_dir, "setting/input_settings.yaml"),
-        encoding="utf-8",
-    ) as file:
-        config = yaml.safe_load(file)
+def get_input_scenario_list(base_config: dict) -> list[str]:
+    """Return available input scenarios with the default scenario first."""
+    data_folder_path = base_config["input_folder_path"]
 
-    tech_config = config["Static"]
-    time_series_config = config["Time_series"]
+    if not os.path.exists(data_folder_path):
+        raise FileNotFoundError(f"folder not found: {data_folder_path}")
 
-    df_widgets_handler = DataFrameWidgetsHandler(config=time_series_config)
-    all_countries = get_params.init_config["base_configs"]["regions"].keys()
+    scenario_list = [
+        scenario
+        for scenario in os.listdir(data_folder_path)
+        if scenario not in [".DS_Store"] and scenario != "global_input"
+    ]
+
+    for sce in (base_config["path_configs"]["input_scenario_name"], ""):
+        if sce in scenario_list:
+            scenario_list.insert(0, scenario_list.pop(scenario_list.index(sce)))
+
+    return scenario_list
+
+
+def get_mapping_list(*dfs: pd.DataFrame) -> list[str]:
+    """Get sorted technology/profile types from one or more dataframes."""
+    type_set = set()
+
+    for df in dfs:
+        if "technology" in df.columns:
+            type_set |= set(df["technology"].unique())
+        if "profile_type" in df.columns:
+            type_set |= set(df["profile_type"].unique())
+
+    return sorted(type_set)
+
+
+if __name__ == "__main__":
+    st.title(":chart_with_upwards_trend: Supply Profiles")
+    base_config = st.session_state.base_config
+
+    tech_config = st.session_state.input_config["Static"]
+    time_series_config = st.session_state.input_config["Time_series"]
+
+    df_widgets_handler = DataFrameWidgetsHandler(input_config=time_series_config)
+
+    all_countries = base_config["base_configs"]["regions"].keys()
 
     # ===================== Supply Profiles =====================
-    st.header("Supply Profiles")
     dfs = df_widgets_handler.load_all_dfs()
-    if not dfs:
-        return
 
     selected_countries, selected_scenario = render_countries_n_scenario_pills(
-        get_params=get_params,
+        scenario_options=get_input_scenario_list(base_config),
         all_countries=all_countries,
         key="supply_timeseries_pills",
     )
@@ -50,7 +76,7 @@ def main(get_params):
     )
     tech_df = pd.read_csv(tech_path)
 
-    types = get_params.get_mapping_list(tech_df)
+    types = get_mapping_list(tech_df)
     tech_mapping = dict(zip(tech_df["technology"], tech_df["technology_nomenclature"]))
     types_full_names = [tech_mapping.get(t, t) for t in types]
     types_full_names.sort()
@@ -80,14 +106,13 @@ def main(get_params):
             )
 
     # ===================== Demand Profiles =====================
-    st.header("Demand Profiles")
+    st.title(":chart_with_downwards_trend: Demand Profiles")
+
     demand_dfs = df_widgets_handler.load_all_dfs()
-    if not demand_dfs:
-        return
 
     demand_selected_countries, demand_selected_scenario = (
         render_countries_n_scenario_pills(
-            get_params=get_params,
+            scenario_options=get_input_scenario_list(base_config),
             all_countries=all_countries,
             key="demand_timeseries_pills",
         )

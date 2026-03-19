@@ -5,12 +5,10 @@
 """Get various parameters related to the visual app and data structure."""
 
 import os
-import sys
 import time
 
 import pandas as pd
 import streamlit as st
-import yaml
 from streamlit_js_eval import streamlit_js_eval
 
 
@@ -24,80 +22,24 @@ class GetParams:
         "p-t": "Power+Transport",
     }
 
-    def __init__(self):
-        # Directory of app's entry point file (pypsa-spice/pypsa-spice-vis)
-        self.streamlit_base_dir = os.path.dirname(
-            os.path.abspath(
-                sys.modules["__main__"].__file__  # pylint: disable=no-member
-            )
-        )
-
-        # pypsa-spice/base_config.yaml
-        self.config_path = "../base_config.yaml"
-
-        try:
-            with open(
-                os.path.join(self.streamlit_base_dir, self.config_path),
-                encoding="utf-8",
-            ) as file:
-                self.init_config = yaml.safe_load(file)
-        except FileNotFoundError as exc:
-            raise FileNotFoundError(
-                "Please ensure your working directory is at the pypsa-spice root level."
-            ) from exc
-        except Exception as exc:
-            raise Exception(
-                f"Error loading configuration file: {str(exc)}. "
-                + "Please ensure that the base_config.yaml file exists."
-            ) from exc
+    def __init__(self, base_config: dict):
+        self.base_config = base_config
 
         # data/data_folder_name
         data_folder_path = os.path.join(
-            "data/", self.init_config["path_configs"]["data_folder_name"]
+            "data/", self.base_config["path_configs"]["data_folder_name"]
         )
-        default_project_name = self.init_config["path_configs"]["project_name"]
+        default_project_name = self.base_config["path_configs"]["project_name"]
 
-        self.init_config["data_folder_path"] = data_folder_path
+        self.base_config["data_folder_path"] = data_folder_path
         # data/data_folder_name/project_name/input
-        self.init_config["input_folder_path"] = os.path.join(
+        self.base_config["input_folder_path"] = os.path.join(
             data_folder_path, default_project_name, "input"
         )
         # data/data_folder_name/project_name/results
-        self.init_config["results_folder_path"] = os.path.join(
+        self.base_config["results_folder_path"] = os.path.join(
             data_folder_path, default_project_name, "results"
         )
-
-    def get_project_folder_list(self, folder_path: str) -> list[str]:
-        """Get a list of project subfolders in a given folder.
-
-        Parameters
-        ----------
-        folder_path : str
-          The path to the input folder to look within.
-
-        Returns
-        -------
-        list[str]
-          The list of project subfolders.
-        """
-        if not os.path.exists(folder_path):
-            raise FileNotFoundError(f"folder not found: {folder_path}")
-
-        project_folders = [
-            f
-            for f in os.listdir(folder_path)
-            if os.path.isdir(os.path.join(folder_path, f))
-        ]
-
-        # Remove hidden files and folders
-        project_folders = [f for f in project_folders if not f.startswith(".")]
-
-        # Make default project the first option in the list if present
-        if self.init_config["path_configs"]["project_name"] in project_folders:
-            project_folders.remove(self.init_config["path_configs"]["project_name"])
-            project_folders.insert(0, self.init_config["path_configs"]["project_name"])
-
-        return project_folders
 
     def get_input_scenario_list(self) -> list[str]:
         """Get the list of input scenarios from a given project within the input folder.
@@ -112,7 +54,7 @@ class GetParams:
         list[str]
           The list of scenarios for this project.
         """
-        data_folder_path = self.init_config["input_folder_path"]
+        data_folder_path = self.base_config["input_folder_path"]
 
         if not os.path.exists(data_folder_path):
             raise FileNotFoundError(f"folder not found: {data_folder_path}")
@@ -124,7 +66,7 @@ class GetParams:
         ]
 
         # Make default scenario the first option in the list if present
-        for sce in (self.init_config["path_configs"]["input_scenario_name"], ""):
+        for sce in (self.base_config["path_configs"]["input_scenario_name"], ""):
             if sce in scenario_list:
                 scenario_list.insert(0, scenario_list.pop(scenario_list.index(sce)))
 
@@ -146,7 +88,7 @@ class GetParams:
           The list of scenarios for this project.
         """
         data_folder_path = os.path.join(
-            self.init_config["data_folder_path"], selected_project_name, "results"
+            self.base_config["data_folder_path"], selected_project_name, "results"
         )
 
         if not os.path.exists(data_folder_path):
@@ -160,7 +102,7 @@ class GetParams:
 
         # Make default scenario the first option in the list if present
         default_scenarios = [
-            self.init_config["path_configs"]["output_scenario_name"],
+            self.base_config["path_configs"]["output_scenario_name"],
             "",
         ]
         for sce in default_scenarios:
@@ -184,7 +126,7 @@ class GetParams:
         list[str]
           The list of sectors for this scenario.
         """
-        results_path = self.init_config["results_folder_path"]
+        results_path = self.base_config["results_folder_path"]
         csv_folder_path = os.path.join(results_path, scenario, "csvs")
 
         if not os.path.exists(csv_folder_path):
@@ -230,7 +172,7 @@ class GetParams:
         list[str]
           The list of years for this sector.
         """
-        results_path = self.init_config["results_folder_path"]
+        results_path = self.base_config["results_folder_path"]
         sector_folder_path = os.path.join(results_path, scenario, "csvs", sector)
 
         if not os.path.exists(sector_folder_path):
@@ -341,7 +283,31 @@ class GetParams:
 
         return default_width
 
+    def get_project_folder_list(self) -> list[str]:
+        """Get a list of project subfolders in the data folder.
 
-if __name__ == "__main__":
-    getters = GetParams()
-    print(getters.get_project_folder_list(getters.init_config["data_folder_path"]))
+        Returns
+        -------
+        list[str]
+          The list of project subfolders.
+        """
+        folder_path = self.base_config["data_folder_path"]
+
+        if not os.path.exists(folder_path):
+            raise FileNotFoundError(f"folder not found: {folder_path}")
+
+        project_folders = [
+            f
+            for f in os.listdir(folder_path)
+            if os.path.isdir(os.path.join(folder_path, f))
+        ]
+
+        # Remove hidden files and folders
+        project_folders = [f for f in project_folders if not f.startswith(".")]
+
+        # Make default project the first option in the list if present
+        if self.base_config["path_configs"]["project_name"] in project_folders:
+            project_folders.remove(self.base_config["path_configs"]["project_name"])
+            project_folders.insert(0, self.base_config["path_configs"]["project_name"])
+
+        return project_folders
