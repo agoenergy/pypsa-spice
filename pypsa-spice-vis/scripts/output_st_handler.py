@@ -707,7 +707,7 @@ def render_scenario_comparison_chart_n_table(
     with st.expander(
         (
             "Comparison between two scenarios "
-            f"({st.session_state.sce2} minus {st.session_state.sce1})"
+            f"( **{st.session_state.sce2}** minus **{st.session_state.sce1}** )"
         ),
         expanded=False,
     ):
