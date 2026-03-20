@@ -88,13 +88,27 @@ def render_type_and_class_filters(
     tech_df: pd.DataFrame,
     key: str = "default",
 ) -> tuple[list, list]:
-    """Render type and class controls, and return selected values."""
-    col21, col22 = st.columns([1, 1])
+    """
+    Render a multiselect box for selecting tech & display tech names and PyPSA classes.
+
+    Parameters
+    ----------
+    tech_df : pd.DataFrame
+        DataFrame containing technology information.
+    key : str, optional
+        Key for Streamlit widget, by default "default".
+
+    Returns
+    -------
+    tuple[list, list]
+        Selected technology types and corresponding classes.
+    """
+    col1, col2 = st.columns([1, 1])
     types = get_mapping_list(tech_df)
     tech_mapping = dict(zip(tech_df["technology"], tech_df["technology_nomenclature"]))
     types_full_names = sorted([tech_mapping.get(t, t) for t in types])
 
-    with col21:
+    with col1:
         reverse_mapping = {v: k for k, v in tech_mapping.items()}
         default_type_selection = [types_full_names[0]] if types_full_names else []
 
@@ -113,7 +127,7 @@ def render_type_and_class_filters(
 
         selected_types = [reverse_mapping.get(v, v) for v in selected_type_full]
 
-    with col22:
+    with col2:
         selected_classes = (
             tech_df.loc[tech_df["technology"].isin(selected_types), "class"]
             .unique()
