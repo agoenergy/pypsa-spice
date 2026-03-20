@@ -10,9 +10,11 @@
 ### Changed
 
 - Add a new comparison bar chart if there is deviation between the two selected scenarios in each inidcator ([:material-source-pull:91](https://github.com/agoenergy/pypsa-spice/pull/91) by @samarthiith & @nhlong2701)
-- Refactor GUI for input data and scenario configs.([:material-source-pull:92](https://github.com/agoenergy/pypsa-spice/pull/92) by @RichChang963)
+- Update streamlit to `v1.55.0` and initialise the first cleanup of refactoring GUI for input data and scenario configs.([:material-source-pull:92](https://github.com/agoenergy/pypsa-spice/pull/92) by @RichChang963)
 
 ### Notes
+
+- **Streamlit version upgrade:** We have upgraded PyPSA to `v1.55.0` and encourage users to upgrade their environments (using `conda env update -f envs/environment.yaml --prune`) to ensure full compatibility with the latest features and improvements.
 
 --8<-- "releases/v1.1.1.md"
 --8<-- "releases/v1.1.0.md"
