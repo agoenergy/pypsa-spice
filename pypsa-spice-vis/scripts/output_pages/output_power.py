@@ -11,6 +11,7 @@ dataframes and visualisations from the modelling results.
 
 import os
 
+import pandas as pd
 import streamlit as st
 import yaml
 
@@ -33,6 +34,7 @@ from scripts.output_st_handler import (
     render_chart_layout,
     render_download_with_data_table,
     render_download_without_data_table,
+    render_scenario_comparison_chart_n_table,
     render_section_header,
     setup_country_filter,
     setup_hourly_filters,
@@ -45,6 +47,7 @@ from scripts.plot_functions import (
     plot_bar_with_filter,
     plot_filtered_bar_hourly,
     plot_line_with_secondary_y_hourly,
+    plot_share_comparison_lines,
     plot_simple_bar_hourly,
     plot_simple_bar_yearly,
     plot_simple_line_hourly,
@@ -155,10 +158,14 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
         plot_function=plot_simple_bar_yearly,
         render_download_function=render_download_with_data_table,
         key=(
-            "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
         ),
     )
+
+    if has_dual_data:
+        render_scenario_comparison_chart_n_table(
+            scenario_1_grouped, scenario_2_grouped, graph_config, mapping_df
+        )
 
     st.divider()
 
@@ -254,6 +261,11 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
     )
 
+    if has_dual_data:
+        render_scenario_comparison_chart_n_table(
+            scenario_1_filtered, scenario_2_filtered, graph_config, mapping_df
+        )
+
     st.divider()
 
 
@@ -331,10 +343,14 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
         plot_function=plot_simple_bar_yearly,
         render_download_function=render_download_with_data_table,
         key=(
-            "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
         ),
     )
+
+    if has_dual_data:
+        render_scenario_comparison_chart_n_table(
+            scenario_1_grouped, scenario_2_grouped, graph_config, mapping_df
+        )
 
     st.divider()
 
@@ -399,6 +415,37 @@ def render_p4_share_category(graph_config: dict) -> None:
         plot_function=plot_area_share_yearly,
         render_download_function=render_download_with_data_table,
     )
+
+    if has_dual_data:
+        all_legends = sorted(scenario_1_plot["legend"].unique().tolist())
+        renew_label = (
+            mapping_df.loc["renewables", "nice_names"]
+            if mapping_df is not None and "renewables" in mapping_df.index
+            else None
+        )
+        default_selection = renew_label if renew_label in all_legends else None
+        selected = st.pills(
+            "Compare scenario share for:",
+            options=all_legends,
+            selection_mode="single",
+            default=default_selection,
+            key=f"pills_share_{st.session_state.sce1}_{table_name}",
+        )
+        if selected:
+            frames = []
+            for df, sce_name in [
+                (scenario_1_plot, st.session_state.sce1),
+                (scenario_2_plot, st.session_state.sce2),
+            ]:
+                rows = df[df["legend"] == selected][["year", "value"]].copy()
+                rows["scenario"] = sce_name
+                frames.append(rows)
+            combined = pd.concat(frames, ignore_index=True)
+            plot_share_comparison_lines(
+                combined,
+                graph_config,
+                key=f"plotly_chart_share_lines_{st.session_state.sce1}_{table_name}",
+            )
 
     st.divider()
 
@@ -493,6 +540,11 @@ def render_p6_transmission_capacity_between_regions(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
     )
 
+    if has_dual_data:
+        render_scenario_comparison_chart_n_table(
+            scenario_1_filtered, scenario_2_filtered, graph_config, mapping_df
+        )
+
     st.divider()
 
 
@@ -586,8 +638,7 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
         plot_function=plot_simple_bar_hourly,
         render_download_function=render_download_without_data_table,
         key=(
-            "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
         ),
         **plot_kwargs,
     )
@@ -759,10 +810,14 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
         plot_function=plot_simple_bar_yearly,
         render_download_function=render_download_with_data_table,
         key=(
-            "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
         ),
     )
+
+    if has_dual_data:
+        render_scenario_comparison_chart_n_table(
+            scenario_1_grouped, scenario_2_grouped, graph_config, mapping_df
+        )
 
     st.divider()
 
@@ -852,8 +907,7 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
         plot_function=plot_simple_bar_hourly,
         render_download_function=render_download_without_data_table,
         key=(
-            "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
         ),
         **plot_kwargs,
     )
@@ -1106,8 +1160,7 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
         plot_function=plot_simple_bar_yearly,
         render_download_function=render_download_with_data_table,
         key=(
-            "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
         ),
     )
 

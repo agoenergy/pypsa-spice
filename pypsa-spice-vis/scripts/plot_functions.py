@@ -63,6 +63,122 @@ def create_nice_names_and_color_mapping(table_name: str) -> pd.DataFrame | None:
 
 
 @st.fragment
+def plot_diff_bar_yearly(
+    df: pd.DataFrame,
+    graph_config: Mapping[str, Any],
+    colour_mapping: Mapping[str, str],
+    key: str,
+) -> None:
+    """Plot yearly stacked bar chart showing the difference between two scenarios.
+
+    Positive values indicate scenario 2 is higher; negative values indicate
+    scenario 1 is higher. A reference line is drawn at y=0.
+    """
+    fig = px.bar(
+        df,
+        x="year",
+        y="value",
+        color="legend",
+        barmode="group",
+        color_discrete_map=colour_mapping,
+    )
+    fig.add_hline(y=0, line_width=1.5, line_color="black")
+    units = f" [{graph_config['units']}]" if "units" in graph_config else ""
+    fig.update_layout(
+        font={"family": "Flexo, sans-serif", "size": 15},
+        legend={
+            "orientation": "h",
+            "x": 0.5,
+            "y": -0.25,
+            "xanchor": "center",
+            "yanchor": "top",
+            "title_text": graph_config["leg_col"].capitalize(),
+            "title_font_size": 16,
+        },
+        margin={"t": 50, "b": 150},
+        xaxis_title="",
+        yaxis_title="",
+        bargap=0.6,
+        bargroupgap=0.1,
+        annotations=[
+            {
+                "text": units,
+                "x": 0,
+                "y": 1.02,
+                "xref": "paper",
+                "yref": "paper",
+                "xanchor": "center",
+                "yanchor": "bottom",
+                "xshift": -15,
+                "yshift": 20,
+                "showarrow": False,
+                "font": {"size": 13},
+            }
+        ],
+    )
+    st.plotly_chart(fig, use_container_width=True, key=key)
+
+
+@st.fragment
+def plot_share_comparison_lines(
+    df: pd.DataFrame,
+    graph_config: Mapping[str, Any],
+    key: str,
+) -> None:
+    """Plot two scenario lines for a share metric (e.g. renewable share) over years.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Combined dataframe with columns ``year``, ``value``, ``scenario``.
+    graph_config : dict
+        Chart config — only ``units`` is used for the y-axis annotation.
+    key : str
+        Unique Streamlit/Plotly chart key.
+    """
+    fig = px.line(
+        df,
+        x="year",
+        y="value",
+        color="scenario",
+        markers=True,
+    )
+    units = f" [{graph_config['units']}]" if "units" in graph_config else ""
+    fig.update_layout(
+        font={"family": "Flexo, sans-serif", "size": 15},
+        legend={
+            "orientation": "h",
+            "x": 0.5,
+            "y": -0.25,
+            "xanchor": "center",
+            "yanchor": "top",
+            "title_text": "",
+            "title_font_size": 16,
+        },
+        margin={"t": 50, "b": 150},
+        xaxis_title="",
+        yaxis_title="",
+        yaxis={"range": [0, 100]},
+        annotations=[
+            {
+                "text": units,
+                "x": 0,
+                "y": 1.02,
+                "xref": "paper",
+                "yref": "paper",
+                "xanchor": "center",
+                "yanchor": "bottom",
+                "xshift": -15,
+                "yshift": 20,
+                "showarrow": False,
+                "font": {"size": 13},
+            }
+        ],
+    )
+    st.plotly_chart(fig, use_container_width=True, key=key)
+
+
+@st.fragment
 def plot_simple_bar_yearly(
     df: pd.DataFrame,
     graph_config: Mapping[str, Any],

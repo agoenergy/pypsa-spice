@@ -9,6 +9,8 @@
 
 ### Changed
 
+- Add a new comparison bar chart if there is deviation between the two selected scenarios in each inidcator ([:material-source-pull:91](https://github.com/agoenergy/pypsa-spice/pull/91) by @samarthiith & @nhlong2701)
+
 ### Notes
 
 --8<-- "releases/v1.1.1.md"
