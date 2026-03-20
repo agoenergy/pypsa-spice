@@ -409,13 +409,12 @@ def render_p4_share_category(graph_config: dict) -> None:
         plot_function=plot_area_share_yearly,
         render_download_function=render_download_with_data_table,
     )
-
     # Render comparison lines if dual data is available
     if has_dual_data:
         with st.expander(
             (
                 "Comparison between two scenarios "
-                f"({st.session_state.sce2} and {st.session_state.sce1})"
+                f"({st.session_state.output_sce2} and {st.session_state.output_sce1})"
             ),
             expanded=False,
         ):
@@ -434,7 +433,7 @@ def render_p4_share_category(graph_config: dict) -> None:
                     if default_legend_label in available_legends
                     else None
                 ),
-                key=f"pills_share_{st.session_state.sce1}_{table_name}",
+                key=f"pills_share_{st.session_state.output_sce1}_{table_name}",
             )
 
             if selected_legend:
@@ -443,19 +442,21 @@ def render_p4_share_category(graph_config: dict) -> None:
                         scenario_1_plot.loc[
                             scenario_1_plot["legend"] == selected_legend,
                             ["year", "value"],
-                        ].assign(scenario=st.session_state.sce1),
+                        ].assign(scenario=st.session_state.output_sce1),
                         scenario_2_plot.loc[
                             scenario_2_plot["legend"] == selected_legend,
                             ["year", "value"],
-                        ].assign(scenario=st.session_state.sce2),
+                        ].assign(scenario=st.session_state.output_sce2),
                     ],
                     ignore_index=True,
                 )
-
                 plot_share_comparison_lines(
                     comparison_data,
                     graph_config,
-                    key=f"plotly_chart_share_lines_{st.session_state.sce1}_{table_name}",
+                    key=(
+                        f"plotly_chart_share_lines_"
+                        f"{st.session_state.output_sce1}_{table_name}"
+                    ),
                 )
 
     st.divider()
