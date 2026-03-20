@@ -15,48 +15,60 @@ from styles import apply_sidebar_styles, apply_title_styles, use_flexo
 from scripts.get_params import GetParams
 
 
-def render_script_page(relative_script_path: str):
-    """Execute a page script so it renders in the current Streamlit page."""
+@st.cache_data
+def load_yaml(path: str) -> dict:
+    """Load a YAML file."""
+    with open(path, encoding="utf-8") as file:
+        return yaml.safe_load(file)
+
+
+def render_script_page(relative_script_path: str) -> None:
+    """Execute a page script in the current Streamlit page."""
     script_path = os.path.join(
         st.session_state.streamlit_base_dir, relative_script_path
     )
     runpy.run_path(script_path, run_name="__main__")
 
 
-def scenario_config_main():
-    """Render the scenario config editor page."""
+def get_sector_tabs(base_tabs: list[str], sector: str) -> list[str]:
+    """Return tabs extended by enabled sectors."""
+    tabs = base_tabs.copy()
+    if "i" in sector:
+        tabs.append("Industry")
+    if "t" in sector:
+        tabs.append("Transport")
+    return tabs
+
+
+def scenario_config_main() -> None:
+    """Render the scenario configuration editor page."""
     st.title(":material/settings: Scenario Config Editor")
 
     st.session_state.input_sce1 = st.session_state.get("input_sce1", "")
-    st.session_state.scenario_config_path = os.path.join(
-        st.session_state.input_path, st.session_state.input_sce1, "scenario_config.yaml"
+
+    # Path to the selected scenario config file.
+    scenario_config_path = os.path.join(
+        st.session_state.input_path,
+        st.session_state.input_sce1,
+        "scenario_config.yaml",
     )
+    st.session_state.scenario_config_path = scenario_config_path
 
-    st.caption(f"{st.session_state.scenario_config_path}")
-
-    with open(
-        st.session_state.scenario_config_path,
-        encoding="utf-8",
-    ) as file:
-        st.session_state.scenario_config = yaml.safe_load(file)
+    # Display and load the config file for the selected scenario.
+    st.caption(st.session_state.scenario_config_path)
+    st.session_state.scenario_config = load_yaml(scenario_config_path)
 
     render_script_page("scripts/input_pages/input_config.py")
 
 
-def input_main():
-    """Render all Input views in one page with tab-like controls."""
+def input_main() -> None:
+    """Render all input views in a single page."""
     st.title(":material/input: Input")
 
     st.session_state.input_sce1 = st.session_state.get("input_sce1", "")
 
-    input_sector_tabs = ["Power"]
-    include_industry = "i" in st.session_state.sector
-    include_transport = "t" in st.session_state.sector
-
-    if include_industry:
-        input_sector_tabs.append("Industry")
-    if include_transport:
-        input_sector_tabs.append("Transport")
+    # Build the sector tabs dynamically based on enabled sectors.
+    input_sector_tabs = get_sector_tabs(["Power"], st.session_state.sector)
 
     selected_input_sector = st.segmented_control(
         "Input sector",
@@ -71,14 +83,16 @@ def input_main():
         st.error("Please select a sector to view and edit input data.")
         st.stop()
 
+    # Map each input section to the corresponding script page.
     input_page_mapping = {
         "Global input": "scripts/input_pages/input_global.py",
         "Scenario specific input": "scripts/input_pages/input_scenario.py",
     }
+
     selected_input_tab = st.segmented_control(
         "Input section",
-        options=list(input_page_mapping.keys()),
-        default=list(input_page_mapping.keys())[0],
+        options=list(input_page_mapping),
+        default=next(iter(input_page_mapping)),
         selection_mode="single",
         label_visibility="collapsed",
         key="selected_input_tab",
@@ -91,16 +105,15 @@ def input_main():
     render_script_page(input_page_mapping[selected_input_tab])
 
 
-def output_main():
-    """Render all Output views in one page with tab-like controls."""
-    output_tabs = ["Power", "Emissions", "Costs"]
-    include_industry = "i" in st.session_state.sector
-    include_transport = "t" in st.session_state.sector
-
-    if include_industry:
-        output_tabs.insert(1, "Industry")
-    if include_transport:
-        output_tabs.insert(2 if include_industry else 1, "Transport")
+def output_main() -> None:
+    """Render all output views in a single page."""
+    # Build output tabs dynamically from the active sector selection.
+    output_tabs = ["Power"]
+    if "i" in st.session_state.sector:
+        output_tabs.append("Industry")
+    if "t" in st.session_state.sector:
+        output_tabs.append("Transport")
+    output_tabs.extend(["Emissions", "Costs"])
 
     selected_output_tab = st.segmented_control(
         "Output section",
@@ -115,6 +128,7 @@ def output_main():
         st.error("Please select a tab to view the output charts.")
         st.stop()
 
+    # Map each output tab to the script that renders it.
     output_page_mapping = {
         "Power": "scripts/output_pages/output_power.py",
         "Industry": "scripts/output_pages/output_industry.py",
@@ -125,85 +139,73 @@ def output_main():
     render_script_page(output_page_mapping[selected_output_tab])
 
 
-if __name__ == "__main__":
-    # Directory of app's entry point file (pypsa-spice/pypsa-spice-vis)
-    st.session_state.streamlit_base_dir = os.path.dirname(
+def initialize_paths() -> None:
+    """Load app configs into session state and initialize input/output paths."""
+    # Resolve the directory of the Streamlit app entry point.
+    base_dir = os.path.dirname(
         os.path.abspath(sys.modules["__main__"].__file__)  # pylint: disable=no-member
     )
+    st.session_state.streamlit_base_dir = base_dir
 
-    # Open all config files for the app session_state
     try:
-        with open(
-            os.path.join(
-                st.session_state.streamlit_base_dir, "setting/input_settings.yaml"
-            ),
-            encoding="utf-8",
-        ) as file:
-            st.session_state.input_config = yaml.safe_load(file)
-
-        with open(
-            os.path.join(
-                st.session_state.streamlit_base_dir, "setting/graph_settings.yaml"
-            ),
-            encoding="utf-8",
-        ) as file:
-            st.session_state.output_config = yaml.safe_load(file)
-
-        with open(
-            os.path.join(st.session_state.streamlit_base_dir, "../base_config.yaml"),
-            encoding="utf-8",
-        ) as file:
-            st.session_state.base_config = yaml.safe_load(file)
-
+        # Load all YAML config files needed by the app.
+        settings_dir = os.path.join(base_dir, "setting")
+        st.session_state.input_config = load_yaml(
+            os.path.join(settings_dir, "input_settings.yaml")
+        )
+        st.session_state.output_config = load_yaml(
+            os.path.join(settings_dir, "graph_settings.yaml")
+        )
+        st.session_state.base_config = load_yaml(
+            os.path.join(base_dir, "..", "base_config.yaml")
+        )
     except FileNotFoundError as exc:
         raise FileNotFoundError(
             "Please ensure your working directory is at the pypsa-spice root level."
         ) from exc
-    except Exception as exc:
-        raise Exception(
-            f"Error loading configuration file: {str(exc)}. "
-            + "Please ensure that the base_config.yaml file exists."
-        ) from exc
+    except yaml.YAMLError as exc:
+        raise ValueError(f"Invalid YAML configuration: {exc}") from exc
 
-    st.session_state.input_data_folder_path = st.session_state.base_config[
-        "path_configs"
-    ]["input_scenario_name"]
-
-    st.session_state.input_path = os.path.join(
+    # Build path to project folder.
+    path_configs = st.session_state.base_config["path_configs"]
+    data_root = os.path.join(
         "data",
-        st.session_state.base_config["path_configs"]["data_folder_name"],
-        st.session_state.base_config["path_configs"]["project_name"],
-        "input",
+        path_configs["data_folder_name"],
+        path_configs["project_name"],
     )
 
-    st.session_state.result_path = os.path.join(
-        "data",
-        st.session_state.base_config["path_configs"]["data_folder_name"],
-        st.session_state.base_config["path_configs"]["project_name"],
-        "results",
-    )
+    # Store input/ output paths in session state.
+    st.session_state.input_data_folder_path = path_configs["input_scenario_name"]
+    st.session_state.input_path = os.path.join(data_root, "input")
+    st.session_state.result_path = os.path.join(data_root, "results")
 
-    # =============================================================================
-    # Render all pages and settings
-    # =============================================================================
 
+if __name__ == "__main__":
+    # Load configuration and initialize shared paths before rendering the UI.
+    initialize_paths()
+
+    # Set up Streamlit page layout and global styling.
     st.set_page_config(initial_sidebar_state="expanded", layout="wide")
 
     use_flexo()
     apply_sidebar_styles()
 
+    # Define the main navigation pages shown in the sidebar.
     info_page = st.Page("scripts/info.py", title="Info", icon=":material/info:")
     config_page = st.Page(
         scenario_config_main, title="Scenario config", icon=":material/settings:"
     )
     in_page = st.Page(input_main, title="Input", icon=":material/input:")
     out_page = st.Page(output_main, title="Output", icon=":material/monitoring:")
-    pg = st.navigation([info_page, config_page, in_page, out_page], position="sidebar")
-    current_page_title = getattr(pg, "title", "")
+    pages = st.navigation(
+        [info_page, config_page, in_page, out_page], position="sidebar"
+    )
+    current_page_title = getattr(pages, "title", "")
 
+    # Helper object for reading project/scenario/sector metadata.
     get_params = GetParams(st.session_state.base_config)
 
-    # Set window_width in session state
+    # Persist current browser window width in session state.
     st.session_state.window_width = get_params.get_window_width(
         st.session_state.get("window_width")
     )
@@ -211,55 +213,49 @@ if __name__ == "__main__":
     with st.sidebar:
         apply_title_styles("Parameters for settings")
 
-        # Set project in session state
-        st.session_state.project = st.sidebar.selectbox(
-            ":material/globe: Project :", options=get_params.get_project_folder_list()
+        # Select project
+        st.session_state.project = st.selectbox(
+            ":material/globe: Project :",
+            options=get_params.get_project_folder_list(),
         )
 
-        # Set sce1 name in session state
         input_scenario_list = get_params.get_input_scenario_list()
+        show_input_scenario: bool = current_page_title in {"Input", "Scenario config"}
 
-        # Input side bar setup
-        show_input_sce = (
-            current_page_title == "Input" or current_page_title == "Scenario config"
-        )
-        if not show_input_sce:
-            st.session_state.input_sce1 = ""
-        else:
-            st.session_state.input_sce1 = st.sidebar.selectbox(
+        if show_input_scenario:
+            # Input pages use an input scenario and sector selection.
+            st.session_state.input_sce1 = st.selectbox(
                 ":material/looks_one: Input scenario 1:",
                 options=input_scenario_list,
                 index=0,
             )
-
-            # Set sector in session state
-            st.session_state.sector = st.sidebar.selectbox(
+            st.session_state.sector = st.selectbox(
                 ":material/crossword: Input Sector:",
                 options=st.session_state.base_config["base_configs"]["sector"],
                 format_func=get_params.get_sector_display_name,
                 index=0,
             )
+        else:
+            st.session_state.input_sce1 = ""
 
-        # Set sce1 name in session state
         output_scenario_list = get_params.get_output_scenario_list(
             selected_project_name=st.session_state.project
         )
+        show_output_scenario: bool = current_page_title == "Output"
 
-        show_output_sce = current_page_title == "Output"
-        if not show_output_sce:
-            st.session_state.output_sce1 = ""
-        else:
-            st.session_state.output_sce1 = st.sidebar.selectbox(
+        if show_output_scenario:
+            # Output pages allow selecting one or two scenarios for comparison.
+            st.session_state.output_sce1 = st.selectbox(
                 ":material/looks_one: Output scenario 1:",
                 options=output_scenario_list,
                 index=0,
             )
-            # Show Scenario 2 side bars
+
             if len(output_scenario_list) == 1:
                 st.session_state.output_sce2 = ""
             else:
                 scenario_2_options = output_scenario_list + ["None"]
-                st.session_state.output_sce2 = st.sidebar.selectbox(
+                st.session_state.output_sce2 = st.selectbox(
                     ":material/looks_two: Output scenario 2:",
                     options=scenario_2_options,
                     index=1,
@@ -267,28 +263,35 @@ if __name__ == "__main__":
                 if st.session_state.output_sce2 == "None":
                     st.session_state.output_sce2 = ""
 
-                # Set sector in session state
-                st.session_state.sector = st.sidebar.selectbox(
-                    ":material/crossword: Output Sector:",
-                    options=get_params.get_sector_list(st.session_state.output_sce1),
-                    format_func=get_params.get_sector_display_name,
-                    index=0,
-                )
+            # Sector choices for output depend on the selected output scenario.
+            st.session_state.sector = st.selectbox(
+                ":material/crossword: Output Sector:",
+                options=get_params.get_sector_list(st.session_state.output_sce1),
+                format_func=get_params.get_sector_display_name,
+                index=0,
+            )
 
+            # Prevent comparing a scenario with itself.
             if st.session_state.output_sce1 == st.session_state.output_sce2:
-                st.sidebar.error("⚠️ The two scenarios should not be the same!")
+                st.error("⚠️ The two scenarios should not be the same!")
                 st.stop()
 
-            # Set year in session state
+            # Load available years for the selected output scenario(s).
             try:
                 st.session_state.output_sce1_years = get_params.get_year_list(
-                    st.session_state.output_sce1, st.session_state.sector
+                    st.session_state.output_sce1,
+                    st.session_state.sector,
                 )
                 if st.session_state.output_sce2:
                     st.session_state.output_sce2_years = get_params.get_year_list(
-                        st.session_state.output_sce2, st.session_state.sector
+                        st.session_state.output_sce2,
+                        st.session_state.sector,
                     )
-            except FileNotFoundError as e:
-                st.write(e)
+            except FileNotFoundError as exc:
+                st.write(exc)
+        else:
+            st.session_state.output_sce1 = ""
+            st.session_state.output_sce2 = ""
 
-    pg.run()
+    # Render the selected page.
+    pages.run()
