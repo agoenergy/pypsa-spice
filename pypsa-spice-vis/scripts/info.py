@@ -17,7 +17,7 @@ st.divider()
 tech_info = load_tech_info_mapping_df().reset_index()
 
 tech_info = tech_info[["original_names", "nice_names", "sector"]]
-tech_info.columns = ["Abbreviations", "Full names", "Sector (for technology only)"]
+tech_info.columns = ["Abbreviations", "Full names", "Sector (if applicable)"]
 tech_info = tech_info.set_index("Abbreviations")
 
 st.dataframe(tech_info, width="stretch")
