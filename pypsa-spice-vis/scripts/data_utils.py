@@ -125,26 +125,6 @@ def render_type_and_class_filters(
     return selected_types, selected_classes
 
 
-def get_input_scenario_list(base_config: dict) -> list[str]:
-    """Return available input scenarios with the default scenario first."""
-    data_folder_path = base_config["input_folder_path"]
-
-    if not os.path.exists(data_folder_path):
-        raise FileNotFoundError(f"folder not found: {data_folder_path}")
-
-    scenario_list = [
-        scenario
-        for scenario in os.listdir(data_folder_path)
-        if scenario not in [".DS_Store"] and scenario != "global_input"
-    ]
-
-    for sce in (base_config["path_configs"]["input_scenario_name"], ""):
-        if sce in scenario_list:
-            scenario_list.insert(0, scenario_list.pop(scenario_list.index(sce)))
-
-    return scenario_list
-
-
 def get_mapping_list(*dfs: pd.DataFrame) -> list[str]:
     """Get sorted technology/profile types from one or more dataframes."""
     type_set = set()
