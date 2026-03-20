@@ -410,39 +410,53 @@ def render_p4_share_category(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
     )
 
+    # Render comparison lines if dual data is available
     if has_dual_data:
-        all_legends = sorted(scenario_1_plot["legend"].unique().tolist())
-        renew_label = (
-            mapping_df.loc["renewables", "nice_names"]
-            if mapping_df is not None and "renewables" in mapping_df.index
-            else None
-        )
-        default_selection = renew_label if renew_label in all_legends else None
-        selected = st.pills(
-            "Compare scenario share for:",
-            options=all_legends,
-            selection_mode="single",
-            default=default_selection,
-            key=f"pills_share_{st.session_state.output_sce1}_{table_name}",
-        )
-        if selected:
-            frames = []
-            for df, sce_name in [
-                (scenario_1_plot, st.session_state.output_sce1),
-                (scenario_2_plot, st.session_state.output_sce2),
-            ]:
-                rows = df[df["legend"] == selected][["year", "value"]].copy()
-                rows["scenario"] = sce_name
-                frames.append(rows)
-            combined = pd.concat(frames, ignore_index=True)
-            plot_share_comparison_lines(
-                combined,
-                graph_config,
-                key=(
-                    "plotly_chart_share_lines_"
-                    f"{st.session_state.output_sce1}_{table_name}"
+        with st.expander(
+            (
+                "Comparison between two scenarios "
+                f"({st.session_state.sce2} and {st.session_state.sce1})"
+            ),
+            expanded=False,
+        ):
+            available_legends = sorted(scenario_1_plot["legend"].dropna().unique())
+
+            default_legend_label = None
+            if mapping_df is not None and "renewables" in mapping_df.index:
+                default_legend_label = mapping_df.at["renewables", "nice_names"]
+
+            selected_legend = st.pills(
+                "Compare scenario share for:",
+                options=available_legends,
+                selection_mode="single",
+                default=(
+                    default_legend_label
+                    if default_legend_label in available_legends
+                    else None
                 ),
+                key=f"pills_share_{st.session_state.sce1}_{table_name}",
             )
+
+            if selected_legend:
+                comparison_data = pd.concat(
+                    [
+                        scenario_1_plot.loc[
+                            scenario_1_plot["legend"] == selected_legend,
+                            ["year", "value"],
+                        ].assign(scenario=st.session_state.sce1),
+                        scenario_2_plot.loc[
+                            scenario_2_plot["legend"] == selected_legend,
+                            ["year", "value"],
+                        ].assign(scenario=st.session_state.sce2),
+                    ],
+                    ignore_index=True,
+                )
+
+                plot_share_comparison_lines(
+                    comparison_data,
+                    graph_config,
+                    key=f"plotly_chart_share_lines_{st.session_state.sce1}_{table_name}",
+                )
 
     st.divider()
 
