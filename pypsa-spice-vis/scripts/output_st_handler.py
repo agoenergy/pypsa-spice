@@ -13,6 +13,7 @@ import streamlit as st
 from styles import apply_sidebar_chart_nav_styles, use_flexo
 
 from scripts.data_utils import (
+    calculate_scenario_df_differences,
     convert_month_to_name,
     filter_dataframe_by_month,
     prettify_label,
@@ -20,6 +21,7 @@ from scripts.data_utils import (
     slugify_text,
     sort_scenario_data_for_yearly_chart,
 )
+from scripts.plot_functions import plot_diff_bar_yearly
 from scripts.plot_settings import (
     generate_color_mapping_dict_for_chart,
     generate_default_colour_mapping_dict_for_chart,
@@ -684,6 +686,73 @@ def render_chart_layout(
             render_download_function=render_download_function,
             **plot_kwargs,
         )
+
+
+def render_scenario_comparison_chart_n_table(
+    scenario_1_df: "pd.DataFrame",
+    scenario_2_df: "pd.DataFrame",
+    graph_config: dict,
+    mapping_df: "pd.DataFrame | None",
+) -> None:
+    """Render the app layout.
+
+    for showing the difference between two scenarios in a single chart and table.
+    """
+    diff_df = calculate_scenario_df_differences(
+        scenario_1_df,
+        scenario_2_df,
+    )
+    if diff_df.empty:
+        return
+
+    colour_mapping_diff = generate_colour_mapping_dict(
+        graph_config["table_name"], mapping_df, diff_df, "legend"
+    )
+
+    with st.expander(
+        (
+            "Comparison between two scenarios "
+            f"( **{st.session_state.output_sce2}** minus "
+            f"**{st.session_state.output_sce1}** )"
+        ),
+        expanded=False,
+    ):
+        col_chart, col_table = st.columns([1, 1])
+
+        with col_chart:
+            plot_diff_bar_yearly(
+                diff_df,
+                graph_config,
+                colour_mapping_diff,
+                key=(
+                    "plotly_chart_diff_"
+                    f"{graph_config['download_id'].format(
+                        st.session_state.output_sce1
+                    )}"
+                ),
+            )
+
+        with col_table:
+            table_df = diff_df.sort_values(["year", "legend"]).reset_index(drop=True)
+            table_df = pd.pivot_table(
+                table_df,
+                values="value",
+                columns="year",
+                index="legend",
+                aggfunc="sum",
+                fill_value=0,
+            )
+            table_df.index.name = "Technology"
+            st.dataframe(table_df, width="stretch")
+
+            download_id = graph_config["download_id"].format(
+                f"{st.session_state.output_sce2}_minus_{st.session_state.output_sce1}"
+            )
+
+            _create_download_csv_button(
+                table_df.to_csv(index=True).encode("utf-8"),
+                download_id=download_id,
+            )
 
 
 # =============================================================================

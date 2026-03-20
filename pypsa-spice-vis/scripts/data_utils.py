@@ -337,6 +337,23 @@ def clean_df_for_plotting(leg_col: str, df: pd.DataFrame) -> pd.DataFrame:
     return handle_small_values(df_filtered)
 
 
+def calculate_scenario_df_differences(
+    df1: pd.DataFrame, df2: pd.DataFrame
+) -> pd.DataFrame:
+    """Return non-zero differences between two scenario dataframes."""
+    s1 = df1.groupby(["year", "legend"])["value"].sum()
+    s2 = df2.groupby(["year", "legend"])["value"].sum()
+
+    diff = s2.sub(s1, fill_value=0)
+
+    diff = diff[diff != 0]
+
+    if diff.empty:
+        return pd.DataFrame()
+
+    return diff.rename("value").reset_index()
+
+
 # =============================================================================
 # Date filtering helpers (hourly data)
 # =============================================================================
