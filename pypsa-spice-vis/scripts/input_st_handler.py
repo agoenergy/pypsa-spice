@@ -19,12 +19,13 @@ import streamlit as st
 
 from scripts.data_utils import load_tech_info_mapping_df
 
+pd.set_option("future.no_silent_downcasting", True)
+
 SECTOR_TITLES = {
     "Power": ":material/bolt: Power",
     "Industry": ":material/construction: Industry",
     "Transport": ":material/directions_car: Transport",
 }
-
 
 # =============================================================================
 # Sidebar navigation + section headers
@@ -57,29 +58,6 @@ def generate_global_markdown_message() -> None:
 def get_all_countries() -> list[str]:
     """Filter all countries from the base_configs. Used for country pills rendering."""
     return list(st.session_state.base_config["base_configs"]["regions"].keys())
-
-
-def get_class_type_for_timeseries_data(
-    tech_df: pd.DataFrame,
-    selected_sector: str,
-    selected_types: list[str],
-) -> list[str]:
-    """Define PyPSA component type for timeseries technologies."""
-    if "class" not in tech_df.columns:
-        return selected_types
-
-    class_mapping = dict(zip(tech_df["technology"], tech_df["class"]))
-    if selected_sector == "Power":
-        allowed_classes = {"Generator", "StorageUnit", "Store", "Link"}
-    else:  # Other sectors
-        allowed_classes = {"Link", "StorageUnit", "Store"}
-
-    filtered_types = [
-        technology
-        for technology in selected_types
-        if class_mapping.get(technology) in allowed_classes
-    ]
-    return filtered_types or selected_types
 
 
 def get_fuel_mapping(selected_types: list[str], input_config: dict) -> dict:
@@ -253,7 +231,7 @@ def set_general_filter_df(
     selected_types: list[str],
 ) -> pd.DataFrame:
     """Set up a dataframe by the selected technology or profile values."""
-    return df[df[filter_col].isin(selected_types)]
+    return df[df[filter_col].str.contains("|".join(selected_types))]
 
 
 def set_decommission_filter_df(
@@ -265,6 +243,26 @@ def set_decommission_filter_df(
     return df[df[filter_col].str.split("_").str[-1].isin(selected_types)]
 
 
+def set_filtered_timeseries_df(
+    df: pd.DataFrame, table_config: dict, widget_scope: str
+) -> tuple[pd.DataFrame, str]:
+    """Set up a timeseries dataframe by the selected technology and date range."""
+    identifier = table_config["identifier"]
+    countries = df["country"].unique()
+
+    # Country filter
+    selected_country = st.pills(
+        "Select a country",
+        options=countries,
+        default=countries[0],
+        selection_mode="single",
+        key=f"country_select_key_{identifier}_{widget_scope}",
+    )
+    filtered_df = df[df["country"] == selected_country]
+
+    return filtered_df, selected_country
+
+
 # =============================================================================
 # Table editing and update helper functions
 # =============================================================================
@@ -272,32 +270,12 @@ def set_decommission_filter_df(
 
 def convert_inf_to_strings_in_df(df: pd.DataFrame) -> pd.DataFrame:
     """Convert infinite numeric values to strings for Streamlit editing display."""
-    editable_df = df.copy()
-
-    # find any cell with inf values in the df and convert it into "inf" string
-    for column in editable_df.select_dtypes(include=[np.number]).columns:
-        inf_mask = np.isinf(editable_df[column])
-        if inf_mask.any():
-            editable_df[column] = editable_df[column].astype(object)
-            editable_df.loc[inf_mask, column] = "inf"
-
-    return editable_df
+    return df.replace({np.inf: "inf"})
 
 
-def convert_strings_to_inf_in_df(
-    edited_df: pd.DataFrame,
-    reference_df: pd.DataFrame,
-) -> pd.DataFrame:
+def convert_strings_to_inf_in_df(edited_df: pd.DataFrame) -> pd.DataFrame:
     """Convert inf strings back to numeric inf after completion of Streamlit editing."""
-    result_df = edited_df.copy()
-
-    # find any cell with inf values in the df and convert it into "inf" string
-    for column in reference_df.select_dtypes(include=[float]).columns:
-        inf_mask = result_df[column] == "inf"
-        if inf_mask.any():
-            result_df.loc[inf_mask, column] = np.inf
-
-    return result_df
+    return edited_df.replace({"inf": np.inf})
 
 
 def create_editable_df(
@@ -307,6 +285,8 @@ def create_editable_df(
 ) -> tuple[pd.DataFrame, bool]:
     """Render an editable dataframe and validate numeric columns."""
     to_save = True
+
+    # convert inf values to string for streamlit data editor display
     editable_df = convert_inf_to_strings_in_df(filtered_df)
 
     editable_cols = filtered_df.select_dtypes(
@@ -325,8 +305,11 @@ def create_editable_df(
         disabled=disabled_cols,
         on_change=lambda: st.session_state.update({has_changes_key: True}),
     )
-    result_df = convert_strings_to_inf_in_df(edited_df, filtered_df)
 
+    # convert "inf" strings back to numeric inf
+    result_df = convert_strings_to_inf_in_df(edited_df)
+
+    # validate numeric columns
     for column in filtered_df.select_dtypes(include=[float]).columns:
         try:
             result_df[column] = result_df[column].astype(float)
@@ -351,24 +334,20 @@ def create_editable_df(
 # =============================================================================
 
 
-def visualise_data(df: pd.DataFrame, table_config: dict, widget_scope: str) -> None:
-    """Render the existing line-chart visualisation for a filtered input table."""
+def render_line_chart(df: pd.DataFrame, table_config: dict, widget_scope: str) -> None:
+    """Render a line chart for timeseries data or other yearly data."""
     tech_mapping = get_tech_mapping()
     colour_map = dict(zip(tech_mapping["original_names"], tech_mapping["hex_codes"]))
     name_map = dict(zip(tech_mapping["original_names"], tech_mapping["nice_names"]))
     identifier = table_config["identifier"]
 
-    countries = df["country"].unique()
-    selected_country = st.pills(
-        "Select a country",
-        options=countries,
-        default=countries[0],
-        selection_mode="single",
-        key=f"country_select_key_{identifier}_{widget_scope}",
+    filtered_df, selected_country = set_filtered_timeseries_df(
+        df, table_config, widget_scope
     )
-    filtered_df = df[df["country"] == selected_country]
 
     if "hourly" in identifier:
+        # Hourly data
+        # Technology filter
         selected_tech = st.selectbox(
             "Select specific technology",
             options=filtered_df[table_config["filter_col"]].unique(),
@@ -378,6 +357,7 @@ def visualise_data(df: pd.DataFrame, table_config: dict, widget_scope: str) -> N
                 f"_{selected_country}_{widget_scope}"
             ),
         )
+        # Temporal resolution filter
         averaging_period = (
             st.segmented_control(
                 "Averaging period",
@@ -389,9 +369,12 @@ def visualise_data(df: pd.DataFrame, table_config: dict, widget_scope: str) -> N
             or "daily"
         )
 
+        # Timeseries data only applies with the base year
         year = st.session_state.base_config["base_configs"]["years"][0]
         start_date = dt.date(year, 1, 1)
         end_date = dt.date(year, 12, 31)
+
+        # Date range filter
         selected_range = st.date_input(
             "Select date range",
             value=(start_date, end_date),
@@ -409,6 +392,8 @@ def visualise_data(df: pd.DataFrame, table_config: dict, widget_scope: str) -> N
         filtered_df = filtered_df[
             filtered_df[table_config["filter_col"]] == selected_tech
         ]
+
+        # Resample data to the selected time resolution for the selected date range
         filtered_df = resample_data_time_resolution(
             filtered_df,
             table_config["filter_col"],
@@ -423,6 +408,7 @@ def visualise_data(df: pd.DataFrame, table_config: dict, widget_scope: str) -> N
             st.info("No data available for the selected technology/date range.")
             return
 
+        # Set x and legend columns based on the selected averaging period
         if averaging_period == "hourly":
             year_start = pd.Timestamp(f"{year}-01-01 00:00:00")
             filtered_df["hour"] = (
@@ -438,6 +424,7 @@ def visualise_data(df: pd.DataFrame, table_config: dict, widget_scope: str) -> N
 
         legend_column = "node"
     else:
+        # yearly data
         x_axis = "year"
         legend_column = table_config["filter_col"]
 
@@ -459,6 +446,7 @@ def visualise_data(df: pd.DataFrame, table_config: dict, widget_scope: str) -> N
     )
     label = table_config.get("uniform_unit") or y_axis
 
+    # visualisation
     fig = px.line(
         filtered_df,
         x=x_axis,
@@ -483,123 +471,8 @@ def visualise_data(df: pd.DataFrame, table_config: dict, widget_scope: str) -> N
     st.plotly_chart(fig, width="stretch", key=chart_key)
 
 
-def render_input_table_section(
-    title: str,
-    selected_types: list[str],
-    input_config: dict,
-    input_df: pd.DataFrame | None = None,
-    sector: str | None = None,
-    selected_classes: list[str] | None = None,
-    selected_countries: list[str] | None = None,
-    selected_scenario: str | None = None,
-) -> None:
-    """Render one input table section with editing and charts."""
-    selected_classes = selected_classes or []
-    table_config, input_csv_path = get_table_config_and_path(
-        title=title,
-        sector=sector,
-        input_config=input_config,
-        selected_scenario=selected_scenario,
-    )
-    csv_identifier = table_config["identifier"]
-    unique_type_key = get_unique_type_key(
-        sector or "Global_input",
-        title,
-        selected_types,
-        selected_classes,
-        selected_countries,
-    )
-
-    edited_df_key = f"{title}_{csv_identifier}_editor_{unique_type_key}"
-    has_changes_key = f"has_changes_{title}_{csv_identifier}_{unique_type_key}"
-    save_button_key = f"save_{title}_{csv_identifier}_{unique_type_key}"
-
-    with st.expander(title):
-        st.write(f"### {title}")
-        st.markdown(
-            f"<small><i>{os.path.normpath(input_csv_path)}</i></small>",
-            unsafe_allow_html=True,
-        )
-
-        if input_df is None:
-            if not os.path.exists(input_csv_path):
-                st.error(f"File not found: {input_csv_path}")
-                return
-            input_df = pd.read_csv(input_csv_path)
-
-        if table_config["tag_name"] == "decommission":
-            filtered_df = set_decommission_filter_df(
-                df=input_df,
-                filter_col=table_config["filter_col"],
-                selected_types=selected_types,
-            )
-        elif table_config["tag_name"] == "fuel_costs":
-            fuels = (
-                get_fuel_mapping(selected_types, input_config)
-                if "Link" in selected_classes
-                else {}
-            )
-            filtered_df = set_general_filter_df(
-                df=input_df,
-                filter_col=table_config["filter_col"],
-                selected_types=list(fuels.values()),
-            )
-        elif table_config["tag_name"] == "direct_air_capture":
-            filtered_df = input_df
-        else:
-            filtered_df = set_general_filter_df(
-                df=input_df,
-                filter_col=table_config["filter_col"],
-                selected_types=selected_types,
-            )
-
-        if selected_countries and "country" in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df["country"].isin(selected_countries)]
-
-        edited_df = pd.DataFrame()
-        if filtered_df.empty:
-            get_empty_df_notice_message()
-            return
-
-        if table_config["with_charts"] and not table_config.get("timeseries"):
-            table_tab, visualisation_tab = st.tabs(["Table", "Visualisation"])
-            with table_tab:
-                edited_df, to_save = create_editable_df(
-                    filtered_df,
-                    edited_df_key,
-                    has_changes_key,
-                )
-            with visualisation_tab:
-                visualise_data(filtered_df, table_config, unique_type_key)
-        elif table_config.get("timeseries"):
-            visualise_data(filtered_df, table_config, unique_type_key)
-            to_save = False
-        else:
-            edited_df, to_save = create_editable_df(
-                filtered_df,
-                edited_df_key,
-                has_changes_key,
-            )
-
-        has_changes = st.session_state.get(has_changes_key, False)
-        if to_save:
-            render_save_button(
-                filtered_df,
-                edited_df,
-                has_changes,
-                has_changes_key,
-                save_button_key,
-                input_csv_path,
-                message_delay=1,
-            )
-
-
-def render_demand_profiles_widget(
-    selected_sector: str,
-    sector_selected_countries: list[str] | None,
-    input_config: dict,
-) -> None:
-    """Render the global demand profile widget for the active sector."""
+def render_demand_profiles_selectbox(selected_sector: str) -> list[str]:
+    """Render the global demand profile selectbox."""
     load_mapping = {
         "HV_LOAD": "Transmission/Wholesale market load (High voltage level)",
         "LV_LOAD": "Distribution/Building load (low/medium voltage level)",
@@ -636,15 +509,9 @@ def render_demand_profiles_widget(
 
     if selected_profile_key is None:
         st.info("Select a demand profile type to load data.")
-        return
+        return [""]
 
-    render_input_table_section(
-        sector="Global_input",
-        title="Demand_Profiles",
-        selected_types=[selected_profile_key],
-        selected_countries=sector_selected_countries,
-        input_config=input_config,
-    )
+    return [selected_profile_key]
 
 
 # =============================================================================

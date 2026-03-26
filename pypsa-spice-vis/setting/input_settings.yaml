@@ -93,19 +93,19 @@ Power:
     csv_name: "power_links.csv"
     with_charts: False
     identifier: "power_links"
-    filter_col: "carrier"
+    filter_col: "type"
   Storage_units:
     tag_name: "power_storageunit"
     csv_name: "storage_capacity.csv"
     with_charts: False
     identifier: "storageunit"
-    filter_col: "carrier"
+    filter_col: "type"
   Stores:
     tag_name: "power_store"
     csv_name: "storage_energy.csv"
     with_charts: False
     identifier: "power_store"
-    filter_col: "carrier"
+    filter_col: "type"
 
 Grids:
   Interconnectors:
@@ -133,7 +133,7 @@ Industry:
     csv_name: "fuel_conversion.csv"
     with_charts: False
     identifier: "fuel_conversion"
-    filter_col: "carrier"
+    filter_col: "type"
   Heat_loads:
     tag_name: "load"
     csv_name: "loads.csv"
@@ -151,19 +151,19 @@ Industry:
     csv_name: "heat_links.csv"
     with_charts: False
     identifier: "heat_links"
-    filter_col: "carrier"
+    filter_col: "type"
   Industry_storage_units:
     tag_name: "industry_storageunit"
     csv_name: "storage_capacity.csv"
     with_charts: False
     identifier: "industry_storageunit"
-    filter_col: "carrier"
+    filter_col: "type"
   Industry_stores:
     tag_name: "industry_store"
     csv_name: "storage_energy.csv"
     with_charts: False
     identifier: "industry_store"
-    filter_col: "carrier"
+    filter_col: "type"
 
 Transport:
   Transport_load:
