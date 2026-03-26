@@ -58,7 +58,7 @@ def scenario_config_main() -> None:
     st.caption(st.session_state.scenario_config_path)
     st.session_state.scenario_config = load_yaml(scenario_config_path)
 
-    render_script_page("scripts/input_pages/input_config.py")
+    render_script_page("scripts/scenario_configuration_pages/scenario_config.py")
 
 
 def input_main() -> None:
@@ -83,10 +83,17 @@ def input_main() -> None:
         st.error("Please select a sector to view and edit input data.")
         st.stop()
 
-    # Map each input section to the corresponding script page.
     input_page_mapping = {
-        "Global input": "scripts/input_pages/input_global.py",
-        "Scenario specific input": "scripts/input_pages/input_scenario.py",
+        "Global input": {
+            "Power": "scripts/input_pages/input_power_global.py",
+            "Industry": "scripts/input_pages/input_industry_global.py",
+            "Transport": "scripts/input_pages/input_transport_global.py",
+        },
+        "Scenario specific input": {
+            "Power": "scripts/input_pages/input_power_scenario.py",
+            "Industry": "scripts/input_pages/input_industry_scenario.py",
+            "Transport": "scripts/input_pages/input_transport_scenario.py",
+        },
     }
 
     selected_input_tab = st.segmented_control(
@@ -102,7 +109,7 @@ def input_main() -> None:
         st.error("Please select a tab to view and edit the input data.")
         st.stop()
 
-    render_script_page(input_page_mapping[selected_input_tab])
+    render_script_page(input_page_mapping[selected_input_tab][selected_input_sector])
 
 
 def output_main() -> None:

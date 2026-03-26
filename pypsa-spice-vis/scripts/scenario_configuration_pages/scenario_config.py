@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: PyPSA-SPICE Developers
-
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-"""Create a generic editor for scenario_config files."""
+"""Helpers for rendering and editing scenario configuration YAML."""
+
+from __future__ import annotations
 
 import os
 
@@ -10,30 +12,29 @@ import streamlit as st
 import yaml
 
 
-def _safe_widget_key(raw_key):
-    """Create stable Streamlit widget keys from nested yaml paths."""
-    return "".join(ch if ch.isalnum() else "_" for ch in raw_key)
+def _safe_widget_key(raw_key: str) -> str:
+    """Create stable Streamlit widget keys from nested YAML paths."""
+    return "".join(character if character.isalnum() else "_" for character in raw_key)
 
 
-def _is_primitive(value):
-    """Check if value is a primitive yaml type."""
+def _is_primitive(value: object) -> bool:
+    """Check if a value is a primitive YAML type."""
     return value is None or isinstance(value, (str, int, float, bool))
 
 
-def resolve_scenario_config_file(scenario_folder):
-    """Find scenario_config yaml file inside the selected scenario folder."""
+def resolve_scenario_config_file(scenario_folder: str) -> str:
+    """Resolve the scenario config file inside the selected scenario folder."""
     preferred = os.path.join(scenario_folder, "scenario_config.yaml")
     if os.path.exists(preferred):
         return preferred
 
     candidates = sorted(
-        f
-        for f in os.listdir(scenario_folder)
-        if f.startswith("scenario_config")
-        and f.endswith(".yaml")
-        and not f.endswith(".default.yaml")
+        file_name
+        for file_name in os.listdir(scenario_folder)
+        if file_name.startswith("scenario_config")
+        and file_name.endswith(".yaml")
+        and not file_name.endswith(".default.yaml")
     )
-
     if not candidates:
         raise FileNotFoundError(
             f"No `scenario_config*.yaml` file found in: {scenario_folder}"
@@ -42,24 +43,29 @@ def resolve_scenario_config_file(scenario_folder):
     return os.path.join(scenario_folder, candidates[0])
 
 
-def load_config(file_path):
-    """Load yaml configuration."""
-    with open(file_path, encoding="utf-8") as f:
-        return yaml.safe_load(f)
+def load_config(file_path: str) -> dict:
+    """Load a YAML configuration file."""
+    with open(file_path, encoding="utf-8") as file_handle:
+        return yaml.safe_load(file_handle)
 
 
-def save_config(new_config, file_path):
-    """Save yaml configuration."""
+def save_config(new_config: dict, file_path: str) -> bool:
+    """Persist the edited YAML configuration to disk."""
     try:
-        with open(file_path, "w", encoding="utf-8") as f:
-            yaml.safe_dump(new_config, f, default_flow_style=False, sort_keys=False)
+        with open(file_path, "w", encoding="utf-8") as file_handle:
+            yaml.safe_dump(
+                new_config,
+                file_handle,
+                default_flow_style=False,
+                sort_keys=False,
+            )
         return True
-    except Exception as e:
-        raise RuntimeError(f"Error saving configuration: {str(e)}") from e
+    except Exception as exc:
+        raise RuntimeError(f"Error saving configuration: {exc}") from exc
 
 
-def edit_config_value(label, value, key_prefix):
-    """Render editable widget(s) for one yaml value recursively."""
+def edit_config_value(label: str, value: object, key_prefix: str) -> object:
+    """Render editable widgets for one YAML value recursively."""
     widget_key = _safe_widget_key(f"{key_prefix}_{label}")
 
     if isinstance(value, bool):
@@ -106,9 +112,8 @@ def edit_config_value(label, value, key_prefix):
         edited_items = []
         st.caption(label)
         for index, item in enumerate(value):
-            item_label = f"[{index}]"
             edited_items.append(
-                edit_config_value(item_label, item, f"{key_prefix}_{label}_{index}")
+                edit_config_value(f"[{index}]", item, f"{key_prefix}_{label}_{index}")
             )
         return edited_items
 
@@ -123,34 +128,37 @@ def edit_config_value(label, value, key_prefix):
             )
         return edited_dict
 
-    raw_value = st.text_input(label, value=str(value), key=widget_key)
-    return raw_value
+    return st.text_input(label, value=str(value), key=widget_key)
 
 
-def render_section_editor(section_name, section_value):
-    """Render one top-level section in an expander."""
-    with st.expander(f"{section_name}", expanded=False):
+def render_section_editor(section_name: str, section_value: object) -> object:
+    """Render one top-level config section in an expander."""
+    with st.expander(section_name, expanded=False):
         if isinstance(section_value, dict):
             edited_section = {}
             for key, value in section_value.items():
                 edited_section[key] = edit_config_value(
-                    str(key), value, f"section_{section_name}_{key}"
+                    str(key),
+                    value,
+                    f"section_{section_name}_{key}",
                 )
             return edited_section
 
         return edit_config_value(section_name, section_value, f"section_{section_name}")
 
 
-if __name__ == "__main__":
+def render_scenario_config_editor() -> None:
+    """Render the scenario configuration editor page."""
     scenario_config = st.session_state.scenario_config
     scenario_config_path = st.session_state.scenario_config_path
 
     edited_config = {}
-    exluded_sections = ["version", "logging", "solving"]
+    excluded_sections = {"version", "logging", "solving"}
     for section_name, section_value in scenario_config.items():
-        if section_name not in exluded_sections:
+        if section_name not in excluded_sections:
             edited_config[section_name] = render_section_editor(
-                section_name, section_value
+                section_name,
+                section_value,
             )
 
     with st.container(border=True):
@@ -160,3 +168,7 @@ if __name__ == "__main__":
                 st.success("Scenario config saved successfully.")
             except Exception as exc:
                 st.error(f"Error saving scenario config: {exc}")
+
+
+if __name__ == "__main__":
+    render_scenario_config_editor()
