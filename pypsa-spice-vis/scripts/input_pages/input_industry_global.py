@@ -8,33 +8,24 @@ import streamlit as st
 
 from scripts.data_utils import render_countries_pills, render_type_and_class_filters
 from scripts.input_st_handler import (
+    generate_global_markdown_message,
+    generate_sector_title,
     get_all_countries,
-    get_filtered_timeseries_types,
-    get_sector_title,
-    load_sector_technology_df,
+    get_class_type_for_timeseries_data,
     render_demand_profiles_widget,
     render_input_table_section,
+    set_available_technology_df,
 )
 
-
-def render_page() -> None:
-    """Render the global industry input page."""
+if __name__ == "__main__":
     input_config = st.session_state.input_config
     selected_sector = "Industry"
-    sector_title = get_sector_title(selected_sector)
+    sector_title = generate_sector_title(selected_sector)
     all_countries = get_all_countries()
-    tech_df = load_sector_technology_df(selected_sector, input_config)
+    tech_df = set_available_technology_df(selected_sector, input_config)
 
     st.subheader(f":globe_with_meridians: Global input  | {sector_title}")
-    st.markdown(
-        """
-        <p style="color:orange; font-weight:bold;">
-        ⚠️ Changes made to the global input files will be automatically applied
-        across all scenarios.
-        </p>
-        """,
-        unsafe_allow_html=True,
-    )
+    generate_global_markdown_message()
 
     sector_selected_countries = render_countries_pills(
         all_countries=all_countries,
@@ -57,7 +48,7 @@ def render_page() -> None:
             )
 
     st.subheader(f":material/timer: Timeseries Profiles  | {sector_title}")
-    filtered_supply_types = get_filtered_timeseries_types(
+    filtered_supply_types = get_class_type_for_timeseries_data(
         tech_df,
         selected_sector,
         sector_selected_types,
@@ -82,7 +73,3 @@ def render_page() -> None:
         sector_selected_countries=demand_selected_countries,
         input_config=input_config,
     )
-
-
-if __name__ == "__main__":
-    render_page()

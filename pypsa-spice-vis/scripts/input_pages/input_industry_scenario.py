@@ -8,10 +8,10 @@ import streamlit as st
 
 from scripts.data_utils import render_countries_pills, render_type_and_class_filters
 from scripts.input_st_handler import (
+    generate_sector_title,
     get_all_countries,
-    get_sector_title,
-    load_sector_technology_df,
     render_input_table_section,
+    set_available_technology_df,
 )
 
 
@@ -19,10 +19,10 @@ def render_page() -> None:
     """Render the scenario-specific industry input page."""
     input_config = st.session_state.input_config
     selected_sector = "Industry"
-    sector_title = get_sector_title(selected_sector)
+    sector_title = generate_sector_title(selected_sector)
     selected_scenario = st.session_state.input_sce1
     all_countries = get_all_countries()
-    tech_df = load_sector_technology_df(selected_sector, input_config)
+    tech_df = set_available_technology_df(selected_sector, input_config)
 
     st.subheader(f":material/timeline: Scenario specific input | {sector_title}")
     sector_selected_countries = render_countries_pills(
