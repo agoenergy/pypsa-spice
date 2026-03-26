@@ -36,6 +36,7 @@ from _helpers import (
 
 idx = pd.IndexSlice
 
+logging.getLogger("pypsa.networks").setLevel(logging.ERROR)
 logger = logging.getLogger(__name__)
 
 
