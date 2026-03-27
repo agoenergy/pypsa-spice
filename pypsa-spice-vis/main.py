@@ -42,7 +42,7 @@ def get_sector_tabs(base_tabs: list[str], sector: str) -> list[str]:
 
 def scenario_config_main() -> None:
     """Render the scenario configuration editor page."""
-    st.title(":material/settings: Scenario Config Editor")
+    st.title(":material/settings: Scenario config editor")
 
     st.session_state.input_sce1 = st.session_state.get("input_sce1", "")
 

@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from ruamel.yaml import YAML
 
 from scripts.data_utils import load_tech_info_mapping_df
 
@@ -550,7 +551,7 @@ def update_csv_file(
         raise
 
 
-def render_save_button(
+def render_save_button_for_input_df(
     filtered_df: pd.DataFrame,
     edited_df: pd.DataFrame,
     has_changes: bool,
@@ -577,6 +578,39 @@ def render_save_button(
                         column_name=column,
                         new_value=str(edited_df[column].iloc[index]),
                     )
+
+        if success:
+            st.success("Changes saved successfully!")
+            st.session_state[has_changes_key] = False
+            time.sleep(message_delay)
+            st.rerun()
+        else:
+            st.error("Error saving some changes")
+
+
+def render_save_button_for_input_config(
+    section_value: dict,
+    section_name: str,
+    save_button_key: str,
+    has_changes: bool,
+    has_changes_key: str,
+    message_delay: float = 1,
+) -> None:
+    """Render the save button and save changes in the scenario config."""
+    if st.button(
+        "Save Changes",
+        key=save_button_key,
+        type="primary" if has_changes else "secondary",
+    ):
+        success = True
+        scenario_config = dict(st.session_state.scenario_config)
+        scenario_config[section_name] = section_value
+        scenario_config_path = st.session_state.scenario_config_path
+
+        with open(scenario_config_path, "w", encoding="utf-8") as file_handle:
+            safe_yaml = YAML(typ="safe", pure=True)
+            safe_yaml.default_flow_style = False
+            safe_yaml.dump(scenario_config, file_handle)
 
         if success:
             st.success("Changes saved successfully!")

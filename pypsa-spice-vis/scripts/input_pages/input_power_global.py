@@ -20,7 +20,7 @@ from scripts.input_st_handler import (
     get_unique_type_key,
     render_demand_profiles_selectbox,
     render_line_chart,
-    render_save_button,
+    render_save_button_for_input_df,
     set_available_technology_df,
     set_general_filter_df,
 )
@@ -99,7 +99,7 @@ def render_input_power_global_section(
 
         has_changes = st.session_state.get(has_changes_key, False)
         if to_save:
-            render_save_button(
+            render_save_button_for_input_df(
                 filtered_df,
                 edited_df,
                 has_changes,
