@@ -32,29 +32,29 @@ class GetParams:
         default_project_name = self.base_config["path_configs"]["project_name"]
 
         self.base_config["data_folder_path"] = data_folder_path
-        # data/data_folder_name/project_name/input
-        self.base_config["input_folder_path"] = os.path.join(
-            data_folder_path, default_project_name, "input"
-        )
         # data/data_folder_name/project_name/results
         self.base_config["results_folder_path"] = os.path.join(
             data_folder_path, default_project_name, "results"
         )
 
-    def get_input_scenario_list(self) -> list[str]:
-        """Get the list of input scenarios from a given project within the input folder.
+    def get_input_scenario_list(self, selected_project_name: str) -> list[str]:
+        """Get the list of input scenarios.
+
+        From a given project within the input folder.
 
         Parameters
         ----------
-        project_dir : str
-          Name of the project folder to look within for the scenarios.
+        selected_project_name : str
+          Name of the project folder selected by users in the app.
 
         Returns
         -------
         list[str]
           The list of scenarios for this project.
         """
-        data_folder_path = self.base_config["input_folder_path"]
+        data_folder_path = os.path.join(
+            self.base_config["data_folder_path"], selected_project_name, "input"
+        )
 
         if not os.path.exists(data_folder_path):
             raise FileNotFoundError(f"folder not found: {data_folder_path}")
@@ -66,7 +66,11 @@ class GetParams:
         ]
 
         # Make default scenario the first option in the list if present
-        for sce in (self.base_config["path_configs"]["input_scenario_name"], ""):
+        default_scenarios = [
+            self.base_config["path_configs"]["input_scenario_name"],
+            "",
+        ]
+        for sce in default_scenarios:
             if sce in scenario_list:
                 scenario_list.insert(0, scenario_list.pop(scenario_list.index(sce)))
 

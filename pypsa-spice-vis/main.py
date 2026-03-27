@@ -182,8 +182,8 @@ def initialize_paths() -> None:
     )
 
     # Store input/ output paths in session state.
+    st.session_state.data_folder_name = path_configs["data_folder_name"]
     st.session_state.input_data_folder_path = path_configs["input_scenario_name"]
-    st.session_state.input_path = os.path.join(data_root, "input")
     st.session_state.result_path = os.path.join(data_root, "results")
 
 
@@ -226,7 +226,9 @@ if __name__ == "__main__":
             options=get_params.get_project_folder_list(),
         )
 
-        input_scenario_list = get_params.get_input_scenario_list()
+        input_scenario_list = get_params.get_input_scenario_list(
+            selected_project_name=st.session_state.project
+        )
         show_input_scenario: bool = current_page_title in {"Input", "Scenario config"}
 
         if show_input_scenario:
@@ -242,6 +244,12 @@ if __name__ == "__main__":
                 format_func=get_params.get_sector_display_name,
                 index=0,
             )
+            data_root = os.path.join(
+                "data",
+                st.session_state.data_folder_name,
+                st.session_state.project,
+            )
+            st.session_state.input_path = os.path.join(data_root, "input")
         else:
             st.session_state.input_sce1 = ""
 

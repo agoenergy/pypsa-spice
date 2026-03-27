@@ -39,7 +39,6 @@ def render_input_industry_global_section(
         title=title,
         sector="Global_input",
         input_config=input_config,
-        selected_scenario=None,
     )
     csv_identifier = table_config["identifier"]
     unique_type_key = get_unique_type_key(
@@ -127,7 +126,6 @@ def render_input_industry_timeseries_section(
         title=title,
         sector="Global_input",
         input_config=input_config,
-        selected_scenario=None,
     )
     unique_type_key = get_unique_type_key(
         "Global_input",
@@ -179,7 +177,6 @@ def render_input_industry_demand_section(
         title=title,
         sector="Global_input",
         input_config=input_config,
-        selected_scenario=None,
     )
     unique_type_key = get_unique_type_key(
         "Global_input",

@@ -86,7 +86,6 @@ def get_table_config_and_path(
 ) -> tuple[dict, str]:
     """Get the table configuration and CSV path for a given input scenario."""
     base_input_path = st.session_state.input_path
-    base_config = st.session_state.base_config
 
     if not sector or sector == "Global_input":
         table_config = input_config["Global_input"][title]
@@ -96,15 +95,13 @@ def get_table_config_and_path(
             table_config["csv_name"],
         )
         return table_config, input_csv_path
+    else:
+        table_config = input_config[sector][title]
 
-    table_config = input_config[sector][title]
     if sector in {"Power", "Industry", "Transport"}:
-        scenario_name = (
-            selected_scenario or base_config["path_configs"]["input_scenario_name"]
-        )
         input_csv_path = os.path.join(
             base_input_path,
-            scenario_name,
+            selected_scenario,
             sector.lower(),
             table_config["csv_name"],
         )
