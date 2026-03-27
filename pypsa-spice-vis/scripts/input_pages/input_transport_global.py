@@ -231,25 +231,18 @@ if __name__ == "__main__":
         all_countries=all_countries,
         key="transport_global_pills",
     )
-    sector_selected_types, sector_selected_classes = render_type_and_class_filters(
-        tech_df,
-        key="transport_global",
-    )
+    sector_selected_types = ["EVCH", "EVST"]
+    sector_selected_classes = ["Link", "Store"]
+    st.markdown(f"Tech: **{', '.join(sector_selected_types)}**")
+    st.markdown(f"Class: **{', '.join(sector_selected_classes)}**")
 
     for title, table_config in input_config["Global_input"].items():
-        if not table_config.get("timeseries"):
+        if (
+            not table_config.get("timeseries")
+            and "storage_costs" not in title.lower()
+            and "inflows" not in title.lower()
+        ):
             render_input_transport_global_section(
-                title=title,
-                selected_types=sector_selected_types,
-                input_config=input_config,
-                selected_classes=sector_selected_classes,
-                selected_countries=sector_selected_countries,
-            )
-
-    st.subheader(f":material/timer: Timeseries Profiles  | {sector_title}")
-    for title, table_config in input_config["Global_input"].items():
-        if table_config.get("timeseries") and "demand" not in table_config["tag_name"]:
-            render_input_transport_timeseries_section(
                 title=title,
                 selected_types=sector_selected_types,
                 input_config=input_config,

@@ -69,6 +69,7 @@ def render_input_power_scenario_section(
                 st.error(f"File not found: {input_csv_path}")
                 return
             input_df = pd.read_csv(input_csv_path)
+
         if "decommission" in title.lower():
             filtered_df = set_decommission_filter_df(
                 df=input_df,
@@ -347,7 +348,8 @@ if __name__ == "__main__":
                 selected_scenario=selected_scenario,
             )
 
-    st.subheader(":material/timeline: Load")
+    st.subheader(f":material/timeline: Loads  | {sector_title}")
+
     demand_selected_countries = render_countries_pills(
         all_countries=all_countries,
         key="demand_power_scenario_pills",

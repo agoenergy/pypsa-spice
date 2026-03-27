@@ -234,7 +234,7 @@ if __name__ == "__main__":
     )
 
     for title, table_config in input_config["Global_input"].items():
-        if not table_config.get("timeseries") and title != "EV_parameters":
+        if not table_config.get("timeseries") and "ev_parameters" not in title.lower():
             render_input_power_global_section(
                 title=title,
                 selected_types=sector_selected_types,
@@ -245,7 +245,7 @@ if __name__ == "__main__":
 
     st.subheader(f":material/timer: Timeseries Profiles  | {sector_title}")
     for title, table_config in input_config["Global_input"].items():
-        if table_config.get("timeseries") and "demand" not in table_config["tag_name"]:
+        if table_config.get("timeseries") and "demand" not in title.lower():
             render_input_power_timeseries_section(
                 title=title,
                 selected_types=sector_selected_types,

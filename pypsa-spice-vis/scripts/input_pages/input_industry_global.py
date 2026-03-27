@@ -238,19 +238,23 @@ if __name__ == "__main__":
         key="industry_global",
     )
 
-    for title in input_config["Global_input"].keys():
-        render_input_industry_global_section(
-            title=title,
-            selected_types=sector_selected_types,
-            input_config=input_config,
-            selected_classes=sector_selected_classes,
-            selected_countries=sector_selected_countries,
-        )
+    for title, table_config in input_config["Global_input"].items():
+        if (
+            not table_config.get("timeseries")
+            and "inflows" not in title.lower()
+            and "ev_parameters" not in title.lower()
+        ):
+            render_input_industry_global_section(
+                title=title,
+                selected_types=sector_selected_types,
+                input_config=input_config,
+                selected_classes=sector_selected_classes,
+                selected_countries=sector_selected_countries,
+            )
 
     st.subheader(f":material/timer: Timeseries Profiles  | {sector_title}")
-    for title in input_config["Global_input"].keys():
-        table_config = input_config["Global_input"][title]
-        if table_config.get("timeseries") and "demand" not in table_config["tag_name"]:
+    for title, table_config in input_config["Global_input"].items():
+        if table_config.get("timeseries") and "demand" not in title.lower():
 
             render_input_industry_timeseries_section(
                 title=title,
