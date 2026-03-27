@@ -2,4 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-"""Scenario configuration pages for the visualisation app."""
+"""
+PyPSA-SPICE Scenario Configuration Pages.
+
+This package contains Streamlit page modules for displaying scenario configs.
+"""

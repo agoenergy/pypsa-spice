@@ -2,7 +2,13 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-"""Scenario-specific transport input page."""
+"""
+Create scenario-specific transport input page.
+
+Page displays and allows editing of scenario-specific input tables for the transport
+sector.
+"""
+
 
 import os
 
@@ -34,7 +40,7 @@ def render_input_transport_scenario_section(
     input_df: pd.DataFrame | None = None,
     selected_classes: list[str] | None = None,
     selected_countries: list[str] | None = None,
-    selected_scenario: list[str] | None = None,
+    selected_scenario: str | None = None,
 ) -> None:
     """Render one input table section with editing and charts."""
     table_config, input_csv_path = get_table_config_and_path(
@@ -79,7 +85,7 @@ def render_input_transport_scenario_section(
         elif table_config["filter_col"] == "carrier":
             fuels = (
                 get_fuel_mapping(selected_types, input_config)
-                if "Link" in selected_classes
+                if selected_classes and "Link" in selected_classes
                 else {}
             )
             filtered_df = set_general_filter_df(
@@ -140,7 +146,7 @@ def render_input_load_section(
     input_df: pd.DataFrame | None = None,
     selected_classes: list[str] | None = None,
     selected_countries: list[str] | None = None,
-    selected_scenario: list[str] | None = None,
+    selected_scenario: str | None = None,
 ) -> None:
     """Render one input table section with editing and charts."""
     table_config, input_csv_path = get_table_config_and_path(
@@ -240,14 +246,15 @@ if __name__ == "__main__":
     st.markdown(f"Class: **{', '.join(sector_selected_classes)}**")
 
     for title in input_config[selected_sector]:
-        render_input_transport_scenario_section(
-            title=title,
-            selected_types=sector_selected_types,
-            input_config=input_config,
-            selected_classes=sector_selected_classes,
-            selected_countries=sector_selected_countries,
-            selected_scenario=selected_scenario,
-        )
+        if title != "Transport_loads":
+            render_input_transport_scenario_section(
+                title=title,
+                selected_types=sector_selected_types,
+                input_config=input_config,
+                selected_classes=sector_selected_classes,
+                selected_countries=sector_selected_countries,
+                selected_scenario=selected_scenario,
+            )
 
     st.subheader(f":material/timeline: Loads  | {sector_title}")
 

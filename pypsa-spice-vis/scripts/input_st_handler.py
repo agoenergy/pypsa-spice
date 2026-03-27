@@ -90,30 +90,25 @@ def get_table_config_and_path(
 
     if not sector or sector == "Global_input":
         table_config = input_config["Global_input"][title]
-        input_csv_path = os.path.join(
-            base_input_path,
-            "global_input",
-            table_config["csv_name"],
-        )
-        return table_config, input_csv_path
+        path_parts = ("global_input", table_config["csv_name"])
     else:
         table_config = input_config[sector][title]
 
-    if sector in {"Power", "Industry", "Transport"}:
-        input_csv_path = os.path.join(
-            base_input_path,
-            selected_scenario,
-            sector.lower(),
-            table_config["csv_name"],
-        )
-        return table_config, input_csv_path
+        if sector in SECTOR_TITLES.keys():
+            if not selected_scenario:
+                raise ValueError(f"selected_scenario is required for sector '{sector}'")
+            path_parts = (
+                selected_scenario,
+                sector.lower(),
+                table_config["csv_name"],
+            )
+        else:
+            path_parts = (
+                sector.lower(),
+                table_config["csv_name"],
+            )
 
-    input_csv_path = os.path.join(
-        base_input_path,
-        sector.lower(),
-        table_config["csv_name"],
-    )
-    return table_config, input_csv_path
+    return table_config, os.path.join(base_input_path, *path_parts)
 
 
 def get_tech_mapping() -> pd.DataFrame:
@@ -256,7 +251,10 @@ def set_filtered_timeseries_df(
         selection_mode="single",
         key=f"country_select_key_{identifier}_{widget_scope}",
     )
-    filtered_df = df[df["country"] == selected_country]
+    if selected_country is None:
+        selected_country = countries[0]
+    else:
+        filtered_df = df[df["country"] == selected_country]
 
     return filtered_df, selected_country
 
@@ -264,16 +262,6 @@ def set_filtered_timeseries_df(
 # =============================================================================
 # Table editing and update helper functions
 # =============================================================================
-
-
-def convert_inf_to_strings_in_df(df: pd.DataFrame) -> pd.DataFrame:
-    """Convert infinite numeric values to strings for Streamlit editing display."""
-    return df.replace({np.inf: "inf"})
-
-
-def convert_strings_to_inf_in_df(edited_df: pd.DataFrame) -> pd.DataFrame:
-    """Convert inf strings back to numeric inf after completion of Streamlit editing."""
-    return edited_df.replace({"inf": np.inf})
 
 
 def create_editable_df(
@@ -285,7 +273,7 @@ def create_editable_df(
     to_save = True
 
     # convert inf values to string for streamlit data editor display
-    editable_df = convert_inf_to_strings_in_df(filtered_df)
+    editable_df = filtered_df.replace({np.inf: "inf"})
 
     editable_cols = filtered_df.select_dtypes(
         include=["number", float, int, "bool"]
@@ -305,7 +293,7 @@ def create_editable_df(
     )
 
     # convert "inf" strings back to numeric inf
-    result_df = convert_strings_to_inf_in_df(edited_df)
+    result_df = edited_df.replace({"inf": np.inf})
 
     # validate numeric columns
     for column in filtered_df.select_dtypes(include=[float]).columns:
@@ -485,6 +473,7 @@ def render_demand_profiles_selectbox(selected_sector: str) -> list[str]:
         "Transport": ["HPV_LOAD", "LPV_LOAD"],
     }
 
+    # Filter the default profiles based on the selected sector and available load types
     default_profile_keys = [
         profile
         for profile in defaults_by_sector.get(selected_sector, [])
@@ -494,6 +483,7 @@ def render_demand_profiles_selectbox(selected_sector: str) -> list[str]:
         load_mapping[profile] for profile in default_profile_keys
     ]
 
+    # Render the selectbox with the filtered default options
     selected_profile_label = st.selectbox(
         "Select type of demand/load profiles:",
         options=default_profile_selection,
@@ -533,6 +523,7 @@ def update_csv_file(
             writer = csv.DictWriter(temp_file, fieldnames=fieldnames)
             writer.writeheader()
 
+            # Iterate through CSV rows and update the target cell with the new value
             for index, row in enumerate(reader):
                 if str(index) == row_identifier:
                     row[column_name] = new_value
@@ -543,6 +534,7 @@ def update_csv_file(
 
                 writer.writerow(row)
 
+        # Remove the original file and replace it with the updated temp file
         shutil.move(temp_file.name, file_path)
         return True
     except Exception:
@@ -568,6 +560,8 @@ def render_save_button_for_input_df(
         disabled=not has_changes,
     ):
         success = True
+
+        # Iterate through the edited df and update CSV file for any changes
         for index in range(len(edited_df)):
             current_index = filtered_df.index[index]
             for column in filtered_df.columns:
@@ -607,6 +601,7 @@ def render_save_button_for_input_config(
         scenario_config[section_name] = section_value
         scenario_config_path = st.session_state.scenario_config_path
 
+        # Save the updated scenario config back to the YAML file
         with open(scenario_config_path, "w", encoding="utf-8") as file_handle:
             safe_yaml = YAML(typ="safe", pure=True)
             safe_yaml.default_flow_style = False
