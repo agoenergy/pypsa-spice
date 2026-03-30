@@ -41,7 +41,26 @@ def render_input_power_scenario_section(
     selected_countries: list[str] | None = None,
     selected_scenario: str | None = None,
 ) -> None:
-    """Render one input table section with editing and charts."""
+    """Render scenario specific power input section with editable tables and charts.
+
+    Parameters
+    ----------
+    title : str
+        key or heading of the indicator from input_settings.yaml
+    selected_types : list[str]
+        list of selected technology types for filtering the input table
+    input_config : dict
+        configuration dictionary for input_config
+    input_df : pd.DataFrame | None, optional
+        default input dataframe, by default None
+    selected_classes : list[str] | None, optional
+        list of selected PyPSA classes for filtering the input table, by default None
+    selected_countries : list[str] | None, optional
+        list of selected countries for filtering the input table, by default None
+    selected_scenario : str | None, optional
+        selected scenario for filtering the input table, by default None
+    """
+    # Get table configuration and input CSV path based on the title and sector
     table_config, input_csv_path = get_table_config_and_path(
         title=title,
         sector="Power",
@@ -49,6 +68,8 @@ def render_input_power_scenario_section(
         selected_scenario=selected_scenario,
     )
     csv_identifier = table_config["identifier"]
+
+    # Generate a unique key for Streamlit session state
     unique_type_key = get_unique_type_key(
         "Power",
         title,
@@ -62,6 +83,7 @@ def render_input_power_scenario_section(
     has_changes_key = f"has_changes_{title}_{csv_identifier}_{unique_type_key}"
     save_button_key = f"save_{title}_{csv_identifier}_{unique_type_key}"
 
+    # Render the section in an expander with the title and CSV path
     with st.expander(title):
         st.write(f"### {title}")
         st.markdown(
@@ -76,12 +98,14 @@ def render_input_power_scenario_section(
             input_df = pd.read_csv(input_csv_path)
 
         if "decommission" in title.lower():
+            # For decommissioning, filter column is different defined in table_config
             filtered_df = set_decommission_filter_df(
                 df=input_df,
                 filter_col=table_config["filter_col"],
                 selected_types=selected_types,
             )
         elif table_config["filter_col"] == "carrier":
+            # Tables filtered by carriers
             fuels = (
                 get_fuel_mapping(selected_types, input_config)
                 if selected_classes and "Link" in selected_classes
@@ -93,11 +117,14 @@ def render_input_power_scenario_section(
                 selected_types=list(fuels.values()),
             )
         else:
+            # For other tables, apply general filtering based on selected types
             filtered_df = set_general_filter_df(
                 df=input_df,
                 filter_col=table_config["filter_col"],
                 selected_types=selected_types,
             )
+
+        # Further filter df based on selected countries if the 'country' column exists
         if selected_countries and "country" in filtered_df.columns:
             filtered_df = filtered_df[filtered_df["country"].isin(selected_countries)]
 
@@ -107,6 +134,7 @@ def render_input_power_scenario_section(
             return
 
         if table_config["with_charts"]:
+            # If the table is with line charts, render them in a separate tab
             table_tab, visualisation_tab = st.tabs(["Table", "Visualisation"])
             with table_tab:
                 edited_df, to_save = create_editable_df(
@@ -117,12 +145,14 @@ def render_input_power_scenario_section(
             with visualisation_tab:
                 render_line_chart(filtered_df, table_config, unique_type_key)
         else:
+            # Otherwise, just show the editable table
             edited_df, to_save = create_editable_df(
                 filtered_df,
                 edited_df_key,
                 has_changes_key,
             )
 
+        # Check if there are changes to save and render the save button
         has_changes = st.session_state.get(has_changes_key, False)
         if to_save:
             render_save_button_for_input_df(
@@ -145,7 +175,26 @@ def render_input_load_section(
     selected_countries: list[str] | None = None,
     selected_scenario: str | None = None,
 ) -> None:
-    """Render one input table section with editing and charts."""
+    """Render scenario specific load section with editable tables and charts.
+
+    Parameters
+    ----------
+    title : str
+        key or heading of the indicator from input_settings.yaml
+    selected_types : list[str]
+        list of selected technology types for filtering the input table
+    input_config : dict
+        configuration dictionary for input_config
+    input_df : pd.DataFrame | None, optional
+        default input dataframe, by default None
+    selected_classes : list[str] | None, optional
+        list of selected PyPSA classes for filtering the input table, by default None
+    selected_countries : list[str] | None, optional
+        list of selected countries for filtering the input table, by default None
+    selected_scenario : str | None, optional
+        selected scenario for filtering the input table, by default None
+    """
+    # Get table configuration and input CSV path based on the title and sector
     table_config, input_csv_path = get_table_config_and_path(
         title=title,
         sector="Power",
@@ -153,6 +202,8 @@ def render_input_load_section(
         selected_scenario=selected_scenario,
     )
     csv_identifier = table_config["identifier"]
+
+    # Generate a unique key for Streamlit session state
     unique_type_key = get_unique_type_key(
         "Power",
         title,
@@ -166,6 +217,7 @@ def render_input_load_section(
     has_changes_key = f"has_changes_{title}_{csv_identifier}_{unique_type_key}"
     save_button_key = f"save_{title}_{csv_identifier}_{unique_type_key}"
 
+    # Render the section in an expander with the title and CSV path
     with st.expander(title):
         st.write(f"### {title}")
         st.markdown(
@@ -179,12 +231,14 @@ def render_input_load_section(
                 return
             input_df = pd.read_csv(input_csv_path)
 
+        # Apply general filtering based on selected types
         filtered_df = set_general_filter_df(
             df=input_df,
             filter_col=table_config["filter_col"],
             selected_types=selected_types,
         )
 
+        # Further filter df based on selected countries if the 'country' column exists
         if selected_countries and "country" in filtered_df.columns:
             filtered_df = filtered_df[filtered_df["country"].isin(selected_countries)]
 
@@ -194,6 +248,7 @@ def render_input_load_section(
             return
 
         if table_config["with_charts"]:
+            # If the table is with line charts, render them in a separate tab
             table_tab, visualisation_tab = st.tabs(["Table", "Visualisation"])
             with table_tab:
                 edited_df, to_save = create_editable_df(
@@ -204,12 +259,14 @@ def render_input_load_section(
             with visualisation_tab:
                 render_line_chart(filtered_df, table_config, unique_type_key)
         else:
+            # Otherwise, just show the editable table
             edited_df, to_save = create_editable_df(
                 filtered_df,
                 edited_df_key,
                 has_changes_key,
             )
 
+        # Check if there are changes to save and render the save button
         has_changes = st.session_state.get(has_changes_key, False)
         if to_save:
             render_save_button_for_input_df(
@@ -229,7 +286,20 @@ def render_interconnections_section(
     input_config: dict,
     selected_scenario: str,
 ) -> None:
-    """Render the interconnection editor for the power sector."""
+    """Render interconnections section with editable tables.
+
+    Parameters
+    ----------
+    grid_selected_countries : list[str]
+        list of selected countries for filtering the interconnections table
+    grid_df : pd.DataFrame
+        dataframe containing the grid data
+    input_config : dict
+        configuration dictionary for input_config
+    selected_scenario : str
+        selected scenario for filtering the interconnections table
+    """
+    # Render interconnection type selectbox between Transmission and Distribution
     st.selectbox(
         "Select type of interconnection:",
         options=["Transmission", "Distribution"],
@@ -240,6 +310,7 @@ def render_interconnections_section(
     st.markdown("Class: **Link**")
     grid_type = st.session_state.get("power_static_intercon_type")
 
+    # Filter the grid dataframe based on the selected interconnection type
     if grid_type == "Transmission":
         intercon_df = grid_df[
             (grid_df["bus0"].str.contains("HVELEC"))
@@ -251,6 +322,7 @@ def render_interconnections_section(
             & (grid_df["bus1"].str.contains("LVELEC"))
         ]
 
+    # Get table configuration and input CSV path based on the title and sector
     table_config, input_csv_path = get_table_config_and_path(
         title="Interconnectors",
         sector="Grids",
@@ -261,6 +333,7 @@ def render_interconnections_section(
     selected_types = ["ITCN"]
     selected_classes = ["Link"]
 
+    # Generate a unique key for Streamlit session state
     unique_type_key = get_unique_type_key(
         "Power",
         "Interconnectors",
@@ -274,6 +347,7 @@ def render_interconnections_section(
     has_changes_key = f"has_changes_Interconnectors_{csv_identifier}_{unique_type_key}"
     save_button_key = f"save_Interconnectors_{csv_identifier}_{unique_type_key}"
 
+    # Render the section in an expander with the title and CSV path
     with st.expander("Interconnectors"):
         st.write("### Interconnectors")
         st.markdown(
@@ -287,12 +361,14 @@ def render_interconnections_section(
                 return
             intercon_df = pd.read_csv(input_csv_path)
 
+        # Apply general filtering based on selected types
         filtered_df = set_general_filter_df(
             df=intercon_df,
             filter_col=table_config["filter_col"],
             selected_types=selected_types,
         )
 
+        # Further filter df based on selected countries if the 'country' column exists
         if grid_selected_countries and "country" in filtered_df.columns:
             filtered_df = filtered_df[
                 filtered_df["country"].isin(grid_selected_countries)
@@ -303,12 +379,14 @@ def render_interconnections_section(
             get_empty_df_notice_message()
             return
 
+        # Render the editable table
         edited_df, to_save = create_editable_df(
             filtered_df,
             edited_df_key,
             has_changes_key,
         )
 
+        # Check if there are changes to save and render the save button
         has_changes = st.session_state.get(has_changes_key, False)
         if to_save:
             render_save_button_for_input_df(
@@ -332,16 +410,19 @@ if __name__ == "__main__":
 
     st.subheader(f":material/timeline: Scenario specific input  | {sector_title}")
 
+    # Render country selection pills for the power scenario input section
     sector_selected_countries = render_countries_pills(
         all_countries=all_countries,
         key="power_scenario_pills",
     )
 
+    # Render type and PyPSA class filters for the power scenario input section
     sector_selected_types, sector_selected_classes = render_type_and_class_filters(
         tech_df,
         key="power_scenario",
     )
 
+    # Render scenario power input relevant sections for non-timeseries tables
     for title in input_config[selected_sector]:
         if title != "Power_loads":
             render_input_power_scenario_section(
@@ -355,13 +436,16 @@ if __name__ == "__main__":
 
     st.subheader(f":material/timeline: Loads  | {sector_title}")
 
+    # Render country selection pills for the power load input section
     demand_selected_countries = render_countries_pills(
         all_countries=all_countries,
         key="demand_power_scenario_pills",
     )
 
+    # Render demand profiles selectbox for the power demand profiles section
     selected_types = render_demand_profiles_selectbox(selected_sector="Power")
 
+    # Render scenario power demand profiles section
     render_input_load_section(
         title="Power_loads",
         selected_types=selected_types,
@@ -372,6 +456,8 @@ if __name__ == "__main__":
     )
 
     st.subheader(":material/diagonal_line: Interconnections")
+
+    # Render country selection pills for the interconnections section
     grid_selected_countries = (
         render_countries_pills(
             all_countries=all_countries,
@@ -379,6 +465,8 @@ if __name__ == "__main__":
         )
         or []
     )
+
+    # Load grid data for the selected scenario
     grid_path = os.path.join(
         st.session_state.input_path,
         selected_scenario,
@@ -386,6 +474,8 @@ if __name__ == "__main__":
         input_config["Grids"]["Interconnectors"]["csv_name"],
     )
     grid_df = pd.read_csv(grid_path)
+
+    # Render interconnections section
     render_interconnections_section(
         grid_selected_countries,
         grid_df,
