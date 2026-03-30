@@ -287,10 +287,10 @@ def render_e3_ene_emi_by_carrier_by_sector(graph_config: dict) -> None:
 
 if __name__ == "__main__":
     st.title(":material/thermostat: Emissions")
-    docs_path = "visualisation-tool/vis-sections-and-charts/#emissions"
+    DOCS_PATH = "visualisation-tool/vis-sections-and-charts/#emissions"
     st.markdown(
         "Detailed explanation can be found in: "
-        f"[emissions guides](https://agoenergy.github.io/pypsa-spice/{docs_path})"
+        f"[emissions guides](https://agoenergy.github.io/pypsa-spice/{DOCS_PATH})"
     )
     output_config = st.session_state.output_config["emissions"]
     # Always render power emission chart

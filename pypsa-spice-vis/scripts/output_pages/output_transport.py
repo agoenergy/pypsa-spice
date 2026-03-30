@@ -201,10 +201,10 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
 
 if __name__ == "__main__":
     st.title(":material/directions_car: Transport")
-    docs_path = "visualisation-tool/vis-sections-and-charts/#transport"
+    DOCS_PATH = "visualisation-tool/vis-sections-and-charts/#transport"
     st.markdown(
         "Detailed explanation can be found in: "
-        f"[transport guides](https://agoenergy.github.io/pypsa-spice/{docs_path})"
+        f"[transport guides](https://agoenergy.github.io/pypsa-spice/{DOCS_PATH})"
     )
     output_config = st.session_state.output_config["transport"]
     TRANSPORT_CHART_KEYS = [

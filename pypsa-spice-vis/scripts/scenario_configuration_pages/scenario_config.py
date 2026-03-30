@@ -5,12 +5,16 @@
 """Helpers for rendering and editing scenario configuration YAML."""
 
 import json
-import os
 from datetime import date
 
 import streamlit as st
 
-from scripts.input_st_handler import render_save_button_for_input_config
+from scripts.input_st_handler import (
+    convert_date_string_into_date_obj,
+    create_inputbox_and_keep_nulls_for_empty_input_values,
+    format_keys_into_readable_titles,
+    render_save_button_for_input_config,
+)
 
 CO2_OPTIONS = ["co2_cap", "co2_price"]
 INCLUSIVE_OPTIONS = ["both", "neither", "left", "right"]
@@ -18,145 +22,31 @@ MATH_SYMBOL_OPTIONS = ["<=", ">="]
 RESERVE_MARGIN_METHODS = ["static", "dynamic"]
 TEMPORAL_CLUSTERING_METHODS = ["nth_hour", "clustered"]
 EXCLUDED_SECTIONS = {"version", "logging", "solving"}
-STATUS_MESSAGE_KEY = "scenario_config_status_message"
 
 
-def _safe_widget_key(raw_key: str) -> str:
-    """Create stable Streamlit widget keys from nested YAML paths."""
-    return "".join(character if character.isalnum() else "_" for character in raw_key)
+# =============================================================================
+# Minor helper functions for rendering scenario config sections
+# =============================================================================
 
 
-def _title_from_key(value: str) -> str:
-    """Convert snake_case keys into user-facing titles."""
-    return value.replace("_", " ").strip().title()
+def set_default_snapshot(snapshots: dict) -> tuple[int, date, date, str]:
+    """Set default snapshot values from the loaded scenario section.
 
+    Parameters
+    ----------
+    snapshots : dict
+        The snapshots section from the scenario configuration.
 
-def _parse_iso_date(raw_value: object, fallback: date) -> date:
-    """Convert an ISO date string to a date object."""
-    if isinstance(raw_value, str):
-        try:
-            return date.fromisoformat(raw_value)
-        except ValueError:
-            return fallback
-    return fallback
-
-
-def _parse_scalar_text(raw_text: str) -> object:
-    """Convert free-form text input into a YAML-friendly scalar."""
-    stripped = raw_text.strip()
-    if stripped == "":
-        return None
-
-    lowered = stripped.lower()
-    if lowered == "true":
-        return True
-    if lowered == "false":
-        return False
-
-    try:
-        if stripped.startswith("-"):
-            if stripped[1:].isdigit():
-                return int(stripped)
-        elif stripped.isdigit():
-            return int(stripped)
-        return float(stripped)
-    except ValueError:
-        return stripped
-
-
-def _normalize_json_value(value: object) -> object:
-    """Normalize parsed JSON to better match YAML types used by the model."""
-    if isinstance(value, dict):
-        normalized = {}
-        for key, child_value in value.items():
-            normalized_key = int(key) if isinstance(key, str) and key.isdigit() else key
-            normalized[normalized_key] = _normalize_json_value(child_value)
-        return normalized
-
-    if isinstance(value, list):
-        return [_normalize_json_value(item) for item in value]
-
-    return value
-
-
-def resolve_scenario_config_file(scenario_folder: str) -> str:
-    """Resolve the scenario config file inside the selected scenario folder."""
-    preferred = os.path.join(scenario_folder, "scenario_config.yaml")
-    if os.path.exists(preferred):
-        return preferred
-
-    candidates = sorted(
-        file_name
-        for file_name in os.listdir(scenario_folder)
-        if file_name.startswith("scenario_config")
-        and file_name.endswith(".yaml")
-        and not file_name.endswith(".default.yaml")
-    )
-    if not candidates:
-        raise FileNotFoundError(
-            f"No `scenario_config*.yaml` file found in: {scenario_folder}"
-        )
-
-    return os.path.join(scenario_folder, candidates[0])
-
-
-def _render_nullable_scalar_input(
-    label: str,
-    value: object,
-    widget_key: str,
-    help_text: str | None = None,
-) -> object:
-    """Render a scalar input that can be left empty to preserve null."""
-    if isinstance(value, bool):
-        return st.checkbox(label, value=value, key=widget_key, help=help_text)
-
-    if isinstance(value, int) and not isinstance(value, bool):
-        return st.number_input(
-            label, value=value, step=1, key=widget_key, help=help_text
-        )
-
-    if isinstance(value, float):
-        return st.number_input(
-            label,
-            value=float(value),
-            format="%.6f",
-            key=widget_key,
-            help=help_text,
-        )
-
-    raw_value = "" if value is None else str(value)
-    text_value = st.text_input(label, value=raw_value, key=widget_key, help=help_text)
-    return _parse_scalar_text(text_value)
-
-
-def _render_json_editor(
-    label: str,
-    value: object,
-    widget_key: str,
-    help_text: str | None = None,
-) -> object:
-    """Render a JSON editor and preserve the previous value on parse errors."""
-    default_value = {} if value is None else value
-    json_text = st.text_area(
-        label,
-        value=json.dumps(default_value, indent=2),
-        key=widget_key,
-        help=help_text,
-        height=180,
-    )
-
-    try:
-        return _normalize_json_value(json.loads(json_text))
-    except json.JSONDecodeError:
-        st.warning(f"Invalid JSON in {label}. Keeping the previous value.")
-        return value
-
-
-def _snapshot_defaults(snapshots: dict) -> tuple[int, date, date, str]:
-    """Build default snapshot values from the loaded YAML section."""
+    Returns
+    -------
+    tuple[int, date, date, str]
+        A tuple containing the default year, start date, end date, and inclusive option.
+    """
     fallback_start = date.today().replace(month=1, day=1)
-    start_date = _parse_iso_date(snapshots.get("start"), fallback_start)
-    end_date = _parse_iso_date(
+    start_date = convert_date_string_into_date_obj(
+        snapshots.get("start"), fallback_start
+    )
+    end_date = convert_date_string_into_date_obj(
         snapshots.get("end"),
         date(start_date.year + 1, 1, 1),
     )
@@ -166,24 +56,243 @@ def _snapshot_defaults(snapshots: dict) -> tuple[int, date, date, str]:
     return start_date.year, start_date, end_date, inclusive
 
 
-def render_scenario_settings_section(section_value: dict) -> None:
-    """Render the scenario settings editor."""
-    scenario_settings = section_value or {}
+def setup_json_editor(
+    label: str,
+    value: object,
+    constraint_key: str,
+    help_text: str | None = None,
+) -> object:
+    """Render a text area for editing JSON content.
+
+    Parameters
+    ----------
+    label : str
+        The label for the JSON editor.
+    value : object
+        The initial value to display in the editor.
+    constraint_key : str
+        The key to use for the Streamlit widget.
+    help_text : str | None, optional
+        The help text to display for the JSON editor, by default None
+
+    Returns
+    -------
+    object
+        The parsed JSON object or the previous value if parsing fails.
+    """
+    default_value = {} if value is None else value
+
+    # Display the JSON editor with the current value as a formatted JSON string
+    json_text = st.text_area(
+        label,
+        value=json.dumps(default_value, indent=2),
+        key=constraint_key,
+        help=help_text,
+        height=180,
+    )
+
+    try:
+        parsed_json = json.loads(json_text)
+    except json.JSONDecodeError:
+        st.warning(f"Invalid JSON in {label}. Keeping the previous value.")
+        return value
+
+    if not isinstance(parsed_json, (dict, list)):
+        return value
+
+    if isinstance(parsed_json, dict):
+        normalized_root = {}
+
+    if isinstance(parsed_json, list):
+        normalized_root = []
+
+    # Use a stack to traverse the parsed JSON & build the normalized structure
+    stack: list[tuple[dict | list, dict | list]] = [(parsed_json, normalized_root)]
+    while stack:
+        source, target = stack.pop()
+
+        if isinstance(source, dict):
+            # If the source is a dict, process key-value pairs
+            if not isinstance(target, dict):
+                continue
+            target_dict = target
+            for key, child_value in source.items():
+                normalized_key = (
+                    int(key) if isinstance(key, str) and key.isdigit() else key
+                )
+                if isinstance(child_value, dict):
+                    child_target: dict | list = {}
+                    target_dict[normalized_key] = child_target
+                    stack.append((child_value, child_target))
+                elif isinstance(child_value, list):
+                    child_target = []
+                    target_dict[normalized_key] = child_target
+                    stack.append((child_value, child_target))
+                else:
+                    target_dict[normalized_key] = child_value
+        else:
+            # If the source is a list, process each element
+            if not isinstance(target, list):
+                continue
+            target_list = target
+            for child_value in source:
+                if isinstance(child_value, dict):
+                    child_target = {}
+                    target_list.append(child_target)
+                    stack.append((child_value, child_target))
+                elif isinstance(child_value, list):
+                    child_target = []
+                    target_list.append(child_target)
+                    stack.append((child_value, child_target))
+                else:
+                    target_list.append(child_value)
+
+    return normalized_root
+
+
+def create_custom_constraint_field_inputbox(
+    constraint_name: str,
+    field_name: str,
+    field_value: object,
+    widget_prefix: str,
+) -> object:
+    """Render an input box for a custom constraint field.
+
+    Parameters
+    ----------
+    constraint_name : str
+        The name of the custom constraint.
+    field_name : str
+        The name of the field within the custom constraint.
+    field_value : object
+        The current value of the field.
+    widget_prefix : str
+        The prefix to use for the Streamlit widget key.
+
+    Returns
+    -------
+    object
+        The Streamlit widget for the custom constraint field.
+    """
+    constraint_key = f"{widget_prefix}_{field_name}"
+
+    # Generate a user-friendly label for the field names
+    label = (
+        "Active"
+        if field_name == "activate"
+        else format_keys_into_readable_titles(field_name)
+    )
+
+    # Render a checkbox for "activate" fields, which are expected to be boolean
+    if field_name == "activate":
+        return st.checkbox(label, value=bool(field_value), key=constraint_key)
+
+    options = None
+    selected_value = str(field_value)
+    if constraint_name == "reserve_margin" and field_name == "method":
+        options = RESERVE_MARGIN_METHODS
+        if selected_value not in options:
+            selected_value = "static"
+    elif field_name == "math_symbol":
+        options = MATH_SYMBOL_OPTIONS
+        if selected_value not in options:
+            selected_value = options[0]
+
+    if options is not None:
+        return st.selectbox(
+            label,
+            options=options,
+            index=options.index(selected_value),
+            key=constraint_key,
+        )
+
+    if field_name in {"value", "values"} or isinstance(field_value, (dict, list)):
+        help_text = "Use JSON for technology- or year-specific mappings."
+        if isinstance(field_value, dict):
+            help_text = "Use JSON to edit nested mappings."
+        elif isinstance(field_value, list):
+            help_text = "Use a JSON array for list values."
+
+        return setup_json_editor(
+            f"{label} (JSON)",
+            field_value,
+            constraint_key,
+            help_text=help_text,
+        )
+
+    return create_inputbox_and_keep_nulls_for_empty_input_values(
+        label, field_value, constraint_key
+    )
+
+
+def render_country_custom_constraints(country: str, country_constraints: dict) -> dict:
+    """Render all custom constraints for one country and return edited values."""
+    edited_country_constraints = {}
+
+    with st.expander(country, expanded=False):
+        for constraint_name, constraint_config in country_constraints.items():
+            constraint_label = format_keys_into_readable_titles(constraint_name)
+            constraint_key_prefix = f"custom_{country}_{constraint_name}"
+
+            with st.expander(constraint_label, expanded=False):
+                if not isinstance(constraint_config, dict):
+                    edited_country_constraints[constraint_name] = (
+                        create_inputbox_and_keep_nulls_for_empty_input_values(
+                            constraint_label,
+                            constraint_config,
+                            constraint_key_prefix,
+                        )
+                    )
+
+                edited_constraint = {}
+                for field_name, field_value in constraint_config.items():
+                    edited_constraint[field_name] = (
+                        create_custom_constraint_field_inputbox(
+                            constraint_name,
+                            field_name,
+                            field_value,
+                            constraint_key_prefix,
+                        )
+                    )
+
+            edited_country_constraints[constraint_name] = edited_constraint
+
+    return edited_country_constraints
+
+
+# =============================================================================
+# Render each scenario config section
+# ==============================================================================
+
+
+def render_scenario_settings_section(scenario_section: dict) -> None:
+    """Render the scenario settings editor.
+
+    Parameters
+    ----------
+    scenario_section : dict
+        The current values for the scenario settings section.
+    """
+    # Set default scenario settings values based on the loaded configuration
+    scenario_settings = scenario_section or {}
     snapshots = scenario_settings.get("snapshots", {}) or {}
     resolution = scenario_settings.get("resolution", {}) or {}
     interest = scenario_settings.get("interest", {}) or {}
 
-    default_year, default_start, default_end, default_inclusive = _snapshot_defaults(
+    # Set default snapshot values based on the loaded configuration
+    default_year, default_start, default_end, default_inclusive = set_default_snapshot(
         snapshots
     )
 
+    # Render the scenario settings editor with inputs
     with st.expander("Scenario settings", expanded=True):
         year_col, threshold_col = st.columns([1, 1])
+        # Render model year and remove threshold inputs side by side
         with year_col:
             model_year = int(
                 st.number_input(
                     "Model year",
-                    min_value=1900,
+                    min_value=2010,
                     max_value=3000,
                     value=default_year,
                     step=1,
@@ -195,7 +304,7 @@ def render_scenario_settings_section(section_value: dict) -> None:
                 "Remove asset with capacity lower than (MW)",
                 min_value=0.0,
                 value=float(scenario_settings.get("remove_threshold", 0.0) or 0.0),
-                format="%.6f",
+                format="%.2f",
                 key="scenario_configs_remove_threshold",
             )
 
@@ -203,6 +312,8 @@ def render_scenario_settings_section(section_value: dict) -> None:
             "By default, the snapshot range is derived automatically from the model "
             "year and saved as a full-year hourly range."
         )
+
+        # Allow users to edit snapshots manually
         edit_snapshots_manually = st.toggle(
             "Edit snapshot range manually",
             value=False,
@@ -244,6 +355,7 @@ def render_scenario_settings_section(section_value: dict) -> None:
             resolution_method = TEMPORAL_CLUSTERING_METHODS[0]
 
         method_col, detail_col = st.columns(2)
+        # Render temporal clustering method selection
         with method_col:
             selected_method = st.selectbox(
                 "Temporal clustering method",
@@ -276,23 +388,28 @@ def render_scenario_settings_section(section_value: dict) -> None:
                     )
                 )
 
+        # Render interest rate inputs for each country
         st.markdown("#### Interest")
         edited_interest = {}
         interest_items = list(interest.items())
         interest_columns = st.columns(2) if interest_items else []
+
+        # Render the country-specific interest values in two columns
         for index, (country, country_value) in enumerate(interest_items):
             with interest_columns[index % 2]:
-                edited_interest[country] = _render_nullable_scalar_input(
-                    country,
-                    country_value,
-                    _safe_widget_key(f"scenario_configs_interest_{country}"),
-                    help_text="Interest rate in decimal form, for example 0.05 for 5%.",
+                edited_interest[country] = (
+                    create_inputbox_and_keep_nulls_for_empty_input_values(
+                        country,
+                        country_value,
+                        f"scenario_configs_interest_{country}",
+                        help_text="Interest rate in decimal form, e.g. 0.05 for 5%.",
+                    )
                 )
-
         if end_date < start_date:
             st.error("Snapshot end must be on or after snapshot start.")
             return
 
+        # Compile the edited values into a new section dictionary
         edited_section = {
             "snapshots": {
                 "start": start_date.isoformat(),
@@ -308,11 +425,12 @@ def render_scenario_settings_section(section_value: dict) -> None:
             "remove_threshold": remove_threshold,
         }
 
+        # Check if there are changes to save and render the save button
         has_changes_key = f"has_changes_{st.title}_scenario_configs"
         has_changes = st.session_state.get(has_changes_key, False)
 
         render_save_button_for_input_config(
-            section_value=edited_section,
+            scenario_section=edited_section,
             section_name="scenario_configs",
             save_button_key="save_scenario_configs",
             has_changes=has_changes,
@@ -320,10 +438,18 @@ def render_scenario_settings_section(section_value: dict) -> None:
         )
 
 
-def render_co2_management_section(section_value: dict) -> None:
-    """Render the CO2 management editor."""
-    co2_management = section_value or {}
+def render_co2_management_section(scenario_section: dict) -> None:
+    """Render the CO2 management editor.
 
+    Parameters
+    ----------
+    scenario_section : dict
+        The current values for the scenario settings section.
+    """
+    # Set default CO2 management values based on the loaded configuration
+    co2_management = scenario_section or {}
+
+    # Render the CO2 management editor with inputs
     with st.expander("CO2 management", expanded=True):
         st.caption(
             "Select the CO2 instrument per country and edit the year-specific values."
@@ -336,36 +462,44 @@ def render_co2_management_section(section_value: dict) -> None:
             if option not in CO2_OPTIONS:
                 option = CO2_OPTIONS[0]
 
+            # Render the CO2 management options and values for each country
             with st.expander(country, expanded=False):
+                # Render the CO2 management option selection
                 selected_option = st.selectbox(
                     "CO2 management option",
                     options=CO2_OPTIONS,
                     index=CO2_OPTIONS.index(option),
-                    key=_safe_widget_key(f"co2_option_{country}"),
+                    key=f"co2_option_{country}",
                 )
 
                 edited_values = {}
                 yearly_values = country_config.get("value", {}) or {}
                 yearly_items = list(yearly_values.items())
                 year_columns = st.columns(3) if yearly_items else []
+
+                # Render the year-specific CO2 values in three columns
                 for index, (year, year_value) in enumerate(yearly_items):
                     with year_columns[index % 3]:
-                        edited_values[year] = _render_nullable_scalar_input(
-                            str(year),
-                            year_value,
-                            _safe_widget_key(f"co2_value_{country}_{year}"),
+                        edited_values[year] = (
+                            create_inputbox_and_keep_nulls_for_empty_input_values(
+                                str(year),
+                                year_value,
+                                f"co2_value_{country}_{year}",
+                            )
                         )
 
+                # Compile the edited values into a new country config dictionary
                 edited_section[country] = {
                     "option": selected_option,
                     "value": edited_values,
                 }
 
+        # Check if there are changes to save and render the save button
         has_changes_key = f"has_changes_{st.title}_co2_management"
         has_changes = st.session_state.get(has_changes_key, False)
 
         render_save_button_for_input_config(
-            section_value=edited_section,
+            scenario_section=edited_section,
             section_name="co2_management",
             save_button_key="save_co2_management",
             has_changes_key=has_changes_key,
@@ -373,119 +507,38 @@ def render_co2_management_section(section_value: dict) -> None:
         )
 
 
-def _render_custom_constraint_field(
-    constraint_name: str,
-    field_name: str,
-    field_value: object,
-    widget_prefix: str,
-) -> object:
-    """Render one field inside a custom constraint block."""
-    widget_key = _safe_widget_key(f"{widget_prefix}_{field_name}")
-    label = "Active" if field_name == "activate" else _title_from_key(field_name)
+def render_custom_constraints_section(scenario_section: dict) -> None:
+    """Render the custom constraints editor.
 
-    if field_name == "activate":
-        return st.checkbox(label, value=bool(field_value), key=widget_key)
+    Parameters
+    ----------
+    scenario_section : dict
+        The current values for the scenario settings section.
+    """
+    # Set default custom constraints values based on the loaded configuration
+    custom_constraints = scenario_section or {}
 
-    if constraint_name == "reserve_margin" and field_name == "method":
-        method = str(field_value)
-        if method not in RESERVE_MARGIN_METHODS:
-            method = "static"
-        return st.selectbox(
-            label,
-            options=RESERVE_MARGIN_METHODS,
-            index=RESERVE_MARGIN_METHODS.index(method),
-            key=widget_key,
-        )
-
-    if field_name == "math_symbol":
-        symbol = str(field_value)
-        if symbol not in MATH_SYMBOL_OPTIONS:
-            symbol = MATH_SYMBOL_OPTIONS[0]
-        return st.selectbox(
-            label,
-            options=MATH_SYMBOL_OPTIONS,
-            index=MATH_SYMBOL_OPTIONS.index(symbol),
-            key=widget_key,
-        )
-
-    if field_name in {"value", "values"}:
-        return _render_json_editor(
-            f"{label} (JSON)",
-            field_value,
-            widget_key,
-            help_text="Use JSON for technology- or year-specific mappings.",
-        )
-
-    if isinstance(field_value, dict):
-        return _render_json_editor(
-            f"{label} (JSON)",
-            field_value,
-            widget_key,
-            help_text="Use JSON to edit nested mappings.",
-        )
-
-    if isinstance(field_value, list):
-        return _render_json_editor(
-            f"{label} (JSON)",
-            field_value,
-            widget_key,
-            help_text="Use a JSON array for list values.",
-        )
-
-    return _render_nullable_scalar_input(label, field_value, widget_key)
-
-
-def render_custom_constraints_section(section_value: dict) -> None:
-    """Render the custom constraints editor."""
-    custom_constraints = section_value or {}
-
+    # Render the custom constraints editor with inputs
     with st.expander("Custom constraints", expanded=True):
         st.caption(
-            "Nested mappings are edited as JSON so technology- and year-specific "
-            "constraint values remain flexible."
+            "Mappings are configured in JSON format to enable easy customization of "
+            "technology- and year-specific constraint values."
         )
         edited_section = {}
 
+        # Render the custom constraints for each country
         for country, country_constraints in custom_constraints.items():
-            edited_country_constraints = {}
-            country_constraints = country_constraints or {}
+            edited_section[country] = render_country_custom_constraints(
+                country,
+                country_constraints or {},
+            )
 
-            with st.expander(country, expanded=False):
-                for constraint_name, constraint_config in country_constraints.items():
-                    constraint_config = constraint_config or {}
-                    with st.expander(_title_from_key(constraint_name), expanded=False):
-                        if isinstance(constraint_config, dict):
-                            edited_constraint = {}
-                            for field_name, field_value in constraint_config.items():
-                                edited_constraint[field_name] = (
-                                    _render_custom_constraint_field(
-                                        constraint_name,
-                                        field_name,
-                                        field_value,
-                                        f"custom_{country}_{constraint_name}",
-                                    )
-                                )
-                            edited_country_constraints[constraint_name] = (
-                                edited_constraint
-                            )
-                        else:
-                            edited_country_constraints[constraint_name] = (
-                                _render_nullable_scalar_input(
-                                    _title_from_key(constraint_name),
-                                    constraint_config,
-                                    _safe_widget_key(
-                                        f"custom_{country}_{constraint_name}"
-                                    ),
-                                )
-                            )
-
-            edited_section[country] = edited_country_constraints
-
+        # Check if there are changes to save and render the save button
         has_changes_key = f"has_changes_{st.title}_custom_constraints"
         has_changes = st.session_state.get(has_changes_key, False)
 
         render_save_button_for_input_config(
-            section_value=edited_section,
+            scenario_section=edited_section,
             section_name="custom_constraints",
             save_button_key="save_custom_constraints",
             has_changes_key=has_changes_key,
@@ -494,20 +547,25 @@ def render_custom_constraints_section(section_value: dict) -> None:
 
 
 if __name__ == "__main__":
+    st.title(":material/settings: Scenario config editor")
+    DOCS_PATH = "getting-started/input-data/model-builder-configuration"
+    st.markdown(
+        "Detailed explanation can be found in: "
+        f"[config guides](https://agoenergy.github.io/pypsa-spice/{DOCS_PATH})"
+    )
+
+    # Display the config file for the selected scenario.
+    st.caption(st.session_state.scenario_config_path)
+
     scenario_config = st.session_state.scenario_config
 
-    for section_name, section_value in scenario_config.items():
+    for section_name, scenario_section in scenario_config.items():
         if section_name in EXCLUDED_SECTIONS:
             continue
 
         if section_name == "scenario_configs":
-            render_scenario_settings_section(section_value)
-            continue
-
-        if section_name == "co2_management":
-            render_co2_management_section(section_value)
-            continue
-
-        if section_name == "custom_constraints":
-            render_custom_constraints_section(section_value)
-            continue
+            render_scenario_settings_section(scenario_section)
+        elif section_name == "co2_management":
+            render_co2_management_section(scenario_section)
+        else:  # section_name == "custom_constraints"
+            render_custom_constraints_section(scenario_section)

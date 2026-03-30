@@ -288,10 +288,10 @@ if __name__ == "__main__":
     input_config = st.session_state.input_config
     selected_sector = "Transport"
     sector_title = generate_sector_title(selected_sector)
-    docs_path = "getting-started/input-data/regional_csv_template"
+    DOCS_PATH = "getting-started/input-data/regional_csv_template"
     st.markdown(
         "Detailed explanation can be found in: "
-        f"[scenario input guides](https://agoenergy.github.io/pypsa-spice/{docs_path})"
+        f"[scenario input guides](https://agoenergy.github.io/pypsa-spice/{DOCS_PATH})"
     )
 
     selected_scenario = st.session_state.input_sce1

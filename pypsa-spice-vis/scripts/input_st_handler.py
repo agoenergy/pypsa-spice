@@ -18,6 +18,9 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedMap, CommentedSeq
+from ruamel.yaml.scalarfloat import ScalarFloat
+from ruamel.yaml.scalarstring import DoubleQuotedScalarString
 
 from scripts.data_utils import load_tech_info_mapping_df
 
@@ -28,6 +31,18 @@ SECTOR_TITLES = {
     "Industry": ":material/construction: Industry",
     "Transport": ":material/directions_car: Transport",
 }
+
+SCENARIO_CONFIG_HEADER = """
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# coding: utf-8
+
+# Scenario configuration includes model constraints, scenario and solver settings.
+
+"""
+
 
 # =============================================================================
 # Sidebar navigation + section headers
@@ -95,7 +110,7 @@ def get_table_config_and_path(
     else:
         table_config = input_config[sector][title]
 
-        if sector in SECTOR_TITLES.keys():
+        if sector in SECTOR_TITLES:
             if not selected_scenario:
                 raise ValueError(f"selected_scenario is required for sector '{sector}'")
             path_parts = (
@@ -243,6 +258,7 @@ def set_filtered_timeseries_df(
     """Set up a timeseries dataframe by the selected technology and date range."""
     identifier = table_config["identifier"]
     countries = df["country"].unique()
+    filtered_df = df.copy()
 
     # Country filter
     selected_country = st.pills(
@@ -300,7 +316,7 @@ def create_editable_df(
     for column in filtered_df.select_dtypes(include=[float]).columns:
         try:
             result_df[column] = result_df[column].astype(float)
-        except Exception:
+        except (ValueError, TypeError):
             invalid_mask = result_df[column].apply(
                 lambda value: not (isinstance(value, (float, int)) or value == np.inf)
             )
@@ -317,7 +333,7 @@ def create_editable_df(
 
 
 # =============================================================================
-# Layout renderers (single/dual chart layout)
+# Layout renderers (chart, table, config layout)
 # =============================================================================
 
 
@@ -544,6 +560,85 @@ def update_csv_file(
         raise
 
 
+# =============================================================================
+# For input scenario config editing and saving
+# =============================================================================
+
+
+def format_keys_into_readable_titles(value: str) -> str:
+    """Format snake_case keys into user-facing titles."""
+    return value.replace("res_", "Renewable ").replace("_", " ").strip().title()
+
+
+def convert_date_string_into_date_obj(raw_value: object, fallback: date) -> date:
+    """Convert an ISO date string to a date object."""
+    parsed_date = fallback
+
+    if isinstance(raw_value, str):
+        try:
+            parsed_date = date.fromisoformat(raw_value)
+        except ValueError:
+            pass
+
+    return parsed_date
+
+
+def create_inputbox_and_keep_nulls_for_empty_input_values(
+    label: str,
+    value: object,
+    constraint_key: str,
+    help_text: str | None = None,
+) -> object:
+    """Render a streamlit input box based on the value types, and keep null values."""
+    # For boolean values, render a checkbox
+    if isinstance(value, bool):
+        return st.checkbox(label, value=value, key=constraint_key, help=help_text)
+    # For integer values, render a number input with step of 1
+
+    if isinstance(value, int) and not isinstance(value, bool):
+        return st.number_input(
+            label, value=value, step=1, key=constraint_key, help=help_text
+        )
+
+    # For float values, render a number input with float formatting (2 decimal places)
+    if isinstance(value, float):
+        return st.number_input(
+            label,
+            value=float(value),
+            format="%.2f",
+            key=constraint_key,
+            help=help_text,
+        )
+
+    # For None values or other types, render a text input
+    if value is None or isinstance(value, str):
+        raw_value = "" if value is None else str(value)
+        text_value = st.text_input(
+            label, value=raw_value, key=constraint_key, help=help_text
+        )
+
+        stripped = text_value.strip()
+        if stripped == "":
+            return None
+
+        lowered = stripped.lower()
+        if lowered == "true":
+            return True
+        if lowered == "false":
+            return False
+
+        try:
+            # Handle negative integers (e.g., "-5") and positive integers (e.g., "5")
+            if stripped.startswith("-"):
+                if stripped[1:].isdigit():
+                    return int(stripped)
+            elif stripped.isdigit():
+                return int(stripped)
+            return float(stripped)
+        except ValueError:
+            return stripped
+
+
 def render_save_button_for_input_df(
     filtered_df: pd.DataFrame,
     edited_df: pd.DataFrame,
@@ -583,8 +678,109 @@ def render_save_button_for_input_df(
             st.error("Error saving some changes")
 
 
+def convert_scalar_value_to_yaml_value(value: str) -> object:
+    """Convert a scalar string value to the appropriate YAML scalar type."""
+    stripped_value = value.strip()
+
+    # Check for scientific notation (e.g., "1.23e-4" or "-5E+6")
+    if re.fullmatch(r"[+-]?\d+[eE][+-]?\d+", stripped_value):
+        notation, exponent = stripped_value.lower().split("e", maxsplit=1)
+
+        # Handle optional signs in both the notation and exponent parts
+        notation_has_sign = notation.startswith(("+", "-"))
+        notation_digits = notation[1:] if notation_has_sign else notation
+        exponent_has_sign = exponent.startswith(("+", "-"))
+        exponent_digits = exponent[1:] if exponent_has_sign else exponent
+
+        # Validate that the notation and exponent parts contain only digits
+        if not notation_digits.isdigit() or not exponent_digits.isdigit():
+            raise ValueError(f"Invalid scientific notation: {stripped_value}")
+
+        # Use ScalarFloat to dump to YAML
+        return ScalarFloat(
+            float(stripped_value),
+            width=len(notation_digits),
+            prec=-1,
+            m_sign=notation_has_sign,
+            exp="e",
+            e_width=len(exponent_digits) + (1 if exponent_has_sign else 0),
+            e_sign=exponent_has_sign,
+        )
+
+    # Check for integer values (e.g., "42" or "-7")
+    if re.fullmatch(r"[+-]?\d+", stripped_value):
+        return int(stripped_value)
+
+    # Check for float values (e.g., "3.14", "-0.001", or ".5")
+    if re.fullmatch(
+        r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?",
+        stripped_value,
+    ):
+        return float(stripped_value)
+
+    return DoubleQuotedScalarString(value)
+
+
+def convert_to_commented_yaml_value(value: object) -> object:
+    """Convert a Python value to the corresponding ruamel YAML value."""
+    if isinstance(value, str):
+        return convert_scalar_value_to_yaml_value(value)
+
+    # Initialize the root node
+    root = CommentedMap() if isinstance(value, dict) else CommentedSeq()
+
+    # Use a stack to traverse the data structure iteratively and convert scalar values
+    pending_nodes: list[tuple[object, CommentedMap | CommentedSeq]] = [(value, root)]
+
+    while pending_nodes:
+        # source_node is the original Python data structure node (dict, list, or scalar)
+        # target_node is the corresponding YAML node (CommentedMap or CommentedSeq)
+        source_node, target_node = pending_nodes.pop()
+
+        if isinstance(source_node, dict) and isinstance(target_node, CommentedMap):
+            for key, item in source_node.items():
+                if isinstance(item, dict):
+                    # For dictionaries, create a CommentedMap and add it to the stack
+                    child_node = CommentedMap()
+                    target_node[key] = child_node
+                    pending_nodes.append((item, child_node))
+                elif isinstance(item, list):
+                    # For lists, create a CommentedSeq and add it to the stack
+                    child_node = CommentedSeq()
+                    target_node[key] = child_node
+                    pending_nodes.append((item, child_node))
+                elif isinstance(item, str):
+                    # For scalar string values, convert them to the YAML scalar type
+                    target_node[key] = convert_scalar_value_to_yaml_value(item)
+                else:
+                    # For other types (e.g., numbers, booleans), assign them directly
+                    target_node[key] = item
+            continue
+
+        if isinstance(source_node, list) and isinstance(target_node, CommentedSeq):
+            for item in source_node:
+                if isinstance(item, dict):
+                    # For dictionaries, create a CommentedMap and add it to the stack
+                    child_node = CommentedMap()
+                    target_node.append(child_node)
+                    pending_nodes.append((item, child_node))
+                elif isinstance(item, list):
+                    # For lists, create a CommentedSeq and add it to the stack
+                    child_node = CommentedSeq()
+                    target_node.append(child_node)
+                    pending_nodes.append((item, child_node))
+                elif isinstance(item, str):
+                    # For scalar string values, convert them to the YAML scalar type
+                    target_node.append(convert_scalar_value_to_yaml_value(item))
+                else:
+                    # For other types (e.g., numbers, booleans), assign them directly
+                    target_node.append(item)
+
+    return root
+
+
 def render_save_button_for_input_config(
-    section_value: dict,
+    scenario_section: dict,
     section_name: str,
     save_button_key: str,
     has_changes: bool,
@@ -598,15 +794,28 @@ def render_save_button_for_input_config(
         type="primary" if has_changes else "secondary",
     ):
         success = True
-        scenario_config = dict(st.session_state.scenario_config)
-        scenario_config[section_name] = section_value
         scenario_config_path = st.session_state.scenario_config_path
+
+        # Initialize YAML instance
+        yaml = YAML()
+        yaml.preserve_quotes = True
+        yaml.default_flow_style = False
+        yaml.width = 4096  # Prevent line wrapping
+
+        scenario_config_data = dict(st.session_state.scenario_config)
+        scenario_config_data[section_name] = scenario_section
+
+        commented_map = CommentedMap()
+        for key, item in scenario_config_data.items():
+            # Convert each value to the appropriate YAML type while preserving comments
+            commented_map[key] = convert_to_commented_yaml_value(item)
+
+        scenario_config = commented_map
 
         # Save the updated scenario config back to the YAML file
         with open(scenario_config_path, "w", encoding="utf-8") as file_handle:
-            safe_yaml = YAML(typ="safe", pure=True)
-            safe_yaml.default_flow_style = False
-            safe_yaml.dump(scenario_config, file_handle)
+            file_handle.write(SCENARIO_CONFIG_HEADER)
+            yaml.dump(scenario_config, file_handle)
 
         if success:
             st.success("Changes saved successfully!")
@@ -615,73 +824,3 @@ def render_save_button_for_input_config(
             st.rerun()
         else:
             st.error("Error saving some changes")
-
-
-# =============================================================================
-# For input scenario config editing and saving
-# =============================================================================
-
-
-def format_keys_into_readable_titles(value: str) -> str:
-    """Format snake_case keys into user-facing titles."""
-    return value.replace("res_", "Renewable ").replace("_", " ").strip().title()
-
-
-def convert_date_string_into_date_obj(raw_value: object, fallback: date) -> date:
-    """Convert an ISO date string to a date object."""
-    if isinstance(raw_value, str):
-        try:
-            return date.fromisoformat(raw_value)
-        except ValueError:
-            return fallback
-    return fallback
-
-
-def create_inputbox_and_keep_nulls_for_empty_input_values(
-    label: str,
-    value: object,
-    constraint_key: str,
-    help_text: str | None = None,
-) -> object:
-    """Render a streamlit input box based on the value types, and keep null values."""
-    if isinstance(value, bool):
-        return st.checkbox(label, value=value, key=constraint_key, help=help_text)
-
-    if isinstance(value, int) and not isinstance(value, bool):
-        return st.number_input(
-            label, value=value, step=1, key=constraint_key, help=help_text
-        )
-
-    if isinstance(value, float):
-        return st.number_input(
-            label,
-            value=float(value),
-            format="%.2f",
-            key=constraint_key,
-            help=help_text,
-        )
-
-    raw_value = "" if value is None else str(value)
-    text_value = st.text_input(
-        label, value=raw_value, key=constraint_key, help=help_text
-    )
-
-    stripped = text_value.strip()
-    if stripped == "":
-        return None
-
-    lowered = stripped.lower()
-    if lowered == "true":
-        return True
-    if lowered == "false":
-        return False
-
-    try:
-        if stripped.startswith("-"):
-            if stripped[1:].isdigit():
-                return int(stripped)
-        elif stripped.isdigit():
-            return int(stripped)
-        return float(stripped)
-    except ValueError:
-        return stripped
