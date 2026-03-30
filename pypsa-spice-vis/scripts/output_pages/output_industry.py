@@ -417,6 +417,11 @@ def render_i4_generation_by_type(graph_config: dict) -> None:
 
 if __name__ == "__main__":
     st.title(":material/construction: Industry")
+    docs_path = "visualisation-tool/vis-sections-and-charts/#industry"
+    st.markdown(
+        "Detailed explanation can be found in: "
+        f"[industry guides](https://agoenergy.github.io/pypsa-spice/{docs_path})"
+    )
     output_config = st.session_state.output_config["industry"]
     INDUSTRY_CHART_KEYS = [
         "i1",

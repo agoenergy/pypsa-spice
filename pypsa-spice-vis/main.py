@@ -42,8 +42,6 @@ def get_sector_tabs(base_tabs: list[str], sector: str) -> list[str]:
 
 def scenario_config_main() -> None:
     """Render the scenario configuration editor page."""
-    st.title(":material/settings: Scenario config editor")
-
     st.session_state.input_sce1 = st.session_state.get("input_sce1", "")
 
     # Path to the selected scenario config file.
@@ -54,8 +52,7 @@ def scenario_config_main() -> None:
     )
     st.session_state.scenario_config_path = scenario_config_path
 
-    # Display and load the config file for the selected scenario.
-    st.caption(st.session_state.scenario_config_path)
+    # Load the config file for the selected scenario.
     st.session_state.scenario_config = load_yaml(scenario_config_path)
 
     render_script_page("scripts/scenario_configuration_pages/scenario_config.py")

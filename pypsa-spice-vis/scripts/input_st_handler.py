@@ -10,6 +10,7 @@ import os
 import re
 import shutil
 import time
+from datetime import date
 from tempfile import NamedTemporaryFile
 
 import numpy as np
@@ -614,3 +615,73 @@ def render_save_button_for_input_config(
             st.rerun()
         else:
             st.error("Error saving some changes")
+
+
+# =============================================================================
+# For input scenario config editing and saving
+# =============================================================================
+
+
+def format_keys_into_readable_titles(value: str) -> str:
+    """Format snake_case keys into user-facing titles."""
+    return value.replace("res_", "Renewable ").replace("_", " ").strip().title()
+
+
+def convert_date_string_into_date_obj(raw_value: object, fallback: date) -> date:
+    """Convert an ISO date string to a date object."""
+    if isinstance(raw_value, str):
+        try:
+            return date.fromisoformat(raw_value)
+        except ValueError:
+            return fallback
+    return fallback
+
+
+def create_inputbox_and_keep_nulls_for_empty_input_values(
+    label: str,
+    value: object,
+    constraint_key: str,
+    help_text: str | None = None,
+) -> object:
+    """Render a streamlit input box based on the value types, and keep null values."""
+    if isinstance(value, bool):
+        return st.checkbox(label, value=value, key=constraint_key, help=help_text)
+
+    if isinstance(value, int) and not isinstance(value, bool):
+        return st.number_input(
+            label, value=value, step=1, key=constraint_key, help=help_text
+        )
+
+    if isinstance(value, float):
+        return st.number_input(
+            label,
+            value=float(value),
+            format="%.2f",
+            key=constraint_key,
+            help=help_text,
+        )
+
+    raw_value = "" if value is None else str(value)
+    text_value = st.text_input(
+        label, value=raw_value, key=constraint_key, help=help_text
+    )
+
+    stripped = text_value.strip()
+    if stripped == "":
+        return None
+
+    lowered = stripped.lower()
+    if lowered == "true":
+        return True
+    if lowered == "false":
+        return False
+
+    try:
+        if stripped.startswith("-"):
+            if stripped[1:].isdigit():
+                return int(stripped)
+        elif stripped.isdigit():
+            return int(stripped)
+        return float(stripped)
+    except ValueError:
+        return stripped

@@ -288,6 +288,12 @@ if __name__ == "__main__":
     input_config = st.session_state.input_config
     selected_sector = "Transport"
     sector_title = generate_sector_title(selected_sector)
+    docs_path = "getting-started/input-data/regional_csv_template"
+    st.markdown(
+        "Detailed explanation can be found in: "
+        f"[scenario input guides](https://agoenergy.github.io/pypsa-spice/{docs_path})"
+    )
+
     selected_scenario = st.session_state.input_sce1
     all_countries = get_all_countries()
     tech_df = set_available_technology_df(selected_sector, input_config)
