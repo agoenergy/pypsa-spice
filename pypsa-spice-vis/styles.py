@@ -68,68 +68,6 @@ def use_flexo():
                 st.error(f"Error loading font: {e}")
 
 
-def apply_sidebar_styles():
-    """Style the Page navigation and Parameters part of the sidebar."""
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    logo_path = os.path.join(base_dir, "design", "pypsa-logo_rgb.png")
-
-    logo_styles = """
-        content: "Page Navigation";
-        margin-left: 20px;
-        margin-bottom: 12px;
-        font-size: 1.2em;
-        font-weight: 600;
-        position: relative;
-        top: 4px;
-        display: block;
-    """
-
-    if os.path.exists(logo_path):
-        try:
-            with open(logo_path, "rb") as logo_file:
-                logo_data = base64.b64encode(logo_file.read()).decode("utf-8")
-
-            logo_styles = f"""
-                content: "";
-                display: block;
-                width: 180px;
-                height: 42px;
-                margin-left: 5px;
-                margin-bottom: 20px;
-                position: relative;
-                top: 4px;
-                background: url(data:image/png;base64,{
-                logo_data
-                }) no-repeat left center;
-                background-size: contain;
-            """
-        except OSError as e:
-            st.error(f"Error loading sidebar logo: {e}")
-
-    st.markdown(
-        """
-        <style>
-        div[data-testid="stSidebarNav"]::before {
-        """
-        + logo_styles
-        + """
-        }
-        /* Make the navigation divider match st.divider() style (shorter) */
-        div[data-testid="stSidebarNavSeparator"] {
-            margin: 0.68em 1.2rem 0.5rem;
-        }
-        /* Make page names in sidebar navigation larger */
-        div[data-testid="stSidebarNav"] ul li a[data-testid="stSidebarNavLink"] p,
-        div[data-testid="stSidebarNav"] ul li a[data-testid="stSidebarNavLink"] span {
-            font-size: 1.08rem;
-            font-weight: 600;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
 def apply_sidebar_chart_nav_styles():
     """Style the Chart navigation part of the sidebar."""
     st.markdown(
@@ -199,11 +137,3 @@ def apply_radio_menu_styles():
         unsafe_allow_html=True,
     )
 
-
-def apply_title_styles(title_name: str):
-    """Style the title of the app."""
-    st.markdown(
-        f"""<p style='font-size: 1.2em; font-weight: 600; margin-bottom: 12px;'>
-        {title_name}</p>""",
-        unsafe_allow_html=True,
-    )

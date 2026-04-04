@@ -10,7 +10,7 @@ import sys
 
 import streamlit as st
 import yaml
-from styles import apply_sidebar_styles, apply_title_styles, use_flexo
+from styles import use_flexo
 
 from scripts.get_params import GetParams
 
@@ -190,9 +190,13 @@ if __name__ == "__main__":
 
     # Set up Streamlit page layout and global styling.
     st.set_page_config(initial_sidebar_state="expanded", layout="wide")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    logo_path = os.path.join(base_dir, "design", "pypsa-logo_rgb.png")
+
+    st.logo(logo_path, size="large")
 
     use_flexo()
-    apply_sidebar_styles()
+    #apply_sidebar_styles()
 
     # Define the main navigation pages shown in the sidebar.
     info_page = st.Page("scripts/info.py", title="Info", icon=":material/info:")
@@ -202,7 +206,7 @@ if __name__ == "__main__":
     in_page = st.Page(input_main, title="Input", icon=":material/input:")
     out_page = st.Page(output_main, title="Output", icon=":material/monitoring:")
     pages = st.navigation(
-        [info_page, config_page, in_page, out_page], position="sidebar"
+        [info_page, config_page, in_page, out_page], position="top"
     )
     current_page_title = getattr(pages, "title", "")
 
@@ -215,7 +219,6 @@ if __name__ == "__main__":
     )
 
     with st.sidebar:
-        apply_title_styles("Parameters for settings")
 
         # Select project
         st.session_state.project = st.selectbox(
