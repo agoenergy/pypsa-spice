@@ -374,6 +374,10 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                 options=TEMPORAL_CLUSTERING_METHODS,
                 index=TEMPORAL_CLUSTERING_METHODS.index(resolution_method),
                 key="scenario_configs_resolution_method",
+                help=(
+                    "**nth_hour** - Select every Nth snapshot as representative\n\n"
+                    "**clustered** - TSAM clustering for variable-duration segments"
+                ),
             )
 
         number_of_days = int(resolution.get("number_of_days", 3) or 3)
