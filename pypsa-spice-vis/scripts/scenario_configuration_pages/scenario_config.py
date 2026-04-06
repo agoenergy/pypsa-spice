@@ -486,6 +486,12 @@ def render_co2_management_section(scenario_section: dict) -> None:
                     options=CO2_OPTIONS,
                     index=CO2_OPTIONS.index(option),
                     key=f"co2_option_{country}",
+                    help=(
+                        "**co2_cap** - Maximum allowable CO2 emissions "
+                        "(carbon budget constraint)\n\n"
+                        "**co2_price** - Cost applied per unit of CO2 emitted "
+                        "(carbon pricing mechanism)"
+                    ),
                 )
 
                 edited_values = {}
