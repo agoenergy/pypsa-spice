@@ -4,6 +4,7 @@
 
 """Helpers for rendering and editing scenario configuration YAML."""
 
+import calendar
 import json
 from datetime import date
 
@@ -29,13 +30,13 @@ EXCLUDED_SECTIONS = {"version", "logging", "solving"}
 # =============================================================================
 
 
-def set_default_snapshot(snapshots: dict) -> tuple[int, date, date, str]:
-    """Set default snapshot values from the loaded scenario section.
+def extract_default_snapshot(snapshots: dict) -> tuple[int, date, date, str]:
+    """Extract default snapshot values from the default scenario config file.
 
     Parameters
     ----------
     snapshots : dict
-        The snapshots section from the scenario configuration.
+        The snapshots section from the scenario config file.
 
     Returns
     -------
@@ -266,22 +267,24 @@ def render_country_custom_constraints(country: str, country_constraints: dict) -
 
 
 def render_scenario_settings_section(scenario_section: dict) -> None:
-    """Render the scenario settings editor.
+    """Extract default scenario setting values from the default config file.
+
+    After extraction, render the editor and update the values.
 
     Parameters
     ----------
     scenario_section : dict
-        The current values for the scenario settings section.
+        Default value for scenario settings section from the default config file.
     """
-    # Set default scenario settings values based on the loaded configuration
+    # Extract default scenario setting values from default config file
     scenario_settings = scenario_section or {}
     snapshots = scenario_settings.get("snapshots", {}) or {}
     resolution = scenario_settings.get("resolution", {}) or {}
     interest = scenario_settings.get("interest", {}) or {}
 
-    # Set default snapshot values based on the loaded configuration
-    default_year, default_start, default_end, default_inclusive = set_default_snapshot(
-        snapshots
+    # Extract default snapshot values based on the loaded configuration
+    default_year, default_start, default_end, default_inclusive = (
+        extract_default_snapshot(snapshots)
     )
 
     # Render the scenario settings editor with inputs
@@ -299,6 +302,14 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                     key="scenario_configs_model_year",
                 )
             )
+            # Automatically adjust model year if it's a leap year
+            # to avoid issues with snapshot ranges
+            if calendar.isleap(model_year):
+                model_year -= 1
+                st.warning(
+                    f"⚠️ The selected year is a leap year. "
+                    f"Model year has been automatically adjusted to **{model_year}**.",
+                )
         with threshold_col:
             remove_threshold = st.number_input(
                 "Remove asset with capacity lower than (MW)",
