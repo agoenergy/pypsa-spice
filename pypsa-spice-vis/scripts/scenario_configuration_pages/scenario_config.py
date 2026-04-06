@@ -316,6 +316,7 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                 min_value=0.0,
                 value=float(scenario_settings.get("remove_threshold", 0.0) or 0.0),
                 format="%.2f",
+                step=0.1,
                 key="scenario_configs_remove_threshold",
             )
 
