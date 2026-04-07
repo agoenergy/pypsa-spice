@@ -136,4 +136,3 @@ def apply_radio_menu_styles():
         """,
         unsafe_allow_html=True,
     )
-

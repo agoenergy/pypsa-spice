@@ -196,7 +196,7 @@ if __name__ == "__main__":
     st.logo(logo_path, size="large")
 
     use_flexo()
-    #apply_sidebar_styles()
+    # apply_sidebar_styles()
 
     # Define the main navigation pages shown in the sidebar.
     info_page = st.Page("scripts/info.py", title="Info", icon=":material/info:")
@@ -205,9 +205,7 @@ if __name__ == "__main__":
     )
     in_page = st.Page(input_main, title="Input", icon=":material/input:")
     out_page = st.Page(output_main, title="Output", icon=":material/monitoring:")
-    pages = st.navigation(
-        [info_page, config_page, in_page, out_page], position="top"
-    )
+    pages = st.navigation([info_page, config_page, in_page, out_page], position="top")
     current_page_title = getattr(pages, "title", "")
 
     # Helper object for reading project/scenario/sector metadata.
