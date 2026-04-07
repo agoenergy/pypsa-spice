@@ -196,7 +196,6 @@ if __name__ == "__main__":
     st.logo(logo_path, size="large")
 
     use_flexo()
-    # apply_sidebar_styles()
 
     # Define the main navigation pages shown in the sidebar.
     info_page = st.Page("scripts/info.py", title="Info", icon=":material/info:")
