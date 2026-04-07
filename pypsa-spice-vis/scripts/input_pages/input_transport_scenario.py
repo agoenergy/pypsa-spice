@@ -170,7 +170,7 @@ def render_input_transport_scenario_section(
             )
 
 
-def render_input_load_section(
+def render_input_transport_annual_demand_section(
     title: str,
     selected_types: list[str],
     input_config: dict,
@@ -333,12 +333,12 @@ if __name__ == "__main__":
     )
 
     # Render demand profiles selectbox for the transport demand profiles section
-    selected_types = render_demand_profiles_selectbox(selected_sector="Transport")
+    demand_profile_types = render_demand_profiles_selectbox(selected_sector="Transport")
 
     # Render scenario transport demand profiles section
-    render_input_load_section(
+    render_input_transport_annual_demand_section(
         title="Transport_loads",
-        selected_types=selected_types,
+        selected_types=demand_profile_types,
         input_config=input_config,
         selected_classes=["Load"],
         selected_countries=demand_selected_countries,

@@ -218,7 +218,7 @@ def render_input_transport_timeseries_section(
         render_line_chart(filtered_df, table_config, unique_type_key)
 
 
-def render_input_transport_demand_section(
+def render_input_transport_demand_profile_section(
     title: str,
     selected_types: list[str],
     input_config: dict,
@@ -344,18 +344,18 @@ if __name__ == "__main__":
     )
 
     # Render type and PyPSA class filters for the transport demand profiles section
-    selected_types, selected_classes = render_type_and_class_filters(
+    demand_profile_types, selected_classes = render_type_and_class_filters(
         tech_df,
         key="transport_demand_global",
     )
 
     # Render demand profiles selectbox for the transport demand profiles section
-    selected_types = render_demand_profiles_selectbox(selected_sector="Transport")
+    demand_profile_types = render_demand_profiles_selectbox(selected_sector="Transport")
 
     # Render global transport demand profiles section
-    render_input_transport_demand_section(
+    render_input_transport_demand_profile_section(
         title="Demand_Profiles",
-        selected_types=selected_types,
+        selected_types=demand_profile_types,
         input_config=input_config,
         selected_countries=demand_selected_countries,
         selected_classes=selected_classes,
