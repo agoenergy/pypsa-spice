@@ -592,28 +592,27 @@ def create_inputbox_and_keep_nulls_for_empty_input_values(
     help_text: str | None = None,
 ) -> object:
     """Render a streamlit input box based on the value types, and keep null values."""
+    result: object | None = None
+
     # For boolean values, render a checkbox
     if isinstance(value, bool):
-        return st.checkbox(label, value=value, key=constraint_key, help=help_text)
+        result = st.checkbox(label, value=value, key=constraint_key, help=help_text)
     # For integer values, render a number input with step of 1
-
-    if isinstance(value, int) and not isinstance(value, bool):
-        return st.number_input(
+    elif isinstance(value, int) and not isinstance(value, bool):
+        result = st.number_input(
             label, value=value, step=1, key=constraint_key, help=help_text
         )
-
     # For float values, render a number input with float formatting (2 decimal places)
-    if isinstance(value, float):
-        return st.number_input(
+    elif isinstance(value, float):
+        result = st.number_input(
             label,
             value=float(value),
             format="%.2f",
             key=constraint_key,
             help=help_text,
         )
-
     # For None values or other types, render a text input
-    if value is None or isinstance(value, str):
+    elif value is None or isinstance(value, str):
         raw_value = "" if value is None else str(value)
         text_value = st.text_input(
             label, value=raw_value, key=constraint_key, help=help_text
@@ -621,24 +620,27 @@ def create_inputbox_and_keep_nulls_for_empty_input_values(
 
         stripped = text_value.strip()
         if stripped == "":
-            return None
+            result = None
+        else:
+            lowered = stripped.lower()
+            if lowered == "true":
+                result = True
+            elif lowered == "false":
+                result = False
+            else:
+                try:
+                    # Handle negative integers (e.g., "-5")
+                    # and positive integers (e.g., "5")
+                    if stripped.startswith("-") and stripped[1:].isdigit():
+                        result = int(stripped)
+                    elif stripped.isdigit():
+                        result = int(stripped)
+                    else:
+                        result = float(stripped)
+                except ValueError:
+                    result = stripped
 
-        lowered = stripped.lower()
-        if lowered == "true":
-            return True
-        if lowered == "false":
-            return False
-
-        try:
-            # Handle negative integers (e.g., "-5") and positive integers (e.g., "5")
-            if stripped.startswith("-"):
-                if stripped[1:].isdigit():
-                    return int(stripped)
-            elif stripped.isdigit():
-                return int(stripped)
-            return float(stripped)
-        except ValueError:
-            return stripped
+    return result
 
 
 def render_save_button_for_input_df(

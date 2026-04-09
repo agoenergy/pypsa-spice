@@ -285,7 +285,7 @@ def render_input_transport_annual_demand_section(
 
 
 if __name__ == "__main__":
-    input_config = st.session_state.input_config
+    app_input_config = st.session_state.input_config
     SELECT_SECTOR = "Transport"
     sector_title = generate_sector_title(SELECT_SECTOR)
     DOCS_PATH = "getting-started/input-data/regional_csv_template"
@@ -294,9 +294,9 @@ if __name__ == "__main__":
         f"[scenario input guides](https://agoenergy.github.io/pypsa-spice/{DOCS_PATH})"
     )
 
-    selected_scenario = st.session_state.input_sce1
+    scenario_name = st.session_state.input_sce1
     all_countries = get_all_countries()
-    tech_df = set_available_technology_df(SELECT_SECTOR, input_config)
+    tech_df = set_available_technology_df(SELECT_SECTOR, app_input_config)
 
     st.subheader(f":material/timeline: Scenario specific input  | {sector_title}")
 
@@ -313,15 +313,15 @@ if __name__ == "__main__":
     st.markdown(f"Class: **{', '.join(sector_selected_classes)}**")
 
     # Render scenario transport input relevant sections for non-timeseries tables
-    for title in input_config[SELECT_SECTOR]:
-        if title != "Transport_loads":
+    for table_name in app_input_config[SELECT_SECTOR]:
+        if table_name != "Transport_loads":
             render_input_transport_scenario_section(
-                title=title,
+                title=table_name,
                 selected_types=sector_selected_types,
-                input_config=input_config,
+                input_config=app_input_config,
                 selected_classes=sector_selected_classes,
                 selected_countries=sector_selected_countries,
-                selected_scenario=selected_scenario,
+                selected_scenario=scenario_name,
             )
 
     st.subheader(f":material/timeline: Loads  | {sector_title}")
@@ -333,14 +333,16 @@ if __name__ == "__main__":
     )
 
     # Render demand profiles selectbox for the transport demand profiles section
-    demand_profile_types = render_demand_profiles_selectbox(selected_sector="Transport")
+    demand_profile_types = render_demand_profiles_selectbox(
+        selected_sector=SELECT_SECTOR
+    )
 
     # Render scenario transport demand profiles section
     render_input_transport_annual_demand_section(
         title="Transport_loads",
         selected_types=demand_profile_types,
-        input_config=input_config,
+        input_config=app_input_config,
         selected_classes=["Load"],
         selected_countries=demand_selected_countries,
-        selected_scenario=selected_scenario,
+        selected_scenario=scenario_name,
     )
