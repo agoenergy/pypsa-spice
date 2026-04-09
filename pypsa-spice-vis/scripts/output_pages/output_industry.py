@@ -9,10 +9,7 @@ Page shows editable power related
 dataframes and visualisations from the modelling results.
 """
 
-import os
-
 import streamlit as st
-import yaml
 
 from scripts.data_utils import (
     add_nice_names,
@@ -36,15 +33,6 @@ from scripts.plot_functions import (
     plot_simple_bar_yearly,
 )
 
-st.title(":material/construction: Industry")
-
-with open(
-    os.path.join(st.session_state.current_dir, "setting/graph_settings.yaml"),
-    encoding="utf-8",
-) as file:
-    config = yaml.safe_load(file)["industry"]
-
-
 # =========================== Render functions for each chart =========================
 
 
@@ -62,9 +50,9 @@ def render_i1_capacity_by_carrier(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -74,7 +62,7 @@ def render_i1_capacity_by_carrier(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -91,7 +79,9 @@ def render_i1_capacity_by_carrier(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -122,7 +112,7 @@ def render_i1_capacity_by_carrier(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
         key=(
             "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -143,9 +133,9 @@ def render_i2_capacity_by_region(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
     shared_filter = setup_radio_button_filter(graph_config, is_dual)
 
@@ -157,14 +147,14 @@ def render_i2_capacity_by_region(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
         return
     filter_value_s1 = shared_filter or st.radio(
-        f"{graph_config['slider_id'].format(st.session_state.sce1)} "
-        f"Select {filter_col} ({st.session_state.sce1}):",
+        f"{graph_config['slider_id'].format(st.session_state.output_sce1)} "
+        f"Select {filter_col} ({st.session_state.output_sce1}):",
         options=scenario_1_raw[filter_col].unique(),
         format_func=prettify_label,
         horizontal=True,
@@ -186,12 +176,14 @@ def render_i2_capacity_by_region(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             filter_value_s2 = shared_filter or st.radio(
-                f"{graph_config['slider_id'].format(st.session_state.sce2)} "
-                f"Select {filter_col} ({st.session_state.sce2}):",
+                f"{graph_config['slider_id'].format(st.session_state.output_sce2)} "
+                f"Select {filter_col} ({st.session_state.output_sce2}):",
                 options=scenario_2_raw[filter_col].unique(),
                 format_func=prettify_label,
                 horizontal=True,
@@ -247,9 +239,9 @@ def render_i3_generation_by_region(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
     shared_filter = setup_radio_button_filter(graph_config, is_dual)
 
@@ -261,14 +253,14 @@ def render_i3_generation_by_region(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
         return
     filter_value_s1 = shared_filter or st.radio(
-        f"{graph_config['slider_id'].format(st.session_state.sce1)} "
-        f"Select {filter_col} ({st.session_state.sce1}):",
+        f"{graph_config['slider_id'].format(st.session_state.output_sce1)} "
+        f"Select {filter_col} ({st.session_state.output_sce1}):",
         options=scenario_1_raw[filter_col].unique(),
         format_func=prettify_label,
         horizontal=True,
@@ -290,12 +282,14 @@ def render_i3_generation_by_region(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             filter_value_s2 = shared_filter or st.radio(
-                f"{graph_config['slider_id'].format(st.session_state.sce2)} "
-                f"Select {filter_col} ({st.session_state.sce2}):",
+                f"{graph_config['slider_id'].format(st.session_state.output_sce2)} "
+                f"Select {filter_col} ({st.session_state.output_sce2}):",
                 options=scenario_2_raw[filter_col].unique(),
                 format_func=prettify_label,
                 horizontal=True,
@@ -351,9 +345,9 @@ def render_i4_generation_by_type(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -363,7 +357,7 @@ def render_i4_generation_by_type(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -380,7 +374,9 @@ def render_i4_generation_by_type(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -412,29 +408,39 @@ def render_i4_generation_by_type(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
         key=(
             "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
     st.divider()
 
 
-INDUSTRY_CHART_KEYS = [
-    "i1",
-    "i2",
-    "i3",
-    "i4",
-]
-show_industry = "i" in str(st.session_state.get("sector", "")).lower()
-if show_industry:
-    render_i1_capacity_by_carrier(config["i1"])
-    render_i2_capacity_by_region(config["i2"])
-    render_i3_generation_by_region(config["i3"])
-    render_i4_generation_by_type(config["i4"])
+if __name__ == "__main__":
+    st.title(":material/construction: Industry")
+    DOCS_PATH = "visualisation-tool/vis-sections-and-charts/#industry"
+    st.markdown(
+        "Detailed explanation can be found in: "
+        f"[industry guides](https://agoenergy.github.io/pypsa-spice/{DOCS_PATH})"
+    )
+    output_config = st.session_state.output_config["industry"]
+    INDUSTRY_CHART_KEYS = [
+        "i1",
+        "i2",
+        "i3",
+        "i4",
+    ]
+    show_industry = "i" in str(st.session_state.get("sector", "")).lower()
+    if show_industry:
+        render_i1_capacity_by_carrier(output_config["i1"])
+        render_i2_capacity_by_region(output_config["i2"])
+        render_i3_generation_by_region(output_config["i3"])
+        render_i4_generation_by_type(output_config["i4"])
 
-    # Only include charts in the sidebar if they are present in the config
-    industry_charts = [config[key] for key in INDUSTRY_CHART_KEYS if key in config]
-    table_of_content = [chart["name"] for chart in industry_charts]
-    generate_sidebar(table_of_content)
-else:
-    st.warning("Industry sector is not selected. No chart is displayed.")
+        # Only include charts in the sidebar if they are present in the config
+        industry_charts = [
+            output_config[key] for key in INDUSTRY_CHART_KEYS if key in output_config
+        ]
+        table_of_content = [chart["name"] for chart in industry_charts]
+        generate_sidebar(table_of_content)
+    else:
+        st.warning("Industry sector is not selected. No chart is displayed.")

@@ -53,7 +53,9 @@ def create_nice_names_and_color_mapping(table_name: str) -> pd.DataFrame | None:
     if file_name is None:
         return None
 
-    file_path = os.path.join(st.session_state.current_dir, f"setting/{file_name}")
+    file_path = os.path.join(
+        st.session_state.streamlit_base_dir, f"setting/{file_name}"
+    )
     return pd.read_csv(file_path, index_col="original_names")
 
 
@@ -163,7 +165,7 @@ def update_hourly_plot_x_axis(
         if (
             st.session_state.window_width < 1130
             and st.session_state.window_width > 608
-            and st.session_state.sce2 != ""
+            and st.session_state.output_sce2 != ""
         )
         else 24
     )
@@ -201,7 +203,7 @@ def configure_plot_layout(
     legend_y_anchor = "bottom"
     margin_b = 0
 
-    if st.session_state.sce2 != "":
+    if st.session_state.output_sce2 != "":
         legend_orientation = "h"
         legend_x_pos = 0.5
         legend_y_pos = -0.25

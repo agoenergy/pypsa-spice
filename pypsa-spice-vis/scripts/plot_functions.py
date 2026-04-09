@@ -56,7 +56,9 @@ def create_nice_names_and_color_mapping(table_name: str) -> pd.DataFrame | None:
     if file_name is None:
         return None
 
-    file_path = os.path.join(st.session_state.current_dir, f"setting/{file_name}")
+    file_path = os.path.join(
+        st.session_state.streamlit_base_dir, f"setting/{file_name}"
+    )
     df = pd.read_csv(file_path, index_col="original_names")
 
     return df
@@ -116,7 +118,7 @@ def plot_diff_bar_yearly(
             }
         ],
     )
-    st.plotly_chart(fig, use_container_width=True, key=key)
+    st.plotly_chart(fig, width="stretch", key=key)
 
 
 @st.fragment
@@ -175,7 +177,7 @@ def plot_share_comparison_lines(
             }
         ],
     )
-    st.plotly_chart(fig, use_container_width=True, key=key)
+    st.plotly_chart(fig, width="stretch", key=key)
 
 
 @st.fragment
@@ -203,7 +205,7 @@ def plot_simple_bar_yearly(
     fig = configure_plot_layout(fig, df, y_range, graph_config)
     # For the yearly bar charts, adjust the space between bars
     fig.update_layout(bargap=0.4)
-    st.plotly_chart(fig, use_container_width=True, key=key)
+    st.plotly_chart(fig, width="stretch", key=key)
 
 
 @st.fragment
@@ -223,7 +225,7 @@ def plot_simple_line_yearly(
         color_discrete_map=colour_mapping,
     )
     fig = configure_plot_layout(fig, df, y_range, graph_config)
-    st.plotly_chart(fig, use_container_width=True, key=key)
+    st.plotly_chart(fig, width="stretch", key=key)
 
 
 @st.fragment
@@ -246,7 +248,7 @@ def plot_area_share_yearly(
         color_discrete_map=colour_mapping,
     )
     fig = configure_plot_layout(fig, df, None, graph_config)
-    st.plotly_chart(fig, use_container_width=True, key=key)
+    st.plotly_chart(fig, width="stretch", key=key)
 
 
 @st.fragment
@@ -269,7 +271,7 @@ def plot_bar_with_filter(
     fig = configure_plot_layout(fig, df, y_range, graph_config)
     # For the yearly bar charts, adjust the space between bars
     fig.update_layout(bargap=0.4)
-    st.plotly_chart(fig, use_container_width=True, key=key)
+    st.plotly_chart(fig, width="stretch", key=key)
 
 
 @st.fragment
@@ -293,7 +295,7 @@ def plot_simple_bar_hourly(
     )
     fig = update_hourly_plot_x_axis(fig, df, start_date, end_date, is_complete)
     fig = configure_plot_layout(fig, df, y_range, graph_config)
-    st.plotly_chart(fig, use_container_width=True, key=key)
+    st.plotly_chart(fig, width="stretch", key=key)
 
 
 @st.fragment
@@ -317,7 +319,7 @@ def plot_simple_line_hourly(
     )
     fig = update_hourly_plot_x_axis(fig, df, start_date, end_date, is_complete)
     fig = configure_plot_layout(fig, df, y_range, graph_config)
-    st.plotly_chart(fig, use_container_width=True, key=key)
+    st.plotly_chart(fig, width="stretch", key=key)
 
 
 @st.fragment
@@ -352,7 +354,7 @@ def plot_filtered_bar_hourly(
         for trace in line_chart_trace.data:
             fig.add_trace(trace)
 
-    st.plotly_chart(fig, use_container_width=True, key=key)
+    st.plotly_chart(fig, width="stretch", key=key)
 
 
 @st.fragment
@@ -376,7 +378,7 @@ def plot_line_with_secondary_y_hourly(
     for prim_y in primary_y_lab:
         nice_name = label_map.get(prim_y, prim_y)
         fig.add_trace(
-            go.Line(
+            go.Scatter(
                 y=df[df[leg_col] == prim_y]["value"],
                 x=df["snapshot"],
                 name=nice_name,
@@ -388,7 +390,7 @@ def plot_line_with_secondary_y_hourly(
     for secd_y in secondary_y_lab:
         nice_name = label_map.get(secd_y, secd_y)
         fig.add_trace(
-            go.Line(
+            go.Scatter(
                 y=df[df[leg_col] == secd_y]["value"],
                 x=df["snapshot"],
                 name=nice_name,
@@ -401,4 +403,4 @@ def plot_line_with_secondary_y_hourly(
     fig = configure_plot_layout(fig, df, y_range, graph_config)
     fig.update_yaxes(title_text=handle_y_axis_list(primary_y_lab), secondary_y=False)
     fig.update_yaxes(title_text=handle_y_axis_list(secondary_y_lab), secondary_y=True)
-    st.plotly_chart(fig, use_container_width=True, key=key)
+    st.plotly_chart(fig, width="stretch", key=key)

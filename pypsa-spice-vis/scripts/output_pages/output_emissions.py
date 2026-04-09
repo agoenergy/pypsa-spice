@@ -9,10 +9,7 @@ Page shows editable emission related dataframes and visualisations
 from the modelling results.
 """
 
-import os
-
 import streamlit as st
-import yaml
 
 from scripts.data_utils import (
     add_nice_names,
@@ -33,14 +30,6 @@ from scripts.plot_functions import (
     plot_simple_bar_yearly,
 )
 
-st.title(":material/thermostat: Emissions")
-
-with open(
-    os.path.join(st.session_state.current_dir, "setting/graph_settings.yaml"),
-    encoding="utf-8",
-) as file:
-    config = yaml.safe_load(file)["emissions"]
-
 # =========================== Render functions for each chart =========================
 
 
@@ -58,9 +47,9 @@ def render_e1_pow_emi_by_carrier(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -70,7 +59,7 @@ def render_e1_pow_emi_by_carrier(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -87,7 +76,9 @@ def render_e1_pow_emi_by_carrier(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -119,7 +110,7 @@ def render_e1_pow_emi_by_carrier(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
         key=(
             "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -140,9 +131,9 @@ def render_e2_ind_emi_by_carrier(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -152,7 +143,7 @@ def render_e2_ind_emi_by_carrier(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -169,7 +160,9 @@ def render_e2_ind_emi_by_carrier(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -201,7 +194,7 @@ def render_e2_ind_emi_by_carrier(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
         key=(
             "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -222,9 +215,9 @@ def render_e3_ene_emi_by_carrier_by_sector(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -234,7 +227,7 @@ def render_e3_ene_emi_by_carrier_by_sector(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -251,7 +244,9 @@ def render_e3_ene_emi_by_carrier_by_sector(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -283,26 +278,36 @@ def render_e3_ene_emi_by_carrier_by_sector(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
         key=(
             "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
     st.divider()
 
 
-# Always render power emission chart
-render_e1_pow_emi_by_carrier(config["e1"])
+if __name__ == "__main__":
+    st.title(":material/thermostat: Emissions")
+    DOCS_PATH = "visualisation-tool/vis-sections-and-charts/#emissions"
+    st.markdown(
+        "Detailed explanation can be found in: "
+        f"[emissions guides](https://agoenergy.github.io/pypsa-spice/{DOCS_PATH})"
+    )
+    output_config = st.session_state.output_config["emissions"]
+    # Always render power emission chart
+    render_e1_pow_emi_by_carrier(output_config["e1"])
 
-EMISSION_CHART_KEYS = ["e1"]
+    EMISSION_CHART_KEYS = ["e1"]
 
-# Only show e2 and e3 chart if industry in session_state.sector
-show_industry = "i" in str(st.session_state.get("sector", "")).lower()
-if show_industry:
-    render_e2_ind_emi_by_carrier(config["e2"])
-    render_e3_ene_emi_by_carrier_by_sector(config["e3"])
-    EMISSION_CHART_KEYS.extend(["e2", "e3"])
+    # Only show e2 and e3 chart if industry in session_state.sector
+    show_industry = "i" in str(st.session_state.get("sector", "")).lower()
+    if show_industry:
+        render_e2_ind_emi_by_carrier(output_config["e2"])
+        render_e3_ene_emi_by_carrier_by_sector(output_config["e3"])
+        EMISSION_CHART_KEYS.extend(["e2", "e3"])
 
-# Generate table of content side bar
-emi_charts = [config[key] for key in EMISSION_CHART_KEYS if key in config]
-table_of_content = [c["name"] for c in emi_charts]
-generate_sidebar(table_of_content)
+    # Generate table of content side bar
+    emi_charts = [
+        output_config[key] for key in EMISSION_CHART_KEYS if key in output_config
+    ]
+    table_of_content = [c["name"] for c in emi_charts]
+    generate_sidebar(table_of_content)

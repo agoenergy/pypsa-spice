@@ -66,8 +66,90 @@ def convert_month_to_name(month_num: int) -> str:
 
 
 # =============================================================================
-# I/O helpers (reading model results)
+# I/O helpers (reading model input and results)
 # =============================================================================
+
+
+def load_tech_info_mapping_df() -> pd.DataFrame:
+    """Load the technology info mapping CSV into a DataFrame."""
+    tech_mapping_path = os.path.join(
+        st.session_state.streamlit_base_dir, "setting", "tech_mapping.csv"
+    )
+    try:
+        tech_info_df = pd.read_csv(tech_mapping_path)
+        tech_info_df = tech_info_df.set_index("original_names")
+        return tech_info_df
+    except FileNotFoundError:
+        st.warning(f"Technology mapping file not found: {tech_mapping_path}")
+        return pd.DataFrame()
+
+
+def render_type_and_class_filters(
+    tech_df: pd.DataFrame,
+    key: str = "default",
+) -> tuple[list, list]:
+    """
+    Render a multiselect box for selecting tech & display tech names and PyPSA classes.
+
+    Parameters
+    ----------
+    tech_df : pd.DataFrame
+        DataFrame containing technology information.
+    key : str, optional
+        Key for Streamlit widget, by default "default".
+
+    Returns
+    -------
+    tuple[list, list]
+        Selected technology types and corresponding classes.
+    """
+    col1, col2 = st.columns([1, 1])
+    types = get_mapping_list(tech_df)
+    tech_mapping = dict(zip(tech_df["technology"], tech_df["technology_nomenclature"]))
+    types_full_names = sorted([tech_mapping.get(t, t) for t in types])
+
+    with col1:
+        reverse_mapping = {v: k for k, v in tech_mapping.items()}
+        default_type_selection = [types_full_names[0]] if types_full_names else []
+
+        selected_type_full = st.multiselect(
+            "Select Technology types:",
+            types_full_names,
+            default=default_type_selection,
+            key=f"type_filter_multiselect_{key}",
+        )
+
+        if not selected_type_full and default_type_selection:
+            st.warning(
+                "At least one technology type must be selected. Resetting to default."
+            )
+            selected_type_full = default_type_selection
+
+        selected_types = [reverse_mapping.get(v, v) for v in selected_type_full]
+
+    with col2:
+        selected_classes = (
+            tech_df.loc[tech_df["technology"].isin(selected_types), "class"]
+            .unique()
+            .tolist()
+        )
+        st.markdown(f"Tech: **{', '.join(selected_types)}**")
+        st.markdown(f"Class: **{', '.join(selected_classes)}**")
+
+    return selected_types, selected_classes
+
+
+def get_mapping_list(*dfs: pd.DataFrame) -> list[str]:
+    """Get sorted technology/profile types from one or more dataframes."""
+    type_set = set()
+
+    for df in dfs:
+        if "technology" in df.columns:
+            type_set |= set(df["technology"].unique())
+        if "profile_type" in df.columns:
+            type_set |= set(df["profile_type"].unique())
+
+    return sorted(type_set)
 
 
 def read_result_csv(
@@ -474,3 +556,24 @@ def prepare_y_range(
     """
     y_range = calculate_min_max_y_scale(scenario_1_df, scenario_2_df, x_col)
     return {"max_scale": y_range["max"], "min_scale": y_range["min"]}
+
+
+def render_countries_pills(all_countries: list, key: str) -> list | None:
+    """Render country and scenario selector and sync selected value to session state."""
+    col11, col12 = st.columns([1, 1])
+
+    with col11:
+        if all_countries:
+            selected_countries = st.pills(
+                "Select Countries:",
+                options=sorted(all_countries),
+                default=sorted(all_countries),
+                help="Select countries to filter the data.",
+                selection_mode="multi",
+                key=key + "_countries",
+            )
+        else:
+            selected_countries = None
+            st.info("No countries found")
+
+    return selected_countries

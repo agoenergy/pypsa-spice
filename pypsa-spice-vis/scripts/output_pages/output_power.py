@@ -9,11 +9,8 @@ Page shows editable power related
 dataframes and visualisations from the modelling results.
 """
 
-import os
-
 import pandas as pd
 import streamlit as st
-import yaml
 
 from scripts.data_utils import (
     add_nice_names,
@@ -53,14 +50,6 @@ from scripts.plot_functions import (
     plot_simple_line_hourly,
 )
 
-st.title(":material/bolt: Power")
-
-with open(
-    os.path.join(st.session_state.current_dir, "setting/graph_settings.yaml"),
-    encoding="utf-8",
-) as file:
-    config = yaml.safe_load(file)["power"]
-
 POWER_CHART_KEYS = [
     "p1",
     "p2",
@@ -76,11 +65,6 @@ POWER_CHART_KEYS = [
     "p13",
     "p14",
 ]
-
-# Only include charts in the sidebar if they are present in the config
-power_charts = [config[key] for key in POWER_CHART_KEYS if key in config]
-table_of_content = [chart["name"] for chart in power_charts]
-generate_sidebar(table_of_content)
 
 
 # =========================== Render functions for each chart =========================
@@ -98,9 +82,9 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -110,7 +94,7 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -127,7 +111,9 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -158,7 +144,8 @@ def render_p1_capacity_by_type(graph_config: dict) -> None:
         plot_function=plot_simple_bar_yearly,
         render_download_function=render_download_with_data_table,
         key=(
-            f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -184,9 +171,9 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
     shared_filter = setup_radio_button_filter(graph_config, is_dual)
 
@@ -198,14 +185,14 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
         return
     filter_value_s1 = shared_filter or st.radio(
-        f"{graph_config['slider_id'].format(st.session_state.sce1)} "
-        f"Select {filter_col} ({st.session_state.sce1}):",
+        f"{graph_config['slider_id'].format(st.session_state.output_sce1)} "
+        f"Select {filter_col} ({st.session_state.output_sce1}):",
         options=scenario_1_raw[filter_col].unique(),
         format_func=prettify_label,
         horizontal=True,
@@ -222,12 +209,14 @@ def render_p2_capacity_by_region(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             filter_value_s2 = shared_filter or st.radio(
-                f"{graph_config['slider_id'].format(st.session_state.sce2)} "
-                f"Select {filter_col} ({st.session_state.sce2}):",
+                f"{graph_config['slider_id'].format(st.session_state.output_sce2)} "
+                f"Select {filter_col} ({st.session_state.output_sce2}):",
                 options=scenario_2_raw[filter_col].unique(),
                 format_func=prettify_label,
                 horizontal=True,
@@ -283,9 +272,9 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -295,7 +284,7 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -312,7 +301,9 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -343,7 +334,8 @@ def render_p3_generation_by_type(graph_config: dict) -> None:
         plot_function=plot_simple_bar_yearly,
         render_download_function=render_download_with_data_table,
         key=(
-            f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -369,9 +361,9 @@ def render_p4_share_category(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -381,7 +373,7 @@ def render_p4_share_category(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -394,7 +386,9 @@ def render_p4_share_category(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_plot = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -415,37 +409,55 @@ def render_p4_share_category(graph_config: dict) -> None:
         plot_function=plot_area_share_yearly,
         render_download_function=render_download_with_data_table,
     )
-
+    # Render comparison lines if dual data is available
     if has_dual_data:
-        all_legends = sorted(scenario_1_plot["legend"].unique().tolist())
-        renew_label = (
-            mapping_df.loc["renewables", "nice_names"]
-            if mapping_df is not None and "renewables" in mapping_df.index
-            else None
-        )
-        default_selection = renew_label if renew_label in all_legends else None
-        selected = st.pills(
-            "Compare scenario share for:",
-            options=all_legends,
-            selection_mode="single",
-            default=default_selection,
-            key=f"pills_share_{st.session_state.sce1}_{table_name}",
-        )
-        if selected:
-            frames = []
-            for df, sce_name in [
-                (scenario_1_plot, st.session_state.sce1),
-                (scenario_2_plot, st.session_state.sce2),
-            ]:
-                rows = df[df["legend"] == selected][["year", "value"]].copy()
-                rows["scenario"] = sce_name
-                frames.append(rows)
-            combined = pd.concat(frames, ignore_index=True)
-            plot_share_comparison_lines(
-                combined,
-                graph_config,
-                key=f"plotly_chart_share_lines_{st.session_state.sce1}_{table_name}",
+        with st.expander(
+            (
+                "Comparison between two scenarios "
+                f"({st.session_state.output_sce2} and {st.session_state.output_sce1})"
+            ),
+            expanded=False,
+        ):
+            available_legends = sorted(scenario_1_plot["legend"].dropna().unique())
+
+            default_legend_label = None
+            if mapping_df is not None and "renewables" in mapping_df.index:
+                default_legend_label = mapping_df.at["renewables", "nice_names"]
+
+            selected_legend = st.pills(
+                "Compare scenario share for:",
+                options=available_legends,
+                selection_mode="single",
+                default=(
+                    default_legend_label
+                    if default_legend_label in available_legends
+                    else None
+                ),
+                key=f"pills_share_{st.session_state.output_sce1}_{table_name}",
             )
+
+            if selected_legend:
+                comparison_data = pd.concat(
+                    [
+                        scenario_1_plot.loc[
+                            scenario_1_plot["legend"] == selected_legend,
+                            ["year", "value"],
+                        ].assign(scenario=st.session_state.output_sce1),
+                        scenario_2_plot.loc[
+                            scenario_2_plot["legend"] == selected_legend,
+                            ["year", "value"],
+                        ].assign(scenario=st.session_state.output_sce2),
+                    ],
+                    ignore_index=True,
+                )
+                plot_share_comparison_lines(
+                    comparison_data,
+                    graph_config,
+                    key=(
+                        f"plotly_chart_share_lines_"
+                        f"{st.session_state.output_sce1}_{table_name}"
+                    ),
+                )
 
     st.divider()
 
@@ -464,9 +476,9 @@ def render_p6_transmission_capacity_between_regions(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
     shared_filter = setup_radio_button_filter(graph_config, is_dual)
 
@@ -478,14 +490,14 @@ def render_p6_transmission_capacity_between_regions(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
         return
     filter_value_s1 = shared_filter or st.radio(
-        f"{graph_config['slider_id'].format(st.session_state.sce1)} "
-        f"Select {filter_col} ({st.session_state.sce1}):",
+        f"{graph_config['slider_id'].format(st.session_state.output_sce1)} "
+        f"Select {filter_col} ({st.session_state.output_sce1}):",
         options=scenario_1_raw[filter_col].unique(),
         format_func=prettify_label,
         horizontal=True,
@@ -502,12 +514,14 @@ def render_p6_transmission_capacity_between_regions(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             filter_value_s2 = shared_filter or st.radio(
-                f"{graph_config['slider_id'].format(st.session_state.sce2)} "
-                f"Select {filter_col} ({st.session_state.sce2}):",
+                f"{graph_config['slider_id'].format(st.session_state.output_sce2)} "
+                f"Select {filter_col} ({st.session_state.output_sce2}):",
                 options=scenario_2_raw[filter_col].unique(),
                 format_func=prettify_label,
                 horizontal=True,
@@ -562,11 +576,11 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     shared_year = setup_year_filter(graph_config, is_dual)
     graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
     # Extract config values
     table_name = graph_config["table_name"]
@@ -575,7 +589,7 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
 
     # Load and validate scenario 1 data
     scenario_1_raw = load_and_validate_hourly_data(
-        st.session_state.sce1,
+        st.session_state.output_sce1,
         table_name,
         str(shared_year),
         graph_config["shared_country"],
@@ -588,7 +602,7 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = load_and_validate_hourly_data(
-            st.session_state.sce2,
+            st.session_state.output_sce2,
             table_name,
             str(shared_year),
             graph_config["shared_country"],
@@ -638,7 +652,8 @@ def render_p7_hourly_generation(graph_config: dict) -> None:
         plot_function=plot_simple_bar_hourly,
         render_download_function=render_download_without_data_table,
         key=(
-            f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
         **plot_kwargs,
     )
@@ -660,11 +675,11 @@ def render_p8_regional_hourly_generation(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     shared_year = setup_year_filter(graph_config, is_dual)
     graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -674,7 +689,7 @@ def render_p8_regional_hourly_generation(graph_config: dict) -> None:
 
     # Load and validate scenario data
     scenario_1_raw = load_and_validate_hourly_data(
-        st.session_state.sce1,
+        st.session_state.output_sce1,
         table_name,
         str(shared_year),
         graph_config["shared_country"],
@@ -686,7 +701,7 @@ def render_p8_regional_hourly_generation(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = load_and_validate_hourly_data(
-            st.session_state.sce2,
+            st.session_state.output_sce2,
             table_name,
             str(shared_year),
             graph_config["shared_country"],
@@ -752,9 +767,9 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -764,7 +779,7 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -781,7 +796,9 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -810,7 +827,8 @@ def render_p9_energy_demand_by_carrier(graph_config: dict) -> None:
         plot_function=plot_simple_bar_yearly,
         render_download_function=render_download_with_data_table,
         key=(
-            f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -836,11 +854,11 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     shared_year = setup_year_filter(graph_config, is_dual)
     graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -850,7 +868,7 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
 
     # Load and validate scenario data
     scenario_1_raw = load_and_validate_hourly_data(
-        st.session_state.sce1,
+        st.session_state.output_sce1,
         table_name,
         str(shared_year),
         graph_config["shared_country"],
@@ -862,7 +880,7 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = load_and_validate_hourly_data(
-            st.session_state.sce2,
+            st.session_state.output_sce2,
             table_name,
             str(shared_year),
             graph_config["shared_country"],
@@ -907,7 +925,8 @@ def render_p10_hourly_demand(graph_config: dict) -> None:
         plot_function=plot_simple_bar_hourly,
         render_download_function=render_download_without_data_table,
         key=(
-            f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
         **plot_kwargs,
     )
@@ -929,11 +948,11 @@ def render_p11_hourly_elec_price(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     shared_year = setup_year_filter(graph_config, is_dual)
     graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -942,7 +961,7 @@ def render_p11_hourly_elec_price(graph_config: dict) -> None:
     mapping_df = create_nice_names_and_color_mapping(table_name)
 
     scenario_1_raw = load_and_validate_hourly_data(
-        st.session_state.sce1,
+        st.session_state.output_sce1,
         table_name,
         str(shared_year),
         graph_config["shared_country"],
@@ -954,7 +973,7 @@ def render_p11_hourly_elec_price(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = load_and_validate_hourly_data(
-            st.session_state.sce2,
+            st.session_state.output_sce2,
             table_name,
             str(shared_year),
             graph_config["shared_country"],
@@ -1018,11 +1037,11 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     shared_year = setup_year_filter(graph_config, is_dual)
     graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     table_name = graph_config["table_name"]
@@ -1030,7 +1049,7 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
     mapping_df = create_nice_names_and_color_mapping(table_name)
 
     scenario_1_raw = load_and_validate_hourly_data(
-        st.session_state.sce1,
+        st.session_state.output_sce1,
         table_name,
         str(shared_year),
         graph_config["shared_country"],
@@ -1042,7 +1061,7 @@ def render_p12_nodal_flow_between_regions(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = load_and_validate_hourly_data(
-            st.session_state.sce2,
+            st.session_state.output_sce2,
             table_name,
             str(shared_year),
             graph_config["shared_country"],
@@ -1105,9 +1124,9 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
     graph_config = {**graph_config, "graph_type": "simple_bar_yearly"}
     render_section_header(graph_config["name"])
 
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     table_name = graph_config["table_name"]
@@ -1115,7 +1134,7 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
     mapping_df = create_nice_names_and_color_mapping(table_name)
 
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -1131,7 +1150,9 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -1160,7 +1181,8 @@ def render_p13_battery_ep_ratio(graph_config: dict) -> None:
         plot_function=plot_simple_bar_yearly,
         render_download_function=render_download_with_data_table,
         key=(
-            f"plotly_chart_{graph_config['download_id'].format(st.session_state.sce1)}"
+            "plotly_chart_"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -1181,11 +1203,11 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     shared_year = setup_year_filter(graph_config, is_dual)
     graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -1195,7 +1217,7 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
 
     # Load and validate scenario data
     scenario_1_raw = load_and_validate_hourly_data(
-        st.session_state.sce1,
+        st.session_state.output_sce1,
         table_name,
         str(shared_year),
         graph_config["shared_country"],
@@ -1207,7 +1229,7 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = load_and_validate_hourly_data(
-            st.session_state.sce2,
+            st.session_state.output_sce2,
             table_name,
             str(shared_year),
             graph_config["shared_country"],
@@ -1262,7 +1284,7 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
     }
 
     if not is_dual or scenario_2_filtered is None:
-        st.caption(f"{st.session_state.sce1}")
+        st.caption(f"{st.session_state.output_sce1}")
         colour_mapping = generate_colour_mapping_dict(
             table_name,
             mapping_df,
@@ -1274,16 +1296,16 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
             graph_config,
             colour_mapping,
             y_range,
-            key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
+            key=f"plotly_chart_{st.session_state.output_sce1}_{table_name}",
             **plot_kwargs,
         )
         render_download_without_data_table(
-            scenario_1_filtered, graph_config, st.session_state.sce1
+            scenario_1_filtered, graph_config, st.session_state.output_sce1
         )
     else:
         col1, _, col3 = st.columns([6, 1, 6])
         with col1:
-            st.caption(f"{st.session_state.sce1}")
+            st.caption(f"{st.session_state.output_sce1}")
             colour_mapping_1 = generate_colour_mapping_dict(
                 table_name,
                 mapping_df,
@@ -1295,12 +1317,12 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
                 graph_config,
                 colour_mapping_1,
                 y_range,
-                key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
+                key=f"plotly_chart_{st.session_state.output_sce1}_{table_name}",
                 **plot_kwargs,
             )
 
         with col3:
-            st.caption(f"{st.session_state.sce2}")
+            st.caption(f"{st.session_state.output_sce2}")
             colour_mapping_2 = generate_colour_mapping_dict(
                 table_name,
                 mapping_df,
@@ -1312,33 +1334,47 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
                 graph_config,
                 colour_mapping_2,
                 y_range,
-                key=f"plotly_chart_{st.session_state.sce2}_{table_name}",
+                key=f"plotly_chart_{st.session_state.output_sce2}_{table_name}",
                 **plot_kwargs,
             )
 
         col1, _, col3 = st.columns([6, 1, 6])
         with col1:
             render_download_without_data_table(
-                scenario_1_filtered, graph_config, st.session_state.sce1
+                scenario_1_filtered, graph_config, st.session_state.output_sce1
             )
         with col3:
             render_download_without_data_table(
-                scenario_2_filtered, graph_config, st.session_state.sce2
+                scenario_2_filtered, graph_config, st.session_state.output_sce2
             )
 
     st.divider()
 
 
-render_p1_capacity_by_type(config["p1"])
-render_p2_capacity_by_region(config["p2"])
-render_p3_generation_by_type(config["p3"])
-render_p4_share_category(config["p4"])
-render_p6_transmission_capacity_between_regions(config["p6"])
-render_p7_hourly_generation(config["p7"])
-render_p8_regional_hourly_generation(config["p8"])
-render_p9_energy_demand_by_carrier(config["p9"])
-render_p10_hourly_demand(config["p10"])
-render_p11_hourly_elec_price(config["p11"])
-render_p12_nodal_flow_between_regions(config["p12"])
-render_p13_battery_ep_ratio(config["p13"])
-render_p14_battery_charging_profile(config["p14"])
+if __name__ == "__main__":
+    st.title(":material/bolt: Power")
+    DOCS_PATH = "visualisation-tool/vis-sections-and-charts/#power"
+    st.markdown(
+        "Detailed explanation can be found in: "
+        f"[power guides](https://agoenergy.github.io/pypsa-spice/{DOCS_PATH})"
+    )
+    output_config = st.session_state.output_config["power"]
+    # Only include charts in the sidebar if they are present in the config
+    power_charts = [
+        output_config[key] for key in POWER_CHART_KEYS if key in output_config
+    ]
+    table_of_content = [chart["name"] for chart in power_charts]
+    generate_sidebar(table_of_content)
+    render_p1_capacity_by_type(output_config["p1"])
+    render_p2_capacity_by_region(output_config["p2"])
+    render_p3_generation_by_type(output_config["p3"])
+    render_p4_share_category(output_config["p4"])
+    render_p6_transmission_capacity_between_regions(output_config["p6"])
+    render_p7_hourly_generation(output_config["p7"])
+    render_p8_regional_hourly_generation(output_config["p8"])
+    render_p9_energy_demand_by_carrier(output_config["p9"])
+    render_p10_hourly_demand(output_config["p10"])
+    render_p11_hourly_elec_price(output_config["p11"])
+    render_p12_nodal_flow_between_regions(output_config["p12"])
+    render_p13_battery_ep_ratio(output_config["p13"])
+    render_p14_battery_charging_profile(output_config["p14"])

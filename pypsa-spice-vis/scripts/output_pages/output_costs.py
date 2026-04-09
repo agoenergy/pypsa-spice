@@ -8,10 +8,7 @@ Create Costs page under Results section.
 Page shows costs related dataframes and visualisations from the modelling results.
 """
 
-import os
-
 import streamlit as st
-import yaml
 
 from scripts.data_utils import (
     add_nice_names,
@@ -33,16 +30,9 @@ from scripts.plot_functions import (
     plot_simple_line_yearly,
 )
 
-st.title(":material/attach_money: Costs")
-
-with open(
-    os.path.join(st.session_state.current_dir, "setting/graph_settings.yaml"),
-    encoding="utf-8",
-) as file:
-    config = yaml.safe_load(file)["costs"]
-
-
 # =========================== Render functions for each chart =========================
+
+
 def render_c1_pow_capex_by_type(graph_config: dict) -> None:
     """Render power sector capex by technology type (yearly bar chart).
 
@@ -57,9 +47,9 @@ def render_c1_pow_capex_by_type(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -69,7 +59,7 @@ def render_c1_pow_capex_by_type(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -86,7 +76,9 @@ def render_c1_pow_capex_by_type(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -118,7 +110,7 @@ def render_c1_pow_capex_by_type(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
         key=(
             "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -139,9 +131,9 @@ def render_c2_pow_opex_cost_by_type(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -151,7 +143,7 @@ def render_c2_pow_opex_cost_by_type(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -168,7 +160,9 @@ def render_c2_pow_opex_cost_by_type(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -200,7 +194,7 @@ def render_c2_pow_opex_cost_by_type(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
         key=(
             "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -221,9 +215,9 @@ def render_c3_pow_inv_cost_by_type(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -233,7 +227,7 @@ def render_c3_pow_inv_cost_by_type(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -250,7 +244,9 @@ def render_c3_pow_inv_cost_by_type(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -282,7 +278,7 @@ def render_c3_pow_inv_cost_by_type(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
         key=(
             "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -303,9 +299,9 @@ def render_c4_ind_capex_by_type(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -315,7 +311,7 @@ def render_c4_ind_capex_by_type(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -332,7 +328,9 @@ def render_c4_ind_capex_by_type(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -364,7 +362,7 @@ def render_c4_ind_capex_by_type(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
         key=(
             "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -385,9 +383,9 @@ def render_c5_tra_capex_by_type(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -397,7 +395,7 @@ def render_c5_tra_capex_by_type(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -414,7 +412,9 @@ def render_c5_tra_capex_by_type(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -446,7 +446,7 @@ def render_c5_tra_capex_by_type(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
         key=(
             "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -467,9 +467,9 @@ def render_c6_ene_capex_by_type(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -479,7 +479,7 @@ def render_c6_ene_capex_by_type(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -496,7 +496,9 @@ def render_c6_ene_capex_by_type(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -528,7 +530,7 @@ def render_c6_ene_capex_by_type(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
         key=(
             "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -549,9 +551,9 @@ def render_c7_opex_capex_yearly(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -561,7 +563,7 @@ def render_c7_opex_capex_yearly(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -578,7 +580,9 @@ def render_c7_opex_capex_yearly(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -610,7 +614,7 @@ def render_c7_opex_capex_yearly(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
         key=(
             "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
@@ -631,9 +635,9 @@ def render_c8_ene_avg_fuel_costs_fuel(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -643,7 +647,7 @@ def render_c8_ene_avg_fuel_costs_fuel(graph_config: dict) -> None:
 
     # Load and process scenario 1 data
     scenario_1_raw = read_result_csv(
-        st.session_state.sce1, table_name, country=graph_config["shared_country"]
+        st.session_state.output_sce1, table_name, country=graph_config["shared_country"]
     )
     if scenario_1_raw is None or scenario_1_raw.empty:
         st.divider()
@@ -660,7 +664,9 @@ def render_c8_ene_avg_fuel_costs_fuel(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = read_result_csv(
-            st.session_state.sce2, table_name, country=graph_config["shared_country"]
+            st.session_state.output_sce2,
+            table_name,
+            country=graph_config["shared_country"],
         )
         if scenario_2_raw is not None:
             scenario_2_grouped = clean_df_for_plotting(legend_col, scenario_2_raw)
@@ -692,40 +698,48 @@ def render_c8_ene_avg_fuel_costs_fuel(graph_config: dict) -> None:
         render_download_function=render_download_with_data_table,
         key=(
             "plotly_chart_"
-            f"{graph_config['download_id'].format(st.session_state.sce1)}"
+            f"{graph_config['download_id'].format(st.session_state.output_sce1)}"
         ),
     )
 
     st.divider()
 
 
-sector = str(st.session_state.get("sector", "")).lower()
-show_industry = "i" in sector
-show_transport = "t" in sector
+if __name__ == "__main__":
+    st.title(":material/attach_money: Costs")
+    DOCS_PATH = "visualisation-tool/vis-sections-and-charts/#costs"
+    st.markdown(
+        "Detailed explanation can be found in: "
+        f"[costs guides](https://agoenergy.github.io/pypsa-spice/{DOCS_PATH})"
+    )
+    output_config = st.session_state.output_config["costs"]
+    sector = str(st.session_state.get("sector", "")).lower()
+    show_industry = "i" in sector
+    show_transport = "t" in sector
 
-# Decide which charts should appear (and therefore be in the sidebar)
-COST_CHART_KEYS = ["c1", "c2", "c3"]
-if show_industry:
-    COST_CHART_KEYS.append("c4")
-if show_transport:
-    COST_CHART_KEYS.append("c5")
-COST_CHART_KEYS += ["c6", "c7", "c8"]
+    # Decide which charts should appear (and therefore be in the sidebar)
+    COST_CHART_KEYS = ["c1", "c2", "c3"]
+    if show_industry:
+        COST_CHART_KEYS.append("c4")
+    if show_transport:
+        COST_CHART_KEYS.append("c5")
+    COST_CHART_KEYS += ["c6", "c7", "c8"]
 
-# Render (power always)
-render_c1_pow_capex_by_type(config["c1"])
-render_c2_pow_opex_cost_by_type(config["c2"])
-render_c3_pow_inv_cost_by_type(config["c3"])
+    # Render (power always)
+    render_c1_pow_capex_by_type(output_config["c1"])
+    render_c2_pow_opex_cost_by_type(output_config["c2"])
+    render_c3_pow_inv_cost_by_type(output_config["c3"])
 
-if show_industry:
-    render_c4_ind_capex_by_type(config["c4"])
-if show_transport:
-    render_c5_tra_capex_by_type(config["c5"])
+    if show_industry:
+        render_c4_ind_capex_by_type(output_config["c4"])
+    if show_transport:
+        render_c5_tra_capex_by_type(output_config["c5"])
 
-# Always show energy & totals
-render_c6_ene_capex_by_type(config["c6"])
-render_c7_opex_capex_yearly(config["c7"])
-render_c8_ene_avg_fuel_costs_fuel(config["c8"])
+    # Always show energy & totals
+    render_c6_ene_capex_by_type(output_config["c6"])
+    render_c7_opex_capex_yearly(output_config["c7"])
+    render_c8_ene_avg_fuel_costs_fuel(output_config["c8"])
 
-# Sidebar (only include charts present in config)
-cost_charts = [config[k] for k in COST_CHART_KEYS if k in config]
-generate_sidebar([c["name"] for c in cost_charts])
+    # Sidebar (only include charts present in config)
+    cost_charts = [output_config[k] for k in COST_CHART_KEYS if k in output_config]
+    generate_sidebar([c["name"] for c in cost_charts])

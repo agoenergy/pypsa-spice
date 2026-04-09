@@ -68,31 +68,6 @@ def use_flexo():
                 st.error(f"Error loading font: {e}")
 
 
-def apply_sidebar_styles():
-    """Style the Page navigation and Parameters part of the sidebar."""
-    st.markdown(
-        """
-        <style>
-        div[data-testid="stSidebarNav"]::before {
-            content: "Page Navigation";
-            margin-left: 20px;
-            margin-bottom: 12px;
-            font-size: 1.2em;
-            font-weight: 600;
-            position: relative;
-            top: 4px;
-            display: block;
-        }
-        /* Make the navigation divider match st.divider() style (shorter) */
-        div[data-testid="stSidebarNavSeparator"] {
-            margin: 0.68em 1.2rem 0.5rem;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
 def apply_sidebar_chart_nav_styles():
     """Style the Chart navigation part of the sidebar."""
     st.markdown(
@@ -109,7 +84,6 @@ def apply_sidebar_chart_nav_styles():
             .nav-link {
                 display: flex;
                 align-items: center;
-                padding-left: 16px;
                 text-decoration: none !important;
                 color: inherit !important;
                 border-radius: 6px;
@@ -118,7 +92,7 @@ def apply_sidebar_chart_nav_styles():
                 box-sizing: border-box;
                 transition: all 0.2s ease !important;
                 font-family: inherit !important;
-                line-height: 2;
+                line-height: 3;
                 margin-bottom: -24px;
                 background-color: transparent;
             }

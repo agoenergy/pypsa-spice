@@ -9,10 +9,7 @@ Page shows editable transport related
 dataframes and visualisations from the modelling results.
 """
 
-import os
-
 import streamlit as st
-import yaml
 
 from scripts.data_utils import (
     add_nice_names,
@@ -37,14 +34,6 @@ from scripts.plot_functions import (
     plot_line_with_secondary_y_hourly,
 )
 
-st.title(":material/directions_car: Transport")
-
-with open(
-    os.path.join(st.session_state.current_dir, "setting/graph_settings.yaml"),
-    encoding="utf-8",
-) as file:
-    config = yaml.safe_load(file)["transport"]
-
 # =========================== Render functions for each chart =========================
 
 
@@ -62,11 +51,11 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
     render_section_header(graph_config["name"])
 
     # Setup filters
-    is_dual = bool(st.session_state.sce2 and st.session_state.sce2 != "")
+    is_dual = bool(st.session_state.output_sce2 and st.session_state.output_sce2 != "")
     shared_year = setup_year_filter(graph_config, is_dual)
     graph_config["shared_year"] = str(shared_year)
     graph_config["shared_country"] = setup_country_filter(
-        graph_config, is_dual, scenario_tag=st.session_state.sce1
+        graph_config, is_dual, scenario_tag=st.session_state.output_sce1
     )
 
     # Extract config values
@@ -76,7 +65,7 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
 
     # Load and validate scenario data
     scenario_1_raw = load_and_validate_hourly_data(
-        st.session_state.sce1,
+        st.session_state.output_sce1,
         table_name,
         str(shared_year),
         graph_config["shared_country"],
@@ -88,7 +77,7 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
     scenario_2_raw = None
     if is_dual:
         scenario_2_raw = load_and_validate_hourly_data(
-            st.session_state.sce2,
+            st.session_state.output_sce2,
             table_name,
             str(shared_year),
             graph_config["shared_country"],
@@ -143,7 +132,7 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
     }
 
     if not is_dual or scenario_2_filtered is None:
-        st.caption(f"{st.session_state.sce1}")
+        st.caption(f"{st.session_state.output_sce1}")
         colour_mapping = generate_colour_mapping_dict(
             table_name,
             mapping_df,
@@ -155,16 +144,16 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
             graph_config,
             colour_mapping,
             y_range,
-            key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
+            key=f"plotly_chart_{st.session_state.output_sce1}_{table_name}",
             **plot_kwargs,
         )
         render_download_without_data_table(
-            scenario_1_filtered, graph_config, st.session_state.sce1
+            scenario_1_filtered, graph_config, st.session_state.output_sce1
         )
     else:
         col1, _, col3 = st.columns([6, 1, 6])
         with col1:
-            st.caption(f"{st.session_state.sce1}")
+            st.caption(f"{st.session_state.output_sce1}")
             colour_mapping_1 = generate_colour_mapping_dict(
                 table_name,
                 mapping_df,
@@ -176,12 +165,12 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
                 graph_config,
                 colour_mapping_1,
                 y_range,
-                key=f"plotly_chart_{st.session_state.sce1}_{table_name}",
+                key=f"plotly_chart_{st.session_state.output_sce1}_{table_name}",
                 **plot_kwargs,
             )
 
         with col3:
-            st.caption(f"{st.session_state.sce2}")
+            st.caption(f"{st.session_state.output_sce2}")
             colour_mapping_2 = generate_colour_mapping_dict(
                 table_name,
                 mapping_df,
@@ -193,32 +182,42 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
                 graph_config,
                 colour_mapping_2,
                 y_range,
-                key=f"plotly_chart_{st.session_state.sce2}_{table_name}",
+                key=f"plotly_chart_{st.session_state.output_sce2}_{table_name}",
                 **plot_kwargs,
             )
 
         col1, _, col3 = st.columns([6, 1, 6])
         with col1:
             render_download_without_data_table(
-                scenario_1_filtered, graph_config, st.session_state.sce1
+                scenario_1_filtered, graph_config, st.session_state.output_sce1
             )
         with col3:
             render_download_without_data_table(
-                scenario_2_filtered, graph_config, st.session_state.sce2
+                scenario_2_filtered, graph_config, st.session_state.output_sce2
             )
 
     st.divider()
 
 
-TRANSPORT_CHART_KEYS = [
-    "t1",
-]
-show_transport = "t" in str(st.session_state.get("sector", "")).lower()
-if show_transport:
-    render_t1_ev_load_profile(config["t1"])
-    # Only include charts in the sidebar if they are present in the config
-    transport_charts = [config[key] for key in TRANSPORT_CHART_KEYS if key in config]
-    table_of_content = [chart["name"] for chart in transport_charts]
-    generate_sidebar(table_of_content)
-else:
-    st.warning("Transport sector is not selected. No chart is displayed.")
+if __name__ == "__main__":
+    st.title(":material/directions_car: Transport")
+    DOCS_PATH = "visualisation-tool/vis-sections-and-charts/#transport"
+    st.markdown(
+        "Detailed explanation can be found in: "
+        f"[transport guides](https://agoenergy.github.io/pypsa-spice/{DOCS_PATH})"
+    )
+    output_config = st.session_state.output_config["transport"]
+    TRANSPORT_CHART_KEYS = [
+        "t1",
+    ]
+    show_transport = "t" in str(st.session_state.get("sector", "")).lower()
+    if show_transport:
+        render_t1_ev_load_profile(output_config["t1"])
+        # Only include charts in the sidebar if they are present in the config
+        transport_charts = [
+            output_config[key] for key in TRANSPORT_CHART_KEYS if key in output_config
+        ]
+        table_of_content = [chart["name"] for chart in transport_charts]
+        generate_sidebar(table_of_content)
+    else:
+        st.warning("Transport sector is not selected. No chart is displayed.")
