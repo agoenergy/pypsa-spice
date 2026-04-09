@@ -111,6 +111,7 @@ def input_main() -> None:
 
 def output_main() -> None:
     """Render all output views in a single page."""
+    st.title(":material/monitoring: Output")
     # Build output tabs dynamically from the active sector selection.
     output_tabs = ["Power"]
     if "i" in st.session_state.sector:

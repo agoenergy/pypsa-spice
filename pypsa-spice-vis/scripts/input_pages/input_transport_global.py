@@ -32,7 +32,7 @@ from scripts.input_st_handler import (
 
 
 def render_input_transport_global_section(
-    title_string: str,
+    title: str,
     selected_types: list[str],
     input_config: dict,
     input_df: pd.DataFrame | None = None,
@@ -43,7 +43,7 @@ def render_input_transport_global_section(
 
     Parameters
     ----------
-    title_string : str
+    title : str
         key or heading of the indicator from input_settings.yaml
     selected_types : list[str]
         list of selected technology types for filtering the input table
@@ -56,9 +56,9 @@ def render_input_transport_global_section(
     selected_countries : list[str] | None, optional
         list of selected countries for filtering the input table, by default None
     """
-    # Get table configuration and input CSV path based on the title_string and sector
+    # Get table configuration and input CSV path based on the title and sector
     table_config, input_csv_path = get_table_config_and_path(
-        title_string=title_string,
+        title=title,
         sector="Global_input",
         input_config=input_config,
     )
@@ -67,19 +67,19 @@ def render_input_transport_global_section(
     # Generate a unique key for Streamlit session state
     unique_type_key = get_unique_type_key(
         "Global_input",
-        title_string,
+        title,
         selected_types,
         selected_classes,
         selected_countries,
     )
 
-    edited_df_key = f"{title_string}_{csv_identifier}_editor_{unique_type_key}"
-    has_changes_key = f"has_changes_{title_string}_{csv_identifier}_{unique_type_key}"
-    save_button_key = f"save_{title_string}_{csv_identifier}_{unique_type_key}"
+    edited_df_key = f"{title}_{csv_identifier}_editor_{unique_type_key}"
+    has_changes_key = f"has_changes_{title}_{csv_identifier}_{unique_type_key}"
+    save_button_key = f"save_{title}_{csv_identifier}_{unique_type_key}"
 
-    # Render the section in an expander with the title_string and CSV path
-    with st.expander(title_string):
-        st.write(f"### {title_string}")
+    # Render the section in an expander with the title and CSV path
+    with st.expander(title):
+        st.write(f"### {title}")
         st.markdown(
             f"<small><i>{os.path.normpath(input_csv_path)}</i></small>",
             unsafe_allow_html=True,
@@ -91,7 +91,7 @@ def render_input_transport_global_section(
                 return
             input_df = pd.read_csv(input_csv_path)
 
-        if title_string == "EV_parameters":
+        if title == "EV_parameters":
             # For ev parameters table, all rows will be shown
             filtered_df = input_df
         else:
@@ -145,7 +145,7 @@ def render_input_transport_global_section(
 
 
 def render_input_transport_timeseries_section(
-    title_string: str,
+    title: str,
     selected_types: list[str],
     input_config: dict,
     input_df: pd.DataFrame | None = None,
@@ -156,7 +156,7 @@ def render_input_transport_timeseries_section(
 
     Parameters
     ----------
-    title_string : str
+    title : str
         key or heading of the indicator from input_settings.yaml
     selected_types : list[str]
         list of selected technology types for filtering the input table
@@ -169,9 +169,9 @@ def render_input_transport_timeseries_section(
     selected_countries : list[str] | None, optional
         list of selected countries for filtering the input table, by default None
     """
-    # Get table configuration and input CSV path based on the title_string and sector
+    # Get table configuration and input CSV path based on the title and sector
     table_config, input_csv_path = get_table_config_and_path(
-        title_string=title_string,
+        title=title,
         sector="Global_input",
         input_config=input_config,
     )
@@ -179,15 +179,15 @@ def render_input_transport_timeseries_section(
     # Generate a unique key for Streamlit session state
     unique_type_key = get_unique_type_key(
         "Global_input",
-        title_string,
+        title,
         selected_types,
         selected_classes,
         selected_countries,
     )
 
-    # Render the section in an expander with the title_string and CSV path
-    with st.expander(title_string):
-        st.write(f"### {title_string}")
+    # Render the section in an expander with the title and CSV path
+    with st.expander(title):
+        st.write(f"### {title}")
         st.markdown(
             f"<small><i>{os.path.normpath(input_csv_path)}</i></small>",
             unsafe_allow_html=True,
@@ -219,7 +219,7 @@ def render_input_transport_timeseries_section(
 
 
 def render_input_transport_demand_profile_section(
-    title_string: str,
+    title: str,
     selected_types: list[str],
     input_config: dict,
     input_df: pd.DataFrame | None = None,
@@ -230,7 +230,7 @@ def render_input_transport_demand_profile_section(
 
     Parameters
     ----------
-    title_string : str
+    title : str
         key or heading of the indicator from input_settings.yaml
     selected_types : list[str]
         list of selected technology types for filtering the input table
@@ -243,9 +243,9 @@ def render_input_transport_demand_profile_section(
     selected_countries : list[str] | None, optional
         list of selected countries for filtering the input table, by default None
     """
-    # Get table configuration and input CSV path based on the title_string and sector
+    # Get table configuration and input CSV path based on the title and sector
     table_config, input_csv_path = get_table_config_and_path(
-        title_string=title_string,
+        title=title,
         sector="Global_input",
         input_config=input_config,
     )
@@ -253,15 +253,15 @@ def render_input_transport_demand_profile_section(
     # Generate a unique key for Streamlit session state
     unique_type_key = get_unique_type_key(
         "Global_input",
-        title_string,
+        title,
         selected_types,
         selected_classes,
         selected_countries,
     )
 
-    # Render the section in an expander with the title_string and CSV path
-    with st.expander(title_string):
-        st.write(f"### {title_string}")
+    # Render the section in an expander with the title and CSV path
+    with st.expander(title):
+        st.write(f"### {title}")
         st.markdown(
             f"<small><i>{os.path.normpath(input_csv_path)}</i></small>",
             unsafe_allow_html=True,
@@ -321,14 +321,14 @@ if __name__ == "__main__":
     st.markdown(f"Class: **{', '.join(sector_selected_classes)}**")
 
     # Render global transport input relevant sections for non-timeseries tables
-    for title_string, table_config in input_config["Global_input"].items():
+    for title, table_config in input_config["Global_input"].items():
         if (
             not table_config.get("timeseries")
-            and "storage_costs" not in title_string.lower()
-            and "inflows" not in title_string.lower()
+            and "storage_costs" not in title.lower()
+            and "inflows" not in title.lower()
         ):
             render_input_transport_global_section(
-                title_string=title_string,
+                title=title,
                 selected_types=sector_selected_types,
                 input_config=input_config,
                 selected_classes=sector_selected_classes,
@@ -354,7 +354,7 @@ if __name__ == "__main__":
 
     # Render global transport demand profiles section
     render_input_transport_demand_profile_section(
-        title_string="Demand_Profiles",
+        title="Demand_Profiles",
         selected_types=demand_profile_types,
         input_config=input_config,
         selected_countries=demand_selected_countries,

@@ -33,7 +33,7 @@ from scripts.input_st_handler import (
 
 
 def render_input_power_scenario_section(
-    title_string: str,
+    title: str,
     selected_types: list[str],
     input_config: dict,
     input_df: pd.DataFrame | None = None,
@@ -45,7 +45,7 @@ def render_input_power_scenario_section(
 
     Parameters
     ----------
-    title_string : str
+    title : str
         key or heading of the indicator from input_settings.yaml
     selected_types : list[str]
         list of selected technology types for filtering the input table
@@ -60,9 +60,9 @@ def render_input_power_scenario_section(
     selected_scenario : str | None, optional
         selected scenario for filtering the input table, by default None
     """
-    # Get table configuration and input CSV path based on the title_string and sector
+    # Get table configuration and input CSV path based on the title and sector
     table_config, input_csv_path = get_table_config_and_path(
-        title_string=title_string,
+        title=title,
         sector="Power",
         input_config=input_config,
         selected_scenario=selected_scenario,
@@ -72,20 +72,20 @@ def render_input_power_scenario_section(
     # Generate a unique key for Streamlit session state
     unique_type_key = get_unique_type_key(
         "Power",
-        title_string,
+        title,
         selected_types,
         selected_classes,
         selected_countries,
         selected_scenario,
     )
 
-    edited_df_key = f"{title_string}_{csv_identifier}_editor_{unique_type_key}"
-    has_changes_key = f"has_changes_{title_string}_{csv_identifier}_{unique_type_key}"
-    save_button_key = f"save_{title_string}_{csv_identifier}_{unique_type_key}"
+    edited_df_key = f"{title}_{csv_identifier}_editor_{unique_type_key}"
+    has_changes_key = f"has_changes_{title}_{csv_identifier}_{unique_type_key}"
+    save_button_key = f"save_{title}_{csv_identifier}_{unique_type_key}"
 
-    # Render the section in an expander with the title_string and CSV path
-    with st.expander(title_string):
-        st.write(f"### {title_string}")
+    # Render the section in an expander with the title and CSV path
+    with st.expander(title):
+        st.write(f"### {title}")
         st.markdown(
             f"<small><i>{os.path.normpath(input_csv_path)}</i></small>",
             unsafe_allow_html=True,
@@ -97,7 +97,7 @@ def render_input_power_scenario_section(
                 return
             input_df = pd.read_csv(input_csv_path)
 
-        if "decommission" in title_string.lower():
+        if "decommission" in title.lower():
             # For decommissioning, filter column is different defined in table_config
             filtered_df = set_decommission_filter_df(
                 df=input_df,
@@ -167,7 +167,7 @@ def render_input_power_scenario_section(
 
 
 def render_input_power_annual_demand_section(
-    title_string: str,
+    title: str,
     selected_types: list[str],
     input_config: dict,
     input_df: pd.DataFrame | None = None,
@@ -179,7 +179,7 @@ def render_input_power_annual_demand_section(
 
     Parameters
     ----------
-    title_string : str
+    title : str
         key or heading of the indicator from input_settings.yaml
     selected_types : list[str]
         list of selected technology types for filtering the input table
@@ -194,9 +194,9 @@ def render_input_power_annual_demand_section(
     selected_scenario : str | None, optional
         selected scenario for filtering the input table, by default None
     """
-    # Get table configuration and input CSV path based on the title_string and sector
+    # Get table configuration and input CSV path based on the title and sector
     table_config, input_csv_path = get_table_config_and_path(
-        title_string=title_string,
+        title=title,
         sector="Power",
         input_config=input_config,
         selected_scenario=selected_scenario,
@@ -206,20 +206,20 @@ def render_input_power_annual_demand_section(
     # Generate a unique key for Streamlit session state
     unique_type_key = get_unique_type_key(
         "Power",
-        title_string,
+        title,
         selected_types,
         selected_classes,
         selected_countries,
         selected_scenario,
     )
 
-    edited_df_key = f"{title_string}_{csv_identifier}_editor_{unique_type_key}"
-    has_changes_key = f"has_changes_{title_string}_{csv_identifier}_{unique_type_key}"
-    save_button_key = f"save_{title_string}_{csv_identifier}_{unique_type_key}"
+    edited_df_key = f"{title}_{csv_identifier}_editor_{unique_type_key}"
+    has_changes_key = f"has_changes_{title}_{csv_identifier}_{unique_type_key}"
+    save_button_key = f"save_{title}_{csv_identifier}_{unique_type_key}"
 
-    # Render the section in an expander with the title_string and CSV path
-    with st.expander(title_string):
-        st.write(f"### {title_string}")
+    # Render the section in an expander with the title and CSV path
+    with st.expander(title):
+        st.write(f"### {title}")
         st.markdown(
             f"<small><i>{os.path.normpath(input_csv_path)}</i></small>",
             unsafe_allow_html=True,
@@ -322,9 +322,9 @@ def render_interconnections_section(
             & (grid_df["bus1"].str.contains("LVELEC"))
         ]
 
-    # Get table configuration and input CSV path based on the title_string and sector
+    # Get table configuration and input CSV path based on the title and sector
     table_config, input_csv_path = get_table_config_and_path(
-        title_string="Interconnectors",
+        title="Interconnectors",
         sector="Grids",
         input_config=input_config,
         selected_scenario=selected_scenario,
@@ -347,7 +347,7 @@ def render_interconnections_section(
     has_changes_key = f"has_changes_Interconnectors_{csv_identifier}_{unique_type_key}"
     save_button_key = f"save_Interconnectors_{csv_identifier}_{unique_type_key}"
 
-    # Render the section in an expander with the title_string and CSV path
+    # Render the section in an expander with the title and CSV path
     with st.expander("Interconnectors"):
         st.write("### Interconnectors")
         st.markdown(
@@ -429,10 +429,10 @@ if __name__ == "__main__":
     )
 
     # Render scenario power input relevant sections for non-timeseries tables
-    for title_string in input_config[selected_sector]:
-        if title_string != "Power_loads":
+    for title in input_config[selected_sector]:
+        if title != "Power_loads":
             render_input_power_scenario_section(
-                title_string=title_string,
+                title=title,
                 selected_types=sector_selected_types,
                 input_config=input_config,
                 selected_classes=sector_selected_classes,
@@ -453,7 +453,7 @@ if __name__ == "__main__":
 
     # Render scenario power demand profiles section
     render_input_power_annual_demand_section(
-        title_string="Power_loads",
+        title="Power_loads",
         selected_types=demand_profile_types,
         input_config=input_config,
         selected_classes=["Load"],

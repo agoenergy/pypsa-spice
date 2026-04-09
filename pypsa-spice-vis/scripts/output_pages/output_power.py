@@ -1352,7 +1352,7 @@ def render_p14_battery_charging_profile(graph_config: dict) -> None:
 
 
 if __name__ == "__main__":
-    st.title(":material/bolt: Power")
+    st.header(":material/bolt: Power")
     DOCS_PATH = "visualisation-tool/vis-sections-and-charts/#power"
     st.markdown(
         "Detailed explanation can be found in: "
