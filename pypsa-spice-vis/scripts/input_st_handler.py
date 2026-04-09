@@ -96,7 +96,7 @@ def get_fuel_mapping(selected_types: list[str], input_config: dict) -> dict:
 
 
 def get_table_config_and_path(
-    title: str,
+    title_string: str,
     sector: str | None,
     input_config: dict,
     selected_scenario: str | None = None,
@@ -105,10 +105,10 @@ def get_table_config_and_path(
     base_input_path = st.session_state.input_path
 
     if not sector or sector == "Global_input":
-        table_config = input_config["Global_input"][title]
+        table_config = input_config["Global_input"][title_string]
         path_parts = ("global_input", table_config["csv_name"])
     else:
-        table_config = input_config[sector][title]
+        table_config = input_config[sector][title_string]
 
         if sector in SECTOR_TITLES:
             if not selected_scenario:
