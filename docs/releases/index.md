@@ -6,6 +6,7 @@
 ### Fixed
 
 - fix build skeleton error and only use build skeleton when the project folder is not initialised.([:material-source-pull:88](https://github.com/agoenergy/pypsa-spice/pull/88) by @RichChang963)
+- Add descriptions in the landing page of pypsa-spice-vis tool.([:material-source-pull:100](https://github.com/agoenergy/pypsa-spice/pull/100) by @RichChang963)
 
 ### Changed
 
