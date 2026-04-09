@@ -16,19 +16,17 @@ st.markdown(
 
     The app is intended to run inside the PyPSA-SPICE repository so it can read
     project data, scenario configuration files, and generated result files directly.
-    Use it when you want a faster way to explore a project than opening YAML, CSV,
-    and result files one by one.
     """
 )
 
 st.markdown(
     "Detailed information can be found in: "
-    f"[PyPSA-SPICE-Vis documentation]("
+    "[PyPSA-SPICE-Vis documentation]("
     "https://agoenergy.github.io/pypsa-spice/visualisation-tool/pypsa-spice-vis/)"
 )
 
 st.divider()
-st.subheader("How To navigate the app")
+st.subheader("How to use the app")
 st.markdown(
     """
     1. Select a project folder from the sidebar.
@@ -39,29 +37,26 @@ st.markdown(
 )
 
 st.divider()
-st.subheader("Pages Overview")
+st.subheader("Pages overview (top navigation)")
 
 info_col, config_col = st.columns(2)
 
 with info_col:
     st.markdown(
         """
-        #### Info
-        Start here for a quick orientation to the tool.
-
-        This page gives a short introduction to PyPSA-SPICE-Vis, explains how the
-        interface is organised, and helps users understand what each section of the app is for.
+        #### :material/info: Info
+        Start here for a quick orientation to the tool with a short introduction to \
+        PyPSA-SPICE-Vis.
         """
     )
 
 with config_col:
     st.markdown(
         """
-        #### Scenario config
-        Edit the selected `scenario_config.yaml` file through a form-based interface.
-
-        This page is used to review and update scenario settings such as snapshots,
-        CO2 management, and custom constraints without editing YAML manually.
+        #### :material/settings: Scenario config
+        Edit the selected `scenario_config.yaml` file through this interface to \
+        review and update scenario settings such as snapshots, CO2 management, and \
+        custom constraints.
         """
     )
 
@@ -70,10 +65,8 @@ input_col, output_col = st.columns(2)
 with input_col:
     st.markdown(
         """
-        #### Input
-        Inspect and edit model inputs for the selected sector.
-
-        The Input page is split into two sections:
+        #### :material/input: Input
+        Inspect/Edit model inputs for the selected sector under two sections:
 
         - Global input: shared input data such as technology assumptions, profiles,
           and demand data used across scenarios.
@@ -88,31 +81,27 @@ with input_col:
 with output_col:
     st.markdown(
         """
-        #### Output
-        Explore charts generated from PyPSA-SPICE results and compare scenarios.
+        #### :material/monitoring: Output
+        Explore charts generated from PyPSA-SPICE results across the following sectors:
 
-        The Output page groups results into sector and summary views:
-
-        - Power: electricity system capacities, generation, storage, and related metrics.
-        - Industry: industrial energy system outputs for the selected scenario and year.
+        - Power: electricity system capacities, generation, storage, etc.
+        - Industry: industrial energy system outputs.
         - Transport: transport demand and technology results.
-        - Emissions: emissions trends and comparisons across scenarios.
-        - Costs: system cost breakdowns and scenario cost comparisons.
+        - Emissions: emissions trends.
+        - Costs: system cost breakdowns.
         """
     )
 
 st.divider()
-st.subheader("What Appears In The Sidebar")
+st.subheader("What appears in the sidebar")
 st.markdown(
     """
     The sidebar changes with the page you open:
 
     - All pages show the project selector.
     - Scenario config and Input show an input scenario selector and sector selector.
-    - Output shows one or two output scenario selectors, a sector selector, and then loads the available years for comparison.
+    - Output shows one or two output scenario selectors, a sector selector, and then \
+    loads the available years for comparison. The number of selected scenarios
+    can be defined by the user.
     """
-)
-
-st.caption(
-    "The exact tabs and charts shown in Input and Output depend on the sectors and result files available in the selected project."
 )
