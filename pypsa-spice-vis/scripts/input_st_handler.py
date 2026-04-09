@@ -4,6 +4,7 @@
 
 """Helper functions for handling streamlit input UI and CSV editing."""
 
+# pylint: disable=too-many-arguments,too-many-locals, too-many-positional-arguments
 import csv
 import datetime as dt
 import os
@@ -96,7 +97,7 @@ def get_fuel_mapping(selected_types: list[str], input_config: dict) -> dict:
 
 
 def get_table_config_and_path(
-    title_string: str,
+    title: str,
     sector: str | None,
     input_config: dict,
     selected_scenario: str | None = None,
@@ -105,10 +106,10 @@ def get_table_config_and_path(
     base_input_path = st.session_state.input_path
 
     if not sector or sector == "Global_input":
-        table_config = input_config["Global_input"][title_string]
+        table_config = input_config["Global_input"][title]
         path_parts = ("global_input", table_config["csv_name"])
     else:
-        table_config = input_config[sector][title_string]
+        table_config = input_config[sector][title]
 
         if sector in SECTOR_TITLES:
             if not selected_scenario:
