@@ -534,22 +534,23 @@ def update_csv_file(
     temp_file = NamedTemporaryFile(mode="w", delete=False, newline="")
 
     try:
-        with open(file_path, encoding="utf-8") as csv_file, temp_file:
-            reader = csv.DictReader(csv_file)
-            fieldnames = reader.fieldnames or []
-            writer = csv.DictWriter(temp_file, fieldnames=fieldnames)
-            writer.writeheader()
+        with open(file_path, encoding="utf-8") as csv_file:
+            with temp_file:
+                reader = csv.DictReader(csv_file)
+                fieldnames = reader.fieldnames or []
+                writer = csv.DictWriter(temp_file, fieldnames=fieldnames)
+                writer.writeheader()
 
-            # Iterate through CSV rows and update the target cell with the new value
-            for index, row in enumerate(reader):
-                if str(index) == row_identifier:
-                    row[column_name] = new_value
+                # Iterate through CSV rows and update the target cell with the new value
+                for index, row in enumerate(reader):
+                    if str(index) == row_identifier:
+                        row[column_name] = new_value
 
-                for key, value in row.items():
-                    if value is None or value == "" or str(value).lower() == "nan":
-                        row[key] = ""
+                    for key, value in row.items():
+                        if value is None or value == "" or str(value).lower() == "nan":
+                            row[key] = ""
 
-                writer.writerow(row)
+                    writer.writerow(row)
 
         # Remove the original file and replace it with the updated temp file
         shutil.move(temp_file.name, file_path)

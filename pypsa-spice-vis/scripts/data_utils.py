@@ -560,7 +560,7 @@ def prepare_y_range(
 
 def render_countries_pills(all_countries: list, key: str) -> list | None:
     """Render country and scenario selector and sync selected value to session state."""
-    col11, col12 = st.columns([1, 1])
+    col11, _ = st.columns([1, 1])
 
     with col11:
         if all_countries:

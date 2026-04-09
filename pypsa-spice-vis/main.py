@@ -146,14 +146,14 @@ def output_main() -> None:
 def initialize_paths() -> None:
     """Load app configs into session state and initialize input/output paths."""
     # Resolve the directory of the Streamlit app entry point.
-    base_dir = os.path.dirname(
+    app_dir = os.path.dirname(
         os.path.abspath(sys.modules["__main__"].__file__)  # pylint: disable=no-member
     )
-    st.session_state.streamlit_base_dir = base_dir
+    st.session_state.streamlit_base_dir = app_dir
 
     try:
         # Load all YAML config files needed by the app.
-        settings_dir = os.path.join(base_dir, "setting")
+        settings_dir = os.path.join(app_dir, "setting")
         st.session_state.input_config = load_yaml(
             os.path.join(settings_dir, "input_settings.yaml")
         )
@@ -161,7 +161,7 @@ def initialize_paths() -> None:
             os.path.join(settings_dir, "graph_settings.yaml")
         )
         st.session_state.base_config = load_yaml(
-            os.path.join(base_dir, "..", "base_config.yaml")
+            os.path.join(app_dir, "..", "base_config.yaml")
         )
     except FileNotFoundError as exc:
         raise FileNotFoundError(
@@ -172,7 +172,7 @@ def initialize_paths() -> None:
 
     # Build path to project folder.
     path_configs = st.session_state.base_config["path_configs"]
-    data_root = os.path.join(
+    data_folder_root = os.path.join(
         "data",
         path_configs["data_folder_name"],
         path_configs["project_name"],
@@ -181,7 +181,7 @@ def initialize_paths() -> None:
     # Store input/ output paths in session state.
     st.session_state.data_folder_name = path_configs["data_folder_name"]
     st.session_state.input_data_folder_path = path_configs["input_scenario_name"]
-    st.session_state.result_path = os.path.join(data_root, "results")
+    st.session_state.result_path = os.path.join(data_folder_root, "results")
 
 
 if __name__ == "__main__":
@@ -190,8 +190,8 @@ if __name__ == "__main__":
 
     # Set up Streamlit page layout and global styling.
     st.set_page_config(initial_sidebar_state="expanded", layout="wide")
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    logo_path = os.path.join(base_dir, "design", "pypsa-logo_rgb.png")
+    app_dir = os.path.dirname(os.path.abspath(__file__))
+    logo_path = os.path.join(app_dir, "design", "pypsa-logo_rgb.png")
 
     st.logo(logo_path, size="large")
 
@@ -241,12 +241,12 @@ if __name__ == "__main__":
                 format_func=get_params.get_sector_display_name,
                 index=0,
             )
-            data_root = os.path.join(
+            data_folder_root = os.path.join(
                 "data",
                 st.session_state.data_folder_name,
                 st.session_state.project,
             )
-            st.session_state.input_path = os.path.join(data_root, "input")
+            st.session_state.input_path = os.path.join(data_folder_root, "input")
         else:
             st.session_state.input_sce1 = ""
 

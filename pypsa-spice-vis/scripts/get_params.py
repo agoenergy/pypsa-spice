@@ -281,7 +281,7 @@ class GetParams:
                 if attempt < max_attempts - 1:
                     time.sleep(delay)
 
-            except Exception as exc:
+            except (AttributeError, RuntimeError, TypeError, ValueError) as exc:
                 st.write(f"Attempt {attempt + 1} failed: {exc}")
                 continue
 
