@@ -8,7 +8,7 @@ Create Global transport input page.
 Page displays and allows editing of global input tables for the transport sector.
 """
 
-
+# pylint: disable=too-many-arguments,too-many-locals, too-many-positional-arguments
 import os
 
 import pandas as pd
@@ -293,9 +293,9 @@ def render_input_transport_demand_profile_section(
 
 
 if __name__ == "__main__":
-    input_config = st.session_state.input_config
-    selected_sector = "Transport"
-    sector_title = generate_sector_title(selected_sector)
+    app_input_config = st.session_state.input_config
+    SELECTED_SECTOR = "Transport"
+    sector_title = generate_sector_title(SELECTED_SECTOR)
     DOCS_PATH = "getting-started/input-data/global_csv_template"
     st.markdown(
         "Detailed explanation can be found in: "
@@ -303,7 +303,7 @@ if __name__ == "__main__":
     )
 
     all_countries = get_all_countries()
-    tech_df = set_available_technology_df(selected_sector, input_config)
+    tech_df = set_available_technology_df(SELECTED_SECTOR, app_input_config)
 
     st.subheader(f":globe_with_meridians: Global input  | {sector_title}")
     generate_global_markdown_message()
@@ -321,16 +321,16 @@ if __name__ == "__main__":
     st.markdown(f"Class: **{', '.join(sector_selected_classes)}**")
 
     # Render global transport input relevant sections for non-timeseries tables
-    for title, table_config in input_config["Global_input"].items():
+    for table_name, section_config in app_input_config["Global_input"].items():
         if (
-            not table_config.get("timeseries")
-            and "storage_costs" not in title.lower()
-            and "inflows" not in title.lower()
+            not section_config.get("timeseries")
+            and "storage_costs" not in table_name.lower()
+            and "inflows" not in table_name.lower()
         ):
             render_input_transport_global_section(
-                title=title,
+                title=table_name,
                 selected_types=sector_selected_types,
-                input_config=input_config,
+                input_config=app_input_config,
                 selected_classes=sector_selected_classes,
                 selected_countries=sector_selected_countries,
             )
@@ -344,19 +344,21 @@ if __name__ == "__main__":
     )
 
     # Render type and PyPSA class filters for the transport demand profiles section
-    demand_profile_types, selected_classes = render_type_and_class_filters(
+    demand_profile_types, demand_selected_classes = render_type_and_class_filters(
         tech_df,
         key="transport_demand_global",
     )
 
     # Render demand profiles selectbox for the transport demand profiles section
-    demand_profile_types = render_demand_profiles_selectbox(selected_sector="Transport")
+    demand_profile_types = render_demand_profiles_selectbox(
+        selected_sector=SELECTED_SECTOR
+    )
 
     # Render global transport demand profiles section
     render_input_transport_demand_profile_section(
         title="Demand_Profiles",
         selected_types=demand_profile_types,
-        input_config=input_config,
+        input_config=app_input_config,
         selected_countries=demand_selected_countries,
-        selected_classes=selected_classes,
+        selected_classes=demand_selected_classes,
     )
