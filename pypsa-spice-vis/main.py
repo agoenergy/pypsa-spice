@@ -194,7 +194,10 @@ if __name__ == "__main__":
     app_dir = os.path.dirname(os.path.abspath(__file__))
     logo_path = os.path.join(app_dir, "design", "pypsa-logo_rgb.png")
 
-    st.logo(logo_path, size="large")
+    try:
+        st.logo(logo_path, size="large")
+    except AttributeError:
+        st.sidebar.image(logo_path, width="auto")
 
     use_flexo()
 
