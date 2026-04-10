@@ -706,7 +706,7 @@ def render_c8_ene_avg_fuel_costs_fuel(graph_config: dict) -> None:
 
 
 if __name__ == "__main__":
-    st.title(":material/attach_money: Costs")
+    st.header(":material/attach_money: Costs")
     DOCS_PATH = "visualisation-tool/vis-sections-and-charts/#costs"
     st.markdown(
         "Detailed explanation can be found in: "

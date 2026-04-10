@@ -286,7 +286,7 @@ def render_e3_ene_emi_by_carrier_by_sector(graph_config: dict) -> None:
 
 
 if __name__ == "__main__":
-    st.title(":material/thermostat: Emissions")
+    st.header(":material/thermostat: Emissions")
     DOCS_PATH = "visualisation-tool/vis-sections-and-charts/#emissions"
     st.markdown(
         "Detailed explanation can be found in: "

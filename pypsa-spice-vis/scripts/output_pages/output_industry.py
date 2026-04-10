@@ -416,7 +416,7 @@ def render_i4_generation_by_type(graph_config: dict) -> None:
 
 
 if __name__ == "__main__":
-    st.title(":material/construction: Industry")
+    st.header(":material/construction: Industry")
     DOCS_PATH = "visualisation-tool/vis-sections-and-charts/#industry"
     st.markdown(
         "Detailed explanation can be found in: "

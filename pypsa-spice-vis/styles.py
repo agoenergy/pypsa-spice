@@ -52,12 +52,21 @@ def use_flexo():
                         font-family: 'Flexo', sans-serif;
                     }}
 
-                    h1, h2, h3, h4, h5, h6 {{
+                    h3, h4, h5, h6 {{
                         font-family: 'Flexo', sans-serif !important;
                     }}
 
                     .plot-container {{
                         font-family: 'Flexo', sans-serif;
+                    }}
+
+                    [data-testid="stMainBlockContainer"] {{
+                        padding-top: 1rem;
+                    }}
+
+                    h1, h2 {{
+                        font-family: 'Flexo', sans-serif !important;
+                        margin-top: 0;
                     }}
                     </style>
                     """,

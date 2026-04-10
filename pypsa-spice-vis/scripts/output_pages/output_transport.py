@@ -200,7 +200,7 @@ def render_t1_ev_load_profile(graph_config: dict) -> None:
 
 
 if __name__ == "__main__":
-    st.title(":material/directions_car: Transport")
+    st.header(":material/directions_car: Transport")
     DOCS_PATH = "visualisation-tool/vis-sections-and-charts/#transport"
     st.markdown(
         "Detailed explanation can be found in: "
