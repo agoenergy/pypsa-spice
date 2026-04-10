@@ -31,8 +31,9 @@ st.markdown(
     """
     1. Select a project folder from the sidebar.
     2. Open the sub-page you want to work on from the top navigation.
-    3. Choose the relevant scenario in the sidebar when those control buttons appear.
-    4. Review/edit inputs and configuration, or compare model outputs across scenarios.
+    3. Choose the relevant scenario in the sidebar when those control options appear.
+    4. Review or edit inputs and configuration, or compare model outputs across
+       scenarios.
     """
 )
 
@@ -45,7 +46,7 @@ with info_col:
     st.markdown(
         """
         #### :material/info: Info
-        Start here for a quick orientation to the tool with a short introduction to \
+        Start here for a quick orientation to the tool and a short introduction to \
         PyPSA-SPICE-Vis.
         """
     )
@@ -66,11 +67,11 @@ with input_col:
     st.markdown(
         """
         #### :material/input: Input
-        Inspect/Edit model inputs for the selected sector under two sections:
+        Inspect and edit model inputs for the selected sector in two sections:
 
         - Global input: shared input data such as technology assumptions, profiles,
           and demand data used across scenarios.
-        - Scenario specific input: scenario-level input tables such as loads and,
+        - Scenario-specific input: scenario-level input tables such as loads and,
           for power, interconnections.
 
         The available sector tabs depend on the selected model scope and can include
@@ -99,7 +100,7 @@ st.markdown(
     The sidebar changes with the page you open:
 
     - All pages show the project selector.
-    - Scenario config and Input show an input scenario selector and sector selector.
+    - Scenario config and Input show an input scenario selector and the sector selector.
     - Output shows one or two output scenario selectors, a sector selector, and then \
     loads the available years for comparison. The number of selected scenarios
     can be defined by the user.
