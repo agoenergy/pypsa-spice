@@ -23,6 +23,7 @@
 
 - **PyPSA-SPICE-VIS remake:** Significantly refactored the PyPSA-SPICE-VIS Streamlit app for readability and maintainability. Reorganised modules, and now manage chart types and their configurations separately. We have also introduced two new pages for working directly with input data and scenario configs in the app.
 - **Streamlit version upgrade:** We have upgraded streamlit to `v1.55.0` and encourage users to upgrade their environments (using `conda env update -f envs/environment.yaml --prune`) to ensure full compatibility with the latest features and improvements.
+- **Correction of file name for decommission_capacity:** The file name for decommissioning capacity has been corrected to `decommission_capacity.csv` in the documentation and codebase. Please make sure to update your files accordingly to avoid any issues with the model execution.
 
 --8<-- "releases/v1.1.1.md"
 --8<-- "releases/v1.1.0.md"
