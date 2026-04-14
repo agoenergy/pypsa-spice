@@ -89,7 +89,7 @@ All the listed components are defined as `Store` in PyPSA.
 | Abbreviation  | Full Name                                                     |
 | ------------- | ------------------------------------------------------------- |
 | `Bio`         | Biomass                                                       |
-| `Bit`         | Bituminous or brown coal                                      |
+| `Bit`         | Bituminous coal                                               |
 | `CO2`         | Carbon dioxide (in the atmosphere)                            |
 | `Co2stor`     | Captured carbon dioxide                                       |
 | `Electricity` | Electricity                                                   |
@@ -98,9 +98,9 @@ All the listed components are defined as `Store` in PyPSA.
 | `High_Heat`   | High-temperature heat (> 350°C)                               |
 | `Hrdc`        | Anthracite or hard coal                                       |
 | `Hyd`         | Hydrogen                                                      |
-| `Lig`         | Lignite                                                       |
+| `Lig`         | Lignite or brown coal                                         |
 | `Lng`         | Liquefied natural gas                                         |
-| `Low_Heat`    | Low-/Medium-temperature heat (< 350°C)                         |
+| `Low_Heat`    | Low-/Medium-temperature heat (< 350°C)                        |
 | `Oil`         | Oil                                                           |
 | `Uranium`     | Uranium                                                       |
 | `Waste`       | Waste                                                         |

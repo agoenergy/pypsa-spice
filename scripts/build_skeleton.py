@@ -1787,7 +1787,7 @@ if __name__ == "__main__":
     path_p_interconnector = input_scenario_folder_path + "/power/interconnector.csv"
     path_p_links = input_scenario_folder_path + "/power/power_links.csv"
     path_p_decom_capacity = (
-        input_scenario_folder_path + "/power/decomission_capacity.csv"
+        input_scenario_folder_path + "/power/decommission_capacity.csv"
     )
 
     path_i_buses = input_scenario_folder_path + "/industry/buses.csv"
@@ -1805,7 +1805,7 @@ if __name__ == "__main__":
     )
     path_i_dac = input_scenario_folder_path + "/industry/direct_air_capture.csv"
     path_i_decom_capacity = (
-        input_scenario_folder_path + "/industry/decomission_capacity.csv"
+        input_scenario_folder_path + "/industry/decommission_capacity.csv"
     )
 
     path_t_buses = input_scenario_folder_path + "/transport/buses.csv"

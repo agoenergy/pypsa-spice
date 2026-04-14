@@ -14,9 +14,9 @@ XY,CCGT,Combined cycle gas turbine,Lng,Link,0.52,0.2,0,,,,,1,0,0.75,0.71,,0.9
 XY,OCGT,Open cycle gas turbine,Gas,Link,0.38,0.2,0,,,,,1,0,0.68,0.63,,0.9
 XY,OCGT,Open cycle gas turbine,Lng,Link,0.38,0.2,0,,,,,1,0,0.68,0.63,,0.9
 XY,DAC,Direct air capture,CO2,Link,1,-0.5,,,,,,1,0,1,1,,0
-XY,SubC,subcritical coal power plant,Lig,Link,0.35,0.36,0,,,,,1,0,0.76,0.58,,0.9
-XY,SubC,subcritical coal power plant,Bit,Link,0.35,0.34,0,,,,,1,0,0.76,0.58,,0.9
-XY,SubC,subcritical coal power plant,Hrdc,Link,0.35,0.35,0,,,,,1,0,0.76,0.58,,0.9
+XY,SubC,Subcritical coal power plant,Lig,Link,0.35,0.36,0,,,,,1,0,0.76,0.58,,0.9
+XY,SubC,Subcritical coal power plant,Bit,Link,0.35,0.34,0,,,,,1,0,0.76,0.58,,0.9
+XY,SubC,Subcritical coal power plant,Hrdc,Link,0.35,0.35,0,,,,,1,0,0.76,0.58,,0.9
 XY,SupC,Supercritical coal power plant,Lig,Link,0.38,0.36,0,,,,,1,0,0.76,0.58,,0.9
 XY,SupC,Supercritical coal power plant,Bit,Link,0.38,0.34,0,,,,,1,0,0.76,0.58,,0.9
 XY,SupC,Supercritical coal power plant,Hrdc,Link,0.38,0.35,0,,,,,1,0,0.76,0.58,,0.9

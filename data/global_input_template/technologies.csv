@@ -33,9 +33,9 @@
 ,OCHT,Open cycle hydrogen turbine,Hyd,Link,0.38,0,0,,,,,1,0,0.68,0.63,,0.9
 ,OILT,Oil turbine power plant,Oil,Link,0.33,0.28,0,,,,,1,0,0.77,0.65,,0.9
 ,PEVCH,PEV charger,Electricity,Link,1,0,,,,,,1,0,1,1,,0
-,SubC,subcritical coal power plant,Lig,Link,0.35,0.36,0,,,,,1,0,0.76,0.58,,0.9
-,SubC,subcritical coal power plant,Bit,Link,0.35,0.34,0,,,,,1,0,0.76,0.58,,0.9
-,SubC,subcritical coal power plant,Hrdc,Link,0.35,0.35,0,,,,,1,0,0.76,0.58,,0.9
+,SubC,Subcritical coal power plant,Lig,Link,0.35,0.36,0,,,,,1,0,0.76,0.58,,0.9
+,SubC,Subcritical coal power plant,Bit,Link,0.35,0.34,0,,,,,1,0,0.76,0.58,,0.9
+,SubC,Subcritical coal power plant,Hrdc,Link,0.35,0.35,0,,,,,1,0,0.76,0.58,,0.9
 ,SupC,Supercritical coal power plant,Lig,Link,0.38,0.36,0,,,,,1,0,0.76,0.58,,0.9
 ,SupC,Supercritical coal power plant,Bit,Link,0.38,0.34,0,,,,,1,0,0.76,0.58,,0.9
 ,SupC,Supercritical coal power plant,Hrdc,Link,0.38,0.35,0,,,,,1,0,0.76,0.58,,0.9
