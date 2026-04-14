@@ -15,3 +15,6 @@ disable = ["fixme", "import-error", "line-too-long", "protected-access"]
 good-names = ["i", "j", "k", "ex", "Run", "_", "pk", "x", "y", "df", "e", "p"]
 min-public-methods = 0
 generated-members = ["snakemake.*"]
+
+[tool.pylint.similarities]
+min-similarity-lines = 50
