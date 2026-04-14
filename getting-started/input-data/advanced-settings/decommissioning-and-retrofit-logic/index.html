@@ -1042,7 +1042,7 @@
 <p><strong>Base year (2025):</strong> capacity that is already over-lifetime is <strong>shifted</strong> from the normal asset to the retrofit asset (treated as retrofitted, not decommissioned).</p>
 </li>
 <li>
-<p><strong>Future year (e.g., 2030):</strong> capacity that becomes over-lifetime is written to <code>decomission_capacity.csv</code>. Hence, substations can <strong>decommission</strong> it from the normal fleet; the same amount becomes the <strong>maximum retrofit investment option</strong> via <code>retro.p_nom_max_2030</code>.</p>
+<p><strong>Future year (e.g., 2030):</strong> capacity that becomes over-lifetime is written to <code>decommission_capacity.csv</code>. Hence, substations can <strong>decommission</strong> it from the normal fleet; the same amount becomes the <strong>maximum retrofit investment option</strong> via <code>retro.p_nom_max_2030</code>.</p>
 </li>
 </ul>
 <pre class="mermaid"><code>%%{init: {"theme":"base","themeVariables":{"fontSize":"11px", "htmlLabels": true}}}%%
@@ -1063,7 +1063,7 @@ D --&gt; F
 E --&gt; F
 
 F -- Yes --&gt; G["MW_over_2030"]
-G --&gt; H["&lt;div style='text-align:left; margin:0'&gt;&lt;u&gt;Write decomission_capacity.csv&lt;/u&gt;
+G --&gt; H["&lt;div style='text-align:left; margin:0'&gt;&lt;u&gt;Write decommission_capacity.csv&lt;/u&gt;
 (node, normal_asset, 2030, MW_over_2030)
 → substation can decommission from normal fleet&lt;/div&gt;"]
 G --&gt; I["&lt;div style='text-align:left; margin:0'&gt;&lt;u&gt;Set retrofit option&lt;/u&gt;
@@ -1074,7 +1074,7 @@ F -- No --&gt; J["No decommision/retrofit done"]
 
 H --&gt; K[["&lt;div style='text-align:left; margin:0'&gt;&lt;u&gt;Outputs&lt;/u&gt;
 - updated p_nom (2025 normal &amp; retro)
-- decomission_capacity.csv (future retirements)
+- decommission_capacity.csv (future retirements)
 - retrofit cap p_nom_max_year&lt;/div&gt;"]]
 
 I --&gt; K
