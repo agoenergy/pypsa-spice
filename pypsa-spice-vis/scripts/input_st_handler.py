@@ -138,7 +138,7 @@ def get_tech_mapping() -> pd.DataFrame:
 def get_empty_df_notice_message() -> None:
     """Display a generic message when the filtered dataframe is empty."""
     st.info(
-        "No data required in this table for the selected technology type(s) and "
+        "There's no changes required for the selected technology type(s) and "
         "country(ies)."
     )
 
@@ -409,7 +409,7 @@ def render_line_chart(df: pd.DataFrame, table_config: dict, widget_scope: str) -
         ]
 
         if filtered_df.empty:
-            st.info("No data available for the selected technology/date range.")
+            st.info("There's no data available for the selected technology/date range.")
             return
 
         # Set x and legend columns based on the selected averaging period
