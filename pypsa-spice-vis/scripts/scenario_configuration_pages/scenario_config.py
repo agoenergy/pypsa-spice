@@ -234,8 +234,14 @@ def render_country_custom_constraints(country: str, country_constraints: dict) -
         for constraint_name, constraint_config in country_constraints.items():
             constraint_label = format_keys_into_readable_titles(constraint_name)
             constraint_key_prefix = f"custom_{country}_{constraint_name}"
+            constraint_expander_key = f"{constraint_key_prefix}_expanded"
 
-            with st.expander(constraint_label, expanded=False):
+            with st.expander(
+                constraint_label,
+                expanded=False,
+                key=constraint_expander_key,
+                on_change="rerun",
+            ):
                 if not isinstance(constraint_config, dict):
                     edited_country_constraints[constraint_name] = (
                         create_inputbox_and_keep_nulls_for_empty_input_values(
@@ -244,9 +250,17 @@ def render_country_custom_constraints(country: str, country_constraints: dict) -
                             constraint_key_prefix,
                         )
                     )
+                    continue
 
-                edited_constraint = {}
+                # Constraint activation: collapsed=False, expanded=True.
+                edited_constraint: dict[str, object] = {
+                    "activate": bool(
+                        st.session_state.get(constraint_expander_key, False)
+                    )
+                }
                 for field_name, field_value in constraint_config.items():
+                    if field_name == "activate":
+                        continue
                     edited_constraint[field_name] = (
                         create_custom_constraint_field_inputbox(
                             constraint_name,
