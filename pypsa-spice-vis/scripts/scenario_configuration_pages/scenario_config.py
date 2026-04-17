@@ -570,6 +570,10 @@ def render_custom_constraints_section(scenario_section: dict) -> None:
 
 if __name__ == "__main__":
     st.title(":material/settings: Scenario config editor")
+    st.markdown(
+        "Scenario name: "
+        + st.session_state.base_config["path_configs"]["input_scenario_name"]
+    )
     DOCS_PATH = "getting-started/input-data/model-builder-configuration"
     st.markdown(
         "Detailed explanation can be found in: "
