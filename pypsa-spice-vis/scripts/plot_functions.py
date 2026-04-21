@@ -64,6 +64,36 @@ def create_nice_names_and_color_mapping(table_name: str) -> pd.DataFrame | None:
     return df
 
 
+def get_legend_order_by_first_years_value(df: pd.DataFrame) -> list[str]:
+    """Return legend order sorted by value in the base year (descending).
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing the data with columns "year", "legend", and "value".
+
+    Returns
+    -------
+    list[str]
+        List of legend names sorted by their value in the base year (descending).
+    """
+    if df.empty or "year" not in df.columns:
+        return []
+
+    first_x = df["year"].sort_values().iloc[0]
+    all_legends = pd.Index(df["legend"].unique())
+
+    first_x_values = (
+        df[df["year"] == first_x]
+        .groupby("legend", sort=False)["value"]
+        .sum()
+        .reindex(all_legends, fill_value=0)
+        .sort_values(ascending=False, kind="stable")
+    )
+
+    return first_x_values.index.tolist()
+
+
 @st.fragment
 def plot_diff_bar_yearly(
     df: pd.DataFrame,
@@ -189,6 +219,7 @@ def plot_simple_bar_yearly(
     key: str,
 ) -> None:
     """Plot yearly stacked bar chart from pre-processed data."""
+    legend_order = get_legend_order_by_first_years_value(df)
     fig = px.bar(
         df,
         x="year",
@@ -200,6 +231,7 @@ def plot_simple_bar_yearly(
             else "stack"
         ),
         color_discrete_map=colour_mapping,
+        category_orders={"legend": legend_order},
     )
     fig = add_stackedbar_total(fig, df)
     fig = configure_plot_layout(fig, df, y_range, graph_config)
@@ -260,12 +292,14 @@ def plot_bar_with_filter(
     key: str,
 ) -> None:
     """Plot yearly stacked bar chart with pre-applied filter."""
+    legend_order = get_legend_order_by_first_years_value(df)
     fig = px.bar(
         df,
         x="year",
         y="value",
         color="legend",
         color_discrete_map=colour_mapping,
+        category_orders={"legend": legend_order},
     )
     fig = add_stackedbar_total(fig, df)
     fig = configure_plot_layout(fig, df, y_range, graph_config)
