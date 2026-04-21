@@ -585,6 +585,34 @@ def convert_date_string_into_date_obj(raw_value: object, fallback: date) -> date
     return parsed_date
 
 
+def render_decimal_text_input(
+    label: str,
+    value: float | None,
+    constraint_key: str,
+    help_text: str | None = None,
+    precision: int = 2,
+) -> float | None:
+    """Render a decimal input as text so the displayed separator stays `.`."""
+    formatted_value = "" if value is None else f"{float(value):.{precision}f}"
+    text_value = st.text_input(
+        label,
+        value=formatted_value,
+        key=constraint_key,
+        help=help_text,
+    )
+
+    stripped = text_value.strip()
+    if stripped == "":
+        return None
+
+    normalized = stripped.replace(",", ".")
+    try:
+        return float(normalized)
+    except ValueError:
+        st.warning(f"Invalid decimal value for {label}. Keeping the previous value.")
+        return value
+
+
 def create_inputbox_and_keep_nulls_for_empty_input_values(
     label: str,
     value: object,
@@ -604,12 +632,11 @@ def create_inputbox_and_keep_nulls_for_empty_input_values(
         )
     # For float values, render a number input with float formatting (2 decimal places)
     elif isinstance(value, float):
-        result = st.number_input(
+        result = render_decimal_text_input(
             label,
             value=float(value),
-            format="%.2f",
-            key=constraint_key,
-            help=help_text,
+            constraint_key=constraint_key,
+            help_text=help_text,
         )
     # For None values or other types, render a text input
     elif value is None or isinstance(value, str):
@@ -636,7 +663,7 @@ def create_inputbox_and_keep_nulls_for_empty_input_values(
                     elif stripped.isdigit():
                         result = int(stripped)
                     else:
-                        result = float(stripped)
+                        result = float(stripped.replace(",", "."))
                 except ValueError:
                     result = stripped
 

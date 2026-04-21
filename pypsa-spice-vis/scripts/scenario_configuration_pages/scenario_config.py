@@ -14,6 +14,7 @@ from scripts.input_st_handler import (
     convert_date_string_into_date_obj,
     create_inputbox_and_keep_nulls_for_empty_input_values,
     format_keys_into_readable_titles,
+    render_decimal_text_input,
     render_save_button_for_input_config,
 )
 
@@ -325,14 +326,12 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                     f"Model year has been automatically adjusted to **{model_year}**.",
                 )
         with threshold_col:
-            remove_threshold = st.number_input(
+            remove_threshold = render_decimal_text_input(
                 "Remove asset with capacity lower than (MW)",
-                min_value=0.0,
                 value=float(scenario_settings.get("remove_threshold", 0.0) or 0.0),
-                format="%.2f",
-                step=0.1,
-                key="scenario_configs_remove_threshold",
+                constraint_key="scenario_configs_remove_threshold",
             )
+            remove_threshold = max(remove_threshold or 0.0, 0.0)
 
         st.caption(
             "By default, the snapshot range is derived automatically from the model "
