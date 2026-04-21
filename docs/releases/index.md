@@ -8,11 +8,13 @@
 
 ### Fixed
 
-- Adjust legend order and add a legend order control for stacked column charts in PyPSA-SPICE-Vis ([:material-source-pull:104](https://github.com/agoenergy/pypsa-spice/pull/104) by @RichChang963)
-
 ### Changed
 
+- Adjust legend order for stacked column charts, add customised legend order control for hourly stacked column charts, and add back-to-top button in PyPSA-SPICE-Vis ([:material-source-pull:104](https://github.com/agoenergy/pypsa-spice/pull/104) by @RichChang963)
+
 ### Notes
+
+- **Add streamlit-sortables package:** We have added the `streamlit-sortables==0.3.1` to handle legend orders in PyPSA-SPICE-Vis. We encourage users to upgrade their environments (using `conda env update -f envs/environment.yaml --prune`) to ensure full compatibility with the latest features and improvements.
 
 --8<-- "releases/v2.0.0.md"
 --8<-- "releases/v1.1.1.md"
