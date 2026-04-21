@@ -10,7 +10,7 @@ import sys
 
 import streamlit as st
 import yaml
-from styles import use_flexo
+from styles import render_back_to_top_button, use_flexo
 
 from scripts.get_params import GetParams
 
@@ -42,6 +42,7 @@ def get_sector_tabs(base_tabs: list[str], sector: str) -> list[str]:
 
 def scenario_config_main() -> None:
     """Render the scenario configuration editor page."""
+    render_back_to_top_button()
     st.session_state.input_sce1 = st.session_state.get("input_sce1", "")
 
     # Path to the selected scenario config file.
@@ -62,6 +63,7 @@ def input_main() -> None:
     """Render all input views in a single page."""
     st.title(":material/input: Input")
 
+    render_back_to_top_button()
     st.session_state.input_sce1 = st.session_state.get("input_sce1", "")
 
     # Build the sector tabs dynamically based on enabled sectors.
@@ -112,6 +114,8 @@ def input_main() -> None:
 def output_main() -> None:
     """Render all output views in a single page."""
     st.title(":material/monitoring: Output")
+
+    render_back_to_top_button()
     # Build output tabs dynamically from the active sector selection.
     output_tabs = ["Power"]
     if "i" in st.session_state.sector:

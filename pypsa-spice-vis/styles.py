@@ -145,3 +145,53 @@ def apply_radio_menu_styles():
         """,
         unsafe_allow_html=True,
     )
+
+
+def render_back_to_top_button() -> None:
+    """Render a fixed back-to-top button for long pages."""
+    st.markdown(
+        """
+        <div id="page-top"></div>
+        <style>
+        .back-to-top-button {
+            position: fixed;
+            right: 1.5rem;
+            bottom: 1.5rem;
+            z-index: 1000;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            padding: 0.65rem 0.9rem;
+            border-radius: 999px;
+            border: 1px solid rgba(49, 51, 63, 0.2);
+            background: rgba(255, 255, 255, 0.92);
+            color: rgb(49, 51, 63);
+            text-decoration: none;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+            font-family: 'Flexo', sans-serif;
+            font-size: 0.9rem;
+            line-height: 1;
+            backdrop-filter: blur(6px);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .back-to-top-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.22);
+            text-decoration: none;
+        }
+        @media (prefers-color-scheme: light) {
+            .back-to-top-button {
+                background: rgba(38, 39, 48, 0.92);
+                color: rgb(250, 250, 250);
+                border-color: rgba(250, 250, 250, 0.16);
+            }
+        }
+        </style>
+        <a class="back-to-top-button" href="#page-top" aria-label="Back to top">
+            <span>↑</span>
+            <span>Back to top</span>
+        </a>
+        """,
+        unsafe_allow_html=True,
+    )
