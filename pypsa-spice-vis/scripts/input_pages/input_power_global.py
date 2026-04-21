@@ -188,7 +188,11 @@ def render_input_power_timeseries_section(
             f"<small><i>{os.path.normpath(input_csv_path)}</i></small>",
             unsafe_allow_html=True,
         )
-
+        st.markdown(
+            "⚠️ To modify the time series data, please make changes locally. "
+            "This section in this app contains visualisation only.",
+            unsafe_allow_html=True,
+        )
         if input_df is None:
             if not os.path.exists(input_csv_path):
                 st.error(f"File not found: {input_csv_path}")
@@ -260,6 +264,11 @@ def render_input_power_demand_profile_section(
         st.write(f"### {title}")
         st.markdown(
             f"<small><i>{os.path.normpath(input_csv_path)}</i></small>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            "⚠️ To modify the time series data, please make changes locally. "
+            "This section in this app contains visualisation only.",
             unsafe_allow_html=True,
         )
 

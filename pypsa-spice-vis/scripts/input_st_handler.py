@@ -376,7 +376,7 @@ def render_line_chart(df: pd.DataFrame, table_config: dict, widget_scope: str) -
         # Timeseries data only applies with the base year
         year = st.session_state.base_config["base_configs"]["years"][0]
         start_date = dt.date(year, 1, 1)
-        end_date = dt.date(year, 12, 31)
+        end_date = dt.date(year, 1, 31)
 
         # Date range filter
         selected_range = st.date_input(
