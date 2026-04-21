@@ -312,10 +312,13 @@ if __name__ == "__main__":
     )
 
     # Render type and PyPSA class filters for the industry scenario input section
-    sector_selected_types, sector_selected_classes = render_type_and_class_filters(
-        tech_df,
-        key="industry_scenario",
-    )
+    with st.sidebar:
+        st.divider()
+        st.markdown("#### Technology filter | :material/construction: Industry")
+        sector_selected_types, sector_selected_classes = render_type_and_class_filters(
+            tech_df,
+            key="industry_scenario",
+        )
 
     # Render scenario industry input relevant sections for non-timeseries tables
     for table_name in app_input_config[SELECTED_SECTOR]:

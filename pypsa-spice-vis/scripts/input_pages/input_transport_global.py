@@ -344,10 +344,13 @@ if __name__ == "__main__":
     )
 
     # Render type and PyPSA class filters for the transport demand profiles section
-    demand_profile_types, demand_selected_classes = render_type_and_class_filters(
-        tech_df,
-        key="transport_demand_global",
-    )
+    with st.sidebar:
+        st.divider()
+        st.markdown("#### Technology filter | :material/directions_car: Transport")
+        demand_profile_types, demand_selected_classes = render_type_and_class_filters(
+            tech_df,
+            key="transport_demand_global",
+        )
 
     # Render demand profiles selectbox for the transport demand profiles section
     demand_profile_types = render_demand_profiles_selectbox(
