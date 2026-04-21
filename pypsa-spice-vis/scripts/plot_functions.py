@@ -66,7 +66,7 @@ def create_nice_names_and_color_mapping(table_name: str) -> pd.DataFrame | None:
 
 
 def get_legend_order_by_first_years_value(df: pd.DataFrame) -> list[str]:
-    """Return legend order sorted by value in the base year (descending).
+    """Get the legend list sorted by value in the base year (descending).
 
     Parameters
     ----------
@@ -96,7 +96,20 @@ def get_legend_order_by_first_years_value(df: pd.DataFrame) -> list[str]:
 
 
 def get_hourly_bar_legends(df: pd.DataFrame, graph_type: str | None) -> list[str]:
-    """Return the currently available legends for an hourly bar chart."""
+    """Get the available legends for an hourly bar chart.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing the data with columns "year", "legend", and "value".
+    graph_type : str | None
+        Type of the graph, e.g., "simple_bar_hourly" or "filtered_bar_hourly".
+
+    Returns
+    -------
+    list[str]
+        List of legend names currently present in the DataFrame.
+    """
     legend_df = df
     if graph_type == "filtered_bar_hourly" and "value" in df.columns:
         legend_df = df[df["value"] != 0]
@@ -107,8 +120,21 @@ def get_hourly_bar_legends(df: pd.DataFrame, graph_type: str | None) -> list[str
     return cast(list[str], pd.Index(legend_df["legend"].dropna().unique()).tolist())
 
 
-def get_hourly_legend_order(legends: list[str], state_key: str) -> list[str]:
-    """Return the persisted hourly legend order constrained to current legends."""
+def get_updated_hourly_legend_order(legends: list[str], state_key: str) -> list[str]:
+    """Get the updated hourly legend order.
+
+    Parameters
+    ----------
+    legends : list[str]
+        List of legend names currently present in the DataFrame.
+    state_key : str
+        Key used to store the legend order in the session state.
+
+    Returns
+    -------
+    list[str]
+        Updated list of legend names in the order defined by the user.
+    """
     if len(legends) < 2:
         return legends
 
@@ -126,13 +152,23 @@ def render_hourly_legend_order_control(
     key: str,
     state_key: str | None = None,
 ) -> None:
-    """Render a drag-and-drop list for ordering hourly chart legends."""
+    """Render a drag-and-drop list for ordering hourly chart legends.
+
+    Parameters
+    ----------
+    legends : list[str]
+        List of legend names currently present in the DataFrame.
+    key : str
+        Key used to identify the chart.
+    state_key : str | None
+        Key used to store the legend order in the session state.
+    """
     if len(legends) < 2:
         return
 
     session_state_key = state_key or f"{key}_legend_order"
     sortable_version_key = f"{session_state_key}_sortable_version"
-    ordered_legends = get_hourly_legend_order(legends, session_state_key)
+    ordered_legends = get_updated_hourly_legend_order(legends, session_state_key)
     sortable_key = (
         f"{key}_legend_order_sortable_"
         f"{st.session_state.get(sortable_version_key, 0)}"
@@ -143,17 +179,19 @@ def render_hourly_legend_order_control(
         font-size: 0.85rem;
     }
     """
+    displayed_legends = list(reversed(ordered_legends))
 
-    st.caption("Legend order: drag items to reorder the current filtered chart.")
-    sort_col, reset_col = st.columns([3, 1])
-    with sort_col:
+    updated_legends = ordered_legends
+    reset_clicked = False
+    with st.popover("Customise legend order"):
+        st.caption("Drag items to reorder the current filtered chart.")
         updated_legends = sort_items(
-            ordered_legends,
-            direction="horizontal",
+            displayed_legends,
+            direction="vertical",
             custom_style=sortable_style,
             key=sortable_key,
         )
-    with reset_col:
+        updated_legends = list(reversed(updated_legends))
         reset_clicked = st.button(
             "Reset legend order",
             key=f"{key}_legend_order_reset",
@@ -402,7 +440,7 @@ def plot_simple_bar_hourly(
     legend_order_state_key: str | None = None,
 ) -> None:
     """Plot hourly stacked bar chart from pre-filtered data."""
-    legend_order = get_hourly_legend_order(
+    legend_order = get_updated_hourly_legend_order(
         get_hourly_bar_legends(df, graph_config.get("graph_type")),
         legend_order_state_key or f"{key}_legend_order",
     )
@@ -457,7 +495,7 @@ def plot_filtered_bar_hourly(
 ) -> None:
     """Plot hourly stacked bar chart with line overlay from pre-filtered data."""
     bar_df = filtered_df[filtered_df["value"] != 0]
-    legend_order = get_hourly_legend_order(
+    legend_order = get_updated_hourly_legend_order(
         get_hourly_bar_legends(filtered_df, graph_config.get("graph_type")),
         legend_order_state_key or f"{key}_legend_order",
     )
