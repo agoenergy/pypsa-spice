@@ -95,60 +95,84 @@ def get_legend_order_by_first_years_value(df: pd.DataFrame) -> list[str]:
     return first_x_values.index.tolist()
 
 
-def get_current_legend_order(df: pd.DataFrame) -> list[str]:
-    """Return the current legend order based on the dataframe rows."""
-    if df.empty or "legend" not in df.columns:
+def get_hourly_bar_legends(df: pd.DataFrame, graph_type: str | None) -> list[str]:
+    """Return the currently available legends for an hourly bar chart."""
+    legend_df = df
+    if graph_type == "filtered_bar_hourly" and "value" in df.columns:
+        legend_df = df[df["value"] != 0]
+
+    if legend_df.empty or "legend" not in legend_df.columns:
         return []
 
-    return cast(list[str], pd.Index(df["legend"].dropna().unique()).tolist())
+    return cast(list[str], pd.Index(legend_df["legend"].dropna().unique()).tolist())
 
 
-def render_hourly_legend_order_control(
-    legends: list[str],
-    key: str,
-) -> list[str]:
-    """Render a drag-and-drop control for ordering hourly chart legends."""
+def get_hourly_legend_order(legends: list[str], state_key: str) -> list[str]:
+    """Return the persisted hourly legend order constrained to current legends."""
     if len(legends) < 2:
         return legends
 
-    state_key = f"{key}_legend_order"
     stored_legends = st.session_state.get(state_key, [])
     ordered_legends = [legend for legend in stored_legends if legend in legends]
     ordered_legends.extend(
         legend for legend in legends if legend not in ordered_legends
     )
-
-    with st.popover(
-        "Legend order",
-        icon=":material/reorder:",
-        key=f"{key}_legend_order_popover",
-    ):
-        st.caption("Drag the items to reorder the current chart legend.")
-        ordered_legends = sort_items(
-            ordered_legends,
-            direction="vertical",
-            key=f"{key}_legend_order_sortable",
-            custom_style="""
-                .sortable-component.vertical {
-                    gap: 0.35rem;
-                }
-                .sortable-item {
-                    background: rgba(248, 249, 251, 0.95);
-                    border: 1px solid rgba(49, 51, 63, 0.16);
-                    border-radius: 0.5rem;
-                    color: rgb(49, 51, 63);
-                    cursor: grab;
-                    font-size: 0.9rem;
-                    margin: 0;
-                    padding: 0.45rem 0.7rem;
-                }
-            """,
-        )
-        if st.button("Reset", key=f"{key}_legend_order_reset", width="stretch"):
-            ordered_legends = legends
-
     st.session_state[state_key] = ordered_legends
     return ordered_legends
+
+
+def render_hourly_legend_order_control(
+    legends: list[str],
+    key: str,
+    state_key: str | None = None,
+) -> None:
+    """Render a drag-and-drop list for ordering hourly chart legends."""
+    if len(legends) < 2:
+        return
+
+    session_state_key = state_key or f"{key}_legend_order"
+    sortable_version_key = f"{session_state_key}_sortable_version"
+    ordered_legends = get_hourly_legend_order(legends, session_state_key)
+    sortable_key = (
+        f"{key}_legend_order_sortable_"
+        f"{st.session_state.get(sortable_version_key, 0)}"
+    )
+    sortable_style = """
+    .sortable-item,
+    .sortable-item:hover {
+        font-size: 0.85rem;
+    }
+    """
+
+    st.caption("Legend order: drag items to reorder the current filtered chart.")
+    sort_col, reset_col = st.columns([3, 1])
+    with sort_col:
+        updated_legends = sort_items(
+            ordered_legends,
+            direction="horizontal",
+            custom_style=sortable_style,
+            key=sortable_key,
+        )
+    with reset_col:
+        reset_clicked = st.button(
+            "Reset legend order",
+            key=f"{key}_legend_order_reset",
+            width="stretch",
+        )
+
+    if reset_clicked:
+        if ordered_legends != legends:
+            st.session_state[session_state_key] = legends.copy()
+        st.session_state[sortable_version_key] = (
+            st.session_state.get(sortable_version_key, 0) + 1
+        )
+        st.rerun()
+
+    if updated_legends != ordered_legends:
+        st.session_state[session_state_key] = updated_legends
+        st.rerun()
+
+    st.session_state[session_state_key] = updated_legends
 
 
 @st.fragment
@@ -375,11 +399,12 @@ def plot_simple_bar_hourly(
     end_date: Any,
     is_complete: bool,
     key: str,
+    legend_order_state_key: str | None = None,
 ) -> None:
     """Plot hourly stacked bar chart from pre-filtered data."""
-    legend_order = render_hourly_legend_order_control(
-        get_current_legend_order(df),
-        key,
+    legend_order = get_hourly_legend_order(
+        get_hourly_bar_legends(df, graph_config.get("graph_type")),
+        legend_order_state_key or f"{key}_legend_order",
     )
     fig = px.bar(
         df,
@@ -428,12 +453,13 @@ def plot_filtered_bar_hourly(
     end_date: Any,
     is_complete: bool,
     key: str,
+    legend_order_state_key: str | None = None,
 ) -> None:
     """Plot hourly stacked bar chart with line overlay from pre-filtered data."""
     bar_df = filtered_df[filtered_df["value"] != 0]
-    legend_order = render_hourly_legend_order_control(
-        get_current_legend_order(bar_df),
-        key,
+    legend_order = get_hourly_legend_order(
+        get_hourly_bar_legends(filtered_df, graph_config.get("graph_type")),
+        legend_order_state_key or f"{key}_legend_order",
     )
     fig = px.bar(
         bar_df,

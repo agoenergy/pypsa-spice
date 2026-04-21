@@ -21,7 +21,11 @@ from scripts.data_utils import (
     slugify_text,
     sort_scenario_data_for_yearly_chart,
 )
-from scripts.plot_functions import plot_diff_bar_yearly
+from scripts.plot_functions import (
+    get_hourly_bar_legends,
+    plot_diff_bar_yearly,
+    render_hourly_legend_order_control,
+)
 from scripts.plot_settings import (
     generate_color_mapping_dict_for_chart,
     generate_default_colour_mapping_dict_for_chart,
@@ -37,6 +41,12 @@ GRAPHS_WITH_TIME_FILTERS = [
     "line_with_secondary_y_hourly",
     "filtered_bar_hourly",
 ]
+
+GRAPHS_WITH_HOURLY_BAR_LEGEND_CONTROL = [
+    "simple_bar_hourly",
+    "filtered_bar_hourly",
+]
+
 
 # =============================================================================
 # Sidebar navigation + section headers
@@ -543,6 +553,9 @@ def _render_single_chart_layout(
     scenario_name = st.session_state.output_sce1
     table_name = config_dict["table_name"]
     legend_col = config_dict["leg_col"]
+    legend_order_state_key = get_hourly_legend_state_key(
+        config_dict, is_dual_scenario=False
+    )
 
     st.markdown(f"{scenario_name}")
 
@@ -554,14 +567,25 @@ def _render_single_chart_layout(
     )
 
     plot_key = plot_kwargs.pop("key", f"plotly_chart_{scenario_name}_{table_name}")
+    chart_plot_kwargs = dict(plot_kwargs)
+    if legend_order_state_key is not None:
+        chart_plot_kwargs["legend_order_state_key"] = legend_order_state_key
+
     plot_function(
         scenario_1_vis_display_data,
         config_dict,
         colour_mapping,
         y_range,
         key=plot_key,
-        **plot_kwargs,
+        **chart_plot_kwargs,
     )
+
+    if legend_order_state_key is not None:
+        render_hourly_legend_order_control(
+            get_combined_hourly_bar_legends(config_dict, scenario_1_vis_display_data),
+            key=f"{plot_key}_legend_order_control",
+            state_key=legend_order_state_key,
+        )
 
     render_download_function(table_1_display_data, config_dict, scenario_name)
 
@@ -586,8 +610,14 @@ def _render_dual_chart_layout(
     scenario_2_name = st.session_state.output_sce2
     table_name = config_dict["table_name"]
     legend_col = config_dict["leg_col"]
+    legend_order_state_key = get_hourly_legend_state_key(
+        config_dict, is_dual_scenario=True
+    )
 
     plot_kwargs.pop("key", None)
+    chart_plot_kwargs = dict(plot_kwargs)
+    if legend_order_state_key is not None:
+        chart_plot_kwargs["legend_order_state_key"] = legend_order_state_key
 
     col1, col2 = st.columns([6, 6])
     with col1:
@@ -604,7 +634,7 @@ def _render_dual_chart_layout(
             colour_mapping_1,
             y_range,
             key=f"plotly_chart_{scenario_1_name}_{table_name}",
-            **plot_kwargs,
+            **chart_plot_kwargs,
         )
 
     with col2:
@@ -621,7 +651,18 @@ def _render_dual_chart_layout(
             colour_mapping_2,
             y_range,
             key=f"plotly_chart_{scenario_2_name}_{table_name}",
-            **plot_kwargs,
+            **chart_plot_kwargs,
+        )
+
+    if legend_order_state_key is not None:
+        render_hourly_legend_order_control(
+            get_combined_hourly_bar_legends(
+                config_dict,
+                scenario_1_vis_display_data,
+                scenario_2_vis_display_data,
+            ),
+            key=f"shared_legend_order_control_{table_name}",
+            state_key=legend_order_state_key,
         )
 
     col1, col2 = st.columns([6, 6])
@@ -753,6 +794,42 @@ def render_scenario_comparison_chart_n_table(
                 table_df.to_csv(index=True).encode("utf-8"),
                 download_id=download_id,
             )
+
+
+def get_hourly_legend_state_key(
+    config_dict: dict[str, Any],
+    is_dual_scenario: bool,
+) -> str | None:
+    """Return the session-state key used for hourly bar legend ordering."""
+    graph_type = config_dict.get("graph_type")
+    if graph_type not in GRAPHS_WITH_HOURLY_BAR_LEGEND_CONTROL:
+        return None
+
+    table_name = config_dict["table_name"]
+    if is_dual_scenario:
+        return f"shared_legend_order_{graph_type}_{table_name}"
+
+    scenario_name = st.session_state.output_sce1
+    return f"legend_order_{scenario_name}_{graph_type}_{table_name}"
+
+
+def get_combined_hourly_bar_legends(
+    config_dict: dict[str, Any],
+    *dataframes: pd.DataFrame | None,
+) -> list[str]:
+    """Return the union of currently available legends for hourly bar charts."""
+    graph_type = config_dict.get("graph_type")
+    combined_legends: list[str] = []
+
+    for df in dataframes:
+        if df is None or df.empty:
+            continue
+        legends = get_hourly_bar_legends(df, graph_type)
+        combined_legends.extend(
+            legend for legend in legends if legend not in combined_legends
+        )
+
+    return combined_legends
 
 
 # =============================================================================
