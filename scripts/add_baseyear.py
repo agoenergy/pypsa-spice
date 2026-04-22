@@ -113,6 +113,7 @@ class AddBaseNetwork:
             "Water",
             "Geothermal",
             "Gas-imp",
+            "Waste",
             "ENS",
         ]
         missing_carriers_df = pd.DataFrame(missing_carriers, columns=["carrier"])
