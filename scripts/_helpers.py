@@ -6,6 +6,7 @@
 
 import glob
 import logging
+import math
 import os
 import urllib
 from itertools import cycle
@@ -614,13 +615,18 @@ def get_plant_availabilities(
                 (arch_country_df["technology"].isin([row["type"]]))
                 & (arch_country_df["carrier"].isin([row["carrier"]]))
             ]["p_max_pu"]
+
             # creating result to match format of other availability dataframes
             result = pd.DataFrame(
                 np.repeat(p_max_pu.values, 8762, axis=0),
             ).T
             result.columns = ["node", "technology"] + [str(i) for i in range(0, 8760)]
-            if result.empty:
-                result = avail_df[(avail_df["technology"].isin(["Con10"]))]
+
+            if math.isnan(p_max_pu.values[0]):
+                # if no p_max_pu is assigned, then we use 1 for the all timeseries.
+                result = result.replace(np.nan, 1)
+                result["technology"] = row["type"]
+                result["node"] = row["node"]
 
         if len(result) > 1:
             raise ValueError(
