@@ -6,6 +6,7 @@
 
 import glob
 import logging
+import math
 import os
 import urllib
 from itertools import cycle
@@ -610,17 +611,25 @@ def get_plant_availabilities(
         # If technology type doesn't appear in avail_df
         # take availability from technology database.
         else:
-            p_max_pu = arch_country_df[
+            techonology = arch_country_df[
                 (arch_country_df["technology"].isin([row["type"]]))
                 & (arch_country_df["carrier"].isin([row["carrier"]]))
-            ]["p_max_pu"]
+            ]
+            p_max_pu = techonology["p_max_pu"]
+            p_min_pu = techonology["p_min_pu"]
+
+            if math.isnan(p_max_pu.values[0]) or math.isnan(p_min_pu.values[0]):
+                raise ValueError(
+                    f"No p_nom_max or p_nom_min data found for {row['type']}. "
+                    + "Please check input data again"
+                )
+
             # creating result to match format of other availability dataframes
             result = pd.DataFrame(
                 np.repeat(p_max_pu.values, 8762, axis=0),
             ).T
+            # give column names to match with other availability dataframes
             result.columns = ["node", "technology"] + [str(i) for i in range(0, 8760)]
-            if result.empty:
-                result = avail_df[(avail_df["technology"].isin(["Con10"]))]
 
         if len(result) > 1:
             raise ValueError(
@@ -691,18 +700,28 @@ def get_link_availabilities(
         # If technology type doesn't appear in avail_df
         # get availability from technology database.
         else:
-            p_max_pu = arch_country_df[
+            techonology = arch_country_df[
                 (arch_country_df["technology"].isin([row["type"]]))
                 & (arch_country_df["carrier"].isin([row["carrier"]]))
-            ]["p_max_pu"]
+            ]
+            p_max_pu = techonology["p_max_pu"]
+            p_min_pu = techonology["p_min_pu"]
+
+            if math.isnan(p_max_pu.values[0]) or math.isnan(p_min_pu.values[0]):
+                raise ValueError(
+                    f"No p_nom_max or p_nom_min data found for {row['type']}. "
+                    + "Please check input data again"
+                )
+
             # creating result to match format of other availability dataframes
             result = pd.DataFrame(
                 np.repeat(p_max_pu.values, 8762, axis=0),
             ).T
             # give column names to match with other availability dataframes
             result.columns = ["node", "technology"] + [str(i) for i in range(0, 8760)]
-            if result.empty:
-                result = avail_df[(avail_df["technology"].isin(["Con10"]))]
+
+            # give column names to match with other availability dataframes
+            result.columns = ["node", "technology"] + [str(i) for i in range(0, 8760)]
 
         if len(result) > 1:
             raise ValueError(
