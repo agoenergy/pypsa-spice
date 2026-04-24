@@ -8,6 +8,8 @@
 
 ### Fixed
 
+- Fix error handling of missing p_max_pu and p_min_pu in generators and links. ([:material-source-pull:107](https://github.com/agoenergy/pypsa-spice/pull/107) by @RichChang963)
+
 ### Changed
 
 ### Notes
