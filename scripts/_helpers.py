@@ -720,9 +720,6 @@ def get_link_availabilities(
             # give column names to match with other availability dataframes
             result.columns = ["node", "technology"] + [str(i) for i in range(0, 8760)]
 
-            # give column names to match with other availability dataframes
-            result.columns = ["node", "technology"] + [str(i) for i in range(0, 8760)]
-
         if len(result) > 1:
             raise ValueError(
                 f'{row["name"]} has duplicate. Please check input data again'
