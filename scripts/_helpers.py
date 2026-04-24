@@ -1595,6 +1595,7 @@ def generation_type_mapping(x: str) -> str:
         "WTON",
         "WTOF",
         "HDAM",
+        "HDAM-IMP",
         "WSTT",
         "OCHT",
         "HPHS",
