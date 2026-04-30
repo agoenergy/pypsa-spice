@@ -25,6 +25,8 @@ RESERVE_MARGIN_METHODS = ["static", "dynamic"]
 TEMPORAL_CLUSTERING_METHODS = ["nth_hour", "clustered"]
 EXCLUDED_SECTIONS = {"version", "logging", "solving"}
 
+PYPSA_SPICE_DOCS_URL = "https://agoenergy.github.io/pypsa-spice/"
+SCENARIO_DOCS_PATH = "getting-started/input-data/model-builder-configuration/"
 
 # =============================================================================
 # Minor helper functions for rendering scenario config sections
@@ -304,6 +306,15 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
 
     # Render the scenario settings editor with inputs
     with st.expander("Scenario settings", expanded=True):
+        SETTING_PATH = (
+            PYPSA_SPICE_DOCS_URL
+            + SCENARIO_DOCS_PATH
+            + "#scenario_configyaml-scenario-settings"
+        )
+        st.markdown(
+            "Detailed explanation can be found in: "
+            f"[config guides: global input]({SETTING_PATH})"
+        )
         year_col, threshold_col = st.columns([1, 1])
         # Render model year and remove threshold inputs side by side
         with year_col:
@@ -480,6 +491,16 @@ def render_co2_management_section(scenario_section: dict) -> None:
 
     # Render the CO2 management editor with inputs
     with st.expander("CO2 management", expanded=True):
+        MANDATORY_SETTING_PATH = (
+            PYPSA_SPICE_DOCS_URL
+            + SCENARIO_DOCS_PATH
+            + "#scenario_configyaml-mandatory-constraints"
+        )
+        st.markdown(
+            "Detailed explanation can be found in: "
+            f"[config guides: mandatory constraints]({MANDATORY_SETTING_PATH})"
+        )
+
         st.caption(
             "Select the CO2 instrument per country and edit the year-specific values."
         )
@@ -555,6 +576,16 @@ def render_custom_constraints_section(scenario_section: dict) -> None:
 
     # Render the custom constraints editor with inputs
     with st.expander("Custom constraints", expanded=True):
+        CUSTOM_SETTING_PATH = (
+            PYPSA_SPICE_DOCS_URL
+            + SCENARIO_DOCS_PATH
+            + "#scenario_configyaml-custom-constraints"
+        )
+        st.markdown(
+            "Detailed explanation can be found in: "
+            f"[config guides: custom constraints]({CUSTOM_SETTING_PATH})"
+        )
+
         st.caption(
             "Mappings are configured in JSON format to enable easy customization of "
             "technology- and year-specific constraint values."
