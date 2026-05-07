@@ -12,6 +12,7 @@ import re
 import shutil
 import time
 from datetime import date
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import numpy as np
@@ -96,6 +97,22 @@ def get_fuel_mapping(selected_types: list[str], input_config: dict) -> dict:
     )
 
 
+@st.cache_data
+def get_default_scenario_config() -> dict:
+    """Load the default scenario configuration template used by the editor."""
+    file_path = (
+        Path(__file__).resolve().parents[2]
+        / "data"
+        / "scenario_config_template"
+        / "scenario_config.default.yaml"
+    )
+
+    yaml_loader = YAML(typ="safe", pure=True)
+
+    with file_path.open(encoding="utf-8") as file_handle:
+        return yaml_loader.load(file_handle) or {}
+
+
 def get_table_config_and_path(
     title: str,
     sector: str | None,
@@ -138,7 +155,7 @@ def get_tech_mapping() -> pd.DataFrame:
 def get_empty_df_notice_message() -> None:
     """Display a generic message when the filtered dataframe is empty."""
     st.info(
-        "There's no changes required for the selected technology type(s) and "
+        "No data required in this table for the selected technology type(s) and "
         "country(ies)."
     )
 
@@ -376,7 +393,7 @@ def render_line_chart(df: pd.DataFrame, table_config: dict, widget_scope: str) -
         # Timeseries data only applies with the base year
         year = st.session_state.base_config["base_configs"]["years"][0]
         start_date = dt.date(year, 1, 1)
-        end_date = dt.date(year, 1, 31)
+        end_date = dt.date(year, 12, 31)
 
         # Date range filter
         selected_range = st.date_input(
@@ -409,7 +426,7 @@ def render_line_chart(df: pd.DataFrame, table_config: dict, widget_scope: str) -
         ]
 
         if filtered_df.empty:
-            st.info("There's no data available for the selected technology/date range.")
+            st.info("No data available for the selected technology/date range.")
             return
 
         # Set x and legend columns based on the selected averaging period
@@ -585,91 +602,6 @@ def convert_date_string_into_date_obj(raw_value: object, fallback: date) -> date
     return parsed_date
 
 
-def render_decimal_text_input(
-    label: str,
-    value: float | None,
-    constraint_key: str,
-    help_text: str | None = None,
-    precision: int = 2,
-) -> float | None:
-    """Render a decimal input as text so the displayed separator stays `.`."""
-    formatted_value = "" if value is None else f"{float(value):.{precision}f}"
-    text_value = st.text_input(
-        label,
-        value=formatted_value,
-        key=constraint_key,
-        help=help_text,
-    )
-
-    stripped = text_value.strip()
-    if stripped == "":
-        return None
-
-    normalized = stripped.replace(",", ".")
-    try:
-        return float(normalized)
-    except ValueError:
-        st.warning(f"Invalid decimal value for {label}. Keeping the previous value.")
-        return value
-
-
-def create_inputbox_and_keep_nulls_for_empty_input_values(
-    label: str,
-    value: object,
-    constraint_key: str,
-    help_text: str | None = None,
-) -> object:
-    """Render a streamlit input box based on the value types, and keep null values."""
-    result: object | None = None
-
-    # For boolean values, render a checkbox
-    if isinstance(value, bool):
-        result = st.checkbox(label, value=value, key=constraint_key, help=help_text)
-    # For integer values, render a number input with step of 1
-    elif isinstance(value, int) and not isinstance(value, bool):
-        result = st.number_input(
-            label, value=value, step=1, key=constraint_key, help=help_text
-        )
-    # For float values, render a number input with float formatting (2 decimal places)
-    elif isinstance(value, float):
-        result = render_decimal_text_input(
-            label,
-            value=float(value),
-            constraint_key=constraint_key,
-            help_text=help_text,
-        )
-    # For None values or other types, render a text input
-    elif value is None or isinstance(value, str):
-        raw_value = "" if value is None else str(value)
-        text_value = st.text_input(
-            label, value=raw_value, key=constraint_key, help=help_text
-        )
-
-        stripped = text_value.strip()
-        if stripped == "":
-            result = None
-        else:
-            lowered = stripped.lower()
-            if lowered == "true":
-                result = True
-            elif lowered == "false":
-                result = False
-            else:
-                try:
-                    # Handle negative integers (e.g., "-5")
-                    # and positive integers (e.g., "5")
-                    if stripped.startswith("-") and stripped[1:].isdigit():
-                        result = int(stripped)
-                    elif stripped.isdigit():
-                        result = int(stripped)
-                    else:
-                        result = float(stripped.replace(",", "."))
-                except ValueError:
-                    result = stripped
-
-    return result
-
-
 def render_save_button_for_input_df(
     filtered_df: pd.DataFrame,
     edited_df: pd.DataFrame,
@@ -810,101 +742,6 @@ def convert_to_commented_yaml_value(value: object) -> object:
     return root
 
 
-def update_commented_yaml_node(target_node: object, source_value: object) -> object:
-    """Update an existing ruamel YAML node in place while preserving comments."""
-    if isinstance(source_value, dict):
-        if not isinstance(target_node, CommentedMap):
-            return convert_to_commented_yaml_value(source_value)
-
-        source_keys = set(source_value.keys())
-        for stale_key in list(target_node.keys()):
-            if stale_key not in source_keys:
-                del target_node[stale_key]
-
-        for key, item in source_value.items():
-            existing_item = target_node.get(key)
-            if isinstance(item, (dict, list)):
-                target_node[key] = update_commented_yaml_node(existing_item, item)
-            elif isinstance(item, str):
-                target_node[key] = convert_scalar_value_to_yaml_value(item)
-            else:
-                target_node[key] = item
-
-        return target_node
-
-    if isinstance(source_value, list):
-        if not isinstance(target_node, CommentedSeq):
-            return convert_to_commented_yaml_value(source_value)
-
-        while len(target_node) > len(source_value):
-            del target_node[-1]
-
-        for index, item in enumerate(source_value):
-            if index >= len(target_node):
-                if isinstance(item, (dict, list)):
-                    target_node.append(update_commented_yaml_node(None, item))
-                elif isinstance(item, str):
-                    target_node.append(convert_scalar_value_to_yaml_value(item))
-                else:
-                    target_node.append(item)
-                continue
-
-            existing_item = target_node[index]
-            if isinstance(item, (dict, list)):
-                target_node[index] = update_commented_yaml_node(existing_item, item)
-            elif isinstance(item, str):
-                target_node[index] = convert_scalar_value_to_yaml_value(item)
-            else:
-                target_node[index] = item
-
-        return target_node
-
-    if isinstance(source_value, str):
-        return convert_scalar_value_to_yaml_value(source_value)
-
-    return source_value
-
-
-def add_eol_comments_for_yaml_keys(
-    yaml_map: CommentedMap | None,
-    comment_text: str,
-    exception_keys: set[str] | None = None,
-) -> None:
-    """Add the same end-of-line comment to each key in a YAML mapping."""
-    if not isinstance(yaml_map, CommentedMap):
-        return
-
-    excluded_keys = exception_keys or set()
-    for key in yaml_map:
-        if key in excluded_keys:
-            continue
-        yaml_map.yaml_add_eol_comment(comment_text, key)
-
-
-def apply_custom_constraints_yaml_comments(custom_constraints: object) -> None:
-    """Reapply generated inline comments for the custom constraints section."""
-    if not isinstance(custom_constraints, CommentedMap):
-        return
-
-    for country_constraints in custom_constraints.values():
-        if not isinstance(country_constraints, CommentedMap):
-            continue
-
-        reserve_margin = country_constraints.get("reserve_margin")
-        if isinstance(reserve_margin, CommentedMap):
-            reserve_margin.yaml_add_eol_comment(
-                "static or dynamic. If static, ignore epsilon_vre", "method"
-            )
-
-        if "maximum_power_generation_constraint" in country_constraints:
-            country_constraints.yaml_set_comment_before_after_key(
-                "maximum_power_generation_constraint",
-                after=(
-                    "maximum power generation per techology, country and year (TWh)"
-                ),
-            )
-
-
 def render_save_button_for_input_config(
     scenario_section: dict,
     section_name: str,
@@ -921,7 +758,6 @@ def render_save_button_for_input_config(
     ):
         success = True
         scenario_config_path = st.session_state.scenario_config_path
-        first_three_lines: list[str] = []
 
         # Initialize YAML instance
         yaml = YAML()
@@ -929,31 +765,19 @@ def render_save_button_for_input_config(
         yaml.default_flow_style = False
         yaml.width = 4096  # Prevent line wrapping
 
-        with open(scenario_config_path, encoding="utf-8") as file_handle:
-            first_three_lines = [file_handle.readline() for _ in range(3)]
-            file_handle.seek(0)
-            scenario_config = yaml.load(file_handle)
+        scenario_config_data = dict(st.session_state.scenario_config)
+        scenario_config_data[section_name] = scenario_section
 
-        header_exists = any(
-            line.strip() == "# SPDX-FileCopyrightText: PyPSA-SPICE Developers"
-            for line in first_three_lines
-        )
+        commented_map = CommentedMap()
+        for key, item in scenario_config_data.items():
+            # Convert each value to the appropriate YAML type while preserving comments
+            commented_map[key] = convert_to_commented_yaml_value(item)
 
-        existing_section = (
-            None if scenario_config is None else scenario_config.get(section_name)
-        )
-        updated_section = update_commented_yaml_node(existing_section, scenario_section)
-        if section_name == "custom_constraints":
-            apply_custom_constraints_yaml_comments(updated_section)
-
-        if scenario_config is None:
-            scenario_config = CommentedMap()
-        scenario_config[section_name] = updated_section
+        scenario_config = commented_map
 
         # Save the updated scenario config back to the YAML file
         with open(scenario_config_path, "w", encoding="utf-8") as file_handle:
-            if not header_exists:
-                file_handle.write(SCENARIO_CONFIG_HEADER)
+            file_handle.write(SCENARIO_CONFIG_HEADER)
             yaml.dump(scenario_config, file_handle)
 
         if success:

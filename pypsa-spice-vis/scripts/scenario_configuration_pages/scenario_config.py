@@ -5,16 +5,17 @@
 """Helpers for rendering and editing scenario configuration YAML."""
 
 import calendar
-import json
+from copy import deepcopy
 from datetime import date
+from typing import Any
 
 import streamlit as st
+from streamlit_extras.json_editor import json_editor
 
 from scripts.input_st_handler import (
     convert_date_string_into_date_obj,
-    create_inputbox_and_keep_nulls_for_empty_input_values,
     format_keys_into_readable_titles,
-    render_decimal_text_input,
+    get_default_scenario_config,
     render_save_button_for_input_config,
 )
 
@@ -24,9 +25,7 @@ MATH_SYMBOL_OPTIONS = ["<=", ">="]
 RESERVE_MARGIN_METHODS = ["static", "dynamic"]
 TEMPORAL_CLUSTERING_METHODS = ["nth_hour", "clustered"]
 EXCLUDED_SECTIONS = {"version", "logging", "solving"}
-
-PYPSA_SPICE_DOCS_URL = "https://agoenergy.github.io/pypsa-spice/"
-SCENARIO_DOCS_PATH = "getting-started/input-data/model-builder-configuration/"
+MISSING = object()
 
 # =============================================================================
 # Minor helper functions for rendering scenario config sections
@@ -60,13 +59,268 @@ def extract_default_snapshot(snapshots: dict) -> tuple[int, date, date, str]:
     return start_date.year, start_date, end_date, inclusive
 
 
+def normalize_json_like_value(value: Any) -> Any:
+    """Normalize JSON-like data while restoring integer-looking mapping keys."""
+    if not isinstance(value, (dict, list)):
+        return value
+
+    root = {} if isinstance(value, dict) else []
+    pending_nodes: list[tuple[Any, Any]] = [(value, root)]
+
+    while pending_nodes:
+        source_node, target_node = pending_nodes.pop()
+
+        if isinstance(source_node, dict) and isinstance(target_node, dict):
+            for key, child_value in source_node.items():
+                normalized_key = (
+                    int(key) if isinstance(key, str) and key.isdigit() else key
+                )
+                if isinstance(child_value, dict):
+                    child_target = {}
+                    target_node[normalized_key] = child_target
+                    pending_nodes.append((child_value, child_target))
+                elif isinstance(child_value, list):
+                    child_target = []
+                    target_node[normalized_key] = child_target
+                    pending_nodes.append((child_value, child_target))
+                else:
+                    target_node[normalized_key] = child_value
+            continue
+
+        if isinstance(source_node, list) and isinstance(target_node, list):
+            for child_value in source_node:
+                if isinstance(child_value, dict):
+                    child_target = {}
+                    target_node.append(child_target)
+                    pending_nodes.append((child_value, child_target))
+                elif isinstance(child_value, list):
+                    child_target = []
+                    target_node.append(child_target)
+                    pending_nodes.append((child_value, child_target))
+                else:
+                    target_node.append(child_value)
+
+    return root
+
+
+def merge_nested_mappings(base_value: Any, override_value: Any) -> Any:
+    """Recursively merge two nested mappings, preferring override values."""
+    if not (isinstance(base_value, dict) and isinstance(override_value, dict)):
+        return deepcopy(override_value)
+
+    merged_value = deepcopy(base_value)
+    pending_nodes: list[tuple[dict[str, Any], dict[str, Any]]] = [
+        (merged_value, override_value)
+    ]
+
+    while pending_nodes:
+        current_target, current_override = pending_nodes.pop()
+
+        for key, value in current_override.items():
+            existing_value = current_target.get(key)
+            if isinstance(existing_value, dict) and isinstance(value, dict):
+                pending_nodes.append((existing_value, value))
+            else:
+                current_target[key] = deepcopy(value)
+
+    return merged_value
+
+
+def count_nested_items(value: Any) -> int:
+    """Return a simple complexity score for preferring richer templates."""
+    item_count = 0
+    pending_nodes = [value]
+
+    while pending_nodes:
+        current_value = pending_nodes.pop()
+        item_count += 1
+
+        if isinstance(current_value, dict):
+            pending_nodes.extend(current_value.values())
+        elif isinstance(current_value, list):
+            pending_nodes.extend(current_value)
+
+    return item_count
+
+
+def build_custom_constraint_templates(
+    default_custom_constraints: dict[str, Any],
+) -> dict[str, Any]:
+    """Build a template per custom constraint from the default scenario config."""
+    constraint_templates: dict[str, Any] = {}
+
+    for country_constraints in default_custom_constraints.values():
+        if not isinstance(country_constraints, dict):
+            continue
+
+        for constraint_name, constraint_config in country_constraints.items():
+            normalized_config = normalize_json_like_value(constraint_config)
+            if isinstance(normalized_config, dict) and "activate" in normalized_config:
+                normalized_config["activate"] = False
+            current_template = constraint_templates.get(constraint_name)
+            if current_template is None or count_nested_items(
+                normalized_config
+            ) > count_nested_items(current_template):
+                constraint_templates[constraint_name] = deepcopy(normalized_config)
+
+    return constraint_templates
+
+
+def get_available_custom_constraints(
+    current_custom_constraints: dict[str, Any],
+) -> tuple[list[str], dict[str, Any]]:
+    """Return country names and merged custom constraint templates."""
+    default_scenario_config = get_default_scenario_config()
+    default_custom_constraints = (
+        default_scenario_config.get("custom_constraints", {}) or {}
+    )
+    constraint_templates = build_custom_constraint_templates(default_custom_constraints)
+
+    countries = list(current_custom_constraints)
+    if not countries:
+        countries = list(default_custom_constraints)
+
+    return countries, constraint_templates
+
+
+def build_custom_constraint_editor_value(
+    template_config: dict[str, Any],
+    current_config: dict[str, Any],
+) -> dict[str, Any]:
+    """Build the editor state without letting template values override scenario data."""
+    if current_config:
+        return merge_nested_mappings(template_config, current_config)
+
+    return deepcopy(template_config)
+
+
+def strip_template_defaults_from_edit(
+    edited_value: Any,
+    current_value: Any = MISSING,
+    template_value: Any = MISSING,
+) -> Any:
+    """Keep scenario values while dropping untouched defaults."""
+    if not isinstance(edited_value, dict):
+        current_exists = current_value is not MISSING
+        template_exists = template_value is not MISSING
+
+        if isinstance(edited_value, list):
+            if current_exists or not template_exists or edited_value != template_value:
+                return edited_value
+            return MISSING
+
+        if current_exists or not template_exists or edited_value != template_value:
+            return edited_value
+
+        return MISSING
+
+    root_result: dict[str, Any] = {}
+    pending_nodes: list[tuple[dict[str, Any], Any, Any, dict[str, Any]]] = [
+        (edited_value, current_value, template_value, root_result)
+    ]
+
+    while pending_nodes:
+        edited_dict, current_node, template_node, result_node = pending_nodes.pop()
+        current_dict = current_node if isinstance(current_node, dict) else {}
+        template_dict = template_node if isinstance(template_node, dict) else {}
+
+        for key, child_value in edited_dict.items():
+            child_current = current_dict.get(key, MISSING)
+            child_template = template_dict.get(key, MISSING)
+            current_exists = child_current is not MISSING
+            template_exists = child_template is not MISSING
+
+            if isinstance(child_value, dict):
+                child_result: dict[str, Any] = {}
+                result_node[key] = child_result
+                pending_nodes.append(
+                    (child_value, child_current, child_template, child_result)
+                )
+                continue
+
+            if isinstance(child_value, list):
+                if (
+                    current_exists
+                    or not template_exists
+                    or child_value != child_template
+                ):
+                    result_node[key] = child_value
+                continue
+
+            if current_exists or not template_exists or child_value != child_template:
+                result_node[key] = child_value
+
+    cleanup_stack: list[
+        tuple[dict[str, Any], Any, Any, dict[str, Any] | None, str | None]
+    ] = [(root_result, current_value, template_value, None, None)]
+    postorder_nodes: list[
+        tuple[dict[str, Any], Any, Any, dict[str, Any] | None, str | None]
+    ] = []
+
+    while cleanup_stack:
+        result_node, current_node, template_node, parent_node, parent_key = (
+            cleanup_stack.pop()
+        )
+        postorder_nodes.append(
+            (result_node, current_node, template_node, parent_node, parent_key)
+        )
+        current_dict = current_node if isinstance(current_node, dict) else {}
+        template_dict = template_node if isinstance(template_node, dict) else {}
+
+        for key, child_result in result_node.items():
+            if isinstance(child_result, dict):
+                cleanup_stack.append(
+                    (
+                        child_result,
+                        current_dict.get(key, MISSING),
+                        template_dict.get(key, MISSING),
+                        result_node,
+                        key,
+                    )
+                )
+
+    root_removed = False
+    for result_node, current_node, template_node, parent_node, parent_key in reversed(
+        postorder_nodes
+    ):
+        current_exists = current_node is not MISSING
+        template_exists = template_node is not MISSING
+
+        if result_node or current_exists:
+            continue
+
+        if parent_node is None:
+            root_removed = True
+            continue
+
+        if parent_key is None:
+            continue
+
+        if (
+            template_exists
+            and isinstance(template_node, dict)
+            and result_node == template_node
+        ):
+            parent_node.pop(parent_key, None)
+            continue
+
+        parent_node.pop(parent_key, None)
+
+    if root_removed and not root_result:
+        return MISSING
+
+    return root_result
+
+
 def setup_json_editor(
     label: str,
     value: object,
     constraint_key: str,
     help_text: str | None = None,
+    collapsed: bool | int = False,
+    root_name: str | None = None,
 ) -> object:
-    """Render a text area for editing JSON content.
+    """Render a JSON editor for editing nested configuration content.
 
     Parameters
     ----------
@@ -78,202 +332,132 @@ def setup_json_editor(
         The key to use for the Streamlit widget.
     help_text : str | None, optional
         The help text to display for the JSON editor, by default None
+    collapsed : bool | int, optional
+        Initial collapse state for nested values, by default False
+    root_name : str | None, optional
+        Root label shown by the JSON editor, by default None
 
     Returns
     -------
     object
-        The parsed JSON object or the previous value if parsing fails.
+        The edited JSON-compatible value.
     """
-    default_value = {} if value is None else value
+    default_value: dict[str, Any] | list[Any] | str
+    if isinstance(value, (dict, list, str)):
+        default_value = value
+    else:
+        default_value = {}
 
-    # Display the JSON editor with the current value as a formatted JSON string
-    json_text = st.text_area(
-        label,
-        value=json.dumps(default_value, indent=2),
+    st.markdown(f"**{label}**")
+    if help_text:
+        st.caption(help_text)
+
+    editor_state = json_editor(
+        default_value,
+        name=root_name,
+        collapsed=collapsed,
+        display_object_size=False,
+        editable=True,
         key=constraint_key,
-        help=help_text,
-        height=180,
     )
 
-    try:
-        parsed_json = json.loads(json_text)
-    except json.JSONDecodeError:
-        st.warning(f"Invalid JSON in {label}. Keeping the previous value.")
-        return value
-
-    if not isinstance(parsed_json, (dict, list)):
-        return value
-
-    if isinstance(parsed_json, dict):
-        normalized_root = {}
-
-    if isinstance(parsed_json, list):
-        normalized_root = []
-
-    # Use a stack to traverse the parsed JSON & build the normalized structure
-    stack: list[tuple[dict | list, dict | list]] = [(parsed_json, normalized_root)]
-    while stack:
-        source, target = stack.pop()
-
-        if isinstance(source, dict):
-            # If the source is a dict, process key-value pairs
-            if not isinstance(target, dict):
-                continue
-            target_dict = target
-            for key, child_value in source.items():
-                normalized_key = (
-                    int(key) if isinstance(key, str) and key.isdigit() else key
-                )
-                if isinstance(child_value, dict):
-                    child_target: dict | list = {}
-                    target_dict[normalized_key] = child_target
-                    stack.append((child_value, child_target))
-                elif isinstance(child_value, list):
-                    child_target = []
-                    target_dict[normalized_key] = child_target
-                    stack.append((child_value, child_target))
-                else:
-                    target_dict[normalized_key] = child_value
-        else:
-            # If the source is a list, process each element
-            if not isinstance(target, list):
-                continue
-            target_list = target
-            for child_value in source:
-                if isinstance(child_value, dict):
-                    child_target = {}
-                    target_list.append(child_target)
-                    stack.append((child_value, child_target))
-                elif isinstance(child_value, list):
-                    child_target = []
-                    target_list.append(child_target)
-                    stack.append((child_value, child_target))
-                else:
-                    target_list.append(child_value)
-
-    return normalized_root
+    return normalize_json_like_value(editor_state.get("data", default_value))
 
 
-def create_custom_constraint_field_inputbox(
-    constraint_name: str,
-    field_name: str,
-    field_value: object,
-    widget_prefix: str,
-) -> object:
-    """Render an input box for a custom constraint field.
-
-    Parameters
-    ----------
-    constraint_name : str
-        The name of the custom constraint.
-    field_name : str
-        The name of the field within the custom constraint.
-    field_value : object
-        The current value of the field.
-    widget_prefix : str
-        The prefix to use for the Streamlit widget key.
-
-    Returns
-    -------
-    object
-        The Streamlit widget for the custom constraint field.
-    """
-    constraint_key = f"{widget_prefix}_{field_name}"
-
-    # Generate a user-friendly label for the field names
-    label = (
-        "Active"
-        if field_name == "activate"
-        else format_keys_into_readable_titles(field_name)
+def render_interest_section(interest: dict[str, Any]) -> dict[str, Any]:
+    """Render interest-rate mappings in a JSON editor."""
+    edited_interest = setup_json_editor(
+        "Interest rates",
+        interest or {},
+        "scenario_configs_interest",
+        help_text="Edit country-specific interest rates in decimals, e.g. 0.05 for 5%.",
+        collapsed=1,
+        root_name=None,
     )
-
-    # Render a checkbox for "activate" fields, which are expected to be boolean
-    if field_name == "activate":
-        return st.checkbox(label, value=bool(field_value), key=constraint_key)
-
-    options = None
-    selected_value = str(field_value)
-    if constraint_name == "reserve_margin" and field_name == "method":
-        options = RESERVE_MARGIN_METHODS
-        if selected_value not in options:
-            selected_value = "static"
-    elif field_name == "math_symbol":
-        options = MATH_SYMBOL_OPTIONS
-        if selected_value not in options:
-            selected_value = options[0]
-
-    if options is not None:
-        return st.selectbox(
-            label,
-            options=options,
-            index=options.index(selected_value),
-            key=constraint_key,
-        )
-
-    if field_name in {"value", "values"} or isinstance(field_value, (dict, list)):
-        help_text = "Use JSON for technology- or year-specific mappings."
-        if isinstance(field_value, dict):
-            help_text = "Use JSON to edit nested mappings."
-        elif isinstance(field_value, list):
-            help_text = "Use a JSON array for list values."
-
-        return setup_json_editor(
-            f"{label} (JSON)",
-            field_value,
-            constraint_key,
-            help_text=help_text,
-        )
-
-    return create_inputbox_and_keep_nulls_for_empty_input_values(
-        label, field_value, constraint_key
-    )
+    return edited_interest if isinstance(edited_interest, dict) else interest
 
 
-def render_country_custom_constraints(country: str, country_constraints: dict) -> dict:
-    """Render all custom constraints for one country and return edited values."""
-    edited_country_constraints = {}
+def render_co2_country_editor(
+    country: str, country_config: dict[str, Any]
+) -> dict[str, Any]:
+    """Render one country's CO2 management configuration."""
+    option = country_config.get("option", CO2_OPTIONS[0])
+    if option not in CO2_OPTIONS:
+        option = CO2_OPTIONS[0]
 
     with st.expander(country, expanded=False):
-        for constraint_name, constraint_config in country_constraints.items():
+        selected_option = st.selectbox(
+            "CO2 management option",
+            options=CO2_OPTIONS,
+            index=CO2_OPTIONS.index(option),
+            key=f"co2_option_{country}",
+            help=(
+                "**co2_cap** - Maximum allowable CO2 emissions "
+                "(carbon budget constraint)\n\n"
+                "**co2_price** - Cost applied per unit of CO2 emitted "
+                "(carbon pricing mechanism)"
+            ),
+        )
+        edited_values = setup_json_editor(
+            "Year-specific values",
+            country_config.get("value", {}) or {},
+            f"co2_value_{country}",
+            help_text="Edit year-specific CO2 cap or price values as a mapping.",
+            collapsed=1,
+            root_name=None,
+        )
+
+    return {
+        "option": selected_option,
+        "value": edited_values if isinstance(edited_values, dict) else {},
+    }
+
+
+def render_country_custom_constraints(
+    country: str,
+    country_constraints: dict[str, Any],
+    constraint_templates: dict[str, Any],
+) -> dict[str, Any]:
+    """Render all available custom constraints for one country."""
+    edited_country_constraints = {}
+    ordered_constraint_names = list(constraint_templates)
+    for constraint_name in country_constraints:
+        if constraint_name not in constraint_templates:
+            ordered_constraint_names.append(constraint_name)
+
+    with st.expander(country, expanded=False):
+        for constraint_name in ordered_constraint_names:
             constraint_label = format_keys_into_readable_titles(constraint_name)
-            constraint_key_prefix = f"custom_{country}_{constraint_name}"
-            constraint_expander_key = f"{constraint_key_prefix}_expanded"
+            constraint_key = f"custom_{country}_{constraint_name}"
+            template_config = deepcopy(constraint_templates.get(constraint_name, {}))
+            current_config = country_constraints.get(constraint_name, {})
+            editor_config = build_custom_constraint_editor_value(
+                template_config,
+                current_config,
+            )
 
-            with st.expander(
-                constraint_label,
-                expanded=False,
-                key=constraint_expander_key,
-                on_change="rerun",
-            ):
-                if not isinstance(constraint_config, dict):
-                    edited_country_constraints[constraint_name] = (
-                        create_inputbox_and_keep_nulls_for_empty_input_values(
-                            constraint_label,
-                            constraint_config,
-                            constraint_key_prefix,
-                        )
-                    )
-                    continue
+            with st.expander(constraint_label, expanded=False):
+                edited_constraint = setup_json_editor(
+                    "Configuration",
+                    editor_config,
+                    constraint_key,
+                    help_text=(
+                        "Edit the full constraint configuration as JSON. "
+                        "All available constraints are loaded from the default "
+                        "scenario configuration."
+                    ),
+                    collapsed=False,
+                    root_name=None,
+                )
 
-                # Constraint activation: collapsed=False, expanded=True.
-                edited_constraint: dict[str, object] = {
-                    "activate": bool(
-                        st.session_state.get(constraint_expander_key, False)
-                    )
-                }
-                for field_name, field_value in constraint_config.items():
-                    if field_name == "activate":
-                        continue
-                    edited_constraint[field_name] = (
-                        create_custom_constraint_field_inputbox(
-                            constraint_name,
-                            field_name,
-                            field_value,
-                            constraint_key_prefix,
-                        )
-                    )
-
-            edited_country_constraints[constraint_name] = edited_constraint
+                filtered_constraint = strip_template_defaults_from_edit(
+                    edited_constraint,
+                    current_config if current_config else MISSING,
+                    template_config if template_config else MISSING,
+                )
+                edited_country_constraints[constraint_name] = (
+                    {} if filtered_constraint is MISSING else filtered_constraint
+                )
 
     return edited_country_constraints
 
@@ -306,15 +490,6 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
 
     # Render the scenario settings editor with inputs
     with st.expander("Scenario settings", expanded=True):
-        SETTING_PATH = (
-            PYPSA_SPICE_DOCS_URL
-            + SCENARIO_DOCS_PATH
-            + "#scenario_configyaml-scenario-settings"
-        )
-        st.markdown(
-            "Detailed explanation can be found in: "
-            f"[config guides: global input]({SETTING_PATH})"
-        )
         year_col, threshold_col = st.columns([1, 1])
         # Render model year and remove threshold inputs side by side
         with year_col:
@@ -337,12 +512,14 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                     f"Model year has been automatically adjusted to **{model_year}**.",
                 )
         with threshold_col:
-            remove_threshold = render_decimal_text_input(
+            remove_threshold = st.number_input(
                 "Remove asset with capacity lower than (MW)",
+                min_value=0.0,
                 value=float(scenario_settings.get("remove_threshold", 0.0) or 0.0),
-                constraint_key="scenario_configs_remove_threshold",
+                format="%.2f",
+                step=0.1,
+                key="scenario_configs_remove_threshold",
             )
-            remove_threshold = max(remove_threshold or 0.0, 0.0)
 
         st.caption(
             "By default, the snapshot range is derived automatically from the model "
@@ -430,21 +607,7 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
 
         # Render interest rate inputs for each country
         st.markdown("#### Interest")
-        edited_interest = {}
-        interest_items = list(interest.items())
-        interest_columns = st.columns(2) if interest_items else []
-
-        # Render the country-specific interest values in two columns
-        for index, (country, country_value) in enumerate(interest_items):
-            with interest_columns[index % 2]:
-                edited_interest[country] = (
-                    create_inputbox_and_keep_nulls_for_empty_input_values(
-                        country,
-                        country_value,
-                        f"scenario_configs_interest_{country}",
-                        help_text="Interest rate in decimal form, e.g. 0.05 for 5%.",
-                    )
-                )
+        edited_interest = render_interest_section(interest)
         if end_date < start_date:
             st.error("Snapshot end must be on or after snapshot start.")
             return
@@ -491,64 +654,16 @@ def render_co2_management_section(scenario_section: dict) -> None:
 
     # Render the CO2 management editor with inputs
     with st.expander("CO2 management", expanded=True):
-        MANDATORY_SETTING_PATH = (
-            PYPSA_SPICE_DOCS_URL
-            + SCENARIO_DOCS_PATH
-            + "#scenario_configyaml-mandatory-constraints"
-        )
-        st.markdown(
-            "Detailed explanation can be found in: "
-            f"[config guides: mandatory constraints]({MANDATORY_SETTING_PATH})"
-        )
-
         st.caption(
             "Select the CO2 instrument per country and edit the year-specific values."
         )
         edited_section = {}
 
         for country, country_config in co2_management.items():
-            country_config = country_config or {}
-            option = country_config.get("option", CO2_OPTIONS[0])
-            if option not in CO2_OPTIONS:
-                option = CO2_OPTIONS[0]
-
-            # Render the CO2 management options and values for each country
-            with st.expander(country, expanded=False):
-                # Render the CO2 management option selection
-                selected_option = st.selectbox(
-                    "CO2 management option",
-                    options=CO2_OPTIONS,
-                    index=CO2_OPTIONS.index(option),
-                    key=f"co2_option_{country}",
-                    help=(
-                        "**co2_cap** - Maximum allowable CO2 emissions "
-                        "(carbon budget constraint)\n\n"
-                        "**co2_price** - Cost applied per unit of CO2 emitted "
-                        "(carbon pricing mechanism)"
-                    ),
-                )
-
-                edited_values = {}
-                yearly_values = country_config.get("value", {}) or {}
-                yearly_items = list(yearly_values.items())
-                year_columns = st.columns(3) if yearly_items else []
-
-                # Render the year-specific CO2 values in three columns
-                for index, (year, year_value) in enumerate(yearly_items):
-                    with year_columns[index % 3]:
-                        edited_values[year] = (
-                            create_inputbox_and_keep_nulls_for_empty_input_values(
-                                str(year),
-                                year_value,
-                                f"co2_value_{country}_{year}",
-                            )
-                        )
-
-                # Compile the edited values into a new country config dictionary
-                edited_section[country] = {
-                    "option": selected_option,
-                    "value": edited_values,
-                }
+            edited_section[country] = render_co2_country_editor(
+                country,
+                country_config or {},
+            )
 
         # Check if there are changes to save and render the save button
         has_changes_key = f"has_changes_{st.title}_co2_management"
@@ -573,31 +688,30 @@ def render_custom_constraints_section(scenario_section: dict) -> None:
     """
     # Set default custom constraints values based on the loaded configuration
     custom_constraints = scenario_section or {}
+    countries, constraint_templates = get_available_custom_constraints(
+        custom_constraints
+    )
 
     # Render the custom constraints editor with inputs
     with st.expander("Custom constraints", expanded=True):
-        CUSTOM_SETTING_PATH = (
-            PYPSA_SPICE_DOCS_URL
-            + SCENARIO_DOCS_PATH
-            + "#scenario_configyaml-custom-constraints"
-        )
-        st.markdown(
-            "Detailed explanation can be found in: "
-            f"[config guides: custom constraints]({CUSTOM_SETTING_PATH})"
-        )
-
         st.caption(
-            "Mappings are configured in JSON format to enable easy customization of "
-            "technology- and year-specific constraint values."
+            "Constraint templates are loaded from the default scenario configuration. "
+            "Edit each constraint as JSON inside its expander."
         )
         edited_section = {}
 
         # Render the custom constraints for each country
-        for country, country_constraints in custom_constraints.items():
-            edited_section[country] = render_country_custom_constraints(
+        for country in countries:
+            country_result = render_country_custom_constraints(
                 country,
-                country_constraints or {},
+                custom_constraints.get(country, {}) or {},
+                constraint_templates,
             )
+            edited_section[country] = {
+                constraint_name: constraint_value
+                for constraint_name, constraint_value in country_result.items()
+                if constraint_value not in ({}, [], None)
+            }
 
         # Check if there are changes to save and render the save button
         has_changes_key = f"has_changes_{st.title}_custom_constraints"
@@ -614,10 +728,6 @@ def render_custom_constraints_section(scenario_section: dict) -> None:
 
 if __name__ == "__main__":
     st.title(":material/settings: Scenario config editor")
-    st.markdown(
-        "Scenario name: "
-        + st.session_state.base_config["path_configs"]["input_scenario_name"]
-    )
     DOCS_PATH = "getting-started/input-data/model-builder-configuration"
     st.markdown(
         "Detailed explanation can be found in: "
