@@ -12,7 +12,6 @@ import re
 import shutil
 import time
 from datetime import date
-from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import numpy as np
@@ -95,22 +94,6 @@ def get_fuel_mapping(selected_types: list[str], input_config: dict) -> dict:
         .set_index("technology")["carrier"]
         .to_dict()
     )
-
-
-@st.cache_data
-def get_default_scenario_config() -> dict:
-    """Load the default scenario configuration template used by the editor."""
-    file_path = (
-        Path(__file__).resolve().parents[2]
-        / "data"
-        / "scenario_config_template"
-        / "scenario_config.default.yaml"
-    )
-
-    yaml_loader = YAML(typ="safe", pure=True)
-
-    with file_path.open(encoding="utf-8") as file_handle:
-        return yaml_loader.load(file_handle) or {}
 
 
 def get_table_config_and_path(
@@ -600,6 +583,64 @@ def convert_date_string_into_date_obj(raw_value: object, fallback: date) -> date
             pass
 
     return parsed_date
+
+
+def create_inputbox_and_keep_nulls_for_empty_input_values(
+    label: str,
+    value: object,
+    constraint_key: str,
+    help_text: str | None = None,
+) -> object:
+    """Render a streamlit input box based on the value types, and keep null values."""
+    result: object | None = None
+
+    # For boolean values, render a checkbox
+    if isinstance(value, bool):
+        result = st.checkbox(label, value=value, key=constraint_key, help=help_text)
+    # For integer values, render a number input with step of 1
+    elif isinstance(value, int) and not isinstance(value, bool):
+        result = st.number_input(
+            label, value=value, step=1, key=constraint_key, help=help_text
+        )
+    # For float values, render a number input with float formatting (2 decimal places)
+    elif isinstance(value, float):
+        result = st.number_input(
+            label,
+            value=float(value),
+            format="%.2f",
+            key=constraint_key,
+            help=help_text,
+        )
+    # For None values or other types, render a text input
+    elif value is None or isinstance(value, str):
+        raw_value = "" if value is None else str(value)
+        text_value = st.text_input(
+            label, value=raw_value, key=constraint_key, help=help_text
+        )
+
+        stripped = text_value.strip()
+        if stripped == "":
+            result = None
+        else:
+            lowered = stripped.lower()
+            if lowered == "true":
+                result = True
+            elif lowered == "false":
+                result = False
+            else:
+                try:
+                    # Handle negative integers (e.g., "-5")
+                    # and positive integers (e.g., "5")
+                    if stripped.startswith("-") and stripped[1:].isdigit():
+                        result = int(stripped)
+                    elif stripped.isdigit():
+                        result = int(stripped)
+                    else:
+                        result = float(stripped)
+                except ValueError:
+                    result = stripped
+
+    return result
 
 
 def render_save_button_for_input_df(
