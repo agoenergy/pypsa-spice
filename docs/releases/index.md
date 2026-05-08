@@ -8,6 +8,8 @@
 
 ### Fixed
 
+- Change website link display. ([:material-source-pull:110](https://github.com/agoenergy/pypsa-spice/pull/110) by @RichChang963)
+
 ### Changed
 
 ### Notes
