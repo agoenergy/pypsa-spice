@@ -10,7 +10,7 @@
 
 ### Changed
 
-- Adjust legend order for stacked column charts, add customised legend order control for hourly stacked column charts, and add back-to-top button in PyPSA-SPICE-Vis ([:material-source-pull:104](https://github.com/agoenergy/pypsa-spice/pull/104) by @RichChang963)
+- Add customised legend order control for hourly stacked column charts, and add back-to-top button in PyPSA-SPICE-Vis ([:material-source-pull:104](https://github.com/agoenergy/pypsa-spice/pull/104) by @RichChang963)
 
 ### Notes
 
