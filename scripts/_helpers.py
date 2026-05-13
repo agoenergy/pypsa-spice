@@ -616,11 +616,10 @@ def get_plant_availabilities(
                 & (arch_country_df["carrier"].isin([row["carrier"]]))
             ]
             p_max_pu = techonology["p_max_pu"]
-            p_min_pu = techonology["p_min_pu"]
 
-            if math.isnan(p_max_pu.values[0]) or math.isnan(p_min_pu.values[0]):
+            if math.isnan(p_max_pu.values[0]):
                 raise ValueError(
-                    f"No p_nom_max or p_nom_min data found for {row['type']}. "
+                    f"No p_nom_max data found for {row['type']}. "
                     + "Please check input data again"
                 )
 
@@ -705,11 +704,10 @@ def get_link_availabilities(
                 & (arch_country_df["carrier"].isin([row["carrier"]]))
             ]
             p_max_pu = techonology["p_max_pu"]
-            p_min_pu = techonology["p_min_pu"]
 
-            if math.isnan(p_max_pu.values[0]) or math.isnan(p_min_pu.values[0]):
+            if math.isnan(p_max_pu.values[0]):
                 raise ValueError(
-                    f"No p_nom_max or p_nom_min data found for {row['type']}. "
+                    f"No p_nom_max data found for {row['type']}. "
                     + "Please check input data again"
                 )
 
