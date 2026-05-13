@@ -8,6 +8,8 @@
 
 ### Fixed
 
+- Change website link display. ([:material-source-pull:110](https://github.com/agoenergy/pypsa-spice/pull/110) by @RichChang963)
+
 ### Changed
 
 - Add customised legend order control for hourly stacked column charts, and add back-to-top button in PyPSA-SPICE-Vis ([:material-source-pull:104](https://github.com/agoenergy/pypsa-spice/pull/104) by @RichChang963)
