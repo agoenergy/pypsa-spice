@@ -544,7 +544,8 @@ def get_time_series_demands(
         result["country"] = row["country"]
         if len(result) > 1:
             raise ValueError(
-                f'{result["load_id"]} has duplicate. Please check input data again'
+                f"{result['load_id']} has duplicate rows. "
+                + "Please check data in demand_profiles.csv again."
             )
         dfs.append(result)
     demand_df = pd.concat(dfs)
@@ -620,7 +621,7 @@ def get_plant_availabilities(
             if math.isnan(p_max_pu.values[0]):
                 raise ValueError(
                     f"No p_nom_max data found for {row['type']}. "
-                    + "Please check input data again"
+                    + "Please check data in technologies.csv again."
                 )
 
             # creating result to match format of other availability dataframes
@@ -632,7 +633,8 @@ def get_plant_availabilities(
 
         if len(result) > 1:
             raise ValueError(
-                f'{row["name"]} has duplicate. Please check input data again'
+                f"{row['name']} has duplicate rows. "
+                + "Please check data in technologies.csv and availability.csv again."
             )
         result = result.iloc[:, 2:]
         result["plant"] = row["name"]
@@ -708,7 +710,7 @@ def get_link_availabilities(
             if math.isnan(p_max_pu.values[0]):
                 raise ValueError(
                     f"No p_nom_max data found for {row['type']}. "
-                    + "Please check input data again"
+                    + "Please check data in technologies.csv again."
                 )
 
             # creating result to match format of other availability dataframes
@@ -720,7 +722,8 @@ def get_link_availabilities(
 
         if len(result) > 1:
             raise ValueError(
-                f'{row["name"]} has duplicate. Please check input data again'
+                f"{row['name']} has duplicate rows. "
+                + "Please check data in technologies.csv and availability.csv again."
             )
         result = result.iloc[:, 2:]
         result["plant"] = row["link"]
@@ -777,7 +780,8 @@ def get_store_min_availabilities(
 
         if len(result) > 1:
             raise ValueError(
-                f'{row["name"]} has duplicate. Please check input data again'
+                f"{row['name']} has duplicate rows. "
+                + "Please check data in technologies.csv and availability.csv again."
             )
         result = result.iloc[:, 2:]
         result["plant"] = row["name"]
