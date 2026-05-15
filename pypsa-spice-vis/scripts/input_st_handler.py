@@ -784,8 +784,8 @@ def save_input_config_into_yaml(
     st.rerun()
 
 
-def add_section_key_for_revert(section_name: str, widget_name: str) -> str:
-    """Build a session key for reverting a section's widgets back to default."""
+def add_key_for_save_or_revert_changes(section_name: str, widget_name: str) -> str:
+    """Build a session key for saving or reverting a section's widgets."""
     reset_counter = st.session_state.get(
         f"scenario_config::{section_name}::reset_counter",
         0,
@@ -806,7 +806,7 @@ def render_section_action_buttons(
     with action_columns[0]:
         if st.button(
             "Save Changes",
-            key=add_section_key_for_revert(section_name, "save"),
+            key=add_key_for_save_or_revert_changes(section_name, "save"),
             type="primary" if has_changes else "secondary",
             disabled=not has_changes,
         ):
@@ -820,7 +820,7 @@ def render_section_action_buttons(
     with action_columns[1]:
         if st.button(
             "Revert Changes",
-            key=add_section_key_for_revert(section_name, "revert"),
+            key=add_key_for_save_or_revert_changes(section_name, "revert"),
             disabled=not has_changes,
         ):
             # reset every changes in the sections back to default

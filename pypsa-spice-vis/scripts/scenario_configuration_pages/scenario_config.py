@@ -13,7 +13,7 @@ import streamlit as st
 from streamlit_extras.json_editor import json_editor
 
 from scripts.input_st_handler import (
-    add_section_key_for_revert,
+    add_key_for_save_or_revert_changes,
     convert_date_string_into_date_obj,
     format_keys_into_readable_titles,
     get_default_scenario_config,
@@ -61,8 +61,19 @@ def extract_default_snapshot(snapshots: dict) -> tuple[int, date, date, str]:
     return start_date.year, start_date, end_date, inclusive
 
 
-def normalize_json_like_value(value: Any) -> Any:
-    """Normalize JSON-like data while restoring integer-looking mapping keys."""
+def convert_values_into_json_formats(value: Any) -> Any:
+    """Convert values into JSON-compatible formats, restoring int-looking mapping keys.
+
+    Parameters
+    ----------
+    value : Any
+        The value to convert.
+
+    Returns
+    -------
+    Any
+        The converted value with integer-looking mapping keys restored.
+    """
     if not isinstance(value, (dict, list)):
         return value
 
@@ -105,14 +116,32 @@ def normalize_json_like_value(value: Any) -> Any:
     return root
 
 
-def merge_nested_mappings(base_value: Any, override_value: Any) -> Any:
-    """Recursively merge two nested mappings, preferring override values."""
-    if not (isinstance(base_value, dict) and isinstance(override_value, dict)):
-        return deepcopy(override_value)
+def replace_constraints_with_user_configs(base_value: Any, current_value: Any) -> Any:
+    """Replace the default template values with current user values if existed.
+
+    Parameters
+    ----------
+    base_value : Any
+        The default template value to be replaced.
+    current_value : Any
+        The current user value to replace the default template value.
+
+    Returns
+    -------
+    Any
+        The merged value with user overrides applied.
+    """
+    if not (isinstance(base_value, dict) and isinstance(current_value, dict)):
+        # For non-dict values, assume the user edited value to replace the default one
+        # The deepcopy ensures recursively copies everything inside,
+        # so nested structures are independent too.
+        return deepcopy(current_value)
 
     merged_value = deepcopy(base_value)
+
+    # Use a stack to iteratively traverse both the base and current dicts.
     pending_nodes: list[tuple[dict[str, Any], dict[str, Any]]] = [
-        (merged_value, override_value)
+        (merged_value, current_value)
     ]
 
     while pending_nodes:
@@ -129,7 +158,18 @@ def merge_nested_mappings(base_value: Any, override_value: Any) -> Any:
 
 
 def count_nested_items(value: Any) -> int:
-    """Return a simple complexity score for preferring richer templates."""
+    """Calculate the total number of nested items in a value for complexity comparison.
+
+    Parameters
+    ----------
+    value : Any
+        The value to evaluate.
+
+    Returns
+    -------
+    int
+        The complexity score based on the number of nested items.
+    """
     item_count = 0
     pending_nodes = [value]
 
@@ -148,7 +188,18 @@ def count_nested_items(value: Any) -> int:
 def build_custom_constraint_templates(
     default_custom_constraints: dict[str, Any],
 ) -> dict[str, Any]:
-    """Build a template per custom constraint from the default scenario config."""
+    """Build a template per custom constraint from the default scenario config.
+
+    Parameters
+    ----------
+    default_custom_constraints : dict[str, Any]
+        The default custom constraints from the scenario config.
+
+    Returns
+    -------
+    dict[str, Any]
+        A dictionary of custom constraint templates.
+    """
     constraint_templates: dict[str, Any] = {}
 
     for country_constraints in default_custom_constraints.values():
@@ -156,14 +207,14 @@ def build_custom_constraint_templates(
             continue
 
         for constraint_name, constraint_config in country_constraints.items():
-            normalized_config = normalize_json_like_value(constraint_config)
-            if isinstance(normalized_config, dict) and "activate" in normalized_config:
-                normalized_config["activate"] = False
+            config_json = convert_values_into_json_formats(constraint_config)
+            if isinstance(config_json, dict) and "activate" in config_json:
+                config_json["activate"] = False
             current_template = constraint_templates.get(constraint_name)
             if current_template is None or count_nested_items(
-                normalized_config
+                config_json
             ) > count_nested_items(current_template):
-                constraint_templates[constraint_name] = deepcopy(normalized_config)
+                constraint_templates[constraint_name] = deepcopy(config_json)
 
     return constraint_templates
 
@@ -171,7 +222,18 @@ def build_custom_constraint_templates(
 def get_available_custom_constraints(
     current_custom_constraints: dict[str, Any],
 ) -> tuple[list[str], dict[str, Any]]:
-    """Return country names and merged custom constraint templates."""
+    """Get custom constraints from the default scenario config.
+
+    Parameters
+    ----------
+    current_custom_constraints : dict[str, Any]
+        The current custom constraints from the scenario config.
+
+    Returns
+    -------
+    tuple[list[str], dict[str, Any]]
+        A tuple containing a country list and a dictionary of merged custom constraint.
+    """
     default_scenario_config = get_default_scenario_config()
     default_custom_constraints = (
         default_scenario_config.get("custom_constraints", {}) or {}
@@ -189,43 +251,81 @@ def build_custom_constraint_editor_value(
     template_config: dict[str, Any],
     current_config: dict[str, Any],
 ) -> dict[str, Any]:
-    """Build the editor state without letting template values override scenario data."""
+    """Build initial constraint setup and fill in template or scenario data.
+
+    Parameters
+    ----------
+    template_config : dict[str, Any]
+        The template configuration for the custom constraints.
+    current_config : dict[str, Any]
+        The current configuration for the custom constraints.
+
+    Returns
+    -------
+    dict[str, Any]
+        The merged configuration for the custom constraints.
+    """
     if current_config:
-        return merge_nested_mappings(template_config, current_config)
+        return replace_constraints_with_user_configs(template_config, current_config)
 
     return deepcopy(template_config)
 
 
-def strip_template_defaults_from_edit(
+def exclude_unchanged_default_configs(
     edited_value: Any,
     current_value: Any = MISSING,
     template_value: Any = MISSING,
 ) -> Any:
-    """Keep scenario values while dropping untouched defaults."""
+    """Keep scenario values while dropping untouched defaults.
+
+    Parameters
+    ----------
+    edited_value : Any
+        The edited value to be processed.
+    current_value : Any, optional
+        The current value in the scenario, by default MISSING (empty object).
+    template_value : Any, optional
+        The template value to compare against, by default MISSING (empty object).
+
+    Returns
+    -------
+    Any
+        The processed value with untouched defaults removed.
+    """
     if not isinstance(edited_value, dict):
+        # For non-dict values, compare directly and return MISSING
+        # if unchanged from template
         current_exists = current_value is not MISSING
         template_exists = template_value is not MISSING
 
         if isinstance(edited_value, list):
+            # For lists, we consider them changed if they differ from the template,
+            # even if they exist in the current config.
             if current_exists or not template_exists or edited_value != template_value:
                 return edited_value
             return MISSING
 
+        # For other types, we consider them changed
+        # if they differ from the template or if they exist in the current config.
         if current_exists or not template_exists or edited_value != template_value:
             return edited_value
 
         return MISSING
 
+    # For dict values, we need to recursively check each key-value pair.
     root_result: dict[str, Any] = {}
     pending_nodes: list[tuple[dict[str, Any], Any, Any, dict[str, Any]]] = [
         (edited_value, current_value, template_value, root_result)
     ]
 
+    # Iteratively traverse the dict and compare with current and template values.
     while pending_nodes:
         edited_dict, current_node, template_node, result_node = pending_nodes.pop()
         current_dict = current_node if isinstance(current_node, dict) else {}
         template_dict = template_node if isinstance(template_node, dict) else {}
 
+        # Iterate through the edited dict to preserve any keys that the user has added,
+        # even if they are not in the template.
         for key, child_value in edited_dict.items():
             child_current = current_dict.get(key, MISSING)
             child_template = template_dict.get(key, MISSING)
@@ -252,6 +352,8 @@ def strip_template_defaults_from_edit(
             if current_exists or not template_exists or child_value != child_template:
                 result_node[key] = child_value
 
+    # After building the initial result dict, we need to clean up any keys that
+    # are unchanged from the template.
     cleanup_stack: list[
         tuple[dict[str, Any], Any, Any, dict[str, Any] | None, str | None]
     ] = [(root_result, current_value, template_value, None, None)]
@@ -259,6 +361,8 @@ def strip_template_defaults_from_edit(
         tuple[dict[str, Any], Any, Any, dict[str, Any] | None, str | None]
     ] = []
 
+    # Post-order traversal to ensure we check child nodes before parent nodes
+    # when deciding whether to remove unchanged defaults.
     while cleanup_stack:
         result_node, current_node, template_node, parent_node, parent_key = (
             cleanup_stack.pop()
@@ -269,6 +373,7 @@ def strip_template_defaults_from_edit(
         current_dict = current_node if isinstance(current_node, dict) else {}
         template_dict = template_node if isinstance(template_node, dict) else {}
 
+        # Add child nodes to the stack for post-order traversal
         for key, child_result in result_node.items():
             if isinstance(child_result, dict):
                 cleanup_stack.append(
@@ -281,7 +386,9 @@ def strip_template_defaults_from_edit(
                     )
                 )
 
+    # Safely remove any keys from the result that are unchanged from the template,
     root_removed = False
+    # Iterate in reverse post-order to ensure we check child nodes before parent nodes
     for result_node, current_node, template_node, parent_node, parent_key in reversed(
         postorder_nodes
     ):
@@ -344,7 +451,6 @@ def setup_json_editor(
     object
         The edited JSON-compatible value.
     """
-    default_value: dict[str, Any] | list[Any] | str
     if isinstance(value, (dict, list, str)):
         default_value = value
     else:
@@ -363,15 +469,26 @@ def setup_json_editor(
         key=constraint_key,
     )
 
-    return normalize_json_like_value(editor_state.get("data", default_value))
+    return convert_values_into_json_formats(editor_state.get("data", default_value))
 
 
 def render_interest_section(interest: dict[str, Any]) -> dict[str, Any]:
-    """Render interest-rate mappings in a JSON editor."""
+    """Render interest-rate mappings in a JSON editor.
+
+    Parameters
+    ----------
+    interest : dict[str, Any]
+        The initial interest-rate mappings to display in the editor.
+
+    Returns
+    -------
+    dict[str, Any]
+        The edited interest-rate mappings.
+    """
     edited_interest = setup_json_editor(
         "Interest rates",
         interest or {},
-        add_section_key_for_revert("scenario_configs", "interest"),
+        add_key_for_save_or_revert_changes("scenario_configs", "interest"),
         help_text="Edit country-specific interest rates in decimals, e.g. 0.05 for 5%.",
         collapsed=1,
         root_name=None,
@@ -384,7 +501,22 @@ def render_co2_country_editor(
     country_config: dict[str, Any],
     section_name: str,
 ) -> dict[str, Any]:
-    """Render one country's CO2 management configuration."""
+    """Render one country's CO2 management configuration.
+
+    Parameters
+    ----------
+    country : str
+        The name of the country.
+    country_config : dict[str, Any]
+        The initial CO2 management configuration for the country.
+    section_name : str
+        The name of the section in the configuration.
+
+    Returns
+    -------
+    dict[str, Any]
+        The edited CO2 management configuration for the country.
+    """
     option = country_config.get("option", CO2_OPTIONS[0])
     if option not in CO2_OPTIONS:
         option = CO2_OPTIONS[0]
@@ -394,7 +526,9 @@ def render_co2_country_editor(
             "CO2 management option",
             options=CO2_OPTIONS,
             index=CO2_OPTIONS.index(option),
-            key=add_section_key_for_revert(section_name, f"co2_option_{country}"),
+            key=add_key_for_save_or_revert_changes(
+                section_name, f"co2_option_{country}"
+            ),
             help=(
                 "**co2_cap** - Maximum allowable CO2 emissions "
                 "(carbon budget constraint)\n\n"
@@ -405,7 +539,7 @@ def render_co2_country_editor(
         edited_values = setup_json_editor(
             "Year-specific values",
             country_config.get("value", {}) or {},
-            add_section_key_for_revert(section_name, f"co2_value_{country}"),
+            add_key_for_save_or_revert_changes(section_name, f"co2_value_{country}"),
             help_text="Edit year-specific CO2 cap or price values as a mapping.",
             collapsed=1,
             root_name=None,
@@ -423,7 +557,24 @@ def render_country_custom_constraints(
     constraint_templates: dict[str, Any],
     section_name: str,
 ) -> dict[str, Any]:
-    """Render all available custom constraints for one country."""
+    """Render all available custom constraints for one country.
+
+    Parameters
+    ----------
+    country : str
+        The name of the country.
+    country_constraints : dict[str, Any]
+        The initial custom constraints for the country.
+    constraint_templates : dict[str, Any]
+        The templates for all available custom constraints.
+    section_name : str
+        The name of the section in the configuration.
+
+    Returns
+    -------
+    dict[str, Any]
+        The edited custom constraints for the country.
+    """
     edited_country_constraints = {}
     ordered_constraint_names = list(constraint_templates)
     for constraint_name in country_constraints:
@@ -433,7 +584,7 @@ def render_country_custom_constraints(
     with st.expander(country, expanded=False):
         for constraint_name in ordered_constraint_names:
             constraint_label = format_keys_into_readable_titles(constraint_name)
-            constraint_key = add_section_key_for_revert(
+            constraint_key = add_key_for_save_or_revert_changes(
                 section_name,
                 f"custom_{country}_{constraint_name}",
             )
@@ -458,7 +609,7 @@ def render_country_custom_constraints(
                     root_name=None,
                 )
 
-                filtered_constraint = strip_template_defaults_from_edit(
+                filtered_constraint = exclude_unchanged_default_configs(
                     edited_constraint,
                     current_config if current_config else MISSING,
                     template_config if template_config else MISSING,
@@ -510,7 +661,7 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                     max_value=3000,
                     value=default_year,
                     step=1,
-                    key=add_section_key_for_revert(section_name, "model_year"),
+                    key=add_key_for_save_or_revert_changes(section_name, "model_year"),
                 )
             )
             # Automatically adjust model year if it's a leap year
@@ -528,7 +679,9 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                 value=float(scenario_settings.get("remove_threshold", 0.0) or 0.0),
                 format="%.2f",
                 step=0.1,
-                key=add_section_key_for_revert(section_name, "remove_threshold"),
+                key=add_key_for_save_or_revert_changes(
+                    section_name, "remove_threshold"
+                ),
             )
 
         st.caption(
@@ -544,7 +697,7 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                 or default_end != date(default_year + 1, 1, 1)
                 or default_inclusive != "left"
             ),
-            key=add_section_key_for_revert(section_name, "manual_snapshots"),
+            key=add_key_for_save_or_revert_changes(section_name, "manual_snapshots"),
         )
 
         if edit_snapshots_manually:
@@ -553,20 +706,26 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                 start_date = st.date_input(
                     "Snapshot start",
                     value=default_start,
-                    key=add_section_key_for_revert(section_name, "snapshot_start"),
+                    key=add_key_for_save_or_revert_changes(
+                        section_name, "snapshot_start"
+                    ),
                 )
             with end_col:
                 end_date = st.date_input(
                     "Snapshot end",
                     value=default_end,
-                    key=add_section_key_for_revert(section_name, "snapshot_end"),
+                    key=add_key_for_save_or_revert_changes(
+                        section_name, "snapshot_end"
+                    ),
                 )
             with inclusive_col:
                 inclusive = st.selectbox(
                     "Inclusive",
                     options=INCLUSIVE_OPTIONS,
                     index=INCLUSIVE_OPTIONS.index(default_inclusive),
-                    key=add_section_key_for_revert(section_name, "snapshot_inclusive"),
+                    key=add_key_for_save_or_revert_changes(
+                        section_name, "snapshot_inclusive"
+                    ),
                 )
         else:
             start_date = date(model_year, 1, 1)
@@ -588,7 +747,9 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                 "Temporal clustering method",
                 options=TEMPORAL_CLUSTERING_METHODS,
                 index=TEMPORAL_CLUSTERING_METHODS.index(resolution_method),
-                key=add_section_key_for_revert(section_name, "resolution_method"),
+                key=add_key_for_save_or_revert_changes(
+                    section_name, "resolution_method"
+                ),
                 help=(
                     "**nth_hour** - Select every Nth snapshot as representative\n\n"
                     "**clustered** - TSAM clustering for variable-duration segments"
@@ -605,7 +766,9 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                         min_value=1,
                         value=number_of_days,
                         step=1,
-                        key=add_section_key_for_revert(section_name, "number_of_days"),
+                        key=add_key_for_save_or_revert_changes(
+                            section_name, "number_of_days"
+                        ),
                     )
                 )
             else:
@@ -615,7 +778,9 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                         min_value=1,
                         value=stepsize,
                         step=1,
-                        key=add_section_key_for_revert(section_name, "stepsize"),
+                        key=add_key_for_save_or_revert_changes(
+                            section_name, "stepsize"
+                        ),
                     )
                 )
 
