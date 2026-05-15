@@ -742,48 +742,97 @@ def convert_to_commented_yaml_value(value: object) -> object:
     return root
 
 
-def render_save_button_for_input_config(
+def save_input_config_into_yaml(
     scenario_section: dict,
     section_name: str,
-    save_button_key: str,
-    has_changes: bool,
     has_changes_key: str,
     message_delay: float = 1,
+    change_type: str = "revert",
 ) -> None:
-    """Render the save button and save changes in the scenario config."""
-    if st.button(
-        "Save Changes",
-        key=save_button_key,
-        type="primary" if has_changes else "secondary",
-    ):
-        success = True
-        scenario_config_path = st.session_state.scenario_config_path
+    """Save changes in the scenario config."""
+    scenario_config_path = st.session_state.scenario_config_path
 
-        # Initialize YAML instance
-        yaml = YAML()
-        yaml.preserve_quotes = True
-        yaml.default_flow_style = False
-        yaml.width = 4096  # Prevent line wrapping
+    # Initialize YAML instance
+    yaml = YAML()
+    yaml.preserve_quotes = True
+    yaml.default_flow_style = False
+    yaml.width = 4096  # Prevent line wrapping
 
-        scenario_config_data = dict(st.session_state.scenario_config)
-        scenario_config_data[section_name] = scenario_section
+    scenario_config_data = dict(st.session_state.scenario_config)
+    scenario_config_data[section_name] = scenario_section
+    st.session_state.scenario_config = scenario_config_data
 
-        commented_map = CommentedMap()
-        for key, item in scenario_config_data.items():
-            # Convert each value to the appropriate YAML type while preserving comments
-            commented_map[key] = convert_to_commented_yaml_value(item)
+    commented_map = CommentedMap()
+    for key, item in scenario_config_data.items():
+        # Convert each value to the appropriate YAML type while preserving comments
+        commented_map[key] = convert_to_commented_yaml_value(item)
 
-        scenario_config = commented_map
+    scenario_config = commented_map
 
-        # Save the updated scenario config back to the YAML file
-        with open(scenario_config_path, "w", encoding="utf-8") as file_handle:
-            file_handle.write(SCENARIO_CONFIG_HEADER)
-            yaml.dump(scenario_config, file_handle)
+    # Save the updated scenario config back to the YAML file
+    with open(scenario_config_path, "w", encoding="utf-8") as file_handle:
+        file_handle.write(SCENARIO_CONFIG_HEADER)
+        yaml.dump(scenario_config, file_handle)
 
-        if success:
-            st.success("Changes saved successfully!")
+    if change_type == "save":
+        st.success("Changes saved successfully!")
+    else:
+        st.success("Changes reverted successfully!")
+
+    st.session_state[has_changes_key] = False
+    time.sleep(message_delay)
+    st.rerun()
+
+
+def add_section_key_for_revert(section_name: str, widget_name: str) -> str:
+    """Build a session key for reverting a section's widgets back to default."""
+    reset_counter = st.session_state.get(
+        f"scenario_config::{section_name}::reset_counter",
+        0,
+    )
+    return f"scenario_config::{section_name}::{reset_counter}::{widget_name}"
+
+
+def render_section_action_buttons(
+    section_name: str,
+    scenario_section: dict,
+    edited_section: dict,
+    has_changes_key: str,
+) -> None:
+    """Render save and revert buttons for changes in the scenario config sections."""
+    has_changes = edited_section != (scenario_section or {})
+
+    action_columns = st.columns(2)
+    with action_columns[0]:
+        if st.button(
+            "Save Changes",
+            key=add_section_key_for_revert(section_name, "save"),
+            type="primary" if has_changes else "secondary",
+            disabled=not has_changes,
+        ):
+            save_input_config_into_yaml(
+                scenario_section=edited_section,
+                section_name=section_name,
+                has_changes_key=has_changes_key,
+                change_type="save",
+            )
+
+    with action_columns[1]:
+        if st.button(
+            "Revert Changes",
+            key=add_section_key_for_revert(section_name, "revert"),
+            disabled=not has_changes,
+        ):
+            # reset every changes in the sections back to default
+            reset_counter_key = f"scenario_config::{section_name}::reset_counter"
+            st.session_state[reset_counter_key] = (
+                st.session_state.get(reset_counter_key, 0) + 1
+            )
             st.session_state[has_changes_key] = False
-            time.sleep(message_delay)
-            st.rerun()
-        else:
-            st.error("Error saving some changes")
+
+            save_input_config_into_yaml(
+                scenario_section=scenario_section,
+                section_name=section_name,
+                has_changes_key=has_changes_key,
+                change_type="revert",
+            )

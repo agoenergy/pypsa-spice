@@ -13,10 +13,11 @@ import streamlit as st
 from streamlit_extras.json_editor import json_editor
 
 from scripts.input_st_handler import (
+    add_section_key_for_revert,
     convert_date_string_into_date_obj,
     format_keys_into_readable_titles,
     get_default_scenario_config,
-    render_save_button_for_input_config,
+    render_section_action_buttons,
 )
 
 CO2_OPTIONS = ["co2_cap", "co2_price"]
@@ -26,6 +27,7 @@ RESERVE_MARGIN_METHODS = ["static", "dynamic"]
 TEMPORAL_CLUSTERING_METHODS = ["nth_hour", "clustered"]
 EXCLUDED_SECTIONS = {"version", "logging", "solving"}
 MISSING = object()
+
 
 # =============================================================================
 # Minor helper functions for rendering scenario config sections
@@ -369,7 +371,7 @@ def render_interest_section(interest: dict[str, Any]) -> dict[str, Any]:
     edited_interest = setup_json_editor(
         "Interest rates",
         interest or {},
-        "scenario_configs_interest",
+        add_section_key_for_revert("scenario_configs", "interest"),
         help_text="Edit country-specific interest rates in decimals, e.g. 0.05 for 5%.",
         collapsed=1,
         root_name=None,
@@ -378,7 +380,9 @@ def render_interest_section(interest: dict[str, Any]) -> dict[str, Any]:
 
 
 def render_co2_country_editor(
-    country: str, country_config: dict[str, Any]
+    country: str,
+    country_config: dict[str, Any],
+    section_name: str,
 ) -> dict[str, Any]:
     """Render one country's CO2 management configuration."""
     option = country_config.get("option", CO2_OPTIONS[0])
@@ -390,7 +394,7 @@ def render_co2_country_editor(
             "CO2 management option",
             options=CO2_OPTIONS,
             index=CO2_OPTIONS.index(option),
-            key=f"co2_option_{country}",
+            key=add_section_key_for_revert(section_name, f"co2_option_{country}"),
             help=(
                 "**co2_cap** - Maximum allowable CO2 emissions "
                 "(carbon budget constraint)\n\n"
@@ -401,7 +405,7 @@ def render_co2_country_editor(
         edited_values = setup_json_editor(
             "Year-specific values",
             country_config.get("value", {}) or {},
-            f"co2_value_{country}",
+            add_section_key_for_revert(section_name, f"co2_value_{country}"),
             help_text="Edit year-specific CO2 cap or price values as a mapping.",
             collapsed=1,
             root_name=None,
@@ -417,6 +421,7 @@ def render_country_custom_constraints(
     country: str,
     country_constraints: dict[str, Any],
     constraint_templates: dict[str, Any],
+    section_name: str,
 ) -> dict[str, Any]:
     """Render all available custom constraints for one country."""
     edited_country_constraints = {}
@@ -428,7 +433,10 @@ def render_country_custom_constraints(
     with st.expander(country, expanded=False):
         for constraint_name in ordered_constraint_names:
             constraint_label = format_keys_into_readable_titles(constraint_name)
-            constraint_key = f"custom_{country}_{constraint_name}"
+            constraint_key = add_section_key_for_revert(
+                section_name,
+                f"custom_{country}_{constraint_name}",
+            )
             template_config = deepcopy(constraint_templates.get(constraint_name, {}))
             current_config = country_constraints.get(constraint_name, {})
             editor_config = build_custom_constraint_editor_value(
@@ -487,6 +495,8 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
     default_year, default_start, default_end, default_inclusive = (
         extract_default_snapshot(snapshots)
     )
+    section_name = "scenario_configs"
+    has_changes_key = f"has_changes_{st.title}_{section_name}"
 
     # Render the scenario settings editor with inputs
     with st.expander("Scenario settings", expanded=True):
@@ -500,7 +510,7 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                     max_value=3000,
                     value=default_year,
                     step=1,
-                    key="scenario_configs_model_year",
+                    key=add_section_key_for_revert(section_name, "model_year"),
                 )
             )
             # Automatically adjust model year if it's a leap year
@@ -518,7 +528,7 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                 value=float(scenario_settings.get("remove_threshold", 0.0) or 0.0),
                 format="%.2f",
                 step=0.1,
-                key="scenario_configs_remove_threshold",
+                key=add_section_key_for_revert(section_name, "remove_threshold"),
             )
 
         st.caption(
@@ -529,8 +539,12 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
         # Allow users to edit snapshots manually
         edit_snapshots_manually = st.toggle(
             "Edit snapshot range manually",
-            value=False,
-            key="scenario_configs_manual_snapshots",
+            value=(
+                default_start != date(default_year, 1, 1)
+                or default_end != date(default_year + 1, 1, 1)
+                or default_inclusive != "left"
+            ),
+            key=add_section_key_for_revert(section_name, "manual_snapshots"),
         )
 
         if edit_snapshots_manually:
@@ -539,20 +553,20 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                 start_date = st.date_input(
                     "Snapshot start",
                     value=default_start,
-                    key="scenario_configs_snapshot_start",
+                    key=add_section_key_for_revert(section_name, "snapshot_start"),
                 )
             with end_col:
                 end_date = st.date_input(
                     "Snapshot end",
                     value=default_end,
-                    key="scenario_configs_snapshot_end",
+                    key=add_section_key_for_revert(section_name, "snapshot_end"),
                 )
             with inclusive_col:
                 inclusive = st.selectbox(
                     "Inclusive",
                     options=INCLUSIVE_OPTIONS,
                     index=INCLUSIVE_OPTIONS.index(default_inclusive),
-                    key="scenario_configs_snapshot_inclusive",
+                    key=add_section_key_for_revert(section_name, "snapshot_inclusive"),
                 )
         else:
             start_date = date(model_year, 1, 1)
@@ -574,7 +588,7 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                 "Temporal clustering method",
                 options=TEMPORAL_CLUSTERING_METHODS,
                 index=TEMPORAL_CLUSTERING_METHODS.index(resolution_method),
-                key="scenario_configs_resolution_method",
+                key=add_section_key_for_revert(section_name, "resolution_method"),
                 help=(
                     "**nth_hour** - Select every Nth snapshot as representative\n\n"
                     "**clustered** - TSAM clustering for variable-duration segments"
@@ -591,7 +605,7 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                         min_value=1,
                         value=number_of_days,
                         step=1,
-                        key="scenario_configs_number_of_days",
+                        key=add_section_key_for_revert(section_name, "number_of_days"),
                     )
                 )
             else:
@@ -601,7 +615,7 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
                         min_value=1,
                         value=stepsize,
                         step=1,
-                        key="scenario_configs_stepsize",
+                        key=add_section_key_for_revert(section_name, "stepsize"),
                     )
                 )
 
@@ -628,15 +642,10 @@ def render_scenario_settings_section(scenario_section: dict) -> None:
             "remove_threshold": remove_threshold,
         }
 
-        # Check if there are changes to save and render the save button
-        has_changes_key = f"has_changes_{st.title}_scenario_configs"
-        has_changes = st.session_state.get(has_changes_key, False)
-
-        render_save_button_for_input_config(
-            scenario_section=edited_section,
-            section_name="scenario_configs",
-            save_button_key="save_scenario_configs",
-            has_changes=has_changes,
+        render_section_action_buttons(
+            section_name=section_name,
+            scenario_section=scenario_section,
+            edited_section=edited_section,
             has_changes_key=has_changes_key,
         )
 
@@ -651,6 +660,8 @@ def render_co2_management_section(scenario_section: dict) -> None:
     """
     # Set default CO2 management values based on the loaded configuration
     co2_management = scenario_section or {}
+    section_name = "co2_management"
+    has_changes_key = f"has_changes_{st.title}_{section_name}"
 
     # Render the CO2 management editor with inputs
     with st.expander("CO2 management", expanded=True):
@@ -663,18 +674,14 @@ def render_co2_management_section(scenario_section: dict) -> None:
             edited_section[country] = render_co2_country_editor(
                 country,
                 country_config or {},
+                section_name,
             )
 
-        # Check if there are changes to save and render the save button
-        has_changes_key = f"has_changes_{st.title}_co2_management"
-        has_changes = st.session_state.get(has_changes_key, False)
-
-        render_save_button_for_input_config(
-            scenario_section=edited_section,
-            section_name="co2_management",
-            save_button_key="save_co2_management",
+        render_section_action_buttons(
+            section_name=section_name,
+            scenario_section=scenario_section,
+            edited_section=edited_section,
             has_changes_key=has_changes_key,
-            has_changes=has_changes,
         )
 
 
@@ -688,6 +695,8 @@ def render_custom_constraints_section(scenario_section: dict) -> None:
     """
     # Set default custom constraints values based on the loaded configuration
     custom_constraints = scenario_section or {}
+    section_name = "custom_constraints"
+    has_changes_key = f"has_changes_{st.title}_{section_name}"
     countries, constraint_templates = get_available_custom_constraints(
         custom_constraints
     )
@@ -706,23 +715,21 @@ def render_custom_constraints_section(scenario_section: dict) -> None:
                 country,
                 custom_constraints.get(country, {}) or {},
                 constraint_templates,
+                section_name,
             )
-            edited_section[country] = {
+            active_constraints = {
                 constraint_name: constraint_value
                 for constraint_name, constraint_value in country_result.items()
                 if constraint_value not in ({}, [], None)
             }
+            if active_constraints:
+                edited_section[country] = active_constraints
 
-        # Check if there are changes to save and render the save button
-        has_changes_key = f"has_changes_{st.title}_custom_constraints"
-        has_changes = st.session_state.get(has_changes_key, False)
-
-        render_save_button_for_input_config(
-            scenario_section=edited_section,
-            section_name="custom_constraints",
-            save_button_key="save_custom_constraints",
+        render_section_action_buttons(
+            section_name=section_name,
+            scenario_section=scenario_section,
+            edited_section=edited_section,
             has_changes_key=has_changes_key,
-            has_changes=has_changes,
         )
 
 
