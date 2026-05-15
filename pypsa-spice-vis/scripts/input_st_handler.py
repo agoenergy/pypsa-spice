@@ -14,6 +14,7 @@ import time
 from datetime import date
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -693,7 +694,7 @@ def convert_to_commented_yaml_value(value: object) -> object:
     root = CommentedMap() if isinstance(value, dict) else CommentedSeq()
 
     # Use a stack to traverse the data structure iteratively and convert scalar values
-    pending_nodes: list[tuple[object, CommentedMap | CommentedSeq]] = [(value, root)]
+    pending_nodes = [(value, root)]
 
     while pending_nodes:
         # source_node is the original Python data structure node (dict, list, or scalar)
@@ -742,6 +743,127 @@ def convert_to_commented_yaml_value(value: object) -> object:
     return root
 
 
+def update_comments_in_final_yaml(existing_value: object, new_value: object) -> object:
+    """Make sure that all default comments are in config before saving into yaml."""
+    if isinstance(new_value, str):
+        return convert_scalar_value_to_yaml_value(new_value)
+
+    if not isinstance(new_value, (dict, list)):
+        return new_value
+
+    # Determine the root target node type based on the new value and existing value
+    if isinstance(new_value, dict):
+        root_target = (
+            existing_value
+            if isinstance(existing_value, CommentedMap)
+            else CommentedMap()
+        )
+    else:
+        root_target = (
+            existing_value
+            if isinstance(existing_value, CommentedSeq)
+            else CommentedSeq()
+        )
+
+    # Use a stack to traverse the data structure iteratively and update comments
+    pending_nodes = [(existing_value, new_value, root_target)]
+
+    while pending_nodes:
+        source_existing, source_new, target_node = pending_nodes.pop()
+
+        # For dictionary nodes, update keys and values while preserving comments
+        if isinstance(source_new, dict) and isinstance(target_node, CommentedMap):
+            existing_map = (
+                source_existing if isinstance(source_existing, CommentedMap) else None
+            )
+
+            for key in list(target_node):
+                if key not in source_new:
+                    del target_node[key]
+
+            for key, item in source_new.items():
+                existing_item = (
+                    existing_map.get(key) if existing_map is not None else None
+                )
+
+                if isinstance(item, dict):
+                    child_node = (
+                        existing_item
+                        if isinstance(existing_item, CommentedMap)
+                        else CommentedMap()
+                    )
+                    target_node[key] = child_node
+                    pending_nodes.append((existing_item, item, child_node))
+                elif isinstance(item, list):
+                    child_node = (
+                        existing_item
+                        if isinstance(existing_item, CommentedSeq)
+                        else CommentedSeq()
+                    )
+                    target_node[key] = child_node
+                    pending_nodes.append((existing_item, item, child_node))
+                elif isinstance(item, str):
+                    target_node[key] = convert_scalar_value_to_yaml_value(item)
+                else:
+                    target_node[key] = item
+
+            continue
+
+        # For list nodes, update items while preserving comments.
+        # This assumes that the order of items in the list is not changed.
+        if isinstance(source_new, list) and isinstance(target_node, CommentedSeq):
+            target_list = cast(CommentedSeq, target_node)
+            existing_seq = (
+                source_existing if isinstance(source_existing, CommentedSeq) else None
+            )
+
+            while len(target_list) > len(source_new):
+                target_list.pop()
+
+            for index, item in enumerate(source_new):
+                existing_item = (
+                    existing_seq[index]
+                    if existing_seq is not None and index < len(existing_seq)
+                    else None
+                )
+
+                if isinstance(item, dict):
+                    child_node = (
+                        existing_item
+                        if isinstance(existing_item, CommentedMap)
+                        else CommentedMap()
+                    )
+                    if index < len(target_list):
+                        target_list[index] = child_node
+                    else:
+                        target_list.append(child_node)
+                    pending_nodes.append((existing_item, item, child_node))
+                elif isinstance(item, list):
+                    child_node = (
+                        existing_item
+                        if isinstance(existing_item, CommentedSeq)
+                        else CommentedSeq()
+                    )
+                    if index < len(target_list):
+                        target_list[index] = child_node
+                    else:
+                        target_list.append(child_node)
+                    pending_nodes.append((existing_item, item, child_node))
+                elif isinstance(item, str):
+                    scalar_value = convert_scalar_value_to_yaml_value(item)
+                    if index < len(target_list):
+                        target_list[index] = scalar_value
+                    else:
+                        target_list.append(scalar_value)
+                else:
+                    if index < len(target_list):
+                        target_list[index] = item
+                    else:
+                        target_list.append(item)
+
+    return root_target
+
+
 def save_input_config_into_yaml(
     scenario_section: dict,
     section_name: str,
@@ -758,20 +880,18 @@ def save_input_config_into_yaml(
     yaml.default_flow_style = False
     yaml.width = 4096  # Prevent line wrapping
 
-    scenario_config_data = dict(st.session_state.scenario_config)
-    scenario_config_data[section_name] = scenario_section
-    st.session_state.scenario_config = scenario_config_data
+    scenario_config = st.session_state.scenario_config
+    if not isinstance(scenario_config, CommentedMap):
+        scenario_config = CommentedMap(scenario_config or {})
 
-    commented_map = CommentedMap()
-    for key, item in scenario_config_data.items():
-        # Convert each value to the appropriate YAML type while preserving comments
-        commented_map[key] = convert_to_commented_yaml_value(item)
-
-    scenario_config = commented_map
+    scenario_config[section_name] = update_comments_in_final_yaml(
+        scenario_config.get(section_name),
+        scenario_section,
+    )
+    st.session_state.scenario_config = scenario_config
 
     # Save the updated scenario config back to the YAML file
     with open(scenario_config_path, "w", encoding="utf-8") as file_handle:
-        file_handle.write(SCENARIO_CONFIG_HEADER)
         yaml.dump(scenario_config, file_handle)
 
     if change_type == "save":
