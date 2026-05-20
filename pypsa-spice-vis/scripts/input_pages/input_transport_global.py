@@ -144,80 +144,6 @@ def render_input_transport_global_section(
             )
 
 
-def render_input_transport_timeseries_section(
-    title: str,
-    selected_types: list[str],
-    input_config: dict,
-    input_df: pd.DataFrame | None = None,
-    selected_classes: list[str] | None = None,
-    selected_countries: list[str] | None = None,
-) -> None:
-    """Render timeseries transport input section with charts.
-
-    Parameters
-    ----------
-    title : str
-        key or heading of the indicator from input_settings.yaml
-    selected_types : list[str]
-        list of selected technology types for filtering the input table
-    input_config : dict
-        configuration dictionary for input_config
-    input_df : pd.DataFrame | None, optional
-        default input dataframe, by default None
-    selected_classes : list[str] | None, optional
-        list of selected PyPSA classes for filtering the input table, by default None
-    selected_countries : list[str] | None, optional
-        list of selected countries for filtering the input table, by default None
-    """
-    # Get table configuration and input CSV path based on the title and sector
-    table_config, input_csv_path = get_table_config_and_path(
-        title=title,
-        sector="Global_input",
-        input_config=input_config,
-    )
-
-    # Generate a unique key for Streamlit session state
-    unique_type_key = get_unique_type_key(
-        "Global_input",
-        title,
-        selected_types,
-        selected_classes,
-        selected_countries,
-    )
-
-    # Render the section in an expander with the title and CSV path
-    with st.expander(title):
-        st.write(f"### {title}")
-        st.markdown(
-            f"<small><i>{os.path.normpath(input_csv_path)}</i></small>",
-            unsafe_allow_html=True,
-        )
-
-        if input_df is None:
-            if not os.path.exists(input_csv_path):
-                st.error(f"File not found: {input_csv_path}")
-                return
-            input_df = pd.read_csv(input_csv_path)
-
-        # Apply general filtering based on selected types
-        filtered_df = set_general_filter_df(
-            df=input_df,
-            filter_col=table_config["filter_col"],
-            selected_types=selected_types,
-        )
-
-        # Further filter df based on selected countries if the 'country' column exists
-        if selected_countries and "country" in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df["country"].isin(selected_countries)]
-
-        if filtered_df.empty:
-            get_empty_df_notice_message()
-            return
-
-        # Render line charts for the timeseries data
-        render_line_chart(filtered_df, table_config, unique_type_key)
-
-
 def render_input_transport_demand_profile_section(
     title: str,
     selected_types: list[str],
@@ -264,6 +190,11 @@ def render_input_transport_demand_profile_section(
         st.write(f"### {title}")
         st.markdown(
             f"<small><i>{os.path.normpath(input_csv_path)}</i></small>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            "⚠️ To modify the time series data, please make changes locally. "
+            "This section in this app contains visualisation only.",
             unsafe_allow_html=True,
         )
 
@@ -344,10 +275,13 @@ if __name__ == "__main__":
     )
 
     # Render type and PyPSA class filters for the transport demand profiles section
-    demand_profile_types, demand_selected_classes = render_type_and_class_filters(
-        tech_df,
-        key="transport_demand_global",
-    )
+    with st.sidebar:
+        st.divider()
+        st.markdown("#### Technology filter | :material/directions_car: Transport")
+        demand_profile_types, demand_selected_classes = render_type_and_class_filters(
+            tech_df,
+            key="transport_demand_global",
+        )
 
     # Render demand profiles selectbox for the transport demand profiles section
     demand_profile_types = render_demand_profiles_selectbox(

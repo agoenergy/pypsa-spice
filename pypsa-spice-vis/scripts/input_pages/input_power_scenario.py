@@ -407,6 +407,10 @@ if __name__ == "__main__":
     sector_title = generate_sector_title(SELECTED_SECTOR)
     DOCS_PATH = "getting-started/input-data/regional_csv_template"
     st.markdown(
+        "Scenario name: "
+        + st.session_state.base_config["path_configs"]["input_scenario_name"]
+    )
+    st.markdown(
         "Detailed explanation can be found in: "
         f"[scenario input guides](https://agoenergy.github.io/pypsa-spice/{DOCS_PATH})"
     )
@@ -424,10 +428,13 @@ if __name__ == "__main__":
     )
 
     # Render type and PyPSA class filters for the power scenario input section
-    sector_selected_types, sector_selected_classes = render_type_and_class_filters(
-        tech_df,
-        key="power_scenario",
-    )
+    with st.sidebar:
+        st.divider()
+        st.markdown("#### Technology filter | :material/bolt: Power")
+        sector_selected_types, sector_selected_classes = render_type_and_class_filters(
+            tech_df,
+            key="power_scenario",
+        )
 
     # Render scenario power input relevant sections for non-timeseries tables
     for table_name in app_input_config[SELECTED_SECTOR]:
