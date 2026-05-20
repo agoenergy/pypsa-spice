@@ -111,16 +111,15 @@ def render_type_and_class_filters(
     default_type_selection = [types_full_names[0]] if types_full_names else []
 
     selected_type_full = st.multiselect(
-        "Select Technology types:",
+        "Select Technologies:",
         types_full_names,
         default=default_type_selection,
+        help="Multiple technologies can be selected.",
         key=f"type_filter_multiselect_{key}",
     )
 
     if not selected_type_full and default_type_selection:
-        st.warning(
-            "At least one technology type must be selected. Resetting to default."
-        )
+        st.warning("At least one technology type must be selected.")
         selected_type_full = default_type_selection
 
     selected_types = [reverse_mapping.get(v, v) for v in selected_type_full]
@@ -130,8 +129,8 @@ def render_type_and_class_filters(
         .unique()
         .tolist()
     )
-    st.markdown(f"Tech: **{', '.join(selected_types)}**")
-    st.markdown(f"Class: **{', '.join(selected_classes)}**")
+    st.markdown(f"Abbreviation used in PyPSA-SPICE: **{', '.join(selected_types)}**")
+    st.markdown(f"PyPSA component type: **{', '.join(selected_classes)}**")
 
     return selected_types, selected_classes
 
@@ -252,8 +251,8 @@ def sort_scenario_data_for_yearly_chart(
     ----------
     df : pd.DataFrame
         The scenario dataframe to sort.
-    sort_by_column : str
-        The column name to sort by.
+    year_to_sort : str
+        The year column to sort by.
     ascending : bool, optional
         Whether to sort in ascending order (default is False for descending).
 
