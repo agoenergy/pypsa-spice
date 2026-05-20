@@ -7,7 +7,7 @@
 
 ### Fixed
 - Change website link display. ([:material-source-pull:110](https://github.com/agoenergy/pypsa-spice/pull/110) by @RichChang963)
-- Fix error handling of missing p_max_pu in generators and links. ([:material-source-pull:107](https://github.com/agoenergy/pypsa-spice/pull/107) by @RichChang963)
+- Fix error handling of missing p_max_pu for generators and links. ([:material-source-pull:107](https://github.com/agoenergy/pypsa-spice/pull/107) by @RichChang963)
 
 ### Changed
 - Add streamlit-extra pacakge and enhance addtional features in PyPSA-SPICE-Vis. ([:material-source-pull:105](https://github.com/agoenergy/pypsa-spice/pull/105) by @RichChang963)
