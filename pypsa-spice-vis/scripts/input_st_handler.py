@@ -12,7 +12,9 @@ import re
 import shutil
 import time
 from datetime import date
+from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -94,6 +96,22 @@ def get_fuel_mapping(selected_types: list[str], input_config: dict) -> dict:
         .set_index("technology")["carrier"]
         .to_dict()
     )
+
+
+@st.cache_data
+def get_default_scenario_config() -> dict:
+    """Load the default scenario configuration template used by the editor."""
+    file_path = (
+        Path(__file__).resolve().parents[2]
+        / "data"
+        / "scenario_config_template"
+        / "scenario_config.default.yaml"
+    )
+
+    yaml_loader = YAML(typ="safe", pure=True)
+
+    with file_path.open(encoding="utf-8") as file_handle:
+        return yaml_loader.load(file_handle) or {}
 
 
 def get_table_config_and_path(
@@ -585,64 +603,6 @@ def convert_date_string_into_date_obj(raw_value: object, fallback: date) -> date
     return parsed_date
 
 
-def create_inputbox_and_keep_nulls_for_empty_input_values(
-    label: str,
-    value: object,
-    constraint_key: str,
-    help_text: str | None = None,
-) -> object:
-    """Render a streamlit input box based on the value types, and keep null values."""
-    result: object | None = None
-
-    # For boolean values, render a checkbox
-    if isinstance(value, bool):
-        result = st.checkbox(label, value=value, key=constraint_key, help=help_text)
-    # For integer values, render a number input with step of 1
-    elif isinstance(value, int) and not isinstance(value, bool):
-        result = st.number_input(
-            label, value=value, step=1, key=constraint_key, help=help_text
-        )
-    # For float values, render a number input with float formatting (2 decimal places)
-    elif isinstance(value, float):
-        result = st.number_input(
-            label,
-            value=float(value),
-            format="%.2f",
-            key=constraint_key,
-            help=help_text,
-        )
-    # For None values or other types, render a text input
-    elif value is None or isinstance(value, str):
-        raw_value = "" if value is None else str(value)
-        text_value = st.text_input(
-            label, value=raw_value, key=constraint_key, help=help_text
-        )
-
-        stripped = text_value.strip()
-        if stripped == "":
-            result = None
-        else:
-            lowered = stripped.lower()
-            if lowered == "true":
-                result = True
-            elif lowered == "false":
-                result = False
-            else:
-                try:
-                    # Handle negative integers (e.g., "-5")
-                    # and positive integers (e.g., "5")
-                    if stripped.startswith("-") and stripped[1:].isdigit():
-                        result = int(stripped)
-                    elif stripped.isdigit():
-                        result = int(stripped)
-                    else:
-                        result = float(stripped)
-                except ValueError:
-                    result = stripped
-
-    return result
-
-
 def render_save_button_for_input_df(
     filtered_df: pd.DataFrame,
     edited_df: pd.DataFrame,
@@ -734,7 +694,7 @@ def convert_to_commented_yaml_value(value: object) -> object:
     root = CommentedMap() if isinstance(value, dict) else CommentedSeq()
 
     # Use a stack to traverse the data structure iteratively and convert scalar values
-    pending_nodes: list[tuple[object, CommentedMap | CommentedSeq]] = [(value, root)]
+    pending_nodes = [(value, root)]
 
     while pending_nodes:
         # source_node is the original Python data structure node (dict, list, or scalar)
@@ -783,48 +743,216 @@ def convert_to_commented_yaml_value(value: object) -> object:
     return root
 
 
-def render_save_button_for_input_config(
+def update_comments_in_final_yaml(existing_value: object, new_value: object) -> object:
+    """Make sure that all default comments are in config before saving into yaml."""
+    if isinstance(new_value, str):
+        return convert_scalar_value_to_yaml_value(new_value)
+
+    if not isinstance(new_value, (dict, list)):
+        return new_value
+
+    # Determine the root target node type based on the new value and existing value
+    if isinstance(new_value, dict):
+        root_target = (
+            existing_value
+            if isinstance(existing_value, CommentedMap)
+            else CommentedMap()
+        )
+    else:
+        root_target = (
+            existing_value
+            if isinstance(existing_value, CommentedSeq)
+            else CommentedSeq()
+        )
+
+    # Use a stack to traverse the data structure iteratively and update comments
+    pending_nodes = [(existing_value, new_value, root_target)]
+
+    while pending_nodes:
+        source_existing, source_new, target_node = pending_nodes.pop()
+
+        # For dictionary nodes, update keys and values while preserving comments
+        if isinstance(source_new, dict) and isinstance(target_node, CommentedMap):
+            existing_map = (
+                source_existing if isinstance(source_existing, CommentedMap) else None
+            )
+
+            for key in list(target_node):
+                if key not in source_new:
+                    del target_node[key]
+
+            for key, item in source_new.items():
+                existing_item = (
+                    existing_map.get(key) if existing_map is not None else None
+                )
+
+                if isinstance(item, dict):
+                    child_node = (
+                        existing_item
+                        if isinstance(existing_item, CommentedMap)
+                        else CommentedMap()
+                    )
+                    target_node[key] = child_node
+                    pending_nodes.append((existing_item, item, child_node))
+                elif isinstance(item, list):
+                    child_node = (
+                        existing_item
+                        if isinstance(existing_item, CommentedSeq)
+                        else CommentedSeq()
+                    )
+                    target_node[key] = child_node
+                    pending_nodes.append((existing_item, item, child_node))
+                elif isinstance(item, str):
+                    target_node[key] = convert_scalar_value_to_yaml_value(item)
+                else:
+                    target_node[key] = item
+
+            continue
+
+        # For list nodes, update items while preserving comments.
+        # This assumes that the order of items in the list is not changed.
+        if isinstance(source_new, list) and isinstance(target_node, CommentedSeq):
+            target_list = cast(CommentedSeq, target_node)
+            existing_seq = (
+                source_existing if isinstance(source_existing, CommentedSeq) else None
+            )
+
+            while len(target_list) > len(source_new):
+                target_list.pop()
+
+            for index, item in enumerate(source_new):
+                existing_item = (
+                    existing_seq[index]
+                    if existing_seq is not None and index < len(existing_seq)
+                    else None
+                )
+
+                if isinstance(item, dict):
+                    child_node = (
+                        existing_item
+                        if isinstance(existing_item, CommentedMap)
+                        else CommentedMap()
+                    )
+                    if index < len(target_list):
+                        target_list[index] = child_node
+                    else:
+                        target_list.append(child_node)
+                    pending_nodes.append((existing_item, item, child_node))
+                elif isinstance(item, list):
+                    child_node = (
+                        existing_item
+                        if isinstance(existing_item, CommentedSeq)
+                        else CommentedSeq()
+                    )
+                    if index < len(target_list):
+                        target_list[index] = child_node
+                    else:
+                        target_list.append(child_node)
+                    pending_nodes.append((existing_item, item, child_node))
+                elif isinstance(item, str):
+                    scalar_value = convert_scalar_value_to_yaml_value(item)
+                    if index < len(target_list):
+                        target_list[index] = scalar_value
+                    else:
+                        target_list.append(scalar_value)
+                else:
+                    if index < len(target_list):
+                        target_list[index] = item
+                    else:
+                        target_list.append(item)
+
+    return root_target
+
+
+def save_input_config_into_yaml(
     scenario_section: dict,
     section_name: str,
-    save_button_key: str,
-    has_changes: bool,
     has_changes_key: str,
     message_delay: float = 1,
+    change_type: str = "revert",
 ) -> None:
-    """Render the save button and save changes in the scenario config."""
-    if st.button(
-        "Save Changes",
-        key=save_button_key,
-        type="primary" if has_changes else "secondary",
-    ):
-        success = True
-        scenario_config_path = st.session_state.scenario_config_path
+    """Save changes in the scenario config."""
+    scenario_config_path = st.session_state.scenario_config_path
 
-        # Initialize YAML instance
-        yaml = YAML()
-        yaml.preserve_quotes = True
-        yaml.default_flow_style = False
-        yaml.width = 4096  # Prevent line wrapping
+    # Initialize YAML instance
+    yaml = YAML()
+    yaml.preserve_quotes = True
+    yaml.default_flow_style = False
+    yaml.width = 4096  # Prevent line wrapping
 
-        scenario_config_data = dict(st.session_state.scenario_config)
-        scenario_config_data[section_name] = scenario_section
+    scenario_config = st.session_state.scenario_config
+    if not isinstance(scenario_config, CommentedMap):
+        scenario_config = CommentedMap(scenario_config or {})
 
-        commented_map = CommentedMap()
-        for key, item in scenario_config_data.items():
-            # Convert each value to the appropriate YAML type while preserving comments
-            commented_map[key] = convert_to_commented_yaml_value(item)
+    scenario_config[section_name] = update_comments_in_final_yaml(
+        scenario_config.get(section_name),
+        scenario_section,
+    )
+    st.session_state.scenario_config = scenario_config
 
-        scenario_config = commented_map
+    # Save the updated scenario config back to the YAML file
+    with open(scenario_config_path, "w", encoding="utf-8") as file_handle:
+        yaml.dump(scenario_config, file_handle)
 
-        # Save the updated scenario config back to the YAML file
-        with open(scenario_config_path, "w", encoding="utf-8") as file_handle:
-            file_handle.write(SCENARIO_CONFIG_HEADER)
-            yaml.dump(scenario_config, file_handle)
+    if change_type == "save":
+        st.success("Changes saved successfully!")
+    else:
+        st.success("Changes reverted successfully!")
 
-        if success:
-            st.success("Changes saved successfully!")
+    st.session_state[has_changes_key] = False
+    time.sleep(message_delay)
+    st.rerun()
+
+
+def add_key_for_save_or_revert_changes(section_name: str, widget_name: str) -> str:
+    """Build a session key for saving or reverting a section's widgets."""
+    reset_counter = st.session_state.get(
+        f"scenario_config::{section_name}::reset_counter",
+        0,
+    )
+    return f"scenario_config::{section_name}::{reset_counter}::{widget_name}"
+
+
+def render_section_action_buttons(
+    section_name: str,
+    scenario_section: dict,
+    edited_section: dict,
+    has_changes_key: str,
+) -> None:
+    """Render save and revert buttons for changes in the scenario config sections."""
+    has_changes = edited_section != (scenario_section or {})
+
+    action_columns = st.columns(2)
+    with action_columns[0]:
+        if st.button(
+            "Save Changes",
+            key=add_key_for_save_or_revert_changes(section_name, "save"),
+            type="primary" if has_changes else "secondary",
+            disabled=not has_changes,
+        ):
+            save_input_config_into_yaml(
+                scenario_section=edited_section,
+                section_name=section_name,
+                has_changes_key=has_changes_key,
+                change_type="save",
+            )
+
+    with action_columns[1]:
+        if st.button(
+            "Revert Changes",
+            key=add_key_for_save_or_revert_changes(section_name, "revert"),
+            disabled=not has_changes,
+        ):
+            # reset every changes in the sections back to default
+            reset_counter_key = f"scenario_config::{section_name}::reset_counter"
+            st.session_state[reset_counter_key] = (
+                st.session_state.get(reset_counter_key, 0) + 1
+            )
             st.session_state[has_changes_key] = False
-            time.sleep(message_delay)
-            st.rerun()
-        else:
-            st.error("Error saving some changes")
+
+            save_input_config_into_yaml(
+                scenario_section=scenario_section,
+                section_name=section_name,
+                has_changes_key=has_changes_key,
+                change_type="revert",
+            )
