@@ -6,6 +6,7 @@
 - Add minimum curtailment support via a curtailment penalty in the optimisation objective.
 
 ### Fixed
+- Fix correct barmode in plotly to display right stacked column charts. ([:material-source-pull:111](https://github.com/agoenergy/pypsa-spice/pull/111) by @RichChang963)
 - Change website link display. ([:material-source-pull:110](https://github.com/agoenergy/pypsa-spice/pull/110) by @RichChang963)
 - Fix error handling of missing p_max_pu for generators and links. ([:material-source-pull:107](https://github.com/agoenergy/pypsa-spice/pull/107) by @RichChang963)
 
