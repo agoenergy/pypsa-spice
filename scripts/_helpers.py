@@ -1500,7 +1500,7 @@ def plot_table(
 
         # Update layout properties
         fig.update_layout(
-            barmode="stack",
+            barmode="relative",
             autosize=False,
             plot_bgcolor=agora_style["figure_edgecolor"],
             paper_bgcolor=agora_style["figure_facecolor"],
