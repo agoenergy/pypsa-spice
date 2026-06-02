@@ -500,7 +500,7 @@ def simple_bar_yearly(scenario_name: str, graph_config: dict) -> None:
             x="year",
             y="value",
             color="nice_names",
-            barmode="group" if table_name == "pow_bats_ep_ratio" else "stack",
+            barmode="group" if table_name == "pow_bats_ep_ratio" else "relative",
             color_discrete_map=colour_mapping,
         )
 
