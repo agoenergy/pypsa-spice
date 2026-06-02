@@ -152,7 +152,7 @@ def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None)
         excluded_units = {"%", "USD/MWh", "USD/MWh_th"}
 
         if units and (not is_regional_hourly) and (units not in excluded_units):
-            country_options += ["all"]
+            country_options = [option.upper() for option in country_options] + ["ALL"]
 
         slider_id = config_plot["table_name"]
         if "shared_country" in config_plot:

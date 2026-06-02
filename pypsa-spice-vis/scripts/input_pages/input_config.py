@@ -231,7 +231,7 @@ def handle_co2_management(config, file_path):
                     ),
                 },
                 hide_index=True,
-                use_container_width=True,
+                width="stretch",
             )
 
             # Update the config with edited values
