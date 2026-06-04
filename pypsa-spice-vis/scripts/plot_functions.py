@@ -197,7 +197,7 @@ def plot_simple_bar_yearly(
         barmode=(
             "group"
             if graph_config.get("table_name") == "pow_bats_ep_ratio"
-            else "stack"
+            else "relative"
         ),
         color_discrete_map=colour_mapping,
     )

@@ -33,7 +33,7 @@ scenario_configs:
 co2_management:
   # please indicate country/region specific CO2 management options
   # options: ["co2_cap", "co2_price"]
-  # co2_cap" is a cap on the total CO2 emissions in the system. Values are in mtCO2.
+  # "co2_cap" is a cap on the total CO2 emissions in the system. Values are in mtCO2.
   # "co2_price" is a price on CO2 emissions in the system. Values are in currency/tonne of CO2.
   XY:
     option: "co2_cap"

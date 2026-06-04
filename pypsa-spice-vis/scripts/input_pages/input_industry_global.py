@@ -192,6 +192,11 @@ def render_input_industry_timeseries_section(
             f"<small><i>{os.path.normpath(input_csv_path)}</i></small>",
             unsafe_allow_html=True,
         )
+        st.markdown(
+            "⚠️ To modify the time series data, please make changes locally. "
+            "This section in this app contains visualisation only.",
+            unsafe_allow_html=True,
+        )
 
         if input_df is None:
             if not os.path.exists(input_csv_path):
@@ -266,6 +271,11 @@ def render_input_industry_demand_profile_section(
             f"<small><i>{os.path.normpath(input_csv_path)}</i></small>",
             unsafe_allow_html=True,
         )
+        st.markdown(
+            "⚠️ To modify the time series data, please make changes locally. "
+            "This section in this app contains visualisation only.",
+            unsafe_allow_html=True,
+        )
 
         if input_df is None:
             if not os.path.exists(input_csv_path):
@@ -315,10 +325,13 @@ if __name__ == "__main__":
     )
 
     # Render type and PyPSA class filters for the industry global input section
-    sector_selected_types, sector_selected_classes = render_type_and_class_filters(
-        tech_df,
-        key="industry_global",
-    )
+    with st.sidebar:
+        st.divider()
+        st.markdown("#### Technology filter | :material/construction: Industry")
+        sector_selected_types, sector_selected_classes = render_type_and_class_filters(
+            tech_df,
+            key="industry_global",
+        )
 
     # Render global industry input relevant sections for non-timeseries tables
     for table_name, section_config in app_input_config["Global_input"].items():
@@ -357,12 +370,6 @@ if __name__ == "__main__":
         key="demand_industry_global_pills",
     )
 
-    # Render type and PyPSA class filters for the industry demand profiles section
-    demand_profile_types, demand_selected_classes = render_type_and_class_filters(
-        tech_df,
-        key="industry_demand_global",
-    )
-
     # Render demand profiles selectbox for the industry demand profiles section
     demand_profile_types = render_demand_profiles_selectbox(
         selected_sector=SELECTED_SECTOR
@@ -374,5 +381,5 @@ if __name__ == "__main__":
         selected_types=demand_profile_types,
         input_config=app_input_config,
         selected_countries=demand_selected_countries,
-        selected_classes=demand_selected_classes,
+        selected_classes=["Loads"],
     )
