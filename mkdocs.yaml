@@ -184,9 +184,6 @@ extra:
 extra_css:
   - "assets/css/custom.css"
 
-extra_javascript:
-  - https://polyfill.io/v3/polyfill.min.js?features=es6
-
 plugins:
   - search
   - awesome-pages
