@@ -22,13 +22,13 @@ from scripts.data_utils import (
     sort_scenario_data_for_yearly_chart,
 )
 from scripts.plot_functions import (
-    get_hourly_bar_legends,
     plot_diff_bar_yearly,
     render_hourly_legend_order_control,
 )
 from scripts.plot_settings import (
     generate_color_mapping_dict_for_chart,
     generate_default_colour_mapping_dict_for_chart,
+    get_hourly_bar_legends,
 )
 
 # pylint: disable=too-many-locals, too-many-branches

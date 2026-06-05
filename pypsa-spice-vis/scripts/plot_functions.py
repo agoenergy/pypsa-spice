@@ -8,7 +8,7 @@
 import os
 import re
 from collections.abc import Mapping
-from typing import Any, cast
+from typing import Any
 
 import pandas as pd
 import plotly.express as px
@@ -20,6 +20,8 @@ from streamlit_sortables import sort_items
 from scripts.plot_settings import (
     add_stackedbar_total,
     configure_plot_layout,
+    get_hourly_bar_legends,
+    get_updated_hourly_legend_order,
     handle_y_axis_list,
     update_hourly_plot_x_axis,
 )
@@ -63,58 +65,6 @@ def create_nice_names_and_color_mapping(table_name: str) -> pd.DataFrame | None:
     df = pd.read_csv(file_path, index_col="original_names")
 
     return df
-
-
-def get_hourly_bar_legends(df: pd.DataFrame, graph_type: str | None) -> list[str]:
-    """Get the available legends for an hourly bar chart.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        DataFrame containing the data with columns "year", "legend", and "value".
-    graph_type : str | None
-        Type of the graph, e.g., "simple_bar_hourly" or "filtered_bar_hourly".
-
-    Returns
-    -------
-    list[str]
-        List of legend names currently present in the DataFrame.
-    """
-    legend_df = df
-    if graph_type == "filtered_bar_hourly" and "value" in df.columns:
-        legend_df = df[df["value"] != 0]
-
-    if legend_df.empty or "legend" not in legend_df.columns:
-        return []
-
-    return cast(list[str], pd.Index(legend_df["legend"].dropna().unique()).tolist())
-
-
-def get_updated_hourly_legend_order(legends: list[str], state_key: str) -> list[str]:
-    """Get the updated hourly legend order.
-
-    Parameters
-    ----------
-    legends : list[str]
-        List of legend names currently present in the DataFrame.
-    state_key : str
-        Key used to store the legend order in the session state.
-
-    Returns
-    -------
-    list[str]
-        Updated list of legend names in the order defined by the user.
-    """
-    if len(legends) < 2:
-        return legends
-
-    stored_legends = st.session_state.get(state_key, [])
-    ordered_legends = [legend for legend in stored_legends if legend in legends]
-    ordered_legends.extend(
-        legend for legend in legends if legend not in ordered_legends
-    )
-    st.session_state[state_key] = ordered_legends
-    return ordered_legends
 
 
 def render_hourly_legend_order_control(
