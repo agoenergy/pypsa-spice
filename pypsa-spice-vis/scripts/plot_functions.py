@@ -15,11 +15,15 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
+from streamlit_sortables import sort_items
 
 from scripts.plot_settings import (
     add_stackedbar_total,
     configure_plot_layout,
+    get_hourly_bar_legends,
+    get_updated_hourly_legend_order,
     handle_y_axis_list,
+    keep_non_zero_rows_as_legends,
     update_hourly_plot_x_axis,
 )
 
@@ -62,6 +66,74 @@ def create_nice_names_and_color_mapping(table_name: str) -> pd.DataFrame | None:
     df = pd.read_csv(file_path, index_col="original_names")
 
     return df
+
+
+def render_hourly_legend_order_control(
+    list_of_legends: list[str],
+    key: str,
+    state_key: str | None = None,
+) -> None:
+    """Render a drag-and-drop list for ordering hourly chart legends.
+
+    Parameters
+    ----------
+    legends : list[str]
+        List of legend names currently present in the DataFrame.
+    key : str
+        Key used to identify the chart.
+    state_key : str | None
+        Key used to store the legend order in the session state.
+    """
+    if len(list_of_legends) < 2:
+        return
+
+    session_state_key = state_key or f"{key}_legend_order"
+    sortable_version_key = f"{session_state_key}_sortable_version"
+    ordered_legends = get_updated_hourly_legend_order(
+        list_of_legends, session_state_key
+    )
+    sortable_key = (
+        f"{key}_legend_order_sortable_"
+        f"{st.session_state.get(sortable_version_key, 0)}"
+    )
+    sortable_style = """
+    .sortable-item,
+    .sortable-item:hover {
+        font-size: 0.85rem;
+    }
+    """
+    displayed_legends = list(reversed(ordered_legends))
+
+    updated_legends = ordered_legends
+    reset_clicked = False
+    with st.popover("Customise legend order"):
+        st.caption("Drag items to reorder the current filtered chart.")
+        updated_legends = sort_items(
+            displayed_legends,
+            direction="vertical",
+            custom_style=sortable_style,
+            key=sortable_key,
+        )
+        updated_legends = list(reversed(updated_legends))
+        reset_clicked = st.button(
+            "Reset legend order",
+            key=f"{key}_legend_order_reset",
+            width="stretch",
+        )
+
+    if reset_clicked:
+        if ordered_legends != list_of_legends:
+            st.session_state[session_state_key] = list_of_legends.copy()
+        st.session_state[sortable_version_key] = (
+            st.session_state.get(sortable_version_key, 0) + 1
+        )
+        st.rerun()
+
+    if updated_legends != ordered_legends:
+        st.session_state[session_state_key] = updated_legends
+        st.rerun()
+
+    st.session_state[session_state_key] = updated_legends
 
 
 @st.fragment
@@ -284,14 +356,20 @@ def plot_simple_bar_hourly(
     end_date: Any,
     is_complete: bool,
     key: str,
+    legend_order_state_key: str | None = None,
 ) -> None:
     """Plot hourly stacked bar chart from pre-filtered data."""
+    legend_order = get_updated_hourly_legend_order(
+        get_hourly_bar_legends(df, graph_config.get("graph_type")),
+        legend_order_state_key or f"{key}_legend_order",
+    )
     fig = px.bar(
         df,
         x="snapshot",
         y="value",
         color="legend",
         color_discrete_map=colour_mapping,
+        category_orders={"legend": legend_order},
     )
     fig = update_hourly_plot_x_axis(fig, df, start_date, end_date, is_complete)
     fig = configure_plot_layout(fig, df, y_range, graph_config)
@@ -332,14 +410,21 @@ def plot_filtered_bar_hourly(
     end_date: Any,
     is_complete: bool,
     key: str,
+    legend_order_state_key: str | None = None,
 ) -> None:
     """Plot hourly stacked bar chart with line overlay from pre-filtered data."""
+    bar_df = keep_non_zero_rows_as_legends(filtered_df)
+    legend_order = get_updated_hourly_legend_order(
+        get_hourly_bar_legends(filtered_df, graph_config.get("graph_type")),
+        legend_order_state_key or f"{key}_legend_order",
+    )
     fig = px.bar(
-        filtered_df[filtered_df["value"] != 0],
+        bar_df,
         x="snapshot",
         y="value",
         color="legend",
         color_discrete_map=colour_mapping,
+        category_orders={"legend": legend_order},
     )
     fig = update_hourly_plot_x_axis(fig, filtered_df, start_date, end_date, is_complete)
     fig = configure_plot_layout(fig, filtered_df, y_range, graph_config)

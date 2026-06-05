@@ -8,7 +8,7 @@ import datetime as dt
 import os
 import re
 from itertools import cycle
-from typing import Any
+from typing import Any, cast
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -106,6 +106,68 @@ def generate_color_mapping_dict_for_chart(
                 default_colour_index += 1
 
     return mapping_dict
+
+
+def keep_non_zero_rows_as_legends(
+    df: pd.DataFrame, value_col: str = "value", decimals: int = 2
+) -> pd.DataFrame:
+    """Return non-zero rows after rounding, which will be used as legends."""
+    if value_col not in df.columns:
+        return df
+
+    return df[df[value_col].round(decimals) != 0]
+
+
+def get_hourly_bar_legends(df: pd.DataFrame, graph_type: str | None) -> list[str]:
+    """Get the available legends for an hourly bar chart.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing the data with columns "year", "legend", and "value".
+    graph_type : str | None
+        Type of the graph, e.g., "simple_bar_hourly" or "filtered_bar_hourly".
+
+    Returns
+    -------
+    list[str]
+        List of legend names currently present in the DataFrame.
+    """
+    legend_df = df
+    if graph_type == "filtered_bar_hourly" and "value" in df.columns:
+        legend_df = keep_non_zero_rows_as_legends(df)
+
+    if legend_df.empty or "legend" not in legend_df.columns:
+        return []
+
+    return cast(list[str], pd.Index(legend_df["legend"].dropna().unique()).tolist())
+
+
+def get_updated_hourly_legend_order(legends: list[str], state_key: str) -> list[str]:
+    """Get the updated hourly legend order.
+
+    Parameters
+    ----------
+    legends : list[str]
+        List of legend names currently present in the DataFrame.
+    state_key : str
+        Key used to store the legend order in the session state.
+
+    Returns
+    -------
+    list[str]
+        Updated list of legend names in the order defined by the user.
+    """
+    if len(legends) < 2:
+        return legends
+
+    stored_legends = st.session_state.get(state_key, [])
+    ordered_legends = [legend for legend in stored_legends if legend in legends]
+    ordered_legends.extend(
+        legend for legend in legends if legend not in ordered_legends
+    )
+    st.session_state[state_key] = ordered_legends
+    return ordered_legends
 
 
 # =============================================================================
