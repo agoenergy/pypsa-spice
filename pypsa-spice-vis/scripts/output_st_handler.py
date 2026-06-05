@@ -548,7 +548,7 @@ def _render_single_chart_layout(
     scenario_name = st.session_state.output_sce1
     table_name = config_dict["table_name"]
     legend_col = config_dict["leg_col"]
-    legend_order_state_key = get_hourly_legend_state_key(
+    legend_order_state_key = get_hourly_chart_legend_order_key(
         config_dict, is_dual_scenario=False
     )
 
@@ -568,7 +568,9 @@ def _render_single_chart_layout(
 
     if legend_order_state_key is not None:
         render_hourly_legend_order_control(
-            get_combined_hourly_bar_legends(config_dict, scenario_1_vis_display_data),
+            collect_unique_hourly_chart_legends(
+                config_dict, scenario_1_vis_display_data
+            ),
             key=f"{plot_key}_legend_order_control",
             state_key=legend_order_state_key,
         )
@@ -605,7 +607,7 @@ def _render_dual_chart_layout(
     scenario_2_name = st.session_state.output_sce2
     table_name = config_dict["table_name"]
     legend_col = config_dict["leg_col"]
-    legend_order_state_key = get_hourly_legend_state_key(
+    legend_order_state_key = get_hourly_chart_legend_order_key(
         config_dict, is_dual_scenario=True
     )
 
@@ -616,7 +618,7 @@ def _render_dual_chart_layout(
 
     if legend_order_state_key is not None:
         render_hourly_legend_order_control(
-            get_combined_hourly_bar_legends(
+            collect_unique_hourly_chart_legends(
                 config_dict,
                 scenario_1_vis_display_data,
                 scenario_2_vis_display_data,
@@ -791,7 +793,12 @@ def render_scenario_comparison_chart_n_table(
             )
 
 
-def get_hourly_legend_state_key(
+# =============================================================================
+# Session stage helper functions
+# =============================================================================
+
+
+def get_hourly_chart_legend_order_key(
     config_dict: dict[str, Any],
     is_dual_scenario: bool,
 ) -> str | None:
@@ -811,7 +818,7 @@ def get_hourly_legend_state_key(
     return f"legend_order_{scenario_name}_{graph_type}_{table_name}"
 
 
-def get_combined_hourly_bar_legends(
+def collect_unique_hourly_chart_legends(
     config_dict: dict[str, Any],
     *dataframes: pd.DataFrame | None,
 ) -> list[str]:
