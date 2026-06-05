@@ -118,7 +118,7 @@ def get_updated_hourly_legend_order(legends: list[str], state_key: str) -> list[
 
 
 def render_hourly_legend_order_control(
-    legends: list[str],
+    list_of_legends: list[str],
     key: str,
     state_key: str | None = None,
 ) -> None:
@@ -133,12 +133,14 @@ def render_hourly_legend_order_control(
     state_key : str | None
         Key used to store the legend order in the session state.
     """
-    if len(legends) < 2:
+    if len(list_of_legends) < 2:
         return
 
     session_state_key = state_key or f"{key}_legend_order"
     sortable_version_key = f"{session_state_key}_sortable_version"
-    ordered_legends = get_updated_hourly_legend_order(legends, session_state_key)
+    ordered_legends = get_updated_hourly_legend_order(
+        list_of_legends, session_state_key
+    )
     sortable_key = (
         f"{key}_legend_order_sortable_"
         f"{st.session_state.get(sortable_version_key, 0)}"
@@ -169,8 +171,8 @@ def render_hourly_legend_order_control(
         )
 
     if reset_clicked:
-        if ordered_legends != legends:
-            st.session_state[session_state_key] = legends.copy()
+        if ordered_legends != list_of_legends:
+            st.session_state[session_state_key] = list_of_legends.copy()
         st.session_state[sortable_version_key] = (
             st.session_state.get(sortable_version_key, 0) + 1
         )
