@@ -108,6 +108,16 @@ def generate_color_mapping_dict_for_chart(
     return mapping_dict
 
 
+def keep_non_zero_rows_as_legends(
+    df: pd.DataFrame, value_col: str = "value", decimals: int = 2
+) -> pd.DataFrame:
+    """Return non-zero rows after rounding, which will be used as legends."""
+    if value_col not in df.columns:
+        return df
+
+    return df[df[value_col].round(decimals) != 0]
+
+
 def get_hourly_bar_legends(df: pd.DataFrame, graph_type: str | None) -> list[str]:
     """Get the available legends for an hourly bar chart.
 
@@ -125,7 +135,7 @@ def get_hourly_bar_legends(df: pd.DataFrame, graph_type: str | None) -> list[str
     """
     legend_df = df
     if graph_type == "filtered_bar_hourly" and "value" in df.columns:
-        legend_df = df[df["value"] != 0]
+        legend_df = keep_non_zero_rows_as_legends(df)
 
     if legend_df.empty or "legend" not in legend_df.columns:
         return []

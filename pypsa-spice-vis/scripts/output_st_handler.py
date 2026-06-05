@@ -29,6 +29,7 @@ from scripts.plot_settings import (
     generate_color_mapping_dict_for_chart,
     generate_default_colour_mapping_dict_for_chart,
     get_hourly_bar_legends,
+    keep_non_zero_rows_as_legends,
 )
 
 # pylint: disable=too-many-locals, too-many-branches
@@ -554,6 +555,9 @@ def _render_single_chart_layout(
 
     st.markdown(f"{scenario_name}")
 
+    scenario_1_vis_display_data = keep_non_zero_rows_as_legends(
+        scenario_1_vis_display_data
+    )
     colour_mapping = generate_colour_mapping_dict(
         table_name,
         mapping_df,
@@ -615,6 +619,13 @@ def _render_dual_chart_layout(
     chart_plot_kwargs = dict(plot_kwargs)
     if legend_order_state_key is not None:
         chart_plot_kwargs["legend_order_state_key"] = legend_order_state_key
+
+    scenario_1_vis_display_data = keep_non_zero_rows_as_legends(
+        scenario_1_vis_display_data
+    )
+    scenario_2_vis_display_data = keep_non_zero_rows_as_legends(
+        scenario_2_vis_display_data
+    )
 
     if legend_order_state_key is not None:
         render_hourly_legend_order_control(

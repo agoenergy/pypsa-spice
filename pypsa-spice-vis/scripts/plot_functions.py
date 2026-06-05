@@ -23,6 +23,7 @@ from scripts.plot_settings import (
     get_hourly_bar_legends,
     get_updated_hourly_legend_order,
     handle_y_axis_list,
+    keep_non_zero_rows_as_legends,
     update_hourly_plot_x_axis,
 )
 
@@ -412,7 +413,7 @@ def plot_filtered_bar_hourly(
     legend_order_state_key: str | None = None,
 ) -> None:
     """Plot hourly stacked bar chart with line overlay from pre-filtered data."""
-    bar_df = filtered_df[filtered_df["value"] != 0]
+    bar_df = keep_non_zero_rows_as_legends(filtered_df)
     legend_order = get_updated_hourly_legend_order(
         get_hourly_bar_legends(filtered_df, graph_config.get("graph_type")),
         legend_order_state_key or f"{key}_legend_order",
