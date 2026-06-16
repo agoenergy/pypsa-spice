@@ -36,6 +36,7 @@ from _helpers import (
 
 idx = pd.IndexSlice
 
+logging.getLogger("pypsa.networks").setLevel(logging.ERROR)
 logger = logging.getLogger(__name__)
 
 
@@ -353,7 +354,7 @@ class AddBaseNetwork:
             carrier=storage_energy["carrier"],
             capital_cost=storage_energy["capital_cost"],
             marginal_cost=storage_energy["marginal_cost"],
-            e_nom_extendable=True,  # allow extendable storage energy
+            e_nom_extendable=True,  # allow endogenous expansion of storage energy
             standing_loss=storage_energy["standing_loss"],
             e_cyclic=storage_energy["cyclic"],
             build_year=self.year,

@@ -25,6 +25,11 @@ body {
   }
 }
 
+/* Hide the site title shown at the top of the page */
+.md-header__title {
+  display: none;
+}
+
  /* Custom CSS to resize the Agora Energiewende logo */
 .md-header__title img {
     height: 100px; /* Adjust this value to change the height */
@@ -76,11 +81,11 @@ img[alt="PyPSA-SPICE_snakemake_workflow_DAG"] {
   font-size: 0.75rem;
 }
 
-.md-nav__title {
-  font-weight: bold;
-  color: #3c6f89;
-  text-shadow: 1px 1px 1px #83c7e9;
-  font-size: 0.85rem;
+/* Hide the sidebar site title */
+.md-nav--primary > .md-nav__title {
+  color: transparent;
+  text-shadow: none;
+  font-size: 0;
 }
 
 /* Hide the logo in the navigation title */

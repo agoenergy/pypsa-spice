@@ -35,6 +35,7 @@ from custom_constraints import (
 from dotenv import load_dotenv
 from linopy.remote.oetc import OetcCredentials, OetcHandler, OetcSettings
 
+logging.getLogger("pypsa.networks").setLevel(logging.ERROR)
 logger = logging.getLogger(__name__)
 
 
