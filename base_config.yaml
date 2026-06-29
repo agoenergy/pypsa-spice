@@ -21,7 +21,7 @@ path_configs:
 
 base_configs:
   regions:
-    TH: ["BKK", "CE", "NE", "NR", "SO"]
-  years: [2026, 2030, 2037] # list of modelled years
+    TH: ["BKK", "BKKNR", "EA", "NE", "NR", "SO", "WE"]
+  years: [2026, 2030, 2037, 2040, 2045,2050] # list of modelled years
   sector: ["p"] # options: ["p", "p-i", "p-t", "p-i-t"], representing power (p), industry (i), and transport (t) sectors.
   currency: USD # currency for the model in all uppercases, ISO4217 format
