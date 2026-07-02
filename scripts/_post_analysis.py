@@ -1696,19 +1696,27 @@ class OutputTables(Plots):
             A DataFrame with multi-index (country, technology) and columns (value, year)
         """
         all_countries_flh = pd.DataFrame()
+        generation_all = self.pow_gen_by_type_yearly()
+        capacity_all = self.pow_cap_by_type_yearly()
+        generation_countries = generation_all.index.get_level_values("country").unique()
+        capacity_countries = capacity_all.index.get_level_values("country").unique()
+
         for country in self.countries:
-            generation_df = (
-                self.pow_gen_by_type_yearly().loc[country].reset_index(drop=True)
-            )
-            capacity_df = (
-                self.pow_cap_by_type_yearly().loc[country].reset_index(drop=True)
-            )
+            if country not in generation_countries or country not in capacity_countries:
+                continue
+
+            generation_df = generation_all.loc[country].reset_index(drop=True)
+            capacity_df = capacity_all.loc[country].reset_index(drop=True)
             generation_by_type_year = generation_df.set_index(["technology", "year"])
             capacity_by_type_year = capacity_df.set_index(["technology", "year"])
             flh_df = (generation_by_type_year * 1e3) / capacity_by_type_year
             flh_df = flh_df.reset_index().dropna()
             flh_df["country"] = country
             all_countries_flh = pd.concat([all_countries_flh, flh_df], axis=0)
+        if all_countries_flh.empty:
+            return pd.DataFrame(
+                columns=["country", "technology", "value", "year"]
+            ).set_index(["country", "technology"])
         return all_countries_flh.set_index(["country", "technology"])
 
     def pow_reserve_by_type_hourly(self, year: int, nth_hour: int) -> pd.DataFrame:
