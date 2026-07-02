@@ -637,7 +637,7 @@ def get_plant_availabilities(
                 + "Please check data in technologies.csv and availability.csv again."
             )
         result = result.iloc[:, 2:]
-        result["plant"] = row["link"]
+        result["plant"] = row["name"]
         dfs.append(result.set_index("plant"))
     availability_df = pd.concat(dfs)
     availability_df = availability_df.astype(float)
