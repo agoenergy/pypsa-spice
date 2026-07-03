@@ -248,6 +248,7 @@ def solve_network(
         # solve network
         network.optimize(
             solver_name=solver_name,
+            linearized_unit_commitment=True,
             extra_functionality=extra_functionality_linopt_config,
             **({"remote": oetc_handler} if oetc_handler else {}),
             **solver_options,
@@ -273,6 +274,7 @@ def solve_network(
 
             network.optimize(
                 solver_name=solver_name,
+                linearized_unit_commitment=True,
                 solver_options=solver_options_numerical,
                 extra_functionality=extra_functionality_linopt_config,
             )
