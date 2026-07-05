@@ -798,7 +798,7 @@ class AddFutureAssets:
             bus1=links_df["bus1"],
             bus2=links_df["bus2"],
             bus3=links_df["bus3"],
-            # committable=True,
+            committable=True,
             carrier=links_df["carrier"],
             efficiency=links_df["efficiency"],
             efficiency2=links_df["efficiency2"],
