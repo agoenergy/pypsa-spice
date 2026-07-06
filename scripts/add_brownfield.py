@@ -791,6 +791,10 @@ class AddFutureAssets:
         p_max_pu = links_avail.T.iloc[self.red_hours].set_index(self.network.snapshots)
         p_max_pu.columns.name = "Link"
 
+        links_df["committable"] = True
+        if "TH_NUCLN" in links_df["bus0"].values:
+            links_df.loc[links_df["bus0"] == "TH_NUCLN", "committable"] = False
+
         self.network.add(
             class_name="Link",
             name=links_df.index,
@@ -798,7 +802,7 @@ class AddFutureAssets:
             bus1=links_df["bus1"],
             bus2=links_df["bus2"],
             bus3=links_df["bus3"],
-            committable=True,
+            committable=links_df["committable"],
             carrier=links_df["carrier"],
             efficiency=links_df["efficiency"],
             efficiency2=links_df["efficiency2"],
