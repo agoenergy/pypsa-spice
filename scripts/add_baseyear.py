@@ -92,6 +92,7 @@ class AddBaseNetwork:
                 class_name="Store",
                 name=f"{country}_atmosphere",
                 e_nom_extendable=True,
+                e_cyclic=False,
                 # e_min_pu=-1, # activate to allow negative emission # noqa: E800
                 carrier="CO2",
                 bus=f"{country}_ATMP",
