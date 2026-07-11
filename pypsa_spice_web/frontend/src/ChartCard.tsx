@@ -92,15 +92,17 @@ export default function ChartCard({ chart, selection, mappings, onInspect }: Pro
   return <article className={`chart-card ${expanded ? "expanded" : ""} ${comparing ? "comparing" : ""} ${showDifference ? "showing-difference" : ""}`}>
     <header className="chart-head">
       <div className="chart-title"><small>{chart.id.toUpperCase()} · {chart.hourly ? "Hourly" : "Yearly"}</small><h3>{chart.name}</h3></div>
-      <div className="chart-controls">
-        {countries.length > 1 && <select aria-label={`Country for ${chart.name}`} value={country} onChange={(event) => setCountry(event.target.value)}><option value="ALL">All countries</option>{countries.map((item) => <option key={item}>{item}</option>)}</select>}
-        {chart.fil_col && filters.length > 0 && <select aria-label={`${chart.fil_col} for ${chart.name}`} value={filterValue} onChange={(event) => setFilterValue(event.target.value)}><option value="ALL">All {filterLabel}</option>{filters.map((item) => <option key={item}>{item}</option>)}</select>}
-        {selection.comparison && <label className="chart-difference-toggle" title={`${selection.comparison} − ${selection.scenario}`}><input type="checkbox" checked={showDifference} onChange={(event) => setShowDifference(event.target.checked)} /><i aria-hidden="true" /><span>Difference</span></label>}
-      </div>
-      <div className="chart-actions">
-        <button title="View source data" aria-label={`View ${chart.name} source data`} onClick={() => onInspect(chart.name, rows, sourceCount)}>▦</button>
-        <a title="Download complete CSV" aria-label={`Download ${chart.name} CSV`} href={downloadUrl(chart, selection)} download>↓</a>
-        <button title={expanded ? "Close expanded chart" : "Expand chart"} aria-label={`${expanded ? "Close" : "Expand"} ${chart.name}`} onClick={() => setExpanded(!expanded)}>{expanded ? "×" : "↗"}</button>
+      <div className="chart-toolbar">
+        <div className="chart-controls">
+          {countries.length > 1 && <select aria-label={`Country for ${chart.name}`} value={country} onChange={(event) => setCountry(event.target.value)}><option value="ALL">All countries</option>{countries.map((item) => <option key={item}>{item}</option>)}</select>}
+          {chart.fil_col && filters.length > 0 && <select aria-label={`${chart.fil_col} for ${chart.name}`} value={filterValue} onChange={(event) => setFilterValue(event.target.value)}><option value="ALL">All {filterLabel}</option>{filters.map((item) => <option key={item}>{item}</option>)}</select>}
+          {selection.comparison && <label className="chart-difference-toggle" title={`${selection.comparison} − ${selection.scenario}`}><input type="checkbox" checked={showDifference} onChange={(event) => setShowDifference(event.target.checked)} /><i aria-hidden="true" /><span>Difference</span></label>}
+        </div>
+        <div className="chart-actions">
+          <button title="View source data" aria-label={`View ${chart.name} source data`} onClick={() => onInspect(chart.name, rows, sourceCount)}>▦</button>
+          <a title="Download complete CSV" aria-label={`Download ${chart.name} CSV`} href={downloadUrl(chart, selection)} download>↓</a>
+          <button title={expanded ? "Close expanded chart" : "Expand chart"} aria-label={`${expanded ? "Close" : "Expand"} ${chart.name}`} onClick={() => setExpanded(!expanded)}>{expanded ? "×" : "↗"}</button>
+        </div>
       </div>
     </header>
     {chart.hourly && availableStart !== null && availableEnd !== null && selectedStart !== null && selectedEnd !== null && <div className="time-range-controls" aria-label={`Time range for ${chart.name}`}>
@@ -123,6 +125,5 @@ export default function ChartCard({ chart, selection, mappings, onInspect }: Pro
       </>}
       {!loading && !error && primary && primary.rows.length > 0 && comparing && showDifference && <div className="difference-plot"><div className="scenario-label difference"><small>Difference</small><b>{selection.comparison} − {selection.scenario}</b></div><Plot chart={chart} primary={primary} comparison={comparison} primaryName={selection.scenario} comparisonName={selection.comparison} mappings={mappings} expanded={expanded} difference /></div>}
     </div>
-    <footer className="chart-foot"><span>{chart.units || "Ratio"}</span><span><b>{sourceCount.toLocaleString()}</b> source rows</span>{(primary?.meta.sampled || comparison?.meta.sampled) && <em>Display sampled for speed</em>}<span className="push">{selection.comparison ? "2 scenarios" : "1 scenario"}</span></footer>
   </article>;
 }
