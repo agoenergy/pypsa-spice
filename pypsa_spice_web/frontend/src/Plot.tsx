@@ -14,6 +14,7 @@ interface Props {
   primaryName: string;
   comparisonName: string;
   mappings: Catalog["mappings"];
+  darkMode: boolean;
   expanded: boolean;
   difference?: boolean;
 }
@@ -54,13 +55,13 @@ function traces(
     const isArea = chart.type === "area_share";
     const isBar = chart.type.includes("bar");
     const trace: Record<string, unknown> = {
-      name: `${pretty(legend, mappings)}${comparison ? ` · ${scenario}` : ""}`,
+      name: pretty(legend, mappings),
       x: points.map((point) => point.x),
       y: points.map((point) => point.y),
       marker: { color },
       line: { color, width: comparison ? 1.5 : 2, dash: comparison ? "dot" : "solid" },
       opacity: comparison ? 0.5 : 0.94,
-      hovertemplate: `<b>${pretty(legend, mappings)}</b><br>%{x}<br>%{y:,.2f} ${chart.units || ""}<extra>${scenario}</extra>`,
+      hovertemplate: `<b>${pretty(legend, mappings)}</b>: %{y:,.2f} ${chart.units || ""}<extra></extra>`,
       yaxis: chart.secondary_y_lab?.includes(legend) ? "y2" : "y",
     };
     if (isArea) Object.assign(trace, { type: "scatter", mode: "lines", fill: comparison ? "none" : "tonexty", stackgroup: comparison ? undefined : "one" });
@@ -94,12 +95,12 @@ function differenceTraces(
       x: xValues.map((value) => chart.hourly ? value : Number(value)),
       y: xValues.map((value) => (secondPoints.get(value) || 0) - (firstPoints.get(value) || 0)),
       marker: { color }, line: { color, width: 2 },
-      hovertemplate: `<b>${pretty(legend, mappings)}</b><br>%{x}<br>Difference: %{y:+,.2f} ${chart.units || ""}<extra>${comparisonName} − ${primaryName}</extra>`,
+      hovertemplate: `<b>${pretty(legend, mappings)}</b>: %{y:+,.2f} ${chart.units || ""}<extra></extra>`,
     };
   });
 }
 
-export default function Plot({ chart, primary, comparison, primaryName, comparisonName, mappings, expanded, difference = false }: Props) {
+export default function Plot({ chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, expanded, difference = false }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const legendValues = useMemo(() => {
     const values = new Set(aggregate(primary.rows, chart).keys());
@@ -110,9 +111,8 @@ export default function Plot({ chart, primary, comparison, primaryName, comparis
   }, [primary, comparison, chart]);
   useEffect(() => {
     if (!ref.current || !window.Plotly) return;
-    const dark = document.documentElement.dataset.theme === "dark";
-    const grid = dark ? "#34403c" : "#e2e6e4";
-    const text = dark ? "#a9b5b1" : "#65717d";
+    const grid = "#e2e6e4";
+    const text = darkMode ? "#a9b5b1" : "#65717d";
     const allTraces = difference && comparison
       ? differenceTraces(primary, comparison, chart, primaryName, comparisonName, mappings)
       : [...traces(primary, chart, primaryName, mappings, false), ...(comparison ? traces(comparison, chart, comparisonName, mappings, true) : [])];
@@ -123,10 +123,10 @@ export default function Plot({ chart, primary, comparison, primaryName, comparis
       font: { family: "Flexo, sans-serif", size: 10, color: text },
       showlegend: false,
       hovermode: "x unified", barmode: difference ? "relative" : comparison ? "group" : "relative",
-      xaxis: { gridcolor: grid, zeroline: false, tickfont: { size: 9 } },
-      yaxis: { title: { text: difference ? `Difference (${chart.units || "value"})` : chart.units || "", font: { size: 10 } }, gridcolor: grid, zeroline: difference, zerolinecolor: text, zerolinewidth: 1, rangemode: "tozero" },
+      xaxis: { showgrid: !darkMode, gridcolor: grid, zeroline: false, tickfont: { size: 9 }, unifiedhovertitle: { text: chart.hourly ? "%{x|%d %b · %H:%M}" : "%{x}" } },
+      yaxis: { title: { text: difference ? `Difference (${chart.units || "value"})` : chart.units || "", font: { size: 10 } }, showgrid: !darkMode, gridcolor: grid, zeroline: difference, zerolinecolor: darkMode ? "rgba(255,255,255,.18)" : text, zerolinewidth: 1, rangemode: "tozero" },
       yaxis2: { overlaying: "y", side: "right", showgrid: false, title: "State of charge" },
-      hoverlabel: { bgcolor: dark ? "#222b28" : "#fff", bordercolor: grid },
+      hoverlabel: { bgcolor: darkMode ? "#222b28" : "#fff", bordercolor: darkMode ? "#34403c" : grid, font: { size: 10 }, align: "left" },
       uirevision: `${chart.id}-${primaryName}-${difference}`,
     }, {
       responsive: true, displaylogo: false,
@@ -134,7 +134,7 @@ export default function Plot({ chart, primary, comparison, primaryName, comparis
       toImageButtonOptions: { format: "png", filename: `${primaryName}_${chart.table_name}`, scale: 2 },
     });
     return () => { if (ref.current) window.Plotly.purge(ref.current); };
-  }, [chart, primary, comparison, primaryName, comparisonName, mappings, difference]);
+  }, [chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, difference]);
 
   useEffect(() => { if (ref.current && window.Plotly) window.Plotly.Plots.resize(ref.current); }, [expanded]);
   return <div className="plot-with-legend">

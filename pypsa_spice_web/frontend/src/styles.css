@@ -15,3 +15,13 @@ html[data-theme=dark]{--ink:#eff4f2;--muted:#a9b5b1;--paper:#111715;--surface:#1
 @media(max-width:700px){.chart-head{align-items:flex-start;flex-wrap:wrap}.chart-title{padding-top:4px}.chart-toolbar{width:100%;margin-left:0}.chart-controls{min-width:0;flex:1}.chart-controls select{min-width:0;max-width:none;flex:1}.chart-actions{margin-left:auto}}
 @media(max-width:560px){.hero h1{font-size:34px}.stamp{min-width:0}.chart-toolbar{overflow-x:auto}.chart-difference-toggle span{display:none}.time-range-values output{font-size:9px}.chart-body{height:300px}.crumbs span,.crumbs i{display:none}.main-column>footer{display:block}.main-column>footer span{display:block;margin:4px 0}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Shared icon and chart-surface refinements. */
+.menu svg,.button svg,.sidebar-foot button svg,.chart-actions svg,.icon-button svg,.time-range-head button svg,.search>svg{width:18px;height:18px;stroke-width:1.8}
+.sidebar-foot button,.icon-button{display:grid;place-items:center}
+.search>svg{flex:0 0 18px;color:var(--muted)}
+.chart-title h3{margin:0}
+.time-range-head button{display:inline-flex;align-items:center;gap:5px}
+.time-range-head button svg{width:13px;height:13px}
+html[data-theme=dark] .plot-with-legend,html[data-theme=dark] .scenario-plot,html[data-theme=dark] .difference-plot{background:transparent}
+html[data-theme=dark] .html-legend{background:transparent}
