@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CarFront, CircleDollarSign, Cloud, Factory, Zap } from "lucide-react";
+import { BarChart3, CarFront, CircleDollarSign, Cloud, Factory, Play, Settings2, Zap } from "lucide-react";
 import { getCatalog } from "./api";
 import ChartCard from "./ChartCard";
 import DataDialog from "./DataDialog";
@@ -92,8 +92,8 @@ export default function App() {
   return <div className="app-shell">
     <a className="skip-link" href="#workspace">Skip to visualisations</a>
     <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-      <div className="brand"><img src="/brand/pypsa-logo.svg" alt="PyPSA" /><div><b>SPICE</b><span>Model workspace</span></div></div>
-      <nav><p className="eyebrow">Workspace</p><a className="active" href="/"><i>⌁</i>Outputs</a><span className="disabled"><i>≡</i>Configure<small>Next</small></span><span className="disabled"><i>▷</i>Run model<small>Next</small></span></nav>
+      <div className="brand"><img src="/brand/pypsa-logo.svg" alt="PyPSA-SPICE" /></div>
+      <nav><p className="eyebrow">Workspace</p><a className="active" href="/"><BarChart3 aria-hidden="true" />Outputs</a><span className="disabled"><Settings2 aria-hidden="true" />Configure<small>Next</small></span><span className="disabled"><Play aria-hidden="true" />Run model<small>Next</small></span></nav>
       <div className="source-controls"><p className="eyebrow">Result source</p>
         <Control label="Dataset" value={selection.dataset} onChange={chooseDataset} options={catalog.datasets.map((item) => item.name)} />
         <Control label="Project" value={selection.project} onChange={chooseProject} options={dataset!.projects.map((item) => item.name)} />
@@ -106,10 +106,10 @@ export default function App() {
     </aside>
     <div className="scrim" onClick={() => setSidebarOpen(false)} />
     <div className="main-column">
-      <header className="topbar"><button className="menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Open result filters">☰</button><div className="crumbs"><span>PyPSA-SPICE</span><i>/</i><b>{section.label} outputs</b></div><div className="top-actions"><button className="button secondary" onClick={() => loadCatalog(true)}>↻ Refresh data</button><a className="button primary" href="/docs" target="_blank">API</a></div></header>
+      <header className="topbar"><button className="menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Open result filters">☰</button><div className="section-tabs top-section-tabs" role="tablist" aria-label="Output sections">{sections.map((item) => { const SectionIcon = sectionIcons[item.id as keyof typeof sectionIcons] || Zap; return <a className={`section-tab ${item.id === section.id ? "active" : ""}`} href={`?section=${item.id}`} key={item.id} role="tab" aria-selected={item.id === section.id} onClick={(event) => { event.preventDefault(); chooseSection(item.id); }}><SectionIcon aria-hidden="true" /><b>{item.label}</b><small>{item.charts.length}</small></a>; })}</div><div className="top-actions"><button className="button secondary" onClick={() => loadCatalog(true)}>↻ Refresh data</button><a className="button primary" href="/docs" target="_blank">API</a></div></header>
       <main id="workspace">
         <section className="page-title"><h1>{section.title}</h1></section>
-        <section className="analysis"><div className="section-tabs" role="tablist" aria-label="Output sections">{sections.map((item) => { const SectionIcon = sectionIcons[item.id as keyof typeof sectionIcons] || Zap; return <a className={`section-tab ${item.id === section.id ? "active" : ""}`} href={`?section=${item.id}`} key={item.id} role="tab" aria-selected={item.id === section.id} onClick={(event) => { event.preventDefault(); chooseSection(item.id); }}><SectionIcon aria-hidden="true" /><b>{item.label}</b><small>{item.charts.length}</small></a>; })}</div><div className="analysis-head"><div><p className="eyebrow">{section.eyebrow}</p><h2>Output visualisations</h2></div><div className="analysis-tools"><label className="search"><span>⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} type="search" placeholder={`Find a ${section.label.toLowerCase()} visualisation`} /></label></div></div>{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} mappings={catalog.mappings} onInspect={(title, rows, sourceCount) => setInspector({ title, rows, sourceCount })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisation matches “{search}”.</div>}</section>
+        <section className="analysis"><div className="analysis-head"><div><p className="eyebrow">{section.eyebrow}</p><h2>Output visualisations</h2></div><div className="analysis-tools"><label className="search"><span>⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} type="search" placeholder={`Find a ${section.label.toLowerCase()} visualisation`} /></label></div></div>{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} mappings={catalog.mappings} onInspect={(title, rows, sourceCount) => setInspector({ title, rows, sourceCount })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisation matches “{search}”.</div>}</section>
       </main>
       <footer><span>PyPSA-SPICE output explorer</span><span>React · FastAPI · Local CSV source of truth</span></footer>
     </div>
