@@ -55,7 +55,38 @@ CHART_TYPES = {
     "c8": "bar",
 }
 
-SECTION_META = {"power": {"label": "Power", "icon": "bolt"}}
+SECTION_META = {
+    "power": {
+        "label": "Power",
+        "icon": "ϟ",
+        "title": "Power Sector",
+        "eyebrow": "Power system",
+    },
+    "industry": {
+        "label": "Industry",
+        "icon": "▦",
+        "title": "Industry Sector",
+        "eyebrow": "Industrial energy system",
+    },
+    "transport": {
+        "label": "Transport",
+        "icon": "→",
+        "title": "Transport Sector",
+        "eyebrow": "Transport energy system",
+    },
+    "emissions": {
+        "label": "Emissions",
+        "icon": "◌",
+        "title": "Emissions",
+        "eyebrow": "Cross-sector emissions",
+    },
+    "costs": {
+        "label": "Costs",
+        "icon": "$",
+        "title": "System Costs",
+        "eyebrow": "Cross-sector costs",
+    },
+}
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -82,7 +113,7 @@ def _chart_definitions() -> dict[str, list[dict[str, Any]]]:
     raw = _load_yaml(GRAPH_CONFIG)
     sections: dict[str, list[dict[str, Any]]] = {}
     for section, charts in raw.items():
-        if section != "power":
+        if section not in SECTION_META:
             continue
         sections[section] = []
         for chart_id, values in charts.items():
@@ -141,7 +172,11 @@ def _table_paths(
         paths = [sector_path / selected / f"{table}.csv"] if selected else []
     else:
         all_years = sector_path / "all_years" / f"{table}.csv"
-        paths = [all_years] if all_years.exists() else [p / f"{table}.csv" for p in year_dirs]
+        paths = (
+            [all_years]
+            if all_years.exists()
+            else [p / f"{table}.csv" for p in year_dirs]
+        )
     return [path for path in paths if path.is_file()]
 
 
@@ -174,7 +209,9 @@ def _read_csv_cached(path_string: str, modified_ns: int) -> tuple[dict[str, Any]
 def _read_paths(paths: list[Path]) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for path in paths:
-        rows.extend(dict(row) for row in _read_csv_cached(str(path), path.stat().st_mtime_ns))
+        rows.extend(
+            dict(row) for row in _read_csv_cached(str(path), path.stat().st_mtime_ns)
+        )
     # Some exporters repeat the full yearly table in each year folder.
     seen: set[tuple[Any, ...]] = set()
     unique_rows: list[dict[str, Any]] = []
@@ -215,39 +252,57 @@ def _parse_timestamp(value: str, field_name: str) -> datetime:
 def _catalog() -> dict[str, Any]:
     datasets: list[dict[str, Any]] = []
     if DATA_DIR.exists():
-        for dataset_path in sorted(path for path in DATA_DIR.iterdir() if path.is_dir()):
+        for dataset_path in sorted(
+            path for path in DATA_DIR.iterdir() if path.is_dir()
+        ):
             projects: list[dict[str, Any]] = []
-            for project_path in sorted(path for path in dataset_path.iterdir() if path.is_dir()):
+            for project_path in sorted(
+                path for path in dataset_path.iterdir() if path.is_dir()
+            ):
                 results = project_path / "results"
                 if not results.is_dir():
                     continue
                 scenarios: list[dict[str, Any]] = []
-                for scenario_path in sorted(path for path in results.iterdir() if path.is_dir()):
+                for scenario_path in sorted(
+                    path for path in results.iterdir() if path.is_dir()
+                ):
                     csv_root = scenario_path / "csvs"
                     if not csv_root.is_dir():
                         continue
                     sectors: list[dict[str, Any]] = []
-                    for sector_path in sorted(path for path in csv_root.iterdir() if path.is_dir()):
+                    for sector_path in sorted(
+                        path for path in csv_root.iterdir() if path.is_dir()
+                    ):
                         years = sorted(
-                            [path.name for path in sector_path.iterdir() if path.is_dir()],
+                            [
+                                path.name
+                                for path in sector_path.iterdir()
+                                if path.is_dir()
+                            ],
                             key=_year_sort,
                         )
                         files = {path.name for path in sector_path.glob("*/*.csv")}
-                        chart_count = sum(
-                            1
-                            for charts in CHARTS.values()
-                            for chart in charts
-                            if f"{chart['table_name']}.csv" in files
-                        )
+                        section_counts = {
+                            section: sum(
+                                1
+                                for chart in charts
+                                if f"{chart['table_name']}.csv" in files
+                            )
+                            for section, charts in CHARTS.items()
+                        }
+                        chart_count = sum(section_counts.values())
                         sectors.append(
                             {
                                 "name": sector_path.name,
                                 "years": [year for year in years if year.isdigit()],
                                 "chart_count": chart_count,
+                                "section_counts": section_counts,
                             }
                         )
                     if sectors:
-                        scenarios.append({"name": scenario_path.name, "sectors": sectors})
+                        scenarios.append(
+                            {"name": scenario_path.name, "sectors": sectors}
+                        )
                 if scenarios:
                     projects.append({"name": project_path.name, "scenarios": scenarios})
             if projects:
@@ -341,7 +396,9 @@ def chart_data(
     start = _parse_timestamp(start_time, "start") if start_time else None
     end = _parse_timestamp(end_time, "end") if end_time else None
     if start and end and start > end:
-        raise HTTPException(status_code=400, detail="Start time must be before end time")
+        raise HTTPException(
+            status_code=400, detail="Start time must be before end time"
+        )
     if hourly and (start or end):
         filtered_rows: list[dict[str, Any]] = []
         for row in rows:
@@ -349,7 +406,9 @@ def chart_data(
             if snapshot_value in (None, ""):
                 continue
             try:
-                snapshot = datetime.fromisoformat(str(snapshot_value).replace("Z", "+00:00"))
+                snapshot = datetime.fromisoformat(
+                    str(snapshot_value).replace("Z", "+00:00")
+                )
             except ValueError:
                 continue
             if start and snapshot < start:

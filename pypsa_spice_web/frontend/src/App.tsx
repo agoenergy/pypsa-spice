@@ -1,14 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
+import { CarFront, CircleDollarSign, Cloud, Factory, Zap } from "lucide-react";
 import { getCatalog } from "./api";
 import ChartCard from "./ChartCard";
 import DataDialog from "./DataDialog";
 import type { Catalog, ResultRow, Selection } from "./types";
 
 const emptySelection: Selection = { dataset: "", project: "", scenario: "", comparison: "", sector: "", year: "" };
+const sectionIcons = {
+  power: Zap,
+  industry: Factory,
+  transport: CarFront,
+  emissions: Cloud,
+  costs: CircleDollarSign,
+};
+
+function sectionFromLocation() {
+  return new URLSearchParams(window.location.search).get("section")?.toLowerCase() || "power";
+}
 
 export default function App() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [selection, setSelection] = useState<Selection>(emptySelection);
+  const [sectionId, setSectionId] = useState(sectionFromLocation);
   const [search, setSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [error, setError] = useState("");
@@ -30,13 +43,30 @@ export default function App() {
 
   useEffect(() => { loadCatalog(); }, []);
   useEffect(() => { document.documentElement.dataset.theme = dark ? "dark" : "light"; localStorage.setItem("spice-theme", dark ? "dark" : "light"); }, [dark]);
+  useEffect(() => {
+    const syncSection = () => setSectionId(sectionFromLocation());
+    window.addEventListener("popstate", syncSection);
+    return () => window.removeEventListener("popstate", syncSection);
+  }, []);
 
   const dataset = catalog?.datasets.find((item) => item.name === selection.dataset);
   const project = dataset?.projects.find((item) => item.name === selection.project);
   const scenario = project?.scenarios.find((item) => item.name === selection.scenario);
   const sector = scenario?.sectors.find((item) => item.name === selection.sector);
-  const power = catalog?.sections.find((item) => item.id === "power");
-  const charts = useMemo(() => power?.charts.filter((chart) => chart.name.toLowerCase().includes(search.toLowerCase().trim())) || [], [power, search]);
+  const sections = catalog?.sections || [];
+  const section = sections.find((item) => item.id === sectionId) || sections[0];
+  const charts = useMemo(
+    () => section?.charts.filter((chart) => chart.name.toLowerCase().includes(search.toLowerCase().trim())) || [],
+    [section, search],
+  );
+
+  useEffect(() => {
+    if (!catalog || !section || section.id === sectionId) return;
+    window.history.replaceState(null, "", `?section=${section.id}`);
+    setSectionId(section.id);
+  }, [catalog, section, sectionId]);
+
+  useEffect(() => { setSearch(""); }, [sectionId]);
 
   const chooseDataset = (name: string) => {
     const nextDataset = catalog!.datasets.find((item) => item.name === name)!; const nextProject = nextDataset.projects[0]; const nextScenario = nextProject.scenarios[0]; const nextSector = nextScenario.sectors[0];
@@ -51,8 +81,13 @@ export default function App() {
     setSelection((current) => ({ ...current, scenario: name, comparison: current.comparison === name ? "" : current.comparison, sector: nextSector.name, year: nextSector.years[0] || "" }));
   };
   const chooseSector = (name: string) => { const next = scenario!.sectors.find((item) => item.name === name)!; setSelection((current) => ({ ...current, sector: name, year: next.years[0] || "" })); };
+  const chooseSection = (name: string) => {
+    window.history.pushState(null, "", `?section=${name}`);
+    setSectionId(name);
+    setSidebarOpen(false);
+  };
 
-  if (!catalog || !selection.scenario) return <div className="boot"><img src="/brand/pypsa-logo.svg" alt="PyPSA" /><span className="spinner" />{error || "Discovering local results…"}</div>;
+  if (!catalog || !selection.scenario || !section) return <div className="boot"><img src="/brand/pypsa-logo.svg" alt="PyPSA" /><span className="spinner" />{error || "Discovering local results…"}</div>;
 
   return <div className="app-shell">
     <a className="skip-link" href="#workspace">Skip to visualisations</a>
@@ -71,12 +106,12 @@ export default function App() {
     </aside>
     <div className="scrim" onClick={() => setSidebarOpen(false)} />
     <div className="main-column">
-      <header className="topbar"><button className="menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Open result filters">☰</button><div className="crumbs"><span>PyPSA-SPICE</span><i>/</i><b>Power outputs</b></div><div className="top-actions"><button className="button secondary" onClick={() => loadCatalog(true)}>↻ Refresh data</button><a className="button primary" href="/docs" target="_blank">API</a></div></header>
+      <header className="topbar"><button className="menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Open result filters">☰</button><div className="crumbs"><span>PyPSA-SPICE</span><i>/</i><b>{section.label} outputs</b></div><div className="top-actions"><button className="button secondary" onClick={() => loadCatalog(true)}>↻ Refresh data</button><a className="button primary" href="/docs" target="_blank">API</a></div></header>
       <main id="workspace">
-        <section className="page-title"><h1>Power Sector</h1></section>
-        <section className="analysis"><div className="section-tab"><span>ϟ</span><b>Power</b><small>{power?.charts.length}</small></div><div className="analysis-head"><div><p className="eyebrow">Power system</p><h2>Output visualisations</h2></div><div className="analysis-tools"><label className="search"><span>⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} type="search" placeholder="Find a visualisation" /></label></div></div>{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} mappings={catalog.mappings} onInspect={(title, rows, sourceCount) => setInspector({ title, rows, sourceCount })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisation matches “{search}”.</div>}</section>
+        <section className="page-title"><h1>{section.title}</h1></section>
+        <section className="analysis"><div className="section-tabs" role="tablist" aria-label="Output sections">{sections.map((item) => { const SectionIcon = sectionIcons[item.id as keyof typeof sectionIcons] || Zap; return <a className={`section-tab ${item.id === section.id ? "active" : ""}`} href={`?section=${item.id}`} key={item.id} role="tab" aria-selected={item.id === section.id} onClick={(event) => { event.preventDefault(); chooseSection(item.id); }}><SectionIcon aria-hidden="true" /><b>{item.label}</b><small>{item.charts.length}</small></a>; })}</div><div className="analysis-head"><div><p className="eyebrow">{section.eyebrow}</p><h2>Output visualisations</h2></div><div className="analysis-tools"><label className="search"><span>⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} type="search" placeholder={`Find a ${section.label.toLowerCase()} visualisation`} /></label></div></div>{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} mappings={catalog.mappings} onInspect={(title, rows, sourceCount) => setInspector({ title, rows, sourceCount })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisation matches “{search}”.</div>}</section>
       </main>
-      <footer><span>PyPSA-SPICE power output explorer</span><span>React · FastAPI · Local CSV source of truth</span></footer>
+      <footer><span>PyPSA-SPICE output explorer</span><span>React · FastAPI · Local CSV source of truth</span></footer>
     </div>
     {inspector && <DataDialog {...inspector} onClose={() => setInspector(null)} />}
   </div>;
