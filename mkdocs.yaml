@@ -105,6 +105,7 @@ nav:
       - Execution: getting-started/input-data/model-builder-execution.md
 
   - 📊 Visualisation tool: 
+    - Power output explorer (React): visualisation-tool/pypsa-spice-web.md
     - PyPSA-SPICE-Vis: visualisation-tool/pypsa-spice-vis.md
     - List of charts and sections: visualisation-tool/vis-sections-and-charts.md
     - Deployment: visualisation-tool/deployment.md

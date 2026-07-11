@@ -35,6 +35,10 @@ gurobi.log
 node_modules/
 package-lock.json
 package.json
+pypsa_spice_web/frontend/dist/
+
+!pypsa_spice_web/frontend/package.json
+!pypsa_spice_web/frontend/package-lock.json
 
 # Exceptions: Files under the following folders will not be ignored  
 # and will remain under Git version control.
