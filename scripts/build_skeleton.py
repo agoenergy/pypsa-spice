@@ -1470,7 +1470,7 @@ def update_demand_profiles(
         final_demand_df = pd.concat([final_demand_df, country_demand_df], axis=0)
 
     for node in nodes:
-        profile_list = ["HV_LOAD", "LV_LOAD"]
+        profile_list = ["HV_LOAD", "LV_LOAD", "PV_LOAD"]
         node_demand_df = demand_df.copy()
         node_demand_df["node"] = [node] * len(profile_list)
         node_demand_df["country"] = node_demand_df["node"].apply(

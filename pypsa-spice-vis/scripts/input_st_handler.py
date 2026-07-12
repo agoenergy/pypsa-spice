@@ -501,10 +501,11 @@ def render_demand_profiles_selectbox(selected_sector: str) -> list[str]:
         "IND_LOAD": "Industrial load (both high- and low-temperature heat)",
         "HPV_LOAD": "Transport load (high voltage level)",
         "LPV_LOAD": "Transport load (low/medium voltage level)",
+        "PV_LOAD": "Roof-top PV load (High voltage level)",
     }
     reverse_load_mapping = {label: key for key, label in load_mapping.items()}
     defaults_by_sector = {
-        "Power": ["HV_LOAD", "LV_LOAD"],
+        "Power": ["HV_LOAD", "LV_LOAD", "PV_LOAD"],
         "Industry": ["IND_LOAD"],
         "Transport": ["HPV_LOAD", "LPV_LOAD"],
     }

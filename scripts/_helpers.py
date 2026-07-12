@@ -549,6 +549,9 @@ def get_time_series_demands(
             )
         dfs.append(result)
     demand_df = pd.concat(dfs)
+    negative_load_df = demand_df[demand_df["load_id"].str.contains("PV_LOAD")]
+    demand_df.loc[negative_load_df.index, negative_load_df.columns[:-5]] *= -1
+
     demand_df.set_index(["load_id", "country", "bus", "carrier", "node"], inplace=True)
 
     return demand_df
