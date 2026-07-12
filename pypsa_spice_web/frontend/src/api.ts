@@ -1,4 +1,12 @@
-import type { Catalog, ChartDefinition, ChartResponse, Selection } from "./types";
+import type { Catalog, ChartDefinition, ChartResponse, InputCatalog, InputCell, InputSelection, InputTableDefinition, InputTableResponse, ScenarioConfigResponse, Selection } from "./types";
+
+async function apiJson<T>(response: Response, fallback: string): Promise<T> {
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.detail || fallback);
+  }
+  return response.json();
+}
 
 export async function getCatalog(refresh = false): Promise<Catalog> {
   const response = await fetch(`/api/catalog${refresh ? `?t=${Date.now()}` : ""}`);
@@ -60,4 +68,73 @@ export function downloadUrl(chart: ChartDefinition, selection: Selection): strin
   const params = chartParams(chart, selection, selection.scenario);
   ["legend", "country", "filter_column", "filter_value"].forEach((key) => params.delete(key));
   return `/api/download?${params}`;
+}
+
+export async function getInputCatalog(): Promise<InputCatalog> {
+  return apiJson(await fetch(`/api/input/catalog?t=${Date.now()}`), "The input catalog could not be read.");
+}
+
+function inputParams(selection: InputSelection, definition: InputTableDefinition): URLSearchParams {
+  return new URLSearchParams({
+    dataset: selection.dataset,
+    project: selection.project,
+    scenario: selection.scenario,
+    scope: definition.scope,
+    sector: definition.sector || "power",
+    table: definition.id,
+  });
+}
+
+export async function getInputTable(selection: InputSelection, definition: InputTableDefinition, signal?: AbortSignal): Promise<InputTableResponse> {
+  return apiJson(
+    await fetch(`/api/input/table?${inputParams(selection, definition)}`, { signal }),
+    `Could not read ${definition.label}.`,
+  );
+}
+
+export async function saveInputTable(
+  selection: InputSelection,
+  definition: InputTableDefinition,
+  revision: string,
+  changes: { row: number; column: string; value: InputCell }[],
+): Promise<InputTableResponse> {
+  return apiJson(
+    await fetch(`/api/input/table?${inputParams(selection, definition)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ revision, changes }),
+    }),
+    `Could not save ${definition.label}.`,
+  );
+}
+
+function configParams(selection: InputSelection): URLSearchParams {
+  return new URLSearchParams({
+    dataset: selection.dataset,
+    project: selection.project,
+    scenario: selection.scenario,
+  });
+}
+
+export async function getScenarioConfig(selection: InputSelection, signal?: AbortSignal): Promise<ScenarioConfigResponse> {
+  return apiJson(
+    await fetch(`/api/input/scenario-config?${configParams(selection)}`, { signal }),
+    "Could not read the scenario configuration.",
+  );
+}
+
+export async function saveScenarioConfigSection(
+  selection: InputSelection,
+  section: string,
+  revision: string,
+  value: Record<string, unknown>,
+): Promise<ScenarioConfigResponse> {
+  return apiJson(
+    await fetch(`/api/input/scenario-config/${encodeURIComponent(section)}?${configParams(selection)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ revision, value }),
+    }),
+    "Could not save the scenario configuration.",
+  );
 }

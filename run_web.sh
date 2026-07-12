@@ -16,11 +16,11 @@ fi
 
 npm --prefix pypsa_spice_web/frontend run build
 
-if python -c "import fastapi, uvicorn, jinja2, plotly, yaml" >/dev/null 2>&1; then
+if python -c "import fastapi, uvicorn, jinja2, plotly, yaml, ruamel.yaml" >/dev/null 2>&1; then
   exec python -m uvicorn pypsa_spice_web.app:app --host "$HOST" --port "$PORT"
 fi
 
-if command -v conda >/dev/null 2>&1 && conda run -n hotpot python -c "import fastapi, uvicorn, jinja2, plotly, yaml" >/dev/null 2>&1; then
+if command -v conda >/dev/null 2>&1 && conda run -n hotpot python -c "import fastapi, uvicorn, jinja2, plotly, yaml, ruamel.yaml" >/dev/null 2>&1; then
   exec conda run --no-capture-output -n hotpot python -m uvicorn pypsa_spice_web.app:app --host "$HOST" --port "$PORT"
 fi
 

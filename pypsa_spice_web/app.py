@@ -1,4 +1,4 @@
-"""FastAPI application for the PyPSA-SPICE output explorer."""
+"""FastAPI application for the PyPSA-SPICE web workspace."""
 
 from __future__ import annotations
 
@@ -16,12 +16,25 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
+from pypsa_spice_web.input_editor import (
+    ConfigSectionUpdate,
+    TableUpdate,
+    input_catalog,
+    read_scenario_config,
+    read_table,
+    scenario_config_path,
+    table_path,
+    update_scenario_section,
+    update_table,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIST = PACKAGE_DIR / "frontend" / "dist"
 DATA_DIR = ROOT / "data"
 GRAPH_CONFIG = ROOT / "pypsa-spice-vis" / "setting" / "graph_settings.yaml"
 MAPPING_DIR = ROOT / "pypsa-spice-vis" / "setting"
+INPUT_CONFIG = MAPPING_DIR / "input_settings.yaml"
 
 CHART_TYPES = {
     "p1": "bar",
@@ -319,9 +332,9 @@ def _catalog() -> dict[str, Any]:
 
 
 app = FastAPI(
-    title="PyPSA-SPICE Output Explorer",
-    description="Interactive browser for PyPSA-SPICE result tables.",
-    version="0.1.0",
+    title="PyPSA-SPICE Web Workspace",
+    description="Explore model results and directly edit PyPSA-SPICE CSV/YAML inputs.",
+    version="0.2.0",
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
@@ -347,6 +360,85 @@ def health() -> dict[str, str]:
 @app.get("/api/catalog")
 def catalog() -> JSONResponse:
     return JSONResponse(_catalog())
+
+
+@app.get("/api/input/catalog")
+def input_data_catalog() -> JSONResponse:
+    """Return projects, scenarios, and configured input-table metadata."""
+
+    return JSONResponse(input_catalog(DATA_DIR, INPUT_CONFIG))
+
+
+@app.get("/api/input/table")
+def input_table_data(
+    dataset: str,
+    project: str,
+    scenario: str = "",
+    scope: str = Query(pattern="^(global|scenario)$"),
+    sector: str = Query(pattern="^(power|industry|transport)$"),
+    table: str = Query(min_length=1),
+    limit: int = Query(default=2000, ge=1, le=10000),
+) -> JSONResponse:
+    """Read a configured model-input CSV with typed editing metadata."""
+
+    path, config = table_path(
+        DATA_DIR,
+        INPUT_CONFIG,
+        dataset,
+        project,
+        scenario,
+        scope,  # type: ignore[arg-type]
+        sector,
+        table,
+    )
+    return JSONResponse(read_table(path, config, limit=limit))
+
+
+@app.put("/api/input/table")
+def save_input_table(
+    update: TableUpdate,
+    dataset: str,
+    project: str,
+    scenario: str = "",
+    scope: str = Query(pattern="^(global|scenario)$"),
+    sector: str = Query(pattern="^(power|industry|transport)$"),
+    table: str = Query(min_length=1),
+) -> JSONResponse:
+    """Directly and atomically apply validated changes to an input CSV."""
+
+    path, config = table_path(
+        DATA_DIR,
+        INPUT_CONFIG,
+        dataset,
+        project,
+        scenario,
+        scope,  # type: ignore[arg-type]
+        sector,
+        table,
+    )
+    return JSONResponse(update_table(path, config, update))
+
+
+@app.get("/api/input/scenario-config")
+def scenario_configuration(dataset: str, project: str, scenario: str) -> JSONResponse:
+    """Read the editable sections of a scenario configuration."""
+
+    path = scenario_config_path(DATA_DIR, dataset, project, scenario)
+    return JSONResponse(read_scenario_config(path))
+
+
+@app.put("/api/input/scenario-config/{section}")
+def save_scenario_configuration_section(
+    section: str,
+    update: ConfigSectionUpdate,
+    dataset: str,
+    project: str,
+    scenario: str,
+) -> JSONResponse:
+    """Directly save one scenario-config section with YAML comments retained."""
+
+    path = scenario_config_path(DATA_DIR, dataset, project, scenario)
+    return JSONResponse(update_scenario_section(path, section, update))
 
 
 @app.get("/api/chart")

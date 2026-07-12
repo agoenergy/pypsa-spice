@@ -54,3 +54,66 @@ export interface Selection {
   sector: string;
   year: string;
 }
+
+export interface InputTableDefinition {
+  id: string;
+  label: string;
+  scope: "global" | "scenario";
+  sector?: "power" | "industry" | "transport";
+  csv_name: string;
+  identifier: string;
+  filter_col: string;
+  with_charts: boolean;
+  timeseries?: boolean;
+  editable: boolean;
+  uniform_unit?: string;
+}
+
+export interface InputProject {
+  name: string;
+  scenarios: string[];
+  countries: string[];
+}
+
+export interface InputDataset { name: string; projects: InputProject[] }
+
+export interface InputCatalog {
+  datasets: InputDataset[];
+  global_tables: InputTableDefinition[];
+  sector_tables: Record<string, InputTableDefinition[]>;
+  config_sections: string[];
+}
+
+export interface InputSelection {
+  dataset: string;
+  project: string;
+  scenario: string;
+}
+
+export interface InputColumn {
+  name: string;
+  label: string;
+  kind: "boolean" | "number" | "string";
+  editable: boolean;
+}
+
+export type InputCell = string | number | boolean | null;
+export type InputRow = Record<string, InputCell> & { __row_id: number };
+
+export interface InputTableResponse {
+  path: string;
+  revision: string;
+  columns: InputColumn[];
+  rows: InputRow[];
+  total_rows: number;
+  truncated: boolean;
+  filter_column?: string;
+  with_charts: boolean;
+  timeseries: boolean;
+}
+
+export interface ScenarioConfigResponse {
+  path: string;
+  revision: string;
+  sections: Record<string, Record<string, unknown>>;
+}

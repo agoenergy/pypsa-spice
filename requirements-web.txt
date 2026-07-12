@@ -1,4 +1,5 @@
 fastapi>=0.110,<1
 plotly>=5.17,<7
 pyyaml>=6,<7
+ruamel.yaml>=0.18,<1
 uvicorn[standard]>=0.29,<1

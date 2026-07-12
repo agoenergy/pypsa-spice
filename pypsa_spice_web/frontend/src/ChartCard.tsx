@@ -131,10 +131,14 @@ export default function ChartCard({ chart, selection, years, onYearChange, mappi
       {!loading && !error && primary && primary.rows.length === 0 && <div className="state empty"><b>No values in this result table</b><span>The chart will appear when the selected run contains data.</span></div>}
       {!error && primary && primary.rows.length > 0 && !comparing && <Plot chart={chart} primary={primary} comparison={null} primaryName={selection.scenario} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} />}
       {!error && primary && primary.rows.length > 0 && comparing && !showDifference && <>
-        <div className="scenario-plot"><div className="scenario-label"><small>Primary scenario</small><b>{selection.scenario}</b></div><Plot chart={chart} primary={primary} comparison={null} primaryName={selection.scenario} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} /></div>
-        <div className="scenario-plot"><div className="scenario-label"><small>Comparison scenario</small><b>{selection.comparison}</b></div><Plot chart={chart} primary={comparison!} comparison={null} primaryName={selection.comparison} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} /></div>
+        <div className="scenario-plot"><ChartContextHeading label="Primary scenario" title={selection.scenario} /><Plot chart={chart} primary={primary} comparison={null} primaryName={selection.scenario} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} /></div>
+        <div className="scenario-plot"><ChartContextHeading label="Comparison scenario" title={selection.comparison} /><Plot chart={chart} primary={comparison!} comparison={null} primaryName={selection.comparison} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} /></div>
       </>}
-      {!error && primary && primary.rows.length > 0 && comparing && showDifference && <div className="difference-plot"><div className="scenario-label"><small>Difference</small><b>{selection.comparison} − {selection.scenario}</b></div><Plot chart={chart} primary={primary} comparison={comparison} primaryName={selection.scenario} comparisonName={selection.comparison} mappings={mappings} darkMode={darkMode} expanded={expanded} difference /></div>}
+      {!error && primary && primary.rows.length > 0 && comparing && showDifference && <div className="difference-plot"><ChartContextHeading label="Difference" title={`${selection.comparison} − ${selection.scenario}`} /><Plot chart={chart} primary={primary} comparison={comparison} primaryName={selection.scenario} comparisonName={selection.comparison} mappings={mappings} darkMode={darkMode} expanded={expanded} difference /></div>}
     </div>
   </article>;
+}
+
+function ChartContextHeading({ label, title }: { label: string; title: string }) {
+  return <div className="scenario-label"><small>{label}</small><h4>{title}</h4></div>;
 }
