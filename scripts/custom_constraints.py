@@ -95,17 +95,24 @@ def renewable_potential_constraint(
                         ] = remain_tech_potential
                         # if remaining potential is small than new p_max_pu,
                         # then set the remaining potential as new p_max_pu
-        check_assets = (
-            n.df(c)
-            .loc[np.where(n.df(c)["p_nom_min"] > n.df(c)["p_nom_max"], True, False)]
-            .index
-        )
-        if len(check_assets) > 0:
+
+        check_assets_df = n.df(c).loc[
+            np.where(n.df(c)["p_nom_min"] > n.df(c)["p_nom_max"], True, False)
+        ]
+        if len(check_assets_df.index) > 0:
             print(
                 colorama.Fore.RED
-                + f"Warning!!! These generators {check_assets} "
+                + f"Warning!!! These generators {check_assets_df.index} "
                 + "have p_nom_min larger than p_nom_max"
             )
+            for tech in check_assets_df["type"].unique():
+                print(
+                    colorama.Fore.WHITE
+                    + f"Set renewables {tech} with p_nom_min to 0 since "
+                    + "technical potentials are used up."
+                )
+                if tech in technical_potential_df.type.unique():
+                    n.df(c).loc[n.df(c)["type"] == tech, "p_nom_min"] = 0
 
 
 def add_storage_constraints(n: pypsa.Network):
