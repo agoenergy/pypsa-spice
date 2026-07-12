@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { AlertTriangle, Check, ChevronLeft, ChevronRight, Cpu, RotateCcw, Save, Search, Table2 } from "lucide-react";
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Cpu, FolderOpen, Globe2, RotateCcw, Save, Search, Table2 } from "lucide-react";
 import { getInputTable, saveInputTable } from "./api";
 import type { InputCatalog, InputCell, InputRow, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology } from "./types";
 import { confirmDiscardChanges, setEditorDirty } from "./dirtyState";
@@ -38,11 +38,12 @@ export default function InputEditor({ catalog, selection, country }: { catalog: 
       <button className={`section-tab ${view === "table" ? "active" : ""}`} onClick={() => guarded(() => setView("table"))} role="tab" aria-selected={view === "table"}><Table2 aria-hidden="true" /><b>By table</b></button>
     </nav>, menuTarget)}
     <section className="page-title editor-title"><div><p className="eyebrow pink">Model inputs</p><h1>Input data</h1><p>Explore and edit the model’s source CSV files by table or by technology. Changes are written only when you select Save changes.</p></div></section>
+    {view === "table" && <nav className="table-scope-menu" aria-label="Table input scope" role="tablist"><button className={scope === "global" ? "active" : ""} onClick={() => guarded(() => setScope("global"))} role="tab" aria-selected={scope === "global"}><Globe2 aria-hidden="true" /><b>Global inputs</b></button><button className={scope === "scenario" ? "active" : ""} onClick={() => guarded(() => setScope("scenario"))} role="tab" aria-selected={scope === "scenario"}><FolderOpen aria-hidden="true" /><b>Scenario inputs</b></button></nav>}
     <section className="editor-primary-select" aria-label={view === "table" ? "Table selection" : "Technology selection"}>
       <div><p className="eyebrow pink">Current selection</p><h2>{view === "table" ? "Choose a table" : "Choose a technology"}</h2><p>{view === "table" ? "Select the source CSV you want to inspect and edit." : "Select a technology to review its shared and scenario-specific inputs."}</p></div>
-      <div className="editor-selection-fields">
-        {view === "table" && <div className="segmented" role="tablist" aria-label="Input scope"><button className={scope === "global" ? "active" : ""} onClick={() => guarded(() => setScope("global"))} role="tab" aria-selected={scope === "global"}>Global inputs</button><button className={scope === "scenario" ? "active" : ""} onClick={() => guarded(() => setScope("scenario"))} role="tab" aria-selected={scope === "scenario"}>Scenario inputs</button></div>}
-        {(view === "technology" || scope === "scenario") && <label className="field sector-select"><span>Sector</span><select value={sector} onChange={(event) => guarded(() => setSector(event.target.value))}>{["power", "industry", "transport"].map((item) => <option value={item} key={item}>{item}</option>)}</select></label>}
+      <div className={`editor-selection-fields ${view === "table" ? "table-selection-fields" : ""}`}>
+        {view === "table" && <label className="field sector-select"><span>Sector</span>{scope === "global" ? <select value="ALL" disabled><option value="ALL">All sectors</option></select> : <select value={sector} onChange={(event) => guarded(() => setSector(event.target.value))}>{["power", "industry", "transport"].map((item) => <option value={item} key={item}>{item}</option>)}</select>}</label>}
+        {view === "technology" && <label className="field sector-select"><span>Sector</span><select value={sector} onChange={(event) => guarded(() => setSector(event.target.value))}>{["power", "industry", "transport"].map((item) => <option value={item} key={item}>{item}</option>)}</select></label>}
         {view === "table" ? <label className="field primary-select"><span>Table</span><select value={tableId} onChange={(event) => guarded(() => setTableId(event.target.value))}>{definitions.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label> : <label className="field primary-select"><span>Technology</span><select value={technologyId} onChange={(event) => guarded(() => setTechnologyId(event.target.value))}>{technologies.map((item) => <option value={item.id} key={item.id}>{item.label} ({item.id})</option>)}</select></label>}
       </div>
     </section>
