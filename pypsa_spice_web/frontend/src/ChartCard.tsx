@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Download, Expand, Minimize2, RotateCcw, Table2 } from "lucide-react";
 import { downloadUrl, getChart } from "./api";
-import Plot from "./Plot";
+import Plot, { ChartLegend, getLegendValues } from "./Plot";
 import type { Catalog, ChartDefinition, ChartResponse, ResultRow, Selection } from "./types";
 
 interface Props {
@@ -75,6 +75,10 @@ export default function ChartCard({ chart, selection, years, onYearChange, mappi
   const filterLabel = chart.fil_col === "to" ? "destinations" : `${chart.fil_col}s`;
 
   const comparing = Boolean(selection.comparison && comparison);
+  const comparisonLegendValues = useMemo(
+    () => getLegendValues(chart, primary, comparison),
+    [chart, primary, comparison],
+  );
   const availableStart = timestampToMs(primary?.meta.available_start);
   const availableEnd = timestampToMs(primary?.meta.available_end);
   const selectedStart = timestampToMs(startTime) ?? availableStart;
@@ -131,8 +135,9 @@ export default function ChartCard({ chart, selection, years, onYearChange, mappi
       {!loading && !error && primary && primary.rows.length === 0 && <div className="state empty"><b>No values in this result table</b><span>The chart will appear when the selected run contains data.</span></div>}
       {!error && primary && primary.rows.length > 0 && !comparing && <Plot chart={chart} primary={primary} comparison={null} primaryName={selection.scenario} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} />}
       {!error && primary && primary.rows.length > 0 && comparing && !showDifference && <>
-        <div className="scenario-plot"><ChartContextHeading label="Primary scenario" title={selection.scenario} /><Plot chart={chart} primary={primary} comparison={null} primaryName={selection.scenario} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} /></div>
-        <div className="scenario-plot"><ChartContextHeading label="Comparison scenario" title={selection.comparison} /><Plot chart={chart} primary={comparison!} comparison={null} primaryName={selection.comparison} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} /></div>
+        <div className="scenario-plot"><ChartContextHeading label="Primary scenario" title={selection.scenario} /><Plot chart={chart} primary={primary} comparison={null} primaryName={selection.scenario} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} legendValues={comparisonLegendValues} showLegend={false} /></div>
+        <div className="scenario-plot"><ChartContextHeading label="Comparison scenario" title={selection.comparison} /><Plot chart={chart} primary={comparison!} comparison={null} primaryName={selection.comparison} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} legendValues={comparisonLegendValues} showLegend={false} /></div>
+        <ChartLegend values={comparisonLegendValues} mappings={mappings} />
       </>}
       {!error && primary && primary.rows.length > 0 && comparing && showDifference && <div className="difference-plot"><ChartContextHeading label="Difference" title={`${selection.comparison} − ${selection.scenario}`} /><Plot chart={chart} primary={primary} comparison={comparison} primaryName={selection.scenario} comparisonName={selection.comparison} mappings={mappings} darkMode={darkMode} expanded={expanded} difference /></div>}
     </div>

@@ -17,6 +17,8 @@ interface Props {
   darkMode: boolean;
   expanded: boolean;
   difference?: boolean;
+  legendValues?: string[];
+  showLegend?: boolean;
 }
 
 function pretty(value: string, mappings: Catalog["mappings"]): string {
@@ -43,15 +45,38 @@ function aggregate(rows: ResultRow[], chart: ChartDefinition): Map<string, { x: 
   return groups;
 }
 
+export function getLegendValues(chart: ChartDefinition, ...responses: (ChartResponse | null)[]): string[] {
+  const values = new Set<string>();
+  for (const response of responses) {
+    if (!response) continue;
+    for (const value of aggregate(response.rows, chart).keys()) values.add(value);
+  }
+  return [...values];
+}
+
+function legendColor(value: string, index: number, mappings: Catalog["mappings"]): string {
+  return mappings[value]?.color || fallbackColors[Math.max(0, index) % fallbackColors.length];
+}
+
+export function ChartLegend({ values, mappings }: { values: string[]; mappings: Catalog["mappings"] }) {
+  return <div className="html-legend" aria-label="Chart legend">
+    {values.map((value, index) => <span className="html-legend-item" key={value}>
+      <i style={{ backgroundColor: legendColor(value, index, mappings) }} aria-hidden="true" />
+      <span>{pretty(value, mappings)}</span>
+    </span>)}
+  </div>;
+}
+
 function traces(
   response: ChartResponse,
   chart: ChartDefinition,
   scenario: string,
   mappings: Catalog["mappings"],
   comparison: boolean,
+  legendValues: string[],
 ) {
-  return [...aggregate(response.rows, chart).entries()].map(([legend, points], index) => {
-    const color = mappings[legend]?.color || fallbackColors[index % fallbackColors.length];
+  return [...aggregate(response.rows, chart).entries()].map(([legend, points]) => {
+    const color = legendColor(legend, legendValues.indexOf(legend), mappings);
     const isArea = chart.type === "area_share";
     const isBar = chart.type.includes("bar");
     const trace: Record<string, unknown> = {
@@ -78,15 +103,16 @@ function differenceTraces(
   primaryName: string,
   comparisonName: string,
   mappings: Catalog["mappings"],
+  legendValues: string[],
 ) {
   const first = aggregate(primary.rows, chart);
   const second = aggregate(comparison.rows, chart);
   const legends = [...new Set([...first.keys(), ...second.keys()])];
-  return legends.map((legend, index) => {
+  return legends.map((legend) => {
     const firstPoints = new Map((first.get(legend) || []).map((point) => [String(point.x), point.y]));
     const secondPoints = new Map((second.get(legend) || []).map((point) => [String(point.x), point.y]));
     const xValues = [...new Set([...firstPoints.keys(), ...secondPoints.keys()])].sort();
-    const color = mappings[legend]?.color || fallbackColors[index % fallbackColors.length];
+    const color = legendColor(legend, legendValues.indexOf(legend), mappings);
     const isBar = chart.type.includes("bar") || !chart.hourly;
     return {
       type: isBar ? "bar" : "scatter",
@@ -100,22 +126,17 @@ function differenceTraces(
   });
 }
 
-export default function Plot({ chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, expanded, difference = false }: Props) {
+export default function Plot({ chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, expanded, difference = false, legendValues: sharedLegendValues, showLegend = true }: Props) {
   const ref = useRef<HTMLDivElement>(null);
-  const legendValues = useMemo(() => {
-    const values = new Set(aggregate(primary.rows, chart).keys());
-    if (comparison) {
-      for (const value of aggregate(comparison.rows, chart).keys()) values.add(value);
-    }
-    return [...values];
-  }, [primary, comparison, chart]);
+  const derivedLegendValues = useMemo(() => getLegendValues(chart, primary, comparison), [primary, comparison, chart]);
+  const legendValues = sharedLegendValues || derivedLegendValues;
   useEffect(() => {
     if (!ref.current || !window.Plotly) return;
     const grid = "#e2e6e4";
     const text = darkMode ? "#a9b5b1" : "#65717d";
     const allTraces = difference && comparison
-      ? differenceTraces(primary, comparison, chart, primaryName, comparisonName, mappings)
-      : [...traces(primary, chart, primaryName, mappings, false), ...(comparison ? traces(comparison, chart, comparisonName, mappings, true) : [])];
+      ? differenceTraces(primary, comparison, chart, primaryName, comparisonName, mappings, legendValues)
+      : [...traces(primary, chart, primaryName, mappings, false, legendValues), ...(comparison ? traces(comparison, chart, comparisonName, mappings, true, legendValues) : [])];
     window.Plotly.react(ref.current, allTraces, {
       autosize: true,
       margin: { l: 58, r: chart.secondary_y_lab ? 58 : 18, t: 14, b: 38 },
@@ -134,16 +155,11 @@ export default function Plot({ chart, primary, comparison, primaryName, comparis
       toImageButtonOptions: { format: "png", filename: `${primaryName}_${chart.table_name}`, scale: 2 },
     });
     return () => { if (ref.current) window.Plotly.purge(ref.current); };
-  }, [chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, difference]);
+  }, [chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, difference, legendValues]);
 
   useEffect(() => { if (ref.current && window.Plotly) window.Plotly.Plots.resize(ref.current); }, [expanded]);
   return <div className="plot-with-legend">
     <div ref={ref} className="plot" />
-    <div className="html-legend" aria-label="Chart legend">
-      {legendValues.map((value, index) => <span className="html-legend-item" key={value}>
-        <i style={{ backgroundColor: mappings[value]?.color || fallbackColors[index % fallbackColors.length] }} aria-hidden="true" />
-        <span>{pretty(value, mappings)}</span>
-      </span>)}
-    </div>
+    {showLegend && <ChartLegend values={legendValues} mappings={mappings} />}
   </div>;
 }
