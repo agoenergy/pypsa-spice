@@ -1,12 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
+import { Check, Cloud, Code2, Plus, RotateCcw, Save, Settings2, Trash2 } from "lucide-react";
 import { getScenarioConfig, saveScenarioConfigSection } from "./api";
 import type { InputSelection, ScenarioConfigResponse } from "./types";
+import { confirmDiscardChanges, setEditorDirty } from "./dirtyState";
 
 const labels: Record<string, string> = { scenario_configs: "Scenario settings", co2_management: "CO₂ management", custom_constraints: "Custom constraints" };
+const icons = { scenario_configs: Settings2, co2_management: Cloud, custom_constraints: Code2 };
 
-export default function ScenarioConfigEditor({ selection }: { selection: InputSelection }) {
+export default function ScenarioConfigEditor({ selection, country }: { selection: InputSelection; country: string }) {
+  const editorId = useId();
   const [config, setConfig] = useState<ScenarioConfigResponse | null>(null);
   const [section, setSection] = useState("scenario_configs");
   const [draft, setDraft] = useState<Record<string, unknown>>({});
@@ -33,6 +36,7 @@ export default function ScenarioConfigEditor({ selection }: { selection: InputSe
   const validationError = useMemo(() => validateSection(section, draft), [section, draft]);
   const invalid = editorInvalid || Boolean(validationError);
   useEffect(() => { const warn = (event: BeforeUnloadEvent) => { if (dirty) event.preventDefault(); }; window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn); }, [dirty]);
+  useEffect(() => { setEditorDirty(editorId, dirty); return () => setEditorDirty(editorId, false); }, [editorId, dirty]);
   const save = async () => {
     if (!config || !dirty) return; setSaving(true); setError(""); setSuccess("");
     try { const data = await saveScenarioConfigSection(selection, section, config.revision, draft); setConfig(data); setDraft(structuredClone(data.sections[section] || {})); setSuccess(`${labels[section]} saved directly to scenario_config.yaml.`); }
@@ -41,7 +45,7 @@ export default function ScenarioConfigEditor({ selection }: { selection: InputSe
   };
 
   return <>
-    {navigationTarget && createPortal(<nav className="section-tabs top-section-tabs config-section-tabs" aria-label="Configuration sections" role="tablist">{Object.keys(labels).map((name) => <button key={name} className={`section-tab ${section === name ? "active" : ""}`} onClick={() => { if (!dirty || window.confirm("Discard unsaved changes in this section?")) setSection(name); }} role="tab" aria-selected={section === name}><b>{labels[name]}</b></button>)}</nav>, navigationTarget)}
+    {navigationTarget && createPortal(<nav className="section-tabs top-section-tabs config-section-tabs" aria-label="Configuration sections" role="tablist">{Object.keys(labels).map((name) => { const SectionIcon = icons[name as keyof typeof icons]; return <button key={name} className={`section-tab ${section === name ? "active" : ""}`} onClick={() => { if (confirmDiscardChanges()) setSection(name); }} role="tab" aria-selected={section === name}><SectionIcon aria-hidden="true" /><b>{labels[name]}</b></button>; })}</nav>, navigationTarget)}
     <section className="page-title editor-title"><div><p className="eyebrow pink">Scenario configuration</p><h1>Configure {selection.scenario}</h1><p>Edit the model settings and constraints stored in this scenario’s YAML file.</p></div></section>
     <div className="config-layout">
       <section className="editor-panel config-panel">
@@ -49,14 +53,14 @@ export default function ScenarioConfigEditor({ selection }: { selection: InputSe
         {error && <div className="notice error">{error}<button onClick={() => void load()}>Reload</button></div>}
         {success && <div className="notice success"><Check aria-hidden="true" />{success}</div>}
         {validationError && <div className="notice error">{validationError}</div>}
-        {loading ? <div className="editor-loading"><span className="spinner" />Reading YAML…</div> : section === "scenario_configs" ? <ScenarioSettings value={draft} onChange={setDraft} /> : section === "co2_management" ? <Co2Editor value={draft} onChange={setDraft} /> : <JsonSectionEditor value={draft} onChange={setDraft} onInvalid={setEditorInvalid} />}
+        {loading ? <div className="editor-loading"><span className="spinner" />Reading YAML…</div> : section === "scenario_configs" ? <ScenarioSettings value={draft} country={country} onChange={setDraft} /> : section === "co2_management" ? <Co2Editor value={draft} country={country} onChange={setDraft} /> : <JsonSectionEditor value={draft} onChange={setDraft} onInvalid={setEditorInvalid} />}
         <footer className="config-actions"><button className="button secondary" disabled={!dirty || saving} onClick={() => { setDraft(structuredClone(original)); setEditorInvalid(false); }}><RotateCcw aria-hidden="true" />Discard</button><button className="button primary" disabled={!dirty || saving || invalid} onClick={save}><Save aria-hidden="true" />{saving ? "Saving…" : "Save changes"}</button></footer>
       </section>
     </div>
   </>;
 }
 
-function ScenarioSettings({ value, onChange }: { value: Record<string, unknown>; onChange: (value: Record<string, unknown>) => void }) {
+function ScenarioSettings({ value, country, onChange }: { value: Record<string, unknown>; country: string; onChange: (value: Record<string, unknown>) => void }) {
   const snapshots = (value.snapshots || {}) as Record<string, unknown>;
   const resolution = (value.resolution || {}) as Record<string, unknown>;
   const interest = (value.interest || {}) as Record<string, unknown>;
@@ -69,13 +73,19 @@ function ScenarioSettings({ value, onChange }: { value: Record<string, unknown>;
     <label className="toggle-row"><input type="checkbox" checked={manual} onChange={(event) => { setManual(event.target.checked); if (!event.target.checked) patch("snapshots", { start: `${modelYear}-01-01`, end: `${modelYear + 1}-01-01`, inclusive: "left" }); }} /><span>Edit snapshot range manually</span></label>
     {manual ? <div className="form-grid three"><label className="field"><span>Snapshot start</span><input type="date" value={start} onChange={(event) => patch("snapshots", { ...snapshots, start: event.target.value })} /></label><label className="field"><span>Snapshot end</span><input type="date" value={end} onChange={(event) => patch("snapshots", { ...snapshots, end: event.target.value })} /></label><label className="field"><span>Inclusive</span><select value={String(snapshots.inclusive || "left")} onChange={(event) => patch("snapshots", { ...snapshots, inclusive: event.target.value })}>{["both", "neither", "left", "right"].map((item) => <option key={item}>{item}</option>)}</select></label></div> : <p className="field-help">Full-year hourly range: {modelYear}-01-01 to {modelYear + 1}-01-01, inclusive left.</p>}
     <div className="form-section"><h3>Temporal resolution</h3><div className="form-grid"><label className="field"><span>Method</span><select value={String(resolution.method || "nth_hour")} onChange={(event) => patch("resolution", { ...resolution, method: event.target.value })}><option value="nth_hour">Every nth hour</option><option value="clustered">Clustered representative days</option></select></label>{resolution.method === "clustered" ? <label className="field"><span>Number of days</span><input type="number" min="1" value={String(resolution.number_of_days ?? 3)} onChange={(event) => patch("resolution", { ...resolution, number_of_days: Number(event.target.value) })} /></label> : <label className="field"><span>Step size</span><input type="number" min="1" value={String(resolution.stepsize ?? 25)} onChange={(event) => patch("resolution", { ...resolution, stepsize: Number(event.target.value) })} /></label>}</div></div>
-    <div className="form-section"><h3>Interest rates</h3><p className="field-help">Country-specific decimal rates; 0.05 means 5%.</p><KeyValueEditor value={interest} onChange={(next) => onChange({ ...value, interest: next })} /></div>
+    <div className="form-section"><h3>Interest rates</h3><p className="field-help">Country-specific decimal rates; 0.05 means 5%.</p><CountryValueEditor value={interest} country={country} onChange={(next) => onChange({ ...value, interest: next })} /></div>
   </div>;
 }
 
-function Co2Editor({ value, onChange }: { value: Record<string, unknown>; onChange: (value: Record<string, unknown>) => void }) {
+function Co2Editor({ value, country, onChange }: { value: Record<string, unknown>; country: string; onChange: (value: Record<string, unknown>) => void }) {
   const updateCountry = (country: string, next: Record<string, unknown>) => onChange({ ...value, [country]: next });
-  return <div className="config-form"><p className="field-help">Choose a carbon cap or price for each country and edit its year-specific values.</p>{Object.entries(value).map(([country, raw]) => { const config = (raw || {}) as Record<string, unknown>; return <article className="country-config" key={country}><header><h3>{country}</h3><label className="field compact"><span>Instrument</span><select value={String(config.option || "co2_cap")} onChange={(event) => updateCountry(country, { ...config, option: event.target.value })}><option value="co2_cap">CO₂ cap</option><option value="co2_price">CO₂ price</option></select></label></header><KeyValueEditor value={(config.value || {}) as Record<string, unknown>} onChange={(next) => updateCountry(country, { ...config, value: next })} /></article>; })}</div>;
+  const entries = Object.entries(value).filter(([name]) => country === "ALL" || name === country);
+  return <div className="config-form"><p className="field-help">Choose a carbon cap or price for each country and edit its year-specific values.</p>{entries.map(([name, raw]) => { const config = (raw || {}) as Record<string, unknown>; return <article className="country-config" key={name}><header><h3>{name}</h3><label className="field compact"><span>Instrument</span><select value={String(config.option || "co2_cap")} onChange={(event) => updateCountry(name, { ...config, option: event.target.value })}><option value="co2_cap">CO₂ cap</option><option value="co2_price">CO₂ price</option></select></label></header><KeyValueEditor value={(config.value || {}) as Record<string, unknown>} onChange={(next) => updateCountry(name, { ...config, value: next })} /></article>; })}{entries.length === 0 && <div className="editor-empty compact">No CO₂ configuration is defined for {country}.</div>}</div>;
+}
+
+function CountryValueEditor({ value, country, onChange }: { value: Record<string, unknown>; country: string; onChange: (value: Record<string, unknown>) => void }) {
+  if (country === "ALL") return <KeyValueEditor value={value} onChange={onChange} />;
+  return <div className="key-value-grid"><label className="field"><span>{country}</span><input type="number" step="any" value={String(value[country] ?? "")} onChange={(event) => onChange({ ...value, [country]: Number(event.target.value) })} /></label></div>;
 }
 
 function KeyValueEditor({ value, onChange }: { value: Record<string, unknown>; onChange: (value: Record<string, unknown>) => void }) {

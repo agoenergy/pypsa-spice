@@ -7,8 +7,8 @@ import type { Catalog, ChartDefinition, ChartResponse, ResultRow, Selection } fr
 interface Props {
   chart: ChartDefinition;
   selection: Selection;
+  country: string;
   years: string[];
-  onYearChange: (year: string) => void;
   mappings: Catalog["mappings"];
   darkMode: boolean;
   onInspect: (title: string, rows: ResultRow[], sourceCount: number) => void;
@@ -35,10 +35,10 @@ function readableTimestamp(value: number): string {
   return `${day} · ${time}`;
 }
 
-export default function ChartCard({ chart, selection, years, onYearChange, mappings, darkMode, onInspect }: Props) {
+export default function ChartCard({ chart, selection, country, years, mappings, darkMode, onInspect }: Props) {
   const [primary, setPrimary] = useState<ChartResponse | null>(null);
   const [comparison, setComparison] = useState<ChartResponse | null>(null);
-  const [country, setCountry] = useState("ALL");
+  const [year, setYear] = useState(years[0] || "");
   const [filterValue, setFilterValue] = useState("ALL");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -49,28 +49,28 @@ export default function ChartCard({ chart, selection, years, onYearChange, mappi
 
   useEffect(() => {
     setPrimary(null); setComparison(null);
-    setCountry("ALL"); setFilterValue("ALL"); setStartTime(""); setEndTime("");
+    setFilterValue("ALL"); setStartTime(""); setEndTime("");
   }, [selection.dataset, selection.project, selection.scenario, selection.sector]);
+  useEffect(() => { if (!years.includes(year)) setYear(years[0] || ""); }, [years, year]);
   useEffect(() => { setComparison(null); setShowDifference(false); }, [selection.comparison]);
 
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true); setError("");
     Promise.all([
-      getChart(chart, selection, selection.scenario, country, filterValue, startTime, endTime, controller.signal),
-      selection.comparison ? getChart(chart, selection, selection.comparison, country, filterValue, startTime, endTime, controller.signal) : Promise.resolve(null),
+      getChart(chart, { ...selection, year }, selection.scenario, country, filterValue, startTime, endTime, controller.signal),
+      selection.comparison ? getChart(chart, { ...selection, year }, selection.comparison, country, filterValue, startTime, endTime, controller.signal) : Promise.resolve(null),
     ]).then(([first, second]) => { setPrimary(first); setComparison(second); })
       .catch((reason) => { if (reason.name !== "AbortError") setError(reason.message); })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [chart, selection.dataset, selection.project, selection.scenario, selection.comparison, selection.sector, chart.hourly ? selection.year : "", country, filterValue, startTime, endTime]);
+  }, [chart, selection.dataset, selection.project, selection.scenario, selection.comparison, selection.sector, chart.hourly ? year : "", country, filterValue, startTime, endTime]);
 
   const rows = useMemo(() => [
     ...(primary?.rows.map((row) => ({ ...row, scenario: selection.scenario })) || []),
     ...(comparison?.rows.map((row) => ({ ...row, scenario: selection.comparison })) || []),
   ], [primary, comparison, selection]);
   const sourceCount = (primary?.meta.source_rows || 0) + (comparison?.meta.source_rows || 0);
-  const countries = primary?.dimensions.country || [];
   const filters = chart.fil_col ? primary?.dimensions[chart.fil_col] || [] : [];
   const filterLabel = chart.fil_col === "to" ? "destinations" : `${chart.fil_col}s`;
 
@@ -100,7 +100,7 @@ export default function ChartCard({ chart, selection, years, onYearChange, mappi
   const changeYear = (year: string) => {
     setStartTime("");
     setEndTime("");
-    onYearChange(year);
+    setYear(year);
   };
 
   return <article className={`chart-card ${expanded ? "expanded" : ""} ${comparing ? "comparing" : ""} ${showDifference ? "showing-difference" : ""}`}>
@@ -108,14 +108,13 @@ export default function ChartCard({ chart, selection, years, onYearChange, mappi
       <div className="chart-title"><h3>{chart.name}</h3></div>
       <div className="chart-toolbar">
         <div className="chart-controls">
-          {countries.length > 1 && <select aria-label={`Country for ${chart.name}`} value={country} onChange={(event) => setCountry(event.target.value)}><option value="ALL">All countries</option>{countries.map((item) => <option key={item}>{item}</option>)}</select>}
           {chart.fil_col && filters.length > 0 && <select aria-label={`${chart.fil_col} for ${chart.name}`} value={filterValue} onChange={(event) => setFilterValue(event.target.value)}><option value="ALL">All {filterLabel}</option>{filters.map((item) => <option key={item}>{item}</option>)}</select>}
-          {chart.hourly && years.length > 0 && <select aria-label={`Hourly year for ${chart.name}`} value={selection.year} onChange={(event) => changeYear(event.target.value)}>{years.map((year) => <option key={year}>{year}</option>)}</select>}
+          {chart.hourly && years.length > 0 && <select aria-label={`Hourly year for ${chart.name}`} value={year} onChange={(event) => changeYear(event.target.value)}>{years.map((item) => <option key={item}>{item}</option>)}</select>}
           {selection.comparison && <label className="chart-difference-toggle" title={`${selection.comparison} − ${selection.scenario}`}><input type="checkbox" checked={showDifference} onChange={(event) => setShowDifference(event.target.checked)} /><i aria-hidden="true" /><span>Difference</span></label>}
         </div>
         <div className="chart-actions">
           <button title="View source data" aria-label={`View ${chart.name} source data`} onClick={() => onInspect(chart.name, rows, sourceCount)}><Table2 aria-hidden="true" /></button>
-          <a title="Download complete CSV" aria-label={`Download ${chart.name} CSV`} href={downloadUrl(chart, selection)} download><Download aria-hidden="true" /></a>
+          <a title="Download complete CSV" aria-label={`Download ${chart.name} CSV`} href={downloadUrl(chart, { ...selection, year })} download><Download aria-hidden="true" /></a>
           <button title={expanded ? "Close expanded chart" : "Expand chart"} aria-label={`${expanded ? "Close" : "Expand"} ${chart.name}`} onClick={() => setExpanded(!expanded)}>{expanded ? <Minimize2 aria-hidden="true" /> : <Expand aria-hidden="true" />}</button>
         </div>
       </div>

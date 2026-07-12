@@ -82,6 +82,7 @@ export interface InputTechnology {
   sector: "power" | "industry" | "transport" | "other";
   classes: string[];
   carriers: string[];
+  countries: string[];
 }
 
 export interface InputDataset { name: string; projects: InputProject[] }

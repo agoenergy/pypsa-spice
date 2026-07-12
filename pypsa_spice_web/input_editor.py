@@ -127,17 +127,21 @@ def _technology_catalog(
                     "sector": sector_mapping.get(technology, "other") or "other",
                     "classes": set(),
                     "carriers": set(),
+                    "countries": set(),
                 },
             )
             if row.get("class"):
                 item["classes"].add(row["class"].strip())
             if row.get("carrier"):
                 item["carriers"].add(row["carrier"].strip())
+            if row.get("country"):
+                item["countries"].add(row["country"].strip())
     return [
         {
             **item,
             "classes": sorted(item["classes"]),
             "carriers": sorted(item["carriers"]),
+            "countries": sorted(item["countries"]),
         }
         for item in sorted(
             technologies.values(),

@@ -1,19 +1,60 @@
 import { useEffect, useMemo, useState } from "react";
-import { BarChart3, CarFront, CircleDollarSign, Cloud, Factory, FileInput, Menu, Moon, Play, RefreshCw, Search, Settings2, Sun, Zap } from "lucide-react";
+import { BarChart3, CarFront, CircleDollarSign, Cloud, Factory, FileInput, Menu, Moon, RefreshCw, Search, Settings2, Sun, Zap } from "lucide-react";
 import { getCatalog, getInputCatalog } from "./api";
 import ChartCard from "./ChartCard";
 import DataDialog from "./DataDialog";
 import InputEditor from "./InputEditor";
 import ScenarioConfigEditor from "./ScenarioConfigEditor";
+import { confirmDiscardChanges } from "./dirtyState";
 import type { Catalog, InputCatalog, InputSelection, ResultRow, Selection } from "./types";
 
 type ViewMode = "outputs" | "inputs" | "configure";
+type WorkspaceOption = { value: string; label: string };
+
+const WORKSPACE_SEPARATOR = "::";
 const emptySelection: Selection = { dataset: "", project: "", scenario: "", comparison: "", sector: "", year: "" };
 const emptyInputSelection: InputSelection = { dataset: "", project: "", scenario: "" };
 const sectionIcons = { power: Zap, industry: Factory, transport: CarFront, emissions: Cloud, costs: CircleDollarSign };
 
-function sectionFromLocation() { return new URLSearchParams(window.location.search).get("section")?.toLowerCase() || "power"; }
-function viewFromLocation(): ViewMode { const value = new URLSearchParams(window.location.search).get("view"); return value === "inputs" || value === "configure" ? value : "outputs"; }
+function locationParams() { return new URLSearchParams(window.location.search); }
+function sectionFromLocation() { return locationParams().get("section")?.toLowerCase() || "power"; }
+function viewFromLocation(): ViewMode { const value = locationParams().get("view"); return value === "inputs" || value === "configure" ? value : "outputs"; }
+function countryFromLocation() { return locationParams().get("country") || "ALL"; }
+function workspaceValue(dataset: string, project: string) { return `${dataset}${WORKSPACE_SEPARATOR}${project}`; }
+function splitWorkspace(value: string) { const [dataset, ...project] = value.split(WORKSPACE_SEPARATOR); return { dataset, project: project.join(WORKSPACE_SEPARATOR) }; }
+
+function resolveOutputSelection(data: Catalog, current: Selection, params = locationParams()): Selection {
+  const dataset = data.datasets.find((item) => item.name === (params.get("dataset") || current.dataset)) || data.datasets[0];
+  const project = dataset.projects.find((item) => item.name === (params.get("project") || current.project)) || dataset.projects[0];
+  const scenario = project.scenarios.find((item) => item.name === (params.get("run") || current.scenario)) || project.scenarios[0];
+  const sector = scenario.sectors.find((item) => item.name === (params.get("sector") || current.sector)) || scenario.sectors[0];
+  const comparisonName = params.get("compare") || current.comparison;
+  return {
+    dataset: dataset.name,
+    project: project.name,
+    scenario: scenario.name,
+    comparison: project.scenarios.some((item) => item.name === comparisonName && item.name !== scenario.name) ? comparisonName : "",
+    sector: sector.name,
+    year: sector.years.includes(current.year) ? current.year : sector.years[0] || "",
+  };
+}
+
+function resolveInputSelection(data: InputCatalog, current: InputSelection, params = locationParams()): InputSelection {
+  const dataset = data.datasets.find((item) => item.name === (params.get("dataset") || current.dataset)) || data.datasets[0];
+  const project = dataset.projects.find((item) => item.name === (params.get("project") || current.project)) || dataset.projects[0];
+  const requestedScenario = params.get("scenario") || current.scenario;
+  return { dataset: dataset.name, project: project.name, scenario: project.scenarios.includes(requestedScenario) ? requestedScenario : project.scenarios[0] || "" };
+}
+
+function workspaceOptions(datasets: { name: string; projects: { name: string }[] }[]): WorkspaceOption[] {
+  const duplicateNames = new Set<string>();
+  const seen = new Set<string>();
+  datasets.flatMap((dataset) => dataset.projects).forEach((project) => { if (seen.has(project.name)) duplicateNames.add(project.name); seen.add(project.name); });
+  return datasets.flatMap((dataset) => dataset.projects.map((project) => ({
+    value: workspaceValue(dataset.name, project.name),
+    label: duplicateNames.has(project.name) ? `${project.name} · ${dataset.name}` : project.name,
+  })));
+}
 
 export default function App() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
@@ -22,6 +63,7 @@ export default function App() {
   const [inputSelection, setInputSelection] = useState<InputSelection>(emptyInputSelection);
   const [view, setView] = useState<ViewMode>(viewFromLocation);
   const [sectionId, setSectionId] = useState(sectionFromLocation);
+  const [country, setCountry] = useState(countryFromLocation);
   const [search, setSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [error, setError] = useState("");
@@ -34,32 +76,28 @@ export default function App() {
     try {
       const data = await getCatalog(true);
       if (!data.datasets.length) throw new Error("No result CSV folders were found under data/.");
-      setCatalog(data); setError("");
-      const dataset = data.datasets.find((item) => item.name === selection.dataset) || data.datasets[0];
-      const project = dataset.projects.find((item) => item.name === selection.project) || dataset.projects[0];
-      const scenario = project.scenarios.find((item) => item.name === selection.scenario) || project.scenarios[0];
-      const sector = scenario.sectors.find((item) => item.name === selection.sector) || scenario.sectors[0];
-      setSelection((current) => ({ ...current, dataset: dataset.name, project: project.name, scenario: scenario.name, sector: sector.name, year: sector.years.includes(current.year) ? current.year : sector.years[0] || "", comparison: project.scenarios.some((item) => item.name === current.comparison) ? current.comparison : "" }));
+      setCatalog(data); setError(""); setSelection((current) => resolveOutputSelection(data, current));
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not load results."); }
   };
   const loadInputs = async () => {
     try {
       const data = await getInputCatalog();
       if (!data.datasets.length) throw new Error("No input projects were found under data/.");
-      setInputCatalog(data); setInputError("");
-      const dataset = data.datasets.find((item) => item.name === inputSelection.dataset) || data.datasets[0];
-      const project = dataset.projects.find((item) => item.name === inputSelection.project) || dataset.projects[0];
-      const scenario = project.scenarios.includes(inputSelection.scenario) ? inputSelection.scenario : project.scenarios[0] || "";
-      setInputSelection({ dataset: dataset.name, project: project.name, scenario });
+      setInputCatalog(data); setInputError(""); setInputSelection((current) => resolveInputSelection(data, current));
     } catch (reason) { setInputError(reason instanceof Error ? reason.message : "Could not load model inputs."); }
   };
 
   useEffect(() => { void loadCatalog(); void loadInputs(); }, []);
   useEffect(() => { document.documentElement.dataset.theme = dark ? "dark" : "light"; localStorage.setItem("spice-theme", dark ? "dark" : "light"); }, [dark]);
   useEffect(() => {
-    const syncLocation = () => { setView(viewFromLocation()); setSectionId(sectionFromLocation()); };
+    const syncLocation = () => {
+      const params = locationParams();
+      setView(viewFromLocation()); setSectionId(sectionFromLocation()); setCountry(countryFromLocation());
+      if (catalog) setSelection((current) => resolveOutputSelection(catalog, current, params));
+      if (inputCatalog) setInputSelection((current) => resolveInputSelection(inputCatalog, current, params));
+    };
     window.addEventListener("popstate", syncLocation); return () => window.removeEventListener("popstate", syncLocation);
-  }, []);
+  }, [catalog, inputCatalog]);
 
   const dataset = catalog?.datasets.find((item) => item.name === selection.dataset);
   const project = dataset?.projects.find((item) => item.name === selection.project);
@@ -70,42 +108,95 @@ export default function App() {
   const charts = useMemo(() => section?.charts.filter((chart) => chart.name.toLowerCase().includes(search.toLowerCase().trim())) || [], [section, search]);
   const inputDataset = inputCatalog?.datasets.find((item) => item.name === inputSelection.dataset);
   const inputProject = inputDataset?.projects.find((item) => item.name === inputSelection.project);
+  const activeDatasetName = view === "outputs" ? selection.dataset : inputSelection.dataset;
+  const activeProjectName = view === "outputs" ? selection.project : inputSelection.project;
+  const countryProject = inputCatalog?.datasets.find((item) => item.name === activeDatasetName)?.projects.find((item) => item.name === activeProjectName);
+  const availableCountries = countryProject?.countries || [];
+  const projectChoices = useMemo(() => workspaceOptions(view === "outputs" ? catalog?.datasets || [] : inputCatalog?.datasets || []), [view, catalog, inputCatalog]);
 
-  useEffect(() => { if (!catalog || !section || section.id === sectionId) return; window.history.replaceState(null, "", `?section=${section.id}`); setSectionId(section.id); }, [catalog, section, sectionId]);
+  useEffect(() => { if (!catalog || !section || section.id === sectionId) return; setSectionId(section.id); }, [catalog, section, sectionId]);
   useEffect(() => { setSearch(""); }, [sectionId]);
+  useEffect(() => { if (country !== "ALL" && countryProject && !availableCountries.includes(country)) setCountry("ALL"); }, [country, countryProject, availableCountries]);
+  useEffect(() => {
+    if (!(selection.project || inputSelection.project)) return;
+    const params = new URLSearchParams();
+    if (view !== "outputs") params.set("view", view); else params.set("section", section?.id || sectionId);
+    if (activeDatasetName) params.set("dataset", activeDatasetName);
+    if (activeProjectName) params.set("project", activeProjectName);
+    if (inputSelection.scenario) params.set("scenario", inputSelection.scenario);
+    if (selection.scenario) params.set("run", selection.scenario);
+    if (selection.comparison) params.set("compare", selection.comparison);
+    if (selection.sector) params.set("sector", selection.sector);
+    if (country !== "ALL") params.set("country", country);
+    const next = `${window.location.pathname}?${params.toString()}`;
+    if (`${window.location.pathname}${window.location.search}` !== next) window.history.replaceState(null, "", next);
+  }, [view, section?.id, sectionId, activeDatasetName, activeProjectName, inputSelection.scenario, selection.scenario, selection.comparison, selection.sector, country]);
 
-  const chooseDataset = (name: string) => { const nextDataset = catalog!.datasets.find((item) => item.name === name)!; const nextProject = nextDataset.projects[0]; const nextScenario = nextProject.scenarios[0]; const nextSector = nextScenario.sectors[0]; setSelection({ dataset: name, project: nextProject.name, scenario: nextScenario.name, comparison: "", sector: nextSector.name, year: nextSector.years[0] || "" }); };
-  const chooseProject = (name: string) => { const nextProject = dataset!.projects.find((item) => item.name === name)!; const nextScenario = nextProject.scenarios[0]; const nextSector = nextScenario.sectors[0]; setSelection((current) => ({ ...current, project: name, scenario: nextScenario.name, comparison: "", sector: nextSector.name, year: nextSector.years[0] || "" })); };
-  const chooseScenario = (name: string) => { const nextScenario = project!.scenarios.find((item) => item.name === name)!; const nextSector = nextScenario.sectors[0]; setSelection((current) => ({ ...current, scenario: name, comparison: current.comparison === name ? "" : current.comparison, sector: nextSector.name, year: nextSector.years[0] || "" })); };
-  const chooseSector = (name: string) => { const next = scenario!.sectors.find((item) => item.name === name)!; setSelection((current) => ({ ...current, sector: name, year: next.years[0] || "" })); };
-  const chooseSection = (name: string) => { window.history.pushState(null, "", `?section=${name}`); setView("outputs"); setSectionId(name); setSidebarOpen(false); };
-  const chooseView = (next: ViewMode) => { window.history.pushState(null, "", next === "outputs" ? `?section=${section?.id || "power"}` : `?view=${next}`); setView(next); setSidebarOpen(false); };
-  const chooseInputDataset = (name: string) => { const nextDataset = inputCatalog!.datasets.find((item) => item.name === name)!; const nextProject = nextDataset.projects[0]; setInputSelection({ dataset: name, project: nextProject.name, scenario: nextProject.scenarios[0] || "" }); };
-  const chooseInputProject = (name: string) => { const next = inputDataset!.projects.find((item) => item.name === name)!; setInputSelection((current) => ({ ...current, project: name, scenario: next.scenarios[0] || "" })); };
-  const refreshCurrent = () => { if (view === "outputs") void loadCatalog(); else { void loadInputs(); setInputRefresh((current) => current + 1); } };
+  const setOutputWorkspace = (datasetName: string, projectName: string) => {
+    if (!catalog) return;
+    const nextDataset = catalog.datasets.find((item) => item.name === datasetName);
+    const nextProject = nextDataset?.projects.find((item) => item.name === projectName);
+    if (!nextDataset || !nextProject) return;
+    const nextScenario = nextProject.scenarios[0]; const nextSector = nextScenario.sectors[0];
+    setSelection({ dataset: datasetName, project: projectName, scenario: nextScenario.name, comparison: "", sector: nextSector.name, year: nextSector.years[0] || "" });
+  };
+  const setInputWorkspace = (datasetName: string, projectName: string) => {
+    if (!inputCatalog) return;
+    const nextDataset = inputCatalog.datasets.find((item) => item.name === datasetName);
+    const nextProject = nextDataset?.projects.find((item) => item.name === projectName);
+    if (!nextDataset || !nextProject) return;
+    setInputSelection({ dataset: datasetName, project: projectName, scenario: nextProject.scenarios[0] || "" });
+  };
+  const chooseWorkspace = (value: string) => {
+    if (!confirmDiscardChanges()) return;
+    const next = splitWorkspace(value);
+    if (view === "outputs") setOutputWorkspace(next.dataset, next.project); else setInputWorkspace(next.dataset, next.project);
+    if (view === "outputs") setInputWorkspace(next.dataset, next.project); else setOutputWorkspace(next.dataset, next.project);
+  };
+  const chooseScenario = (name: string) => { if (!confirmDiscardChanges()) return; const nextScenario = project!.scenarios.find((item) => item.name === name)!; const nextSector = nextScenario.sectors[0]; setSelection((current) => ({ ...current, scenario: name, comparison: current.comparison === name ? "" : current.comparison, sector: nextSector.name, year: nextSector.years[0] || "" })); };
+  const chooseInputScenario = (name: string) => { if (confirmDiscardChanges()) setInputSelection((current) => ({ ...current, scenario: name })); };
+  const chooseCountry = (name: string) => { if (confirmDiscardChanges()) setCountry(name); };
+  const chooseSector = (name: string) => { if (!confirmDiscardChanges()) return; const next = scenario!.sectors.find((item) => item.name === name)!; setSelection((current) => ({ ...current, sector: name, year: next.years[0] || "" })); };
+  const chooseSection = (name: string) => { if (!confirmDiscardChanges()) return; setView("outputs"); setSectionId(name); setSidebarOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const chooseView = (next: ViewMode) => { if (!confirmDiscardChanges()) return; const params = locationParams(); if (next === "outputs") { params.delete("view"); params.set("section", section?.id || "power"); } else { params.set("view", next); params.delete("section"); } window.history.pushState(null, "", `?${params.toString()}`); setView(next); setSidebarOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const refreshCurrent = () => { if (!confirmDiscardChanges()) return; if (view === "outputs") void loadCatalog(); else { void loadInputs(); setInputRefresh((current) => current + 1); } };
 
   const outputReady = Boolean(catalog && selection.scenario && section && sector);
   const inputReady = Boolean(inputCatalog && inputSelection.dataset && inputSelection.project && inputSelection.scenario);
+  const contextReady = view === "outputs" ? outputReady : inputReady;
+  const activeWorkspace = workspaceValue(activeDatasetName, activeProjectName);
 
   return <div className="app-shell">
     <a className="skip-link" href="#workspace">Skip to workspace</a>
     <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-      <div className="brand"><img src="/brand/pypsa-logo.svg" alt="PyPSA-SPICE" /></div>
-      <nav><p className="eyebrow">Workspace</p><a className={view === "outputs" ? "active" : ""} href={`?section=${section?.id || "power"}`} onClick={(event) => { event.preventDefault(); chooseView("outputs"); }}><BarChart3 aria-hidden="true" />Outputs</a><a className={view === "inputs" ? "active" : ""} href="?view=inputs" onClick={(event) => { event.preventDefault(); chooseView("inputs"); }}><FileInput aria-hidden="true" />Inputs</a><a className={view === "configure" ? "active" : ""} href="?view=configure" onClick={(event) => { event.preventDefault(); chooseView("configure"); }}><Settings2 aria-hidden="true" />Scenario config</a><span className="disabled"><Play aria-hidden="true" />Run model<small>Next</small></span></nav>
-      {view === "outputs" && outputReady ? <div className="source-controls"><p className="eyebrow">Result source</p><Control label="Dataset" value={selection.dataset} onChange={chooseDataset} options={catalog!.datasets.map((item) => item.name)} /><Control label="Project" value={selection.project} onChange={chooseProject} options={dataset!.projects.map((item) => item.name)} /><Control label="Primary scenario" value={selection.scenario} onChange={chooseScenario} options={project!.scenarios.map((item) => item.name)} /><Control label="Compare with" value={selection.comparison} onChange={(comparison) => setSelection((current) => ({ ...current, comparison }))} options={["", ...project!.scenarios.map((item) => item.name).filter((name) => name !== selection.scenario)]} emptyLabel="No comparison" /><Control label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => item.name)} /></div> : inputReady ? <div className="source-controls"><p className="eyebrow">Input source</p><Control label="Dataset" value={inputSelection.dataset} onChange={chooseInputDataset} options={inputCatalog!.datasets.map((item) => item.name)} /><Control label="Project" value={inputSelection.project} onChange={chooseInputProject} options={inputDataset!.projects.map((item) => item.name)} /><Control label="Input scenario" value={inputSelection.scenario} onChange={(scenarioName) => setInputSelection((current) => ({ ...current, scenario: scenarioName }))} options={inputProject!.scenarios} /></div> : null}
-      <div className="sidebar-foot"><span className="status-dot" />Local data connected<button onClick={() => setDark(!dark)} aria-label="Toggle dark mode">{dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}</button></div>
+      <div className="brand"><img src="/brand/pypsa-logo.svg" alt="PyPSA-SPICE" /><span>Model workspace</span></div>
+      <nav><p className="eyebrow">Workflow</p><a className={view === "inputs" ? "active" : ""} href="?view=inputs" onClick={(event) => { event.preventDefault(); chooseView("inputs"); }}><FileInput aria-hidden="true" />Inputs</a><a className={view === "configure" ? "active" : ""} href="?view=configure" onClick={(event) => { event.preventDefault(); chooseView("configure"); }}><Settings2 aria-hidden="true" />Scenario configuration</a><a className={view === "outputs" ? "active" : ""} href={`?section=${section?.id || "power"}`} onClick={(event) => { event.preventDefault(); chooseView("outputs"); }}><BarChart3 aria-hidden="true" />Results</a></nav>
+      <div className="sidebar-foot"><span><i className="status-dot" />Local files connected</span><a href="/docs" target="_blank">API</a><button onClick={() => setDark(!dark)} aria-label="Toggle dark mode">{dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}</button></div>
     </aside>
     <div className="scrim" onClick={() => setSidebarOpen(false)} />
     <div className="main-column">
-      <header className={`topbar ${view === "inputs" ? "input-topbar" : ""}`}><button className="menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Open source controls"><Menu aria-hidden="true" /></button>{view === "outputs" && section ? <div className="section-tabs top-section-tabs" role="tablist" aria-label="Output sections">{sections.map((item) => { const SectionIcon = sectionIcons[item.id as keyof typeof sectionIcons] || Zap; return <a className={`section-tab ${item.id === section.id ? "active" : ""}`} href={`?section=${item.id}`} key={item.id} role="tab" aria-selected={item.id === section.id} onClick={(event) => { event.preventDefault(); chooseSection(item.id); }}><SectionIcon aria-hidden="true" /><b>{item.label}</b><small>{item.charts.length}</small></a>; })}</div> : view === "configure" ? <div className="config-topbar-slot" id="config-section-tabs" /> : <div className="input-topbar-slot" id="input-table-menu" />}<div className="top-actions"><button className="button secondary" onClick={refreshCurrent}><RefreshCw aria-hidden="true" />Refresh data</button><a className="button primary" href="/docs" target="_blank">API</a></div></header>
+      <header className="workspace-bar">
+        <button className="menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Open workspace navigation"><Menu aria-hidden="true" /></button>
+        {contextReady && <div className="workspace-context">
+          <ContextControl label="Project" value={activeWorkspace} onChange={chooseWorkspace} options={projectChoices} />
+          {view === "outputs" ? <ContextControl label="Result run" value={selection.scenario} onChange={chooseScenario} options={project!.scenarios.map((item) => ({ value: item.name, label: item.name }))} /> : <ContextControl label="Scenario" value={inputSelection.scenario} onChange={chooseInputScenario} options={inputProject!.scenarios.map((item) => ({ value: item, label: item }))} />}
+          <ContextControl label="Country" value={country} onChange={chooseCountry} options={[{ value: "ALL", label: "All countries" }, ...availableCountries.map((item) => ({ value: item, label: item }))]} />
+        </div>}
+        <div className="top-actions"><button className="button secondary" onClick={refreshCurrent}><RefreshCw aria-hidden="true" />Refresh</button></div>
+      </header>
+      <div className="secondary-bar">
+        {view === "outputs" && section ? <nav className="section-tabs top-section-tabs" role="tablist" aria-label="Result sections">{sections.map((item) => { const SectionIcon = sectionIcons[item.id as keyof typeof sectionIcons] || Zap; return <a className={`section-tab ${item.id === section.id ? "active" : ""}`} href={`?section=${item.id}`} key={item.id} role="tab" aria-selected={item.id === section.id} onClick={(event) => { event.preventDefault(); chooseSection(item.id); }}><SectionIcon aria-hidden="true" /><b>{item.label}</b><small>{item.charts.length}</small></a>; })}</nav> : view === "configure" ? <div className="secondary-menu-slot config-topbar-slot" id="config-section-tabs" /> : <div className="secondary-menu-slot input-topbar-slot" id="input-table-menu" />}
+      </div>
       <main id="workspace">
-        {view === "outputs" ? outputReady ? <><section className="page-title"><h1>{section!.title}</h1><label className="search"><Search aria-hidden="true" /><input aria-label={`Search ${section!.label.toLowerCase()} visualisations`} value={search} onChange={(event) => setSearch(event.target.value)} type="search" placeholder={`Find a ${section!.label.toLowerCase()} visualisation`} /></label></section><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} years={sector!.years} onYearChange={(year) => setSelection((current) => ({ ...current, year }))} mappings={catalog!.mappings} darkMode={dark} onInspect={(title, rows, sourceCount) => setInspector({ title, rows, sourceCount })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisation matches “{search}”.</div>}</section></> : <Boot message={error || "Discovering local results…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} /> : <Boot message={inputError || "Discovering model inputs…"} />}
+        {view === "outputs" ? outputReady ? <><section className="page-title"><div><p className="eyebrow pink">Results analysis</p><h1>{section!.title}</h1></div><div className="page-controls"><ContextControl label="Compare with" value={selection.comparison} onChange={(comparison) => setSelection((current) => ({ ...current, comparison }))} options={[{ value: "", label: "No comparison" }, ...project!.scenarios.filter((item) => item.name !== selection.scenario).map((item) => ({ value: item.name, label: item.name }))]} />{scenario!.sectors.length > 1 && <ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} />}<label className="search"><Search aria-hidden="true" /><input aria-label={`Search ${section!.label.toLowerCase()} visualisations`} value={search} onChange={(event) => setSearch(event.target.value)} type="search" placeholder={`Find a ${section!.label.toLowerCase()} visualisation`} /></label></div></section><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} country={country} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(title, rows, sourceCount) => setInspector({ title, rows, sourceCount })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisation matches “{search}”.</div>}</section></> : <Boot message={error || "Discovering local results…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} country={country} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} /> : <Boot message={inputError || "Discovering model inputs…"} />}
       </main>
-      <footer><span>PyPSA-SPICE web workspace</span><span>React · FastAPI · Local CSV and YAML source of truth</span></footer>
+      <footer><span>PyPSA-SPICE model workspace</span><span>React · FastAPI · Local CSV and YAML source of truth</span></footer>
     </div>
     {inspector && <DataDialog {...inspector} onClose={() => setInspector(null)} />}
   </div>;
 }
 
-function Control({ label, value, onChange, options, emptyLabel }: { label: string; value: string; onChange: (value: string) => void; options: string[]; emptyLabel?: string }) { return <label>{label}<select value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option value={option} key={option}>{option || emptyLabel}</option>)}</select></label>; }
+function ContextControl({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: WorkspaceOption[] }) {
+  return <label className="context-control"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option value={option.value} key={option.value || "empty"}>{option.label}</option>)}</select></label>;
+}
 function Boot({ message }: { message: string }) { return <div className="boot inline"><img src="/brand/pypsa-logo.svg" alt="PyPSA" /><span className="spinner" />{message}</div>; }
