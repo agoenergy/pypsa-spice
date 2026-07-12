@@ -90,11 +90,68 @@ def _pretty_label(value: str) -> str:
     return value.replace("_", " ").strip().title()
 
 
+def _technology_sector_mapping(settings_path: Path) -> dict[str, str]:
+    """Return the Streamlit technology-to-sector mapping in web-friendly form."""
+
+    mapping_path = settings_path.with_name("tech_mapping.csv")
+    if not mapping_path.is_file():
+        return {}
+    with mapping_path.open(encoding="utf-8-sig", newline="") as handle:
+        return {
+            (row.get("original_names") or "").strip(): (
+                row.get("sector") or ""
+            ).strip().lower()
+            for row in csv.DictReader(handle)
+            if (row.get("original_names") or "").strip()
+        }
+
+
+def _technology_catalog(
+    path: Path, sector_mapping: dict[str, str]
+) -> list[dict[str, Any]]:
+    """Summarise selectable technologies from a project's source table."""
+
+    if not path.is_file():
+        return []
+    technologies: dict[str, dict[str, Any]] = {}
+    with path.open(encoding="utf-8-sig", newline="") as handle:
+        for row in csv.DictReader(handle):
+            technology = (row.get("technology") or "").strip()
+            if not technology:
+                continue
+            item = technologies.setdefault(
+                technology,
+                {
+                    "id": technology,
+                    "label": (row.get("technology_nomenclature") or technology).strip(),
+                    "sector": sector_mapping.get(technology, "other") or "other",
+                    "classes": set(),
+                    "carriers": set(),
+                },
+            )
+            if row.get("class"):
+                item["classes"].add(row["class"].strip())
+            if row.get("carrier"):
+                item["carriers"].add(row["carrier"].strip())
+    return [
+        {
+            **item,
+            "classes": sorted(item["classes"]),
+            "carriers": sorted(item["carriers"]),
+        }
+        for item in sorted(
+            technologies.values(),
+            key=lambda value: (value["label"].lower(), value["id"]),
+        )
+    ]
+
+
 def input_catalog(data_dir: Path, settings_path: Path) -> dict[str, Any]:
     """Discover projects with model inputs and expose configured editable tables."""
 
     settings = _load_yaml(settings_path)
     datasets: list[dict[str, Any]] = []
+    sector_mapping = _technology_sector_mapping(settings_path)
     if data_dir.is_dir():
         for dataset_path in sorted(path for path in data_dir.iterdir() if path.is_dir()):
             projects: list[dict[str, Any]] = []
@@ -123,6 +180,7 @@ def input_catalog(data_dir: Path, settings_path: Path) -> dict[str, Any]:
                         "name": project_path.name,
                         "scenarios": scenarios,
                         "countries": sorted(countries),
+                        "technologies": _technology_catalog(tech_path, sector_mapping),
                     }
                 )
             if projects:

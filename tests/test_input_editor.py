@@ -38,6 +38,12 @@ class InputEditorTests(unittest.TestCase):
         response = TestClient(app).get("/api/input/catalog")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()["datasets"])
+        project = response.json()["datasets"][0]["projects"][0]
+        self.assertTrue(project["technologies"])
+        technology = project["technologies"][0]
+        self.assertTrue(
+            {"id", "label", "sector", "classes", "carriers"}.issubset(technology)
+        )
 
     def test_csv_update_is_typed_atomic_and_conflict_checked(self) -> None:
         source = ROOT / "data/example/project_01/input/scenario_01/power/power_generators.csv"

@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Check, ChevronLeft, ChevronRight, RotateCcw, Save, Search } from "lucide-react";
 import { getInputTable, saveInputTable } from "./api";
-import type { InputCatalog, InputCell, InputRow, InputSelection, InputTableDefinition, InputTableResponse } from "./types";
+import type { InputCatalog, InputCell, InputRow, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology } from "./types";
 
 const PAGE_SIZE = 100;
 
 export default function InputEditor({ catalog, selection }: { catalog: InputCatalog; selection: InputSelection }) {
+  const [view, setView] = useState<"table" | "technology">("table");
   const [scope, setScope] = useState<"global" | "scenario">("global");
   const [sector, setSector] = useState("power");
+  const project = catalog.datasets.find((item) => item.name === selection.dataset)?.projects.find((item) => item.name === selection.project);
+  const technologies = (project?.technologies || []).filter((item) => item.sector === sector);
+  const [technologyId, setTechnologyId] = useState("");
   const definitions = scope === "global" ? catalog.global_tables : (catalog.sector_tables[sector] || []);
   const [tableId, setTableId] = useState(catalog.global_tables.find((item) => item.id === "Technologies")?.id || definitions[0]?.id || "");
 
@@ -17,22 +21,59 @@ export default function InputEditor({ catalog, selection }: { catalog: InputCata
     if (!available.some((item) => item.id === tableId)) setTableId(available.find((item) => item.id === preferred)?.id || available[0]?.id || "");
   }, [catalog, scope, sector, tableId]);
 
+  useEffect(() => {
+    if (!technologies.some((item) => item.id === technologyId)) setTechnologyId(technologies[0]?.id || "");
+  }, [technologies, technologyId]);
+
   const definition = definitions.find((item) => item.id === tableId);
+  const technology = technologies.find((item) => item.id === technologyId);
   return <>
-    <section className="page-title editor-title"><div><p className="eyebrow pink">Model inputs</p><h1>Input data</h1><p>Edit the model’s source CSV files. Changes are written only when you select Save changes.</p></div></section>
+    <section className="page-title editor-title"><div><p className="eyebrow pink">Model inputs</p><h1>Input data</h1><p>Explore and edit the model’s source CSV files by table or by technology. Changes are written only when you select Save changes.</p></div></section>
     <section className="editor-toolbar" aria-label="Input table selection">
+      <div className="segmented" role="tablist" aria-label="Input data view">
+        <button className={view === "table" ? "active" : ""} onClick={() => setView("table")} role="tab" aria-selected={view === "table"}>By table</button>
+        <button className={view === "technology" ? "active" : ""} onClick={() => setView("technology")} role="tab" aria-selected={view === "technology"}>By technology</button>
+      </div>
+      {view === "table" ? <>
       <div className="segmented" role="tablist" aria-label="Input scope">
         <button className={scope === "global" ? "active" : ""} onClick={() => setScope("global")} role="tab" aria-selected={scope === "global"}>Global inputs</button>
         <button className={scope === "scenario" ? "active" : ""} onClick={() => setScope("scenario")} role="tab" aria-selected={scope === "scenario"}>Scenario inputs</button>
       </div>
       {scope === "scenario" && <div className="segmented" role="tablist" aria-label="Input sector">{["power", "industry", "transport"].map((item) => <button key={item} className={sector === item ? "active" : ""} onClick={() => setSector(item)} role="tab" aria-selected={sector === item}>{item}</button>)}</div>}
       <label className="field compact"><span>Table</span><select value={tableId} onChange={(event) => setTableId(event.target.value)}>{definitions.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
+      </> : <>
+        <div className="segmented" role="tablist" aria-label="Technology sector">{["power", "industry", "transport"].map((item) => <button key={item} className={sector === item ? "active" : ""} onClick={() => setSector(item)} role="tab" aria-selected={sector === item}>{item}</button>)}</div>
+        <label className="field compact technology-select"><span>Technology</span><select value={technologyId} onChange={(event) => setTechnologyId(event.target.value)}>{technologies.map((item) => <option value={item.id} key={item.id}>{item.label} ({item.id})</option>)}</select></label>
+      </>}
     </section>
-    {definition ? <TableEditor key={`${selection.dataset}:${selection.project}:${selection.scenario}:${scope}:${sector}:${definition.id}`} definition={definition} selection={selection} /> : <div className="editor-empty">No configured table is available for this selection.</div>}
+    {view === "table" ? definition ? <TableEditor key={`${selection.dataset}:${selection.project}:${selection.scenario}:${scope}:${sector}:${definition.id}`} definition={definition} selection={selection} /> : <div className="editor-empty">No configured table is available for this selection.</div> : technology ? <TechnologyEditor catalog={catalog} selection={selection} sector={sector} technology={technology} /> : <div className="editor-empty">No mapped technology is available for this sector.</div>}
   </>;
 }
 
-function TableEditor({ definition, selection }: { definition: InputTableDefinition; selection: InputSelection }) {
+function TechnologyEditor({ catalog, selection, sector, technology }: { catalog: InputCatalog; selection: InputSelection; sector: string; technology: InputTechnology }) {
+  const globalDefinitions = catalog.global_tables.filter((item) => item.id !== "Demand_Profiles");
+  const scenarioDefinitions = catalog.sector_tables[sector] || [];
+  return <div className="technology-view">
+    <section className="technology-summary"><div><p className="eyebrow pink">Selected technology</p><h2>{technology.label}</h2><code>{technology.id}</code></div><dl><div><dt>PyPSA class</dt><dd>{technology.classes.join(", ") || "—"}</dd></div><div><dt>Carrier</dt><dd>{technology.carriers.join(", ") || "—"}</dd></div></dl></section>
+    <section className="technology-group"><header><p className="eyebrow">Shared assumptions</p><h2>Global input</h2><span>Changes here apply to every scenario in this project.</span></header><div className="technology-panels">{globalDefinitions.map((definition) => <TableEditor key={`global:${definition.id}:${technology.id}`} definition={definition} selection={selection} technology={technology} hideWhenEmpty />)}</div></section>
+    <section className="technology-group"><header><p className="eyebrow">{selection.scenario}</p><h2>Scenario input</h2><span>Regional assets and constraints that reference this technology.</span></header><div className="technology-panels">{scenarioDefinitions.map((definition) => <TableEditor key={`scenario:${definition.id}:${technology.id}`} definition={definition} selection={selection} technology={technology} hideWhenEmpty />)}</div></section>
+  </div>;
+}
+
+function technologyMatches(row: InputRow, definition: InputTableDefinition, technology: InputTechnology): boolean {
+  if (definition.id === "Direct_air_capture") return technology.id === "DAC";
+  const raw = String(row[definition.filter_col] ?? "").trim();
+  if (!raw) return false;
+  if (technology.id === "PEVCH" && (raw.startsWith("EVCH") || raw.startsWith("EVST"))) return true;
+  if (definition.id.toLowerCase().includes("decommission")) {
+    const parts = raw.split("_");
+    return parts[parts.length - 1] === technology.id;
+  }
+  if (definition.filter_col === "carrier") return technology.carriers.includes(raw);
+  return raw === technology.id || raw.split(/[;,|]/).map((value) => value.trim()).includes(technology.id);
+}
+
+function TableEditor({ definition, selection, technology, hideWhenEmpty = false }: { definition: InputTableDefinition; selection: InputSelection; technology?: InputTechnology; hideWhenEmpty?: boolean }) {
   const [table, setTable] = useState<InputTableResponse | null>(null);
   const [rows, setRows] = useState<InputRow[]>([]);
   const [changes, setChanges] = useState<Map<string, InputCell>>(new Map());
@@ -65,11 +106,12 @@ function TableEditor({ definition, selection }: { definition: InputTableDefiniti
     if (!filterColumn) return [];
     return [...new Set(rows.map((row) => String(row[filterColumn] ?? "")).filter(Boolean))].sort();
   }, [rows, filterColumn]);
-  const filtered = useMemo(() => rows.filter((row) => {
+  const technologyRows = useMemo(() => technology ? rows.filter((row) => technologyMatches(row, definition, technology)) : rows, [rows, definition, technology]);
+  const filtered = useMemo(() => technologyRows.filter((row) => {
     if (filterColumn && filter !== "ALL" && String(row[filterColumn]) !== filter) return false;
     const needle = query.trim().toLowerCase();
     return !needle || Object.values(row).some((value) => String(value ?? "").toLowerCase().includes(needle));
-  }), [rows, filterColumn, filter, query]);
+  }), [technologyRows, filterColumn, filter, query]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const visibleRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
@@ -91,7 +133,8 @@ function TableEditor({ definition, selection }: { definition: InputTableDefiniti
     finally { setSaving(false); }
   };
 
-  return <section className="editor-panel">
+  if (hideWhenEmpty && (loading || error || technologyRows.length === 0)) return null;
+  return <section className={`editor-panel${technology ? " technology-panel" : ""}`}>
     <header className="editor-panel-head"><div><p className="eyebrow">{definition.scope === "global" ? "Global source" : `${definition.sector} · ${selection.scenario}`}</p><h2>{definition.label}</h2>{table && <code>{table.path}</code>}</div><div className="editor-actions"><button className="button secondary" disabled={!changes.size || saving} onClick={discard}><RotateCcw aria-hidden="true" />Discard</button><button className="button primary" disabled={!changes.size || saving || definition.timeseries} onClick={save}><Save aria-hidden="true" />{saving ? "Saving…" : `Save changes${changes.size ? ` (${changes.size})` : ""}`}</button></div></header>
     {definition.timeseries && <div className="editor-warning"><AlertTriangle aria-hidden="true" /><span><b>Read-only timeseries.</b> As in the existing app, large hourly inputs are shown for inspection and edited locally outside the browser.</span></div>}
     {error && <div className="notice error">{error}<button onClick={() => void load()}>Reload</button></div>}

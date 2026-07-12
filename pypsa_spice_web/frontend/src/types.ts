@@ -73,6 +73,15 @@ export interface InputProject {
   name: string;
   scenarios: string[];
   countries: string[];
+  technologies: InputTechnology[];
+}
+
+export interface InputTechnology {
+  id: string;
+  label: string;
+  sector: "power" | "industry" | "transport" | "other";
+  classes: string[];
+  carriers: string[];
 }
 
 export interface InputDataset { name: string; projects: InputProject[] }
