@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { AlertTriangle, Check, ChevronLeft, ChevronRight, RotateCcw, Save, Search } from "lucide-react";
 import { getInputTable, saveInputTable } from "./api";
 import type { InputCatalog, InputCell, InputRow, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology } from "./types";
@@ -12,6 +13,7 @@ export default function InputEditor({ catalog, selection }: { catalog: InputCata
   const project = catalog.datasets.find((item) => item.name === selection.dataset)?.projects.find((item) => item.name === selection.project);
   const technologies = (project?.technologies || []).filter((item) => item.sector === sector);
   const [technologyId, setTechnologyId] = useState("");
+  const [menuTarget, setMenuTarget] = useState<HTMLElement | null>(null);
   const definitions = scope === "global" ? catalog.global_tables : (catalog.sector_tables[sector] || []);
   const [tableId, setTableId] = useState(catalog.global_tables.find((item) => item.id === "Technologies")?.id || definitions[0]?.id || "");
 
@@ -24,27 +26,30 @@ export default function InputEditor({ catalog, selection }: { catalog: InputCata
   useEffect(() => {
     if (!technologies.some((item) => item.id === technologyId)) setTechnologyId(technologies[0]?.id || "");
   }, [technologies, technologyId]);
+  useEffect(() => { setMenuTarget(document.getElementById("input-table-menu")); }, []);
 
   const definition = definitions.find((item) => item.id === tableId);
   const technology = technologies.find((item) => item.id === technologyId);
   return <>
-    <section className="page-title editor-title"><div><p className="eyebrow pink">Model inputs</p><h1>Input data</h1><p>Explore and edit the model’s source CSV files by table or by technology. Changes are written only when you select Save changes.</p></div></section>
-    <section className="editor-toolbar" aria-label="Input table selection">
+    {menuTarget && createPortal(<nav className="input-topbar-controls" aria-label="Input table selection">
       <div className="segmented" role="tablist" aria-label="Input data view">
         <button className={view === "table" ? "active" : ""} onClick={() => setView("table")} role="tab" aria-selected={view === "table"}>By table</button>
         <button className={view === "technology" ? "active" : ""} onClick={() => setView("technology")} role="tab" aria-selected={view === "technology"}>By technology</button>
       </div>
       {view === "table" ? <>
-      <div className="segmented" role="tablist" aria-label="Input scope">
-        <button className={scope === "global" ? "active" : ""} onClick={() => setScope("global")} role="tab" aria-selected={scope === "global"}>Global inputs</button>
-        <button className={scope === "scenario" ? "active" : ""} onClick={() => setScope("scenario")} role="tab" aria-selected={scope === "scenario"}>Scenario inputs</button>
-      </div>
-      {scope === "scenario" && <div className="segmented" role="tablist" aria-label="Input sector">{["power", "industry", "transport"].map((item) => <button key={item} className={sector === item ? "active" : ""} onClick={() => setSector(item)} role="tab" aria-selected={sector === item}>{item}</button>)}</div>}
-      <label className="field compact"><span>Table</span><select value={tableId} onChange={(event) => setTableId(event.target.value)}>{definitions.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
+        <div className="segmented" role="tablist" aria-label="Input scope">
+          <button className={scope === "global" ? "active" : ""} onClick={() => setScope("global")} role="tab" aria-selected={scope === "global"}>Global inputs</button>
+          <button className={scope === "scenario" ? "active" : ""} onClick={() => setScope("scenario")} role="tab" aria-selected={scope === "scenario"}>Scenario inputs</button>
+        </div>
+        {scope === "scenario" && <div className="segmented" role="tablist" aria-label="Input sector">{["power", "industry", "transport"].map((item) => <button key={item} className={sector === item ? "active" : ""} onClick={() => setSector(item)} role="tab" aria-selected={sector === item}>{item}</button>)}</div>}
       </> : <>
         <div className="segmented" role="tablist" aria-label="Technology sector">{["power", "industry", "transport"].map((item) => <button key={item} className={sector === item ? "active" : ""} onClick={() => setSector(item)} role="tab" aria-selected={sector === item}>{item}</button>)}</div>
-        <label className="field compact technology-select"><span>Technology</span><select value={technologyId} onChange={(event) => setTechnologyId(event.target.value)}>{technologies.map((item) => <option value={item.id} key={item.id}>{item.label} ({item.id})</option>)}</select></label>
       </>}
+    </nav>, menuTarget)}
+    <section className="page-title editor-title"><div><p className="eyebrow pink">Model inputs</p><h1>Input data</h1><p>Explore and edit the model’s source CSV files by table or by technology. Changes are written only when you select Save changes.</p></div></section>
+    <section className="editor-primary-select" aria-label={view === "table" ? "Table selection" : "Technology selection"}>
+      <div><p className="eyebrow pink">Current selection</p><h2>{view === "table" ? "Choose a table" : "Choose a technology"}</h2><p>{view === "table" ? "Select the source CSV you want to inspect and edit." : "Select a technology to review its shared and scenario-specific inputs."}</p></div>
+      {view === "table" ? <label className="field"><span>Table</span><select value={tableId} onChange={(event) => setTableId(event.target.value)}>{definitions.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label> : <label className="field"><span>Technology</span><select value={technologyId} onChange={(event) => setTechnologyId(event.target.value)}>{technologies.map((item) => <option value={item.id} key={item.id}>{item.label} ({item.id})</option>)}</select></label>}
     </section>
     {view === "table" ? definition ? <TableEditor key={`${selection.dataset}:${selection.project}:${selection.scenario}:${scope}:${sector}:${definition.id}`} definition={definition} selection={selection} /> : <div className="editor-empty">No configured table is available for this selection.</div> : technology ? <TechnologyEditor catalog={catalog} selection={selection} sector={sector} technology={technology} /> : <div className="editor-empty">No mapped technology is available for this sector.</div>}
   </>;
@@ -102,16 +107,17 @@ function TableEditor({ definition, selection, technology, hideWhenEmpty = false 
   }, [changes.size]);
 
   const filterColumn = table?.filter_column;
+  const showFilter = Boolean(filterColumn && !technology);
   const filterOptions = useMemo(() => {
-    if (!filterColumn) return [];
+    if (!showFilter || !filterColumn) return [];
     return [...new Set(rows.map((row) => String(row[filterColumn] ?? "")).filter(Boolean))].sort();
-  }, [rows, filterColumn]);
+  }, [rows, filterColumn, showFilter]);
   const technologyRows = useMemo(() => technology ? rows.filter((row) => technologyMatches(row, definition, technology)) : rows, [rows, definition, technology]);
   const filtered = useMemo(() => technologyRows.filter((row) => {
-    if (filterColumn && filter !== "ALL" && String(row[filterColumn]) !== filter) return false;
+    if (showFilter && filterColumn && filter !== "ALL" && String(row[filterColumn]) !== filter) return false;
     const needle = query.trim().toLowerCase();
     return !needle || Object.values(row).some((value) => String(value ?? "").toLowerCase().includes(needle));
-  }), [technologyRows, filterColumn, filter, query]);
+  }), [technologyRows, showFilter, filterColumn, filter, query]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const visibleRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
@@ -140,7 +146,7 @@ function TableEditor({ definition, selection, technology, hideWhenEmpty = false 
     {error && <div className="notice error">{error}<button onClick={() => void load()}>Reload</button></div>}
     {success && <div className="notice success"><Check aria-hidden="true" />{success}</div>}
     {loading ? <div className="editor-loading"><span className="spinner" />Reading CSV…</div> : table && <>
-      <div className="table-tools"><label className="search"><Search aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Find a row or value" /></label>{filterColumn && <label className="field compact"><span>{filterColumn.replaceAll("_", " ")}</span><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="ALL">All values</option>{filterOptions.map((value) => <option key={value}>{value}</option>)}</select></label>}<span className="row-count">{filtered.length.toLocaleString()} of {table.total_rows.toLocaleString()} rows</span></div>
+      <div className="table-tools"><label className="search"><Search aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Find a row or value" /></label>{showFilter && filterColumn && <label className="field compact"><span>{filterColumn.replaceAll("_", " ")}</span><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="ALL">All values</option>{filterOptions.map((value) => <option key={value}>{value}</option>)}</select></label>}<span className="row-count">{filtered.length.toLocaleString()} of {table.total_rows.toLocaleString()} rows</span></div>
       <div className="editable-table-wrap"><table className="editable-table"><thead><tr>{table.columns.map((column) => <th key={column.name}><span>{column.label}</span>{column.editable && <small>Editable</small>}</th>)}</tr></thead><tbody>{visibleRows.map((row) => <tr key={row.__row_id}>{table.columns.map((column) => <td key={column.name} className={column.editable ? "editable-cell" : "locked-cell"}>{column.editable ? <CellEditor value={row[column.name]} kind={column.kind} onChange={(value) => edit(row.__row_id, column.name, value)} /> : <span>{String(row[column.name] ?? "")}</span>}</td>)}</tr>)}</tbody></table></div>
       <footer className="table-pagination"><span>Page {Math.min(page + 1, pageCount)} of {pageCount}{table.truncated ? " · first 10,000 rows loaded" : ""}</span><div><button className="icon-button" aria-label="Previous page" disabled={page === 0} onClick={() => setPage((current) => Math.max(0, current - 1))}><ChevronLeft /></button><button className="icon-button" aria-label="Next page" disabled={page >= pageCount - 1} onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}><ChevronRight /></button></div></footer>
     </>}
