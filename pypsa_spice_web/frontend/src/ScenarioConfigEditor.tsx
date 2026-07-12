@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import { getScenarioConfig, saveScenarioConfigSection } from "./api";
 import type { InputSelection, ScenarioConfigResponse } from "./types";
@@ -14,6 +15,7 @@ export default function ScenarioConfigEditor({ selection }: { selection: InputSe
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [editorInvalid, setEditorInvalid] = useState(false);
+  const [navigationTarget, setNavigationTarget] = useState<HTMLElement | null>(null);
 
   const load = async () => {
     const controller = new AbortController(); setLoading(true); setError(""); setSuccess("");
@@ -24,6 +26,7 @@ export default function ScenarioConfigEditor({ selection }: { selection: InputSe
   };
   useEffect(() => { void load(); }, [selection.dataset, selection.project, selection.scenario]);
   useEffect(() => { if (config) { setDraft(structuredClone(config.sections[section] || {})); setSuccess(""); setError(""); setEditorInvalid(false); } }, [section]);
+  useEffect(() => { setNavigationTarget(document.getElementById("config-section-tabs")); }, []);
 
   const original = config?.sections[section] || {};
   const dirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(original), [draft, original]);
@@ -38,15 +41,16 @@ export default function ScenarioConfigEditor({ selection }: { selection: InputSe
   };
 
   return <>
+    {navigationTarget && createPortal(<nav className="section-tabs top-section-tabs config-section-tabs" aria-label="Configuration sections" role="tablist">{Object.keys(labels).map((name) => <button key={name} className={`section-tab ${section === name ? "active" : ""}`} onClick={() => { if (!dirty || window.confirm("Discard unsaved changes in this section?")) setSection(name); }} role="tab" aria-selected={section === name}><b>{labels[name]}</b></button>)}</nav>, navigationTarget)}
     <section className="page-title editor-title"><div><p className="eyebrow pink">Scenario configuration</p><h1>Configure {selection.scenario}</h1><p>Edit the model settings and constraints stored in this scenario’s YAML file.</p></div></section>
     <div className="config-layout">
-      <nav className="config-nav" aria-label="Configuration sections">{Object.keys(labels).map((name) => <button key={name} className={section === name ? "active" : ""} onClick={() => { if (!dirty || window.confirm("Discard unsaved changes in this section?")) setSection(name); }}>{labels[name]}</button>)}</nav>
       <section className="editor-panel config-panel">
-        <header className="editor-panel-head"><div><p className="eyebrow">{selection.project} · {selection.scenario}</p><h2>{labels[section]}</h2>{config && <code>{config.path}</code>}</div><div className="editor-actions"><button className="button secondary" disabled={!dirty || saving} onClick={() => { setDraft(structuredClone(original)); setEditorInvalid(false); }}><RotateCcw aria-hidden="true" />Discard</button><button className="button primary" disabled={!dirty || saving || invalid} onClick={save}><Save aria-hidden="true" />{saving ? "Saving…" : "Save changes"}</button></div></header>
+        <header className="editor-panel-head"><div><p className="eyebrow">{selection.project} · {selection.scenario}</p><h2>{labels[section]}</h2>{config && <code>{config.path}</code>}</div></header>
         {error && <div className="notice error">{error}<button onClick={() => void load()}>Reload</button></div>}
         {success && <div className="notice success"><Check aria-hidden="true" />{success}</div>}
         {validationError && <div className="notice error">{validationError}</div>}
         {loading ? <div className="editor-loading"><span className="spinner" />Reading YAML…</div> : section === "scenario_configs" ? <ScenarioSettings value={draft} onChange={setDraft} /> : section === "co2_management" ? <Co2Editor value={draft} onChange={setDraft} /> : <JsonSectionEditor value={draft} onChange={setDraft} onInvalid={setEditorInvalid} />}
+        <footer className="config-actions"><button className="button secondary" disabled={!dirty || saving} onClick={() => { setDraft(structuredClone(original)); setEditorInvalid(false); }}><RotateCcw aria-hidden="true" />Discard</button><button className="button primary" disabled={!dirty || saving || invalid} onClick={save}><Save aria-hidden="true" />{saving ? "Saving…" : "Save changes"}</button></footer>
       </section>
     </div>
   </>;
