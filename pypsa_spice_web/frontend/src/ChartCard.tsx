@@ -11,7 +11,7 @@ interface Props {
   years: string[];
   mappings: Catalog["mappings"];
   darkMode: boolean;
-  onInspect: (title: string, rows: ResultRow[], sourceCount: number) => void;
+  onInspect: (title: string, rows: ResultRow[], sourceCount: number, hourly: boolean) => void;
 }
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -117,7 +117,7 @@ export default function ChartCard({ chart, selection, countries, years, mappings
           {selection.comparison && <label className="chart-difference-toggle" title={`${selection.comparison} − ${selection.scenario}`}><input type="checkbox" checked={showDifference} onChange={(event) => setShowDifference(event.target.checked)} /><i aria-hidden="true" /><span>Difference</span></label>}
         </div>
         <div className="chart-actions">
-          <button title="View source data" aria-label={`View ${chart.name} source data`} onClick={() => onInspect(chart.name, rows, sourceCount)}><Table2 aria-hidden="true" /></button>
+          <button title="View source data" aria-label={`View ${chart.name} source data`} onClick={() => onInspect(chart.name, rows, sourceCount, chart.hourly)}><Table2 aria-hidden="true" /></button>
           <a title="Download complete CSV" aria-label={`Download ${chart.name} CSV`} href={downloadUrl(chart, { ...selection, year })} download><Download aria-hidden="true" /></a>
           <button title={expanded ? "Close expanded chart" : "Expand chart"} aria-label={`${expanded ? "Close" : "Expand"} ${chart.name}`} onClick={() => setExpanded(!expanded)}>{expanded ? <Minimize2 aria-hidden="true" /> : <Expand aria-hidden="true" />}</button>
         </div>
