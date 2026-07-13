@@ -1664,7 +1664,7 @@ def add_unit_column(table_name: str, currency: str) -> str:
     if all(k in table_name for k in ["gen", "yearly"]) or ("dmd" in table_name):
         return "%" if "share" in table_name else "TWh"
 
-    if "hourly" in table_name:
+    if "hourly" in table_name or "peak" in table_name:
         return f"{str(currency).lower()}/MWh_el" if "price" in table_name else "MW"
 
     if any(k in table_name for k in ["cap_by", "capacity"]):

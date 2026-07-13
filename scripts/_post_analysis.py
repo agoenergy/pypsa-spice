@@ -76,6 +76,14 @@ class Plots:
             file_name=file_name, table=self.output_tables.ene_dmd_by_carrier_yearly()
         )
 
+    def ene_peakload_by_region_yearly(self):
+        """Plot annual energy demand by country and carrier."""
+        file_name = self.output_tables.ene_peakload_by_region_yearly.__name__
+        standard_plot(
+            file_name=file_name,
+            table=self.output_tables.ene_peakload_by_region_yearly(),
+        )
+
     # ===================================== POWER ======================================
     def pow_cap_by_type_yearly_plot(self):
         """Plot annual power generation capacity by country and type."""
@@ -290,6 +298,30 @@ class OutputTables(Plots):
             )  # return demand for all year
         final_df.index.names = ["country", "carrier"]
         final_df = scaling_conversion(input_df=final_df, scaling_number=1e6, decimals=1)
+
+        return final_df
+
+    def ene_peakload_by_region_yearly(self) -> pd.DataFrame:
+        """Calculate annual peak load by region.
+
+        << Unit: MW >>
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame with multi-index (region) and columns (value, year)
+        """
+        final_df = pd.DataFrame()
+        for year in self.network_dict:
+            n = self.network_dict[year]
+            demand = n.loads_t.p_set.max().to_frame().round(2)
+            demand.columns = ["value"]
+            demand = demand[~demand.index.str.contains("PV_LOAD")]
+            demand["year"] = year
+            final_df = pd.concat(
+                [final_df, demand], axis=0
+            )  # return demand for all year
+        final_df.index.names = ["region"]
 
         return final_df
 
