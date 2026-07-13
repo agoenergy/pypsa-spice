@@ -8,7 +8,7 @@ import { confirmDiscardChanges, setEditorDirty } from "./dirtyState";
 const labels: Record<string, string> = { scenario_configs: "Scenario settings", co2_management: "CO₂ management", custom_constraints: "Custom constraints" };
 const icons = { scenario_configs: Settings2, co2_management: Cloud, custom_constraints: Code2 };
 
-export default function ScenarioConfigEditor({ selection, country }: { selection: InputSelection; country: string }) {
+export default function ScenarioConfigEditor({ selection, country, onNavigate }: { selection: InputSelection; country: string; onNavigate: () => void }) {
   const editorId = useId();
   const [config, setConfig] = useState<ScenarioConfigResponse | null>(null);
   const [section, setSection] = useState("scenario_configs");
@@ -45,7 +45,7 @@ export default function ScenarioConfigEditor({ selection, country }: { selection
   };
 
   return <>
-    {navigationTarget && createPortal(<nav className="section-tabs top-section-tabs config-section-tabs" aria-label="Configuration sections" role="tablist">{Object.keys(labels).map((name) => { const SectionIcon = icons[name as keyof typeof icons]; return <button key={name} className={`section-tab ${section === name ? "active" : ""}`} onClick={() => { if (confirmDiscardChanges()) setSection(name); }} role="tab" aria-selected={section === name}><SectionIcon aria-hidden="true" /><b>{labels[name]}</b></button>; })}</nav>, navigationTarget)}
+    {navigationTarget && createPortal(<nav className="sidebar-submenu-list" aria-label="Configuration pages">{Object.keys(labels).map((name) => { const SectionIcon = icons[name as keyof typeof icons]; return <button key={name} className={`sidebar-submenu-item ${section === name ? "active" : ""}`} onClick={() => { if (confirmDiscardChanges()) { setSection(name); onNavigate(); } }} aria-current={section === name ? "page" : undefined}><SectionIcon aria-hidden="true" /><b>{labels[name]}</b></button>; })}</nav>, navigationTarget)}
     <section className="page-title editor-title"><div><p className="eyebrow pink">Scenario configuration</p><h1>Configure {selection.scenario}</h1><p>Edit the model settings and constraints stored in this scenario’s YAML file.</p></div></section>
     <div className="config-layout">
       <section className="editor-panel config-panel">

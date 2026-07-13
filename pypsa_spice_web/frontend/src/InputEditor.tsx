@@ -7,7 +7,7 @@ import { confirmDiscardChanges, setEditorDirty } from "./dirtyState";
 
 const PAGE_SIZE = 100;
 
-export default function InputEditor({ catalog, selection, country }: { catalog: InputCatalog; selection: InputSelection; country: string }) {
+export default function InputEditor({ catalog, selection, country, onNavigate }: { catalog: InputCatalog; selection: InputSelection; country: string; onNavigate: () => void }) {
   const [view, setView] = useState<"table" | "technology">("technology");
   const [scope, setScope] = useState<"global" | "scenario">("global");
   const [sector, setSector] = useState("power");
@@ -33,9 +33,9 @@ export default function InputEditor({ catalog, selection, country }: { catalog: 
   const technology = technologies.find((item) => item.id === technologyId);
   const guarded = (action: () => void) => { if (confirmDiscardChanges()) action(); };
   return <>
-    {menuTarget && createPortal(<nav className="section-tabs top-section-tabs input-section-tabs" aria-label="Input sections" role="tablist">
-      <button className={`section-tab ${view === "technology" ? "active" : ""}`} onClick={() => guarded(() => setView("technology"))} role="tab" aria-selected={view === "technology"}><Cpu aria-hidden="true" /><b>By technology</b></button>
-      <button className={`section-tab ${view === "table" ? "active" : ""}`} onClick={() => guarded(() => setView("table"))} role="tab" aria-selected={view === "table"}><Table2 aria-hidden="true" /><b>By table</b></button>
+    {menuTarget && createPortal(<nav className="sidebar-submenu-list" aria-label="Input pages">
+      <button className={`sidebar-submenu-item ${view === "technology" ? "active" : ""}`} onClick={() => guarded(() => { setView("technology"); onNavigate(); })} aria-current={view === "technology" ? "page" : undefined}><Cpu aria-hidden="true" /><b>By technology</b></button>
+      <button className={`sidebar-submenu-item ${view === "table" ? "active" : ""}`} onClick={() => guarded(() => { setView("table"); onNavigate(); })} aria-current={view === "table" ? "page" : undefined}><Table2 aria-hidden="true" /><b>By table</b></button>
     </nav>, menuTarget)}
     <section className="page-title editor-title"><div><p className="eyebrow pink">Model inputs</p><h1>Input data</h1><p>Explore and edit the model’s source CSV files by table or by technology. Changes are written only when you select Save changes.</p></div></section>
     {view === "table" && <nav className="table-scope-menu" aria-label="Table input scope" role="tablist"><button className={scope === "global" ? "active" : ""} onClick={() => guarded(() => setScope("global"))} role="tab" aria-selected={scope === "global"}><Globe2 aria-hidden="true" /><b>Global inputs</b></button><button className={scope === "scenario" ? "active" : ""} onClick={() => guarded(() => setScope("scenario"))} role="tab" aria-selected={scope === "scenario"}><FolderOpen aria-hidden="true" /><b>Scenario inputs</b></button></nav>}
