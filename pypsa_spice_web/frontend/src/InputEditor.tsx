@@ -7,12 +7,12 @@ import { confirmDiscardChanges, setEditorDirty } from "./dirtyState";
 
 const PAGE_SIZE = 100;
 
-export default function InputEditor({ catalog, selection, country, onNavigate }: { catalog: InputCatalog; selection: InputSelection; country: string; onNavigate: () => void }) {
+export default function InputEditor({ catalog, selection, onNavigate }: { catalog: InputCatalog; selection: InputSelection; onNavigate: () => void }) {
   const [view, setView] = useState<"table" | "technology">("technology");
   const [scope, setScope] = useState<"global" | "scenario">("global");
   const [sector, setSector] = useState("power");
   const project = catalog.datasets.find((item) => item.name === selection.dataset)?.projects.find((item) => item.name === selection.project);
-  const technologies = (project?.technologies || []).filter((item) => item.sector === sector && (country === "ALL" || item.countries.includes(country)));
+  const technologies = (project?.technologies || []).filter((item) => item.sector === sector);
   const [technologyId, setTechnologyId] = useState("");
   const [menuTarget, setMenuTarget] = useState<HTMLElement | null>(null);
   const definitions = scope === "global" ? catalog.global_tables : (catalog.sector_tables[sector] || []);
@@ -40,24 +40,24 @@ export default function InputEditor({ catalog, selection, country, onNavigate }:
     <section className="page-title editor-title"><div><p className="eyebrow pink">Model inputs</p><h1>Input data</h1><p>Explore and edit the model’s source CSV files by table or by technology. Changes are written only when you select Save changes.</p></div></section>
     {view === "table" && <nav className="table-scope-menu" aria-label="Table input scope" role="tablist"><button className={scope === "global" ? "active" : ""} onClick={() => guarded(() => setScope("global"))} role="tab" aria-selected={scope === "global"}><Globe2 aria-hidden="true" /><b>Global inputs</b></button><button className={scope === "scenario" ? "active" : ""} onClick={() => guarded(() => setScope("scenario"))} role="tab" aria-selected={scope === "scenario"}><FolderOpen aria-hidden="true" /><b>Scenario inputs</b></button></nav>}
     <section className="editor-primary-select" aria-label={view === "table" ? "Table selection" : "Technology selection"}>
-      <div><p className="eyebrow pink">Current selection</p><h2>{view === "table" ? "Choose a table" : "Choose a technology"}</h2><p>{view === "table" ? "Select the source CSV you want to inspect and edit." : "Select a technology to review its shared and scenario-specific inputs."}</p></div>
+      <div><p className="eyebrow pink">Current selection</p><h2>{view === "table" ? "Choose a table" : "Choose a technology"}</h2><p>{view === "table" ? "Select the source CSV you want to inspect and edit." : "Technology selection applies across all countries and scenarios. Country filters appear only in tables with country-specific rows."}</p></div>
       <div className={`editor-selection-fields ${view === "table" ? "table-selection-fields" : ""}`}>
         {view === "table" && <label className="field sector-select"><span>Sector</span>{scope === "global" ? <select value="ALL" disabled><option value="ALL">All sectors</option></select> : <select value={sector} onChange={(event) => guarded(() => setSector(event.target.value))}>{["power", "industry", "transport"].map((item) => <option value={item} key={item}>{item}</option>)}</select>}</label>}
         {view === "technology" && <label className="field sector-select"><span>Sector</span><select value={sector} onChange={(event) => guarded(() => setSector(event.target.value))}>{["power", "industry", "transport"].map((item) => <option value={item} key={item}>{item}</option>)}</select></label>}
         {view === "table" ? <label className="field primary-select"><span>Table</span><select value={tableId} onChange={(event) => guarded(() => setTableId(event.target.value))}>{definitions.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label> : <label className="field primary-select"><span>Technology</span><select value={technologyId} onChange={(event) => guarded(() => setTechnologyId(event.target.value))}>{technologies.map((item) => <option value={item.id} key={item.id}>{item.label} ({item.id})</option>)}</select></label>}
       </div>
     </section>
-    {view === "table" ? definition ? <TableEditor key={`${selection.dataset}:${selection.project}:${selection.scenario}:${scope}:${sector}:${definition.id}`} definition={definition} selection={selection} country={country} /> : <div className="editor-empty">No configured table is available for this selection.</div> : technology ? <TechnologyEditor catalog={catalog} selection={selection} sector={sector} technology={technology} country={country} /> : <div className="editor-empty">No mapped technology is available for this sector and country.</div>}
+    {view === "table" ? definition ? <TableEditor key={`${selection.dataset}:${selection.project}:${selection.scenario}:${scope}:${sector}:${definition.id}`} definition={definition} selection={selection} /> : <div className="editor-empty">No configured table is available for this selection.</div> : technology ? <TechnologyEditor catalog={catalog} selection={selection} sector={sector} technology={technology} /> : <div className="editor-empty">No mapped technology is available for this sector.</div>}
   </>;
 }
 
-function TechnologyEditor({ catalog, selection, sector, technology, country }: { catalog: InputCatalog; selection: InputSelection; sector: string; technology: InputTechnology; country: string }) {
+function TechnologyEditor({ catalog, selection, sector, technology }: { catalog: InputCatalog; selection: InputSelection; sector: string; technology: InputTechnology }) {
   const globalDefinitions = catalog.global_tables.filter((item) => item.id !== "Demand_Profiles");
   const scenarioDefinitions = catalog.sector_tables[sector] || [];
   return <div className="technology-view">
     <section className="technology-summary"><div><p className="eyebrow pink">Selected technology</p><h2>{technology.label}</h2><code>{technology.id}</code></div><dl><div><dt>PyPSA class</dt><dd>{technology.classes.join(", ") || "—"}</dd></div><div><dt>Carrier</dt><dd>{technology.carriers.join(", ") || "—"}</dd></div></dl></section>
-    <section className="technology-group"><header><p className="eyebrow">Shared assumptions</p><h2>Global input</h2><span>Changes here apply to every scenario in this project{country === "ALL" ? "" : ` for ${country}`}.</span></header><div className="technology-panels">{globalDefinitions.map((definition) => <TableEditor key={`global:${definition.id}:${technology.id}`} definition={definition} selection={selection} technology={technology} country={country} hideWhenEmpty />)}</div></section>
-    <section className="technology-group"><header><p className="eyebrow">{selection.scenario}</p><h2>Scenario input</h2><span>Regional assets and constraints that reference this technology{country === "ALL" ? "" : ` in ${country}`}.</span></header><div className="technology-panels">{scenarioDefinitions.map((definition) => <TableEditor key={`scenario:${definition.id}:${technology.id}`} definition={definition} selection={selection} technology={technology} country={country} hideWhenEmpty />)}</div></section>
+    <section className="technology-group"><header><p className="eyebrow">Shared assumptions</p><h2>Global input</h2><span>Changes here apply to every country and every scenario in this project.</span></header><div className="technology-panels">{globalDefinitions.map((definition) => <TableEditor key={`global:${definition.id}:${technology.id}`} definition={definition} selection={selection} technology={technology} hideWhenEmpty />)}</div></section>
+    <section className="technology-group"><header><p className="eyebrow">{selection.scenario}</p><h2>Scenario input</h2><span>Assets and constraints for this scenario. Country filters appear only on tables with country-specific rows.</span></header><div className="technology-panels">{scenarioDefinitions.map((definition) => <TableEditor key={`scenario:${definition.id}:${technology.id}`} definition={definition} selection={selection} technology={technology} hideWhenEmpty />)}</div></section>
   </div>;
 }
 
@@ -74,13 +74,14 @@ function technologyMatches(row: InputRow, definition: InputTableDefinition, tech
   return raw === technology.id || raw.split(/[;,|]/).map((value) => value.trim()).includes(technology.id);
 }
 
-function TableEditor({ definition, selection, country, technology, hideWhenEmpty = false }: { definition: InputTableDefinition; selection: InputSelection; country: string; technology?: InputTechnology; hideWhenEmpty?: boolean }) {
+function TableEditor({ definition, selection, technology, hideWhenEmpty = false }: { definition: InputTableDefinition; selection: InputSelection; technology?: InputTechnology; hideWhenEmpty?: boolean }) {
   const editorId = useId();
   const [table, setTable] = useState<InputTableResponse | null>(null);
   const [rows, setRows] = useState<InputRow[]>([]);
   const [changes, setChanges] = useState<Map<string, InputCell>>(new Map());
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("ALL");
+  const [country, setCountry] = useState("ALL");
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -97,7 +98,7 @@ function TableEditor({ definition, selection, country, technology, hideWhenEmpty
   };
 
   useEffect(() => { void load(); }, [definition.id, selection.dataset, selection.project, selection.scenario]);
-  useEffect(() => { setPage(0); }, [query, filter]);
+  useEffect(() => { setPage(0); }, [query, filter, country]);
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => { if (changes.size) event.preventDefault(); };
     window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn);
@@ -105,8 +106,12 @@ function TableEditor({ definition, selection, country, technology, hideWhenEmpty
   useEffect(() => { setEditorDirty(editorId, changes.size > 0); return () => setEditorDirty(editorId, false); }, [editorId, changes.size]);
 
   const filterColumn = table?.filter_column;
-  const showFilter = Boolean(filterColumn && !technology);
-  const countryRows = useMemo(() => rows.filter((row) => country === "ALL" || !("country" in row) || String(row.country) === country), [rows, country]);
+  const countryColumn = table?.columns.find((column) => column.name.toLowerCase() === "country")?.name;
+  const countryOptions = useMemo(() => countryColumn ? [...new Set(rows.map((row) => String(row[countryColumn] ?? "").trim()).filter(Boolean))].sort() : [], [countryColumn, rows]);
+  const showCountryFilter = countryOptions.length > 1;
+  const showFilter = Boolean(filterColumn && filterColumn.toLowerCase() !== "country" && !technology);
+  const countryRows = useMemo(() => rows.filter((row) => country === "ALL" || (countryColumn && String(row[countryColumn]) === country)), [rows, country, countryColumn]);
+  useEffect(() => { if (country !== "ALL" && !countryOptions.includes(country)) setCountry("ALL"); }, [country, countryOptions]);
   const filterOptions = useMemo(() => {
     if (!showFilter || !filterColumn) return [];
     return [...new Set(countryRows.map((row) => String(row[filterColumn] ?? "")).filter(Boolean))].sort();
@@ -145,7 +150,7 @@ function TableEditor({ definition, selection, country, technology, hideWhenEmpty
     {error && <div className="notice error">{error}<button onClick={() => void load()}>Reload</button></div>}
     {success && <div className="notice success"><Check aria-hidden="true" />{success}</div>}
     {loading ? <div className="editor-loading"><span className="spinner" />Reading CSV…</div> : table && <>
-      {!technology && <div className="table-tools"><label className="search"><Search aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Find a row or value" /></label>{showFilter && filterColumn && <label className="field compact"><span>{filterColumn.replaceAll("_", " ")}</span><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="ALL">All values</option>{filterOptions.map((value) => <option key={value}>{value}</option>)}</select></label>}<span className="row-count">{filtered.length.toLocaleString()} of {table.total_rows.toLocaleString()} rows</span></div>}
+      {(!technology || showCountryFilter) && <div className="table-tools">{!technology && <label className="search"><Search aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Find a row or value" /></label>}{showCountryFilter && <label className="field compact"><span>Country</span><select value={country} onChange={(event) => setCountry(event.target.value)}><option value="ALL">All countries</option>{countryOptions.map((value) => <option key={value}>{value}</option>)}</select></label>}{showFilter && filterColumn && <label className="field compact"><span>{filterColumn.replaceAll("_", " ")}</span><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="ALL">All values</option>{filterOptions.map((value) => <option key={value}>{value}</option>)}</select></label>}{!technology && <span className="row-count">{filtered.length.toLocaleString()} of {table.total_rows.toLocaleString()} rows</span>}</div>}
       <div className="editable-table-wrap"><table className="editable-table"><thead><tr>{table.columns.map((column) => <th key={column.name}><span>{column.label}</span>{column.editable && <small>Editable</small>}</th>)}</tr></thead><tbody>{visibleRows.map((row) => <tr key={row.__row_id}>{table.columns.map((column) => <td key={column.name} className={column.editable ? "editable-cell" : "locked-cell"}>{column.editable ? <CellEditor value={row[column.name]} kind={column.kind} onChange={(value) => edit(row.__row_id, column.name, value)} /> : <span>{String(row[column.name] ?? "")}</span>}</td>)}</tr>)}</tbody></table></div>
       <footer className="table-pagination"><span>Page {Math.min(page + 1, pageCount)} of {pageCount}{table.truncated ? " · first 10,000 rows loaded" : ""}</span><div><button className="icon-button" aria-label="Previous page" disabled={page === 0} onClick={() => setPage((current) => Math.max(0, current - 1))}><ChevronLeft /></button><button className="icon-button" aria-label="Next page" disabled={page >= pageCount - 1} onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}><ChevronRight /></button></div></footer>
     </>}
