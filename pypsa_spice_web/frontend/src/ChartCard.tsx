@@ -7,7 +7,7 @@ import type { Catalog, ChartDefinition, ChartResponse, ResultRow, Selection } fr
 interface Props {
   chart: ChartDefinition;
   selection: Selection;
-  country: string;
+  countries: string[];
   years: string[];
   mappings: Catalog["mappings"];
   darkMode: boolean;
@@ -35,9 +35,10 @@ function readableTimestamp(value: number): string {
   return `${day} · ${time}`;
 }
 
-export default function ChartCard({ chart, selection, country, years, mappings, darkMode, onInspect }: Props) {
+export default function ChartCard({ chart, selection, countries, years, mappings, darkMode, onInspect }: Props) {
   const [primary, setPrimary] = useState<ChartResponse | null>(null);
   const [comparison, setComparison] = useState<ChartResponse | null>(null);
+  const [country, setCountry] = useState("ALL");
   const [year, setYear] = useState(years[0] || "");
   const [filterValue, setFilterValue] = useState("ALL");
   const [error, setError] = useState("");
@@ -51,6 +52,8 @@ export default function ChartCard({ chart, selection, country, years, mappings, 
     setPrimary(null); setComparison(null);
     setFilterValue("ALL"); setStartTime(""); setEndTime("");
   }, [selection.dataset, selection.project, selection.scenario, selection.sector]);
+  useEffect(() => { setCountry("ALL"); }, [selection.dataset, selection.project]);
+  useEffect(() => { if (country !== "ALL" && !countries.includes(country)) setCountry("ALL"); }, [countries, country]);
   useEffect(() => { if (!years.includes(year)) setYear(years[0] || ""); }, [years, year]);
   useEffect(() => { setComparison(null); setShowDifference(false); }, [selection.comparison]);
 
@@ -108,6 +111,7 @@ export default function ChartCard({ chart, selection, country, years, mappings, 
       <div className="chart-title"><h3>{chart.name}</h3></div>
       <div className="chart-toolbar">
         <div className="chart-controls">
+          <select aria-label={`Country for ${chart.name}`} value={country} onChange={(event) => setCountry(event.target.value)}><option value="ALL">All countries</option>{countries.map((item) => <option key={item}>{item}</option>)}</select>
           {chart.fil_col && filters.length > 0 && <select aria-label={`${chart.fil_col} for ${chart.name}`} value={filterValue} onChange={(event) => setFilterValue(event.target.value)}><option value="ALL">All {filterLabel}</option>{filters.map((item) => <option key={item}>{item}</option>)}</select>}
           {chart.hourly && years.length > 0 && <select aria-label={`Hourly year for ${chart.name}`} value={year} onChange={(event) => changeYear(event.target.value)}>{years.map((item) => <option key={item}>{item}</option>)}</select>}
           {selection.comparison && <label className="chart-difference-toggle" title={`${selection.comparison} − ${selection.scenario}`}><input type="checkbox" checked={showDifference} onChange={(event) => setShowDifference(event.target.checked)} /><i aria-hidden="true" /><span>Difference</span></label>}

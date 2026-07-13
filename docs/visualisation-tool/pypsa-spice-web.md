@@ -43,7 +43,8 @@ The persistent workspace context separates concepts that have different lifecycl
 - **Project** selects the local model project and normally changes infrequently.
 - **Scenario** selects the editable input/configuration scenario.
 - **Result run** selects an available result folder and is intentionally distinct from the input scenario.
-- **Country** is shared across Results, Inputs, and country-aware configuration sections.
+- **Country** is chart-specific in Results so figures can be inspected side by side for different countries. It remains shared across Inputs and country-aware configuration sections.
+- **Compare with** is a persistent Results control in the top workspace bar.
 
 The main workspace pages are:
 

@@ -125,7 +125,7 @@ export default function App() {
     if (selection.scenario) params.set("run", selection.scenario);
     if (selection.comparison) params.set("compare", selection.comparison);
     if (selection.sector) params.set("sector", selection.sector);
-    if (country !== "ALL") params.set("country", country);
+    if (view !== "outputs" && country !== "ALL") params.set("country", country);
     const next = `${window.location.pathname}?${params.toString()}`;
     if (`${window.location.pathname}${window.location.search}` !== next) window.history.replaceState(null, "", next);
   }, [view, section?.id, sectionId, activeDatasetName, activeProjectName, inputSelection.scenario, selection.scenario, selection.comparison, selection.sector, country]);
@@ -191,13 +191,18 @@ export default function App() {
         <button className="menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Open workspace navigation"><Menu aria-hidden="true" /></button>
         {contextReady && <div className="workspace-context">
           <ContextControl label="Project" value={activeWorkspace} onChange={chooseWorkspace} options={projectChoices} />
-          {view === "outputs" ? <ContextControl label="Result run" value={selection.scenario} onChange={chooseScenario} options={project!.scenarios.map((item) => ({ value: item.name, label: item.name }))} /> : <ContextControl label="Scenario" value={inputSelection.scenario} onChange={chooseInputScenario} options={inputProject!.scenarios.map((item) => ({ value: item, label: item }))} />}
-          <ContextControl label="Country" value={country} onChange={chooseCountry} options={[{ value: "ALL", label: "All countries" }, ...availableCountries.map((item) => ({ value: item, label: item }))]} />
+          {view === "outputs" ? <>
+            <ContextControl label="Result run" value={selection.scenario} onChange={chooseScenario} options={project!.scenarios.map((item) => ({ value: item.name, label: item.name }))} />
+            <ContextControl className="compare-control" label="Compare with" value={selection.comparison} onChange={(comparison) => setSelection((current) => ({ ...current, comparison }))} options={[{ value: "", label: "No comparison" }, ...project!.scenarios.filter((item) => item.name !== selection.scenario).map((item) => ({ value: item.name, label: item.name }))]} />
+          </> : <>
+            <ContextControl label="Scenario" value={inputSelection.scenario} onChange={chooseInputScenario} options={inputProject!.scenarios.map((item) => ({ value: item, label: item }))} />
+            <ContextControl className="country-control" label="Country" value={country} onChange={chooseCountry} options={[{ value: "ALL", label: "All countries" }, ...availableCountries.map((item) => ({ value: item, label: item }))]} />
+          </>}
         </div>}
         <div className="top-actions"><button className="button secondary" onClick={refreshCurrent}><RefreshCw aria-hidden="true" />Refresh</button></div>
       </header>
       <main id="workspace">
-        {view === "outputs" ? outputReady ? <><section className="page-title"><div><p className="eyebrow pink">Results analysis</p><h1>{section!.title}</h1></div><div className="page-controls"><ContextControl label="Compare with" value={selection.comparison} onChange={(comparison) => setSelection((current) => ({ ...current, comparison }))} options={[{ value: "", label: "No comparison" }, ...project!.scenarios.filter((item) => item.name !== selection.scenario).map((item) => ({ value: item.name, label: item.name }))]} />{scenario!.sectors.length > 1 && <ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} />}</div></section><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} country={country} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(title, rows, sourceCount) => setInspector({ title, rows, sourceCount })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisations are configured for this section.</div>}</section><ResultsToc key={section!.id} charts={charts} /></> : <Boot message={error || "Discovering local results…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} /> : <Boot message={inputError || "Discovering model inputs…"} />}
+        {view === "outputs" ? outputReady ? <><section className="page-title"><div><p className="eyebrow pink">Results analysis</p><h1>{section!.title}</h1></div>{scenario!.sectors.length > 1 && <div className="page-controls"><ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} /></div>}</section><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} countries={availableCountries} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(title, rows, sourceCount) => setInspector({ title, rows, sourceCount })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisations are configured for this section.</div>}</section><ResultsToc key={section!.id} charts={charts} /></> : <Boot message={error || "Discovering local results…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} /> : <Boot message={inputError || "Discovering model inputs…"} />}
       </main>
       <footer><span>PyPSA-SPICE model workspace</span><span>React · FastAPI · Local CSV and YAML source of truth</span></footer>
     </div>
@@ -205,8 +210,8 @@ export default function App() {
   </div>;
 }
 
-function ContextControl({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: WorkspaceOption[] }) {
-  return <label className="context-control"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option value={option.value} key={option.value || "empty"}>{option.label}</option>)}</select></label>;
+function ContextControl({ className = "", label, value, onChange, options }: { className?: string; label: string; value: string; onChange: (value: string) => void; options: WorkspaceOption[] }) {
+  return <label className={`context-control ${className}`.trim()}><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option value={option.value} key={option.value || "empty"}>{option.label}</option>)}</select></label>;
 }
 function ResultsToc({ charts }: { charts: ChartDefinition[] }) {
   const [open, setOpen] = useState(false);
