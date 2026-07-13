@@ -30,14 +30,16 @@ html[data-theme=dark] .html-legend{background:transparent}
 .comparison-layout>.html-legend{grid-column:1/-1}
 .scenario-label h4{margin:0;font-size:11px;font-weight:700;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* Keep each section title and its search together without an extra header box. */
+/* Keep each section title and its page controls together without an extra header box. */
 .page-title{display:flex;align-items:center;justify-content:space-between;gap:24px}
 .page-title .search{flex:0 1 300px}
 .analysis{min-width:0;background:transparent;border:0}
 .analysis .chart-grid{padding:0}
 .analysis .notice{margin:0 0 18px}
+.chart-card{scroll-margin-top:96px}.results-toc{position:fixed;right:24px;bottom:24px;z-index:19}.results-toc-trigger{width:44px;height:44px;padding:0;display:grid;place-items:center;border:1px solid var(--line);border-radius:4px;background:var(--ink);color:var(--surface);box-shadow:var(--shadow);cursor:pointer}.results-toc-trigger:hover{background:var(--pink);color:#fff}.results-toc-trigger svg{width:17px;height:17px}.results-toc-panel{position:absolute;right:0;bottom:calc(100% + 8px);width:min(340px,calc(100vw - 32px));max-height:min(520px,70vh);display:flex;flex-direction:column;border:1px solid var(--line);border-radius:4px;background:var(--surface);box-shadow:0 14px 50px rgb(10 18 15/.22);overflow:hidden}.results-toc-panel>header{min-height:68px;padding:12px 12px 12px 16px;display:flex;align-items:center;border-bottom:1px solid var(--line)}.results-toc-panel h2{margin:0;font-size:20px;font-weight:500}.results-toc-panel .eyebrow{margin-bottom:3px}.results-toc-panel .icon-button{width:44px;height:44px}.results-toc-panel ol{margin:0;padding:6px;overflow-y:auto;list-style:none}.results-toc-panel li a{min-height:44px;padding:8px 10px;display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:8px;color:var(--ink);text-decoration:none;font-size:11px}.results-toc-panel li a:hover{background:var(--surface-2)}.results-toc-panel li a span{color:var(--pink);font-size:9px;font-variant-numeric:tabular-nums}.results-toc-panel li a b{font-weight:600}.results-toc.open .results-toc-trigger{background:var(--pink);color:#fff}@keyframes results-toc-enter{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:no-preference){.results-toc-panel{animation:results-toc-enter .16s ease-out both}}
 
 @media(max-width:840px){.page-title{align-items:stretch;flex-direction:column;gap:16px}.page-title .search{width:100%;flex-basis:auto}}
+@media(max-width:560px){.results-toc{right:14px;bottom:14px}.results-toc-panel{width:min(320px,calc(100vw - 28px))}}
 
 /* Input and scenario configuration workspace. */
 .topbar-context{min-width:0;flex:1;display:flex;align-items:baseline;gap:12px}.topbar-context b{font-size:14px}.topbar-context span{min-width:0;color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

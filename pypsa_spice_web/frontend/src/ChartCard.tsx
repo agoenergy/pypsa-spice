@@ -103,7 +103,7 @@ export default function ChartCard({ chart, selection, country, years, mappings, 
     setYear(year);
   };
 
-  return <article className={`chart-card ${expanded ? "expanded" : ""} ${comparing ? "comparing" : ""} ${showDifference ? "showing-difference" : ""}`}>
+  return <article id={`figure-${chart.id}`} className={`chart-card ${expanded ? "expanded" : ""} ${comparing ? "comparing" : ""} ${showDifference ? "showing-difference" : ""}`}>
     <header className="chart-head">
       <div className="chart-title"><h3>{chart.name}</h3></div>
       <div className="chart-toolbar">

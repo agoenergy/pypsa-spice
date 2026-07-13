@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { BarChart3, CarFront, CircleDollarSign, Cloud, Factory, FileInput, Menu, Moon, RefreshCw, Search, Settings2, Sun, Zap } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BarChart3, CarFront, CircleDollarSign, Cloud, Factory, FileInput, List, Menu, Moon, RefreshCw, Settings2, Sun, X, Zap } from "lucide-react";
 import { getCatalog, getInputCatalog } from "./api";
 import ChartCard from "./ChartCard";
 import DataDialog from "./DataDialog";
 import InputEditor from "./InputEditor";
 import ScenarioConfigEditor from "./ScenarioConfigEditor";
 import { confirmDiscardChanges } from "./dirtyState";
-import type { Catalog, InputCatalog, InputSelection, ResultRow, Selection } from "./types";
+import type { Catalog, ChartDefinition, InputCatalog, InputSelection, ResultRow, Selection } from "./types";
 
 type ViewMode = "outputs" | "inputs" | "configure";
 type WorkspaceOption = { value: string; label: string };
@@ -64,7 +64,6 @@ export default function App() {
   const [view, setView] = useState<ViewMode>(viewFromLocation);
   const [sectionId, setSectionId] = useState(sectionFromLocation);
   const [country, setCountry] = useState(countryFromLocation);
-  const [search, setSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [error, setError] = useState("");
   const [inputError, setInputError] = useState("");
@@ -105,7 +104,7 @@ export default function App() {
   const sector = scenario?.sectors.find((item) => item.name === selection.sector);
   const sections = catalog?.sections || [];
   const section = sections.find((item) => item.id === sectionId) || sections[0];
-  const charts = useMemo(() => section?.charts.filter((chart) => chart.name.toLowerCase().includes(search.toLowerCase().trim())) || [], [section, search]);
+  const charts = section?.charts || [];
   const inputDataset = inputCatalog?.datasets.find((item) => item.name === inputSelection.dataset);
   const inputProject = inputDataset?.projects.find((item) => item.name === inputSelection.project);
   const activeDatasetName = view === "outputs" ? selection.dataset : inputSelection.dataset;
@@ -115,7 +114,6 @@ export default function App() {
   const projectChoices = useMemo(() => workspaceOptions(view === "outputs" ? catalog?.datasets || [] : inputCatalog?.datasets || []), [view, catalog, inputCatalog]);
 
   useEffect(() => { if (!catalog || !section || section.id === sectionId) return; setSectionId(section.id); }, [catalog, section, sectionId]);
-  useEffect(() => { setSearch(""); }, [sectionId]);
   useEffect(() => { if (country !== "ALL" && countryProject && !availableCountries.includes(country)) setCountry("ALL"); }, [country, countryProject, availableCountries]);
   useEffect(() => {
     if (!(selection.project || inputSelection.project)) return;
@@ -199,7 +197,7 @@ export default function App() {
         <div className="top-actions"><button className="button secondary" onClick={refreshCurrent}><RefreshCw aria-hidden="true" />Refresh</button></div>
       </header>
       <main id="workspace">
-        {view === "outputs" ? outputReady ? <><section className="page-title"><div><p className="eyebrow pink">Results analysis</p><h1>{section!.title}</h1></div><div className="page-controls"><ContextControl label="Compare with" value={selection.comparison} onChange={(comparison) => setSelection((current) => ({ ...current, comparison }))} options={[{ value: "", label: "No comparison" }, ...project!.scenarios.filter((item) => item.name !== selection.scenario).map((item) => ({ value: item.name, label: item.name }))]} />{scenario!.sectors.length > 1 && <ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} />}<label className="search"><Search aria-hidden="true" /><input aria-label={`Search ${section!.label.toLowerCase()} visualisations`} value={search} onChange={(event) => setSearch(event.target.value)} type="search" placeholder={`Find a ${section!.label.toLowerCase()} visualisation`} /></label></div></section><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} country={country} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(title, rows, sourceCount) => setInspector({ title, rows, sourceCount })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisation matches “{search}”.</div>}</section></> : <Boot message={error || "Discovering local results…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} /> : <Boot message={inputError || "Discovering model inputs…"} />}
+        {view === "outputs" ? outputReady ? <><section className="page-title"><div><p className="eyebrow pink">Results analysis</p><h1>{section!.title}</h1></div><div className="page-controls"><ContextControl label="Compare with" value={selection.comparison} onChange={(comparison) => setSelection((current) => ({ ...current, comparison }))} options={[{ value: "", label: "No comparison" }, ...project!.scenarios.filter((item) => item.name !== selection.scenario).map((item) => ({ value: item.name, label: item.name }))]} />{scenario!.sectors.length > 1 && <ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} />}</div></section><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} country={country} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(title, rows, sourceCount) => setInspector({ title, rows, sourceCount })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisations are configured for this section.</div>}</section><ResultsToc key={section!.id} charts={charts} /></> : <Boot message={error || "Discovering local results…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} /> : <Boot message={inputError || "Discovering model inputs…"} />}
       </main>
       <footer><span>PyPSA-SPICE model workspace</span><span>React · FastAPI · Local CSV and YAML source of truth</span></footer>
     </div>
@@ -209,5 +207,25 @@ export default function App() {
 
 function ContextControl({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: WorkspaceOption[] }) {
   return <label className="context-control"><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option value={option.value} key={option.value || "empty"}>{option.label}</option>)}</select></label>;
+}
+function ResultsToc({ charts }: { charts: ChartDefinition[] }) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const closeOutside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setOpen(false); };
+    const closeWithEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeWithEscape);
+    return () => { document.removeEventListener("pointerdown", closeOutside); document.removeEventListener("keydown", closeWithEscape); };
+  }, [open]);
+  if (!charts.length) return null;
+  return <div className={`results-toc ${open ? "open" : ""}`} ref={root}>
+    {open && <nav className="results-toc-panel" id="results-figure-list" aria-label="Figures on this page">
+      <header><div><p className="eyebrow pink">On this page</p><h2>Figures</h2></div><button className="icon-button" onClick={() => setOpen(false)} aria-label="Close figure list"><X aria-hidden="true" /></button></header>
+      <ol>{charts.map((chart, index) => <li key={chart.id}><a href={`#figure-${chart.id}`} onClick={() => setOpen(false)}><span>{String(index + 1).padStart(2, "0")}</span><b>{chart.name}</b></a></li>)}</ol>
+    </nav>}
+    <button className="results-toc-trigger" onClick={() => setOpen((current) => !current)} aria-label="Open figure list" aria-expanded={open} aria-controls="results-figure-list"><List aria-hidden="true" /></button>
+  </div>;
 }
 function Boot({ message }: { message: string }) { return <div className="boot inline"><img src="/brand/pypsa-logo.svg" alt="PyPSA" /><span className="spinner" />{message}</div>; }
