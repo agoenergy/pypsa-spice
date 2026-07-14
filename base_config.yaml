@@ -16,12 +16,12 @@ logging:
 path_configs:
   data_folder_name: mod-data-th-pdp
   project_name: TH_PDP_v2-2026_fillin_test
-  input_scenario_name: pdp-cap_low
-  output_scenario_name: pdp-cap_low
-
+  input_scenario_name: pdp_low
+  output_scenario_name: pdp_low
+  
 base_configs:
   regions:
     TH: ["BKK", "BKKNR", "EA", "NE", "NR", "SO", "WE"]
-  years: [2026, 2030, 2037, 2040, 2045, 2050] # list of modelled years
+  years: [2026, 2030, 2035, 2040, 2045, 2050] # list of modelled years
   sector: ["p"] # options: ["p", "p-i", "p-t", "p-i-t"], representing power (p), industry (i), and transport (t) sectors.
   currency: USD # currency for the model in all uppercases, ISO4217 format
