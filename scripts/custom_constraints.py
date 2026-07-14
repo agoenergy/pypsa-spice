@@ -105,14 +105,15 @@ def renewable_potential_constraint(
                 + f"Warning!!! These generators {check_assets_df.index} "
                 + "have p_nom_min larger than p_nom_max"
             )
-            for tech in check_assets_df["type"].unique():
+            for gen in check_assets_df.index:
+                tech = gen.replace(f"_{year}", "")
+                max_gen = n.df(c).loc[gen, "p_nom_max"]
                 print(
                     colorama.Fore.WHITE
-                    + f"Set renewables {tech} with p_nom_min to 0 since "
+                    + f"Set renewables {tech} with p_nom_min to {max_gen} since "
                     + "technical potentials are used up."
                 )
-                if tech in technical_potential_df.type.unique():
-                    n.df(c).loc[n.df(c)["type"] == tech, "p_nom_min"] = 0
+                n.df(c).loc[gen, "p_nom_min"] = max_gen
 
 
 def add_storage_constraints(n: pypsa.Network):
