@@ -660,7 +660,7 @@ class AddFutureAssets:
         final_load.reset_index(["country", "bus", "carrier", "node"], inplace=True)
         p_set = (
             final_load.T.loc[
-                ~final_load.columns.isin(["country", "bus", "carrier", "node"])
+                ~final_load.columns.isin(["country", "bus", "carrier", "node", "sign"])
             ]
             .iloc[self.red_hours]
             .astype(float)
@@ -674,6 +674,7 @@ class AddFutureAssets:
             bus=final_load["bus"],
             carrier=final_load["carrier"],
             p_set=p_set,
+            sign=final_load["sign"],
             country=final_load["country"],
         )
 

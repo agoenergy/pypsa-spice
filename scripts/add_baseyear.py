@@ -383,10 +383,11 @@ class AddBaseNetwork:
             bus=final_load["bus"],
             carrier=final_load["carrier"],
             p_set=final_load.T[
-                ~final_load.columns.isin(["country", "bus", "carrier", "node"])
+                ~final_load.columns.isin(["country", "bus", "carrier", "node", "sign"])
             ]
             .astype(float)
             .set_index(self.network.snapshots),
+            sign=final_load["sign"],
             country=final_load["country"],
         )
 

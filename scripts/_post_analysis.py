@@ -284,8 +284,10 @@ class OutputTables(Plots):
         final_df = pd.DataFrame()
         for year in self.network_dict:
             n = self.network_dict[year]
+            demand = n.loads_t.p_set
+            demand = demand.loc[:, ~demand.columns.str.contains("PV_LOAD")]
             demand = (
-                n.loads_t.p_set.multiply(n.snapshot_weightings.generators, axis=0)
+                demand.multiply(n.snapshot_weightings.generators, axis=0)
                 .sum()
                 .groupby([n.loads.country, n.loads.carrier])
                 .sum()
