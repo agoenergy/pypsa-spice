@@ -792,7 +792,7 @@ class AddFutureAssets:
         p_max_pu = links_avail.T.iloc[self.red_hours].set_index(self.network.snapshots)
         p_max_pu.columns.name = "Link"
 
-        links_df["committable"] = True
+        links_df["committable"] = False
         if "TH_NUCLN" in links_df["bus0"].values:
             links_df.loc[links_df["bus0"] == "TH_NUCLN", "committable"] = False
 

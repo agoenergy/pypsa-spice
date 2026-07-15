@@ -472,7 +472,7 @@ class AddBaseNetwork:
             links_df["efficiency3"] = 0
         links_df = links_df.set_index("link")
 
-        links_df["committable"] = True
+        links_df["committable"] = False
         if "TH_NUCLN" in links_df["bus0"].values:
             links_df.loc[links_df["bus0"] == "TH_NUCLN", "committable"] = False
 
