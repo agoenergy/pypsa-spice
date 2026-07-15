@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AlertTriangle, Check, ChevronLeft, ChevronRight, Cpu, FolderOpen, Globe2, RotateCcw, Save, Search, Table2 } from "lucide-react";
 import { getInputTable, saveInputTable } from "./api";
@@ -56,22 +56,9 @@ function TechnologyEditor({ catalog, selection, sector, technology }: { catalog:
   const scenarioDefinitions = catalog.sector_tables[sector] || [];
   return <div className="technology-view">
     <section className="technology-summary"><div><p className="eyebrow pink">Selected technology</p><h2>{technology.label}</h2><code>{technology.id}</code></div><dl><div><dt>PyPSA class</dt><dd>{technology.classes.join(", ") || "—"}</dd></div><div><dt>Carrier</dt><dd>{technology.carriers.join(", ") || "—"}</dd></div></dl></section>
-    <section className="technology-group"><header><p className="eyebrow">Shared assumptions</p><h2>Global input</h2><span>Changes here apply to every country and every scenario in this project.</span></header><div className="technology-panels">{globalDefinitions.map((definition) => <TableEditor key={`global:${definition.id}:${technology.id}`} definition={definition} selection={selection} technology={technology} hideWhenEmpty />)}</div></section>
-    <section className="technology-group"><header><p className="eyebrow">{selection.scenario}</p><h2>Scenario input</h2><span>Assets and constraints for this scenario. Country filters appear only on tables with country-specific rows.</span></header><div className="technology-panels">{scenarioDefinitions.map((definition) => <TableEditor key={`scenario:${definition.id}:${technology.id}`} definition={definition} selection={selection} technology={technology} hideWhenEmpty />)}</div></section>
+    <section className="technology-group"><header><p className="eyebrow">Shared assumptions</p><h2>Global input</h2><span>Changes here apply to every country and every scenario in this project.</span></header><div className="technology-panels">{globalDefinitions.map((definition) => <TableEditor key={`${selection.dataset}:${selection.project}:global:${definition.id}:${technology.id}`} definition={definition} selection={selection} technology={technology} hideWhenEmpty />)}</div></section>
+    <section className="technology-group"><header><p className="eyebrow">{selection.scenario}</p><h2>Scenario input</h2><span>Assets and constraints for this scenario. Country filters appear only on tables with country-specific rows.</span></header><div className="technology-panels">{scenarioDefinitions.map((definition) => <TableEditor key={`${selection.dataset}:${selection.project}:${selection.scenario}:${definition.id}:${technology.id}`} definition={definition} selection={selection} technology={technology} hideWhenEmpty />)}</div></section>
   </div>;
-}
-
-function technologyMatches(row: InputRow, definition: InputTableDefinition, technology: InputTechnology): boolean {
-  if (definition.id === "Direct_air_capture") return technology.id === "DAC";
-  const raw = String(row[definition.filter_col] ?? "").trim();
-  if (!raw) return false;
-  if (technology.id === "PEVCH" && (raw.startsWith("EVCH") || raw.startsWith("EVST"))) return true;
-  if (definition.id.toLowerCase().includes("decommission")) {
-    const parts = raw.split("_");
-    return parts[parts.length - 1] === technology.id;
-  }
-  if (definition.filter_col === "carrier") return technology.carriers.includes(raw);
-  return raw === technology.id || raw.split(/[;,|]/).map((value) => value.trim()).includes(technology.id);
 }
 
 function TableEditor({ definition, selection, technology, hideWhenEmpty = false }: { definition: InputTableDefinition; selection: InputSelection; technology?: InputTechnology; hideWhenEmpty?: boolean }) {
@@ -79,7 +66,9 @@ function TableEditor({ definition, selection, technology, hideWhenEmpty = false 
   const [table, setTable] = useState<InputTableResponse | null>(null);
   const [rows, setRows] = useState<InputRow[]>([]);
   const [changes, setChanges] = useState<Map<string, InputCell>>(new Map());
+  const changesRef = useRef(changes);
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
   const [filter, setFilter] = useState("ALL");
   const [country, setCountry] = useState("ALL");
   const [page, setPage] = useState(0);
@@ -88,17 +77,38 @@ function TableEditor({ definition, selection, technology, hideWhenEmpty = false 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const load = async () => {
-    const controller = new AbortController();
+  const load = async (signal?: AbortSignal) => {
     setLoading(true); setError(""); setSuccess("");
-    try { const data = await getInputTable(selection, definition, controller.signal); setTable(data); setRows(data.rows); setChanges(new Map()); }
+    try {
+      const data = await getInputTable(selection, definition, {
+        technology,
+        country,
+        filterValue: filter,
+        query: deferredQuery,
+        offset: page * PAGE_SIZE,
+        limit: PAGE_SIZE,
+      }, signal);
+      const pending = changesRef.current;
+      const loadedRows = data.rows.map((row) => {
+        const next = { ...row };
+        for (const [key, value] of pending) {
+          const separator = key.indexOf(":");
+          if (Number(key.slice(0, separator)) === row.__row_id) next[key.slice(separator + 1)] = value;
+        }
+        return next;
+      });
+      setTable(data); setRows(loadedRows);
+    }
     catch (reason) { if (!(reason instanceof DOMException && reason.name === "AbortError")) setError(reason instanceof Error ? reason.message : "Could not load this table."); }
-    finally { setLoading(false); }
-    return () => controller.abort();
+    finally { if (!signal?.aborted) setLoading(false); }
   };
 
-  useEffect(() => { void load(); }, [definition.id, selection.dataset, selection.project, selection.scenario]);
-  useEffect(() => { setPage(0); }, [query, filter, country]);
+  useEffect(() => {
+    const controller = new AbortController();
+    void load(controller.signal);
+    return () => controller.abort();
+  }, [definition.id, selection.dataset, selection.project, selection.scenario, technology?.id, deferredQuery, filter, country, page]);
+  useEffect(() => { setPage(0); }, [query, filter, country, technology?.id]);
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => { if (changes.size) event.preventDefault(); };
     window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn);
@@ -106,53 +116,51 @@ function TableEditor({ definition, selection, technology, hideWhenEmpty = false 
   useEffect(() => { setEditorDirty(editorId, changes.size > 0); return () => setEditorDirty(editorId, false); }, [editorId, changes.size]);
 
   const filterColumn = table?.filter_column;
-  const countryColumn = table?.columns.find((column) => column.name.toLowerCase() === "country")?.name;
-  const countryOptions = useMemo(() => countryColumn ? [...new Set(rows.map((row) => String(row[countryColumn] ?? "").trim()).filter(Boolean))].sort() : [], [countryColumn, rows]);
+  const countryOptions = table?.country_options || [];
   const showCountryFilter = countryOptions.length > 1;
   const showFilter = Boolean(filterColumn && filterColumn.toLowerCase() !== "country" && !technology);
-  const countryRows = useMemo(() => rows.filter((row) => country === "ALL" || (countryColumn && String(row[countryColumn]) === country)), [rows, country, countryColumn]);
   useEffect(() => { if (country !== "ALL" && !countryOptions.includes(country)) setCountry("ALL"); }, [country, countryOptions]);
-  const filterOptions = useMemo(() => {
-    if (!showFilter || !filterColumn) return [];
-    return [...new Set(countryRows.map((row) => String(row[filterColumn] ?? "")).filter(Boolean))].sort();
-  }, [countryRows, filterColumn, showFilter]);
-  const technologyRows = useMemo(() => technology ? countryRows.filter((row) => technologyMatches(row, definition, technology)) : countryRows, [countryRows, definition, technology]);
-  const filtered = useMemo(() => technologyRows.filter((row) => {
-    if (showFilter && filterColumn && filter !== "ALL" && String(row[filterColumn]) !== filter) return false;
-    const needle = query.trim().toLowerCase();
-    return !needle || Object.values(row).some((value) => String(value ?? "").toLowerCase().includes(needle));
-  }), [technologyRows, showFilter, filterColumn, filter, query]);
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const visibleRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const filterOptions = table?.filter_options || [];
+  useEffect(() => { if (filter !== "ALL" && !filterOptions.includes(filter)) setFilter("ALL"); }, [filter, filterOptions]);
+  const pageCount = Math.max(1, Math.ceil((table?.total_filtered_rows || 0) / PAGE_SIZE));
 
   const edit = (rowId: number, column: string, value: InputCell) => {
     const key = `${rowId}:${column}`;
     setRows((current) => current.map((row) => row.__row_id === rowId ? { ...row, [column]: value } : row));
-    setChanges((current) => { const next = new Map(current); next.set(key, value); return next; });
+    setChanges((current) => { const next = new Map(current); next.set(key, value); changesRef.current = next; return next; });
     setSuccess("");
   };
-  const discard = () => { if (table) setRows(table.rows); setChanges(new Map()); setSuccess(""); };
+  const discard = () => { if (table) setRows(table.rows); const next = new Map<string, InputCell>(); changesRef.current = next; setChanges(next); setSuccess(""); };
   const save = async () => {
     if (!table || !changes.size) return;
     setSaving(true); setError(""); setSuccess("");
     try {
       const payload = [...changes].map(([key, value]) => { const split = key.indexOf(":"); return { row: Number(key.slice(0, split)), column: key.slice(split + 1), value }; });
-      const data = await saveInputTable(selection, definition, table.revision, payload);
-      setTable(data); setRows(data.rows); setChanges(new Map()); setSuccess(`Saved ${payload.length} ${payload.length === 1 ? "cell" : "cells"} directly to the CSV.`);
+      const data = await saveInputTable(selection, definition, table.revision, payload, {
+        technology,
+        country,
+        filterValue: filter,
+        query: deferredQuery,
+        offset: page * PAGE_SIZE,
+        limit: PAGE_SIZE,
+      });
+      const next = new Map<string, InputCell>();
+      changesRef.current = next;
+      setTable(data); setRows(data.rows); setChanges(next); setSuccess(`Saved ${payload.length} ${payload.length === 1 ? "cell" : "cells"} directly to the CSV.`);
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not save changes."); }
     finally { setSaving(false); }
   };
 
-  if (hideWhenEmpty && (loading || error || technologyRows.length === 0)) return null;
+  if (hideWhenEmpty && (loading || (!error && table?.total_filtered_rows === 0))) return null;
   return <section className={`editor-panel${technology ? " technology-panel" : ""}`}>
     <header className="editor-panel-head"><div><p className="eyebrow">{definition.scope === "global" ? "Global source" : `${definition.sector} · ${selection.scenario}`}</p><h2>{definition.label}</h2>{table && <code>{table.path}</code>}</div><div className="editor-actions"><button className="button secondary" disabled={!changes.size || saving} onClick={discard}><RotateCcw aria-hidden="true" />Discard</button><button className="button primary" disabled={!changes.size || saving || definition.timeseries} onClick={save}><Save aria-hidden="true" />{saving ? "Saving…" : `Save changes${changes.size ? ` (${changes.size})` : ""}`}</button></div></header>
     {definition.timeseries && <div className="editor-warning"><AlertTriangle aria-hidden="true" /><span><b>Read-only timeseries.</b> Large hourly inputs are shown for inspection and edited locally outside the browser.</span></div>}
     {error && <div className="notice error">{error}<button onClick={() => void load()}>Reload</button></div>}
     {success && <div className="notice success"><Check aria-hidden="true" />{success}</div>}
     {loading ? <div className="editor-loading"><span className="spinner" />Reading CSV…</div> : table && <>
-      {(!technology || showCountryFilter) && <div className="table-tools">{!technology && <label className="search"><Search aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Find a row or value" /></label>}{showCountryFilter && <label className="field compact"><span>Country</span><select value={country} onChange={(event) => setCountry(event.target.value)}><option value="ALL">All countries</option>{countryOptions.map((value) => <option key={value}>{value}</option>)}</select></label>}{showFilter && filterColumn && <label className="field compact"><span>{filterColumn.replaceAll("_", " ")}</span><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="ALL">All values</option>{filterOptions.map((value) => <option key={value}>{value}</option>)}</select></label>}{!technology && <span className="row-count">{filtered.length.toLocaleString()} of {table.total_rows.toLocaleString()} rows</span>}</div>}
-      <div className="editable-table-wrap"><table className="editable-table"><thead><tr>{table.columns.map((column) => <th key={column.name}><span>{column.label}</span>{column.editable && <small>Editable</small>}</th>)}</tr></thead><tbody>{visibleRows.map((row) => <tr key={row.__row_id}>{table.columns.map((column) => <td key={column.name} className={column.editable ? "editable-cell" : "locked-cell"}>{column.editable ? <CellEditor value={row[column.name]} kind={column.kind} onChange={(value) => edit(row.__row_id, column.name, value)} /> : <span>{String(row[column.name] ?? "")}</span>}</td>)}</tr>)}</tbody></table></div>
-      <footer className="table-pagination"><span>Page {Math.min(page + 1, pageCount)} of {pageCount}{table.truncated ? " · first 10,000 rows loaded" : ""}</span><div><button className="icon-button" aria-label="Previous page" disabled={page === 0} onClick={() => setPage((current) => Math.max(0, current - 1))}><ChevronLeft /></button><button className="icon-button" aria-label="Next page" disabled={page >= pageCount - 1} onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}><ChevronRight /></button></div></footer>
+      {(!technology || showCountryFilter) && <div className="table-tools">{!technology && <label className="search"><Search aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Find a row or value" /></label>}{showCountryFilter && <label className="field compact"><span>Country</span><select value={country} onChange={(event) => setCountry(event.target.value)}><option value="ALL">All countries</option>{countryOptions.map((value) => <option key={value}>{value}</option>)}</select></label>}{showFilter && filterColumn && <label className="field compact"><span>{filterColumn.replaceAll("_", " ")}</span><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="ALL">All values</option>{filterOptions.map((value) => <option key={value}>{value}</option>)}</select></label>}{!technology && <span className="row-count">{table.total_filtered_rows.toLocaleString()} of {table.total_rows.toLocaleString()} rows</span>}</div>}
+      <div className="editable-table-wrap"><table className="editable-table"><thead><tr>{table.columns.map((column) => <th key={column.name}><span>{column.label}</span>{column.editable && <small>Editable</small>}</th>)}</tr></thead><tbody>{rows.map((row) => <tr key={row.__row_id}>{table.columns.map((column) => <td key={column.name} className={column.editable ? "editable-cell" : "locked-cell"}>{column.editable ? <CellEditor value={row[column.name]} kind={column.kind} onChange={(value) => edit(row.__row_id, column.name, value)} /> : <span>{String(row[column.name] ?? "")}</span>}</td>)}</tr>)}</tbody></table></div>
+      <footer className="table-pagination"><span>Page {Math.min(page + 1, pageCount)} of {pageCount} · {table.total_filtered_rows.toLocaleString()} matching rows</span><div><button className="icon-button" aria-label="Previous page" disabled={page === 0} onClick={() => setPage((current) => Math.max(0, current - 1))}><ChevronLeft /></button><button className="icon-button" aria-label="Next page" disabled={page >= pageCount - 1} onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}><ChevronRight /></button></div></footer>
     </>}
   </section>;
 }

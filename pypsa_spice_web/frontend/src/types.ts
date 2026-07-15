@@ -88,6 +88,7 @@ export interface InputTechnology {
 export interface InputDataset { name: string; projects: InputProject[] }
 
 export interface InputCatalog {
+  table_query_version: number;
   datasets: InputDataset[];
   global_tables: InputTableDefinition[];
   sector_tables: Record<string, InputTableDefinition[]>;
@@ -116,8 +117,13 @@ export interface InputTableResponse {
   columns: InputColumn[];
   rows: InputRow[];
   total_rows: number;
+  total_filtered_rows: number;
+  offset: number;
+  limit: number;
   truncated: boolean;
   filter_column?: string;
+  country_options: string[];
+  filter_options: string[];
   with_charts: boolean;
   timeseries: boolean;
 }

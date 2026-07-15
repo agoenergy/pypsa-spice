@@ -227,6 +227,7 @@ def input_catalog(data_dir: Path, settings_path: Path) -> dict[str, Any]:
         )
 
     return {
+        "table_query_version": 2,
         "datasets": datasets,
         "global_tables": global_tables,
         "sector_tables": sector_tables,
@@ -323,7 +324,45 @@ def _typed_value(raw: str, kind: str) -> Any:
     return raw
 
 
-def read_table(path: Path, config: dict[str, Any], *, limit: int = 2000) -> dict[str, Any]:
+def _technology_matches(
+    row: dict[str, str],
+    config: dict[str, Any],
+    table: str,
+    technology: str,
+    technology_carriers: tuple[str, ...],
+) -> bool:
+    """Match one source row to a technology using model-data semantics."""
+
+    if table == "Direct_air_capture":
+        return technology == "DAC"
+    filter_column = str(config.get("filter_col") or "")
+    raw = (row.get(filter_column) or "").strip()
+    if not raw:
+        return False
+    if technology == "PEVCH" and (raw.startswith("EVCH") or raw.startswith("EVST")):
+        return True
+    if "decommission" in table.lower():
+        return raw.rsplit("_", 1)[-1] == technology
+    if filter_column == "carrier":
+        return raw in technology_carriers
+    return raw == technology or technology in {
+        value.strip() for value in raw.replace(";", ",").replace("|", ",").split(",")
+    }
+
+
+def read_table(
+    path: Path,
+    config: dict[str, Any],
+    *,
+    table: str = "",
+    technology: str = "",
+    technology_carriers: tuple[str, ...] = (),
+    country: str = "ALL",
+    filter_value: str = "ALL",
+    query: str = "",
+    offset: int = 0,
+    limit: int = 100,
+) -> dict[str, Any]:
     """Read a CSV with typed cells and legacy-compatible editability metadata."""
 
     with path.open(encoding="utf-8-sig", newline="") as handle:
@@ -345,9 +384,73 @@ def read_table(path: Path, config: dict[str, Any], *, limit: int = 2000) -> dict
         }
         for column in fieldnames
     ]
+    indexed_rows = list(enumerate(raw_rows))
+    if technology:
+        indexed_rows = [
+            (index, row)
+            for index, row in indexed_rows
+            if _technology_matches(
+                row,
+                config,
+                table,
+                technology,
+                technology_carriers,
+            )
+        ]
+
+    country_column = next(
+        (column for column in fieldnames if column.lower() == "country"), None
+    )
+    country_options = sorted(
+        {
+            (row.get(country_column) or "").strip()
+            for _, row in indexed_rows
+            if country_column and (row.get(country_column) or "").strip()
+        }
+    )
+    if country != "ALL" and country_column:
+        indexed_rows = [
+            (index, row)
+            for index, row in indexed_rows
+            if (row.get(country_column) or "").strip() == country
+        ]
+
+    filter_column = str(config.get("filter_col") or "")
+    filter_options = sorted(
+        {
+            (row.get(filter_column) or "").strip()
+            for _, row in indexed_rows
+            if filter_column
+            and filter_column.lower() != "country"
+            and (row.get(filter_column) or "").strip()
+        }
+    )
+    if filter_value != "ALL" and filter_column:
+        indexed_rows = [
+            (index, row)
+            for index, row in indexed_rows
+            if (row.get(filter_column) or "").strip() == filter_value
+        ]
+
+    needle = query.strip().lower()
+    if needle:
+        indexed_rows = [
+            (index, row)
+            for index, row in indexed_rows
+            if any(needle in str(value or "").lower() for value in row.values())
+        ]
+
+    total_filtered_rows = len(indexed_rows)
+    page_rows = indexed_rows[offset : offset + limit]
     rows = [
-        {"__row_id": index, **{column: _typed_value(row.get(column, "") or "", kinds[column]) for column in fieldnames}}
-        for index, row in enumerate(raw_rows[:limit])
+        {
+            "__row_id": index,
+            **{
+                column: _typed_value(row.get(column, "") or "", kinds[column])
+                for column in fieldnames
+            },
+        }
+        for index, row in page_rows
     ]
     return {
         "path": str(path.relative_to(path.parents[4])) if len(path.parents) > 4 else str(path),
@@ -355,8 +458,13 @@ def read_table(path: Path, config: dict[str, Any], *, limit: int = 2000) -> dict
         "columns": columns,
         "rows": rows,
         "total_rows": len(raw_rows),
-        "truncated": len(raw_rows) > limit,
-        "filter_column": config.get("filter_col"),
+        "total_filtered_rows": total_filtered_rows,
+        "offset": offset,
+        "limit": limit,
+        "truncated": offset + len(rows) < total_filtered_rows,
+        "filter_column": filter_column or None,
+        "country_options": country_options,
+        "filter_options": filter_options,
         "with_charts": bool(config.get("with_charts")),
         "timeseries": bool(config.get("timeseries")),
     }
@@ -403,7 +511,20 @@ def _atomic_csv_write(path: Path, fieldnames: list[str], rows: list[dict[str, st
         raise
 
 
-def update_table(path: Path, config: dict[str, Any], update: TableUpdate) -> dict[str, Any]:
+def update_table(
+    path: Path,
+    config: dict[str, Any],
+    update: TableUpdate,
+    *,
+    table: str = "",
+    technology: str = "",
+    technology_carriers: tuple[str, ...] = (),
+    country: str = "ALL",
+    filter_value: str = "ALL",
+    query: str = "",
+    offset: int = 0,
+    limit: int = 100,
+) -> dict[str, Any]:
     """Validate and atomically apply cell changes to a CSV."""
 
     if config.get("timeseries"):
@@ -433,7 +554,18 @@ def update_table(path: Path, config: dict[str, Any], update: TableUpdate) -> dic
                 raise HTTPException(status_code=422, detail=f"Column '{change.column}' is read-only")
             rows[change.row][change.column] = _serialise_cell(change.value, kinds[change.column])
         _atomic_csv_write(path, fieldnames, rows)
-    return read_table(path, config)
+    return read_table(
+        path,
+        config,
+        table=table,
+        technology=technology,
+        technology_carriers=technology_carriers,
+        country=country,
+        filter_value=filter_value,
+        query=query,
+        offset=offset,
+        limit=limit,
+    )
 
 
 def scenario_config_path(data_dir: Path, dataset: str, project: str, scenario: str) -> Path:

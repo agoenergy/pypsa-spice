@@ -8,7 +8,7 @@ import math
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -156,8 +156,9 @@ def _scenario_root(dataset: str, project: str, scenario: str) -> Path:
 
 
 def _sector_root(dataset: str, project: str, scenario: str, sector: str) -> Path:
-    root = (_scenario_root(dataset, project, scenario) / sector).resolve()
-    if root.parent != _scenario_root(dataset, project, scenario) or not root.is_dir():
+    scenario_root = _scenario_root(dataset, project, scenario)
+    root = (scenario_root / sector).resolve()
+    if root.parent != scenario_root or not root.is_dir():
         raise HTTPException(status_code=404, detail="Sector result not found")
     return root
 
@@ -176,12 +177,33 @@ def _table_paths(
     hourly: bool,
 ) -> list[Path]:
     sector_path = _sector_root(dataset, project, scenario, sector)
+    chart = next(
+        (
+            chart
+            for charts in CHARTS.values()
+            for chart in charts
+            if chart["table_name"] == table
+        ),
+        None,
+    )
+    if chart is None:
+        raise HTTPException(status_code=404, detail="Result table is not configured")
+    if bool(chart["hourly"]) != hourly:
+        raise HTTPException(status_code=400, detail="Invalid result table mode")
+
     year_dirs = sorted(
-        [path for path in sector_path.iterdir() if path.is_dir()],
+        [
+            path
+            for path in sector_path.iterdir()
+            if path.is_dir() and path.name.isdigit()
+        ],
         key=lambda path: _year_sort(path.name),
     )
     if hourly:
-        selected = year or next((p.name for p in year_dirs if p.name.isdigit()), None)
+        available_years = {path.name for path in year_dirs}
+        if year and year not in available_years:
+            raise HTTPException(status_code=400, detail="Invalid result year")
+        selected = year or next((path.name for path in year_dirs), None)
         paths = [sector_path / selected / f"{table}.csv"] if selected else []
     else:
         all_years = sector_path / "all_years" / f"{table}.csv"
@@ -190,7 +212,16 @@ def _table_paths(
             if all_years.exists()
             else [p / f"{table}.csv" for p in year_dirs]
         )
-    return [path for path in paths if path.is_file()]
+    safe_paths: list[Path] = []
+    for path in paths:
+        resolved = path.resolve()
+        try:
+            resolved.relative_to(sector_path)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="Invalid result path") from exc
+        if resolved.is_file():
+            safe_paths.append(resolved)
+    return safe_paths
 
 
 @lru_cache(maxsize=256)
@@ -374,10 +405,16 @@ def input_table_data(
     dataset: str,
     project: str,
     scenario: str = "",
-    scope: str = Query(pattern="^(global|scenario)$"),
+    scope: Literal["global", "scenario"] = Query(),
     sector: str = Query(pattern="^(power|industry|transport)$"),
     table: str = Query(min_length=1),
-    limit: int = Query(default=2000, ge=1, le=10000),
+    technology: str = "",
+    technology_carrier: list[str] = Query(default=[]),
+    country: str = "ALL",
+    filter_value: str = "ALL",
+    query: str = "",
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=500),
 ) -> JSONResponse:
     """Read a configured model-input CSV with typed editing metadata."""
 
@@ -387,11 +424,24 @@ def input_table_data(
         dataset,
         project,
         scenario,
-        scope,  # type: ignore[arg-type]
+        scope,
         sector,
         table,
     )
-    return JSONResponse(read_table(path, config, limit=limit))
+    return JSONResponse(
+        read_table(
+            path,
+            config,
+            table=table,
+            technology=technology,
+            technology_carriers=tuple(technology_carrier),
+            country=country,
+            filter_value=filter_value,
+            query=query,
+            offset=offset,
+            limit=limit,
+        )
+    )
 
 
 @app.put("/api/input/table")
@@ -400,9 +450,16 @@ def save_input_table(
     dataset: str,
     project: str,
     scenario: str = "",
-    scope: str = Query(pattern="^(global|scenario)$"),
+    scope: Literal["global", "scenario"] = Query(),
     sector: str = Query(pattern="^(power|industry|transport)$"),
     table: str = Query(min_length=1),
+    technology: str = "",
+    technology_carrier: list[str] = Query(default=[]),
+    country: str = "ALL",
+    filter_value: str = "ALL",
+    query: str = "",
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=500),
 ) -> JSONResponse:
     """Directly and atomically apply validated changes to an input CSV."""
 
@@ -412,11 +469,25 @@ def save_input_table(
         dataset,
         project,
         scenario,
-        scope,  # type: ignore[arg-type]
+        scope,
         sector,
         table,
     )
-    return JSONResponse(update_table(path, config, update))
+    return JSONResponse(
+        update_table(
+            path,
+            config,
+            update,
+            table=table,
+            technology=technology,
+            technology_carriers=tuple(technology_carrier),
+            country=country,
+            filter_value=filter_value,
+            query=query,
+            offset=offset,
+            limit=limit,
+        )
+    )
 
 
 @app.get("/api/input/scenario-config")

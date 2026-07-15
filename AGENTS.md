@@ -15,4 +15,5 @@
   in web-native patterns rather than reproducing the Streamlit interface.
 - Keep Streamlit-specific packages and implementation details out of the web
   frontend and its UI-development guidance.
-
+- Dont apply agora design skill, instead focus on app to have consistent internal design. 
+-

@@ -20,14 +20,17 @@ export default function ScenarioConfigEditor({ selection, country, onNavigate }:
   const [editorInvalid, setEditorInvalid] = useState(false);
   const [navigationTarget, setNavigationTarget] = useState<HTMLElement | null>(null);
 
-  const load = async () => {
-    const controller = new AbortController(); setLoading(true); setError(""); setSuccess("");
-    try { const data = await getScenarioConfig(selection, controller.signal); setConfig(data); setDraft(structuredClone(data.sections[section] || {})); }
+  const load = async (signal?: AbortSignal) => {
+    setLoading(true); setError(""); setSuccess("");
+    try { const data = await getScenarioConfig(selection, signal); setConfig(data); setDraft(structuredClone(data.sections[section] || {})); }
     catch (reason) { if (!(reason instanceof DOMException && reason.name === "AbortError")) setError(reason instanceof Error ? reason.message : "Could not load the scenario config."); }
-    finally { setLoading(false); }
-    return () => controller.abort();
+    finally { if (!signal?.aborted) setLoading(false); }
   };
-  useEffect(() => { void load(); }, [selection.dataset, selection.project, selection.scenario]);
+  useEffect(() => {
+    const controller = new AbortController();
+    void load(controller.signal);
+    return () => controller.abort();
+  }, [selection.dataset, selection.project, selection.scenario]);
   useEffect(() => { if (config) { setDraft(structuredClone(config.sections[section] || {})); setSuccess(""); setError(""); setEditorInvalid(false); } }, [section]);
   useEffect(() => { setNavigationTarget(document.getElementById("config-section-tabs")); }, []);
 

@@ -37,6 +37,7 @@ class InputEditorTests(unittest.TestCase):
     def test_input_catalog_endpoint_discovers_projects(self) -> None:
         response = TestClient(app).get("/api/input/catalog")
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["table_query_version"], 2)
         self.assertTrue(response.json()["datasets"])
         project = response.json()["datasets"][0]["projects"][0]
         self.assertTrue(project["technologies"])
@@ -74,6 +75,37 @@ class InputEditorTests(unittest.TestCase):
                 ),
             )
         self.assertEqual(context.exception.status_code, 409)
+
+    def test_table_filtering_happens_before_server_pagination(self) -> None:
+        target = self.temp_path / "power_generators.csv"
+        target.write_text(
+            "country,technology,p_nom\n"
+            "DE,solar,1\n"
+            "FR,wind,2\n"
+            "FR,solar,3\n",
+            encoding="utf-8",
+        )
+        config = {
+            "timeseries": False,
+            "filter_col": "technology",
+            "with_charts": False,
+        }
+
+        page = read_table(
+            target,
+            config,
+            table="Power_generators",
+            technology="solar",
+            country="FR",
+            offset=0,
+            limit=1,
+        )
+
+        self.assertEqual(page["total_rows"], 3)
+        self.assertEqual(page["total_filtered_rows"], 1)
+        self.assertEqual(page["country_options"], ["DE", "FR"])
+        self.assertEqual(page["rows"][0]["__row_id"], 2)
+        self.assertEqual(page["rows"][0]["p_nom"], 3)
 
     def test_yaml_section_update_preserves_inline_comments(self) -> None:
         source = ROOT / "data/example/project_01/input/scenario_01/scenario_config.yaml"

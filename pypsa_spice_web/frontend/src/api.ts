@@ -1,4 +1,4 @@
-import type { Catalog, ChartDefinition, ChartResponse, InputCatalog, InputCell, InputSelection, InputTableDefinition, InputTableResponse, ScenarioConfigResponse, Selection } from "./types";
+import type { Catalog, ChartDefinition, ChartResponse, InputCatalog, InputCell, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology, ScenarioConfigResponse, Selection } from "./types";
 
 async function apiJson<T>(response: Response, fallback: string): Promise<T> {
   if (!response.ok) {
@@ -71,11 +71,27 @@ export function downloadUrl(chart: ChartDefinition, selection: Selection): strin
 }
 
 export async function getInputCatalog(): Promise<InputCatalog> {
-  return apiJson(await fetch(`/api/input/catalog?t=${Date.now()}`), "The input catalog could not be read.");
+  const catalog = await apiJson<InputCatalog>(
+    await fetch(`/api/input/catalog?t=${Date.now()}`),
+    "The input catalog could not be read.",
+  );
+  if (catalog.table_query_version !== 2) {
+    throw new Error("The local backend is out of date. Restart the app with ./run_web.sh.");
+  }
+  return catalog;
 }
 
-function inputParams(selection: InputSelection, definition: InputTableDefinition): URLSearchParams {
-  return new URLSearchParams({
+export interface InputTableQuery {
+  technology?: InputTechnology;
+  country?: string;
+  filterValue?: string;
+  query?: string;
+  offset?: number;
+  limit?: number;
+}
+
+function inputParams(selection: InputSelection, definition: InputTableDefinition, query: InputTableQuery = {}): URLSearchParams {
+  const params = new URLSearchParams({
     dataset: selection.dataset,
     project: selection.project,
     scenario: selection.scenario,
@@ -83,11 +99,21 @@ function inputParams(selection: InputSelection, definition: InputTableDefinition
     sector: definition.sector || "power",
     table: definition.id,
   });
+  if (query.technology) {
+    params.set("technology", query.technology.id);
+    query.technology.carriers.forEach((carrier) => params.append("technology_carrier", carrier));
+  }
+  if (query.country && query.country !== "ALL") params.set("country", query.country);
+  if (query.filterValue && query.filterValue !== "ALL") params.set("filter_value", query.filterValue);
+  if (query.query) params.set("query", query.query);
+  if (query.offset) params.set("offset", String(query.offset));
+  if (query.limit) params.set("limit", String(query.limit));
+  return params;
 }
 
-export async function getInputTable(selection: InputSelection, definition: InputTableDefinition, signal?: AbortSignal): Promise<InputTableResponse> {
+export async function getInputTable(selection: InputSelection, definition: InputTableDefinition, query: InputTableQuery = {}, signal?: AbortSignal): Promise<InputTableResponse> {
   return apiJson(
-    await fetch(`/api/input/table?${inputParams(selection, definition)}`, { signal }),
+    await fetch(`/api/input/table?${inputParams(selection, definition, query)}`, { signal }),
     `Could not read ${definition.label}.`,
   );
 }
@@ -97,9 +123,10 @@ export async function saveInputTable(
   definition: InputTableDefinition,
   revision: string,
   changes: { row: number; column: string; value: InputCell }[],
+  query: InputTableQuery = {},
 ): Promise<InputTableResponse> {
   return apiJson(
-    await fetch(`/api/input/table?${inputParams(selection, definition)}`, {
+    await fetch(`/api/input/table?${inputParams(selection, definition, query)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ revision, changes }),
