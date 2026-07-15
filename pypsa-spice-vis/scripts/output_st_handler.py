@@ -23,6 +23,7 @@ from scripts.plot_settings import (
     area_share_yearly,
     bar_with_filter,
     filtered_bar_hourly,
+    interactive_map,
     line_with_secondary_y_hourly,
     simple_bar_hourly,
     simple_bar_yearly,
@@ -84,9 +85,10 @@ def setup_year_filter(config_plot: dict, is_dual_scenario: bool) -> str:
         scenario_text = st.session_state.sce1
         key_prefix = "single"
 
-    slider_id = config_plot["slider_id"].format(scenario_text)
-    key = f"{key_prefix}_year_{config_plot['table_name']}"
-    label = f"{slider_id} Select Year:"
+    slider_id = config_plot.get("slider_id", config_plot.get("title", "")).format(scenario_text) if config_plot.get("slider_id") or config_plot.get("title") else ""
+    table_name_or_title = config_plot.get("table_name", config_plot.get("title", "map"))
+    key = f"{key_prefix}_year_{table_name_or_title}"
+    label = f"{slider_id} Select Year:" if slider_id else "Select Year:"
 
     # Pills widget for the year filter
     pills_widget = lambda: st.pills(  # noqa:E731
@@ -136,7 +138,7 @@ def setup_country_filter(config_plot, is_dual_scenario=False, scenario_tag=None)
             country_options = df["country"].unique()
             scenario_text = st.session_state.sce1  # noqa: F841
 
-        slider_id = config_plot["table_name"]
+        slider_id = config_plot.get("table_name", config_plot.get("download_id", "map"))
         graph_type = config_plot["graph_type"]
         if "shared_country" in config_plot:
             country_id = config_plot["shared_country"]
@@ -533,13 +535,22 @@ def render_st_page_and_plot(graph_type, config_plot: dict):
         # column that will contain the filter menu
         apply_radio_menu_styles()
 
-    # Setup country filter
-    config_plot["shared_country"] = setup_country_filter(
-        config_plot, is_dual_scenario, scenario_tag=st.session_state.sce1
-    )
+    # Skip filters for interactive_map type (uses network files, not CSVs)
+    is_network_map = config_plot.get("graph_type") == "interactive_map"
+    
+    # Setup country filter (skip for network maps)
+    if not is_network_map:
+        config_plot["shared_country"] = setup_country_filter(
+            config_plot, is_dual_scenario, scenario_tag=st.session_state.sce1
+        )
 
     # Setup filters based on graph type
-    if config_plot.get("graph_type") == "bar_with_filter":
+    if is_network_map:
+        # For network maps, only setup year filter
+        shared_year = setup_year_filter(config_plot, is_dual_scenario)
+        config_plot["shared_year"] = str(shared_year)
+        
+    elif config_plot.get("graph_type") == "bar_with_filter":
         # Two scenarios: plots with radio button filters
         shared_filter = setup_radio_button_filter(config_plot, is_dual_scenario)
         if shared_filter:
@@ -591,11 +602,12 @@ def render_st_page_and_plot(graph_type, config_plot: dict):
         st.markdown(f"#### {st.session_state.sce1} ")
         graph_type(scenario_name=st.session_state.sce1, graph_config=config_plot)
 
-        # Display the data download part
-        if config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
-            display_download_button_without_data(st.session_state.sce1, config_plot)
-        else:
-            display_download_button_with_data(st.session_state.sce1, config_plot)
+        # Display the data download part (skip for network maps)
+        if not is_network_map:
+            if config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
+                display_download_button_without_data(st.session_state.sce1, config_plot)
+            else:
+                display_download_button_with_data(st.session_state.sce1, config_plot)
 
     else:
         # Display the graphs for each of the two scenarios
@@ -609,19 +621,20 @@ def render_st_page_and_plot(graph_type, config_plot: dict):
             st.markdown(f"#### {st.session_state.sce2} ")
             graph_type(scenario_name=st.session_state.sce2, graph_config=config_plot)
 
-        # Display the data download part
-        col1, col2, col3 = st.columns([6, 1, 6])
+        # Display the data download part (skip for network maps)
+        if not is_network_map:
+            col1, col2, col3 = st.columns([6, 1, 6])
 
-        if config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
-            with col1:
-                display_download_button_without_data(st.session_state.sce1, config_plot)
-            with col3:
-                display_download_button_without_data(st.session_state.sce2, config_plot)
-        else:
-            with col1:
-                display_download_button_with_data(st.session_state.sce1, config_plot)
-            with col3:
-                display_download_button_with_data(st.session_state.sce2, config_plot)
+            if config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
+                with col1:
+                    display_download_button_without_data(st.session_state.sce1, config_plot)
+                with col3:
+                    display_download_button_without_data(st.session_state.sce2, config_plot)
+            else:
+                with col1:
+                    display_download_button_with_data(st.session_state.sce1, config_plot)
+                with col3:
+                    display_download_button_with_data(st.session_state.sce2, config_plot)
 
     st.divider()
 
@@ -839,6 +852,7 @@ def map_chart_to_plot_function(func_name: str = None):
         "filtered_bar_hourly": filtered_bar_hourly,
         "line_with_secondary_y_hourly": line_with_secondary_y_hourly,
         "sankey_diagram": sankey_diagram,
+        "interactive_map": interactive_map,
     }
     func = mapping.get(func_name)
     if func is None:

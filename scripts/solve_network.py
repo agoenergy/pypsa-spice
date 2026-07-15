@@ -137,6 +137,7 @@ def extra_functionality_linopt(
                 network,
                 res_generation_share=res_generation["res_generation_share"][year],
                 math_symbol=res_generation["math_symbol"],
+                share_basis=res_generation.get("share_basis", "total_power_generation"),
                 country=country,
             )
             constraint_added = True

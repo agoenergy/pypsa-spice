@@ -313,7 +313,11 @@ def thermal_must_run_constraint(
 
 
 def re_pow_generation_constraint(
-    n: pypsa.Network, res_generation_share: float, country: str, math_symbol: str = ">="
+    n: pypsa.Network,
+    res_generation_share: float,
+    country: str,
+    math_symbol: str = ">=",
+    share_basis: str = "total_power_generation",
 ):
     """Add renewable generation lower limit as fraction of total electrical load.
 
@@ -327,6 +331,10 @@ def re_pow_generation_constraint(
         Country for which the constraint is applied.
     math_symbol : str, optional
         Math symbol of the constraint formula, by default ">="
+    share_basis : str, optional
+        Denominator basis for RE share. Options:
+        - "electricity_load": total electricity load
+        - "total_power_generation": total electricity generation (default)
     """
     # LHS (Left Hand Side): objectives of the renewable generation
     lhs = 0
@@ -373,16 +381,44 @@ def re_pow_generation_constraint(
                 else:
                     lhs += (weight_gen * gen_var).sum().sum()
     # RHS (Right Hand Side): targeted renewable generation share
-    rhs = res_generation_share * (
-        n.loads_t.p_set.multiply(n.snapshot_weightings.objective, axis=0)
-        .T.groupby([n.loads.carrier, n.loads.country])
-        .sum()
-        .loc["Electricity", country]
-        .sum()
-    )
+    if share_basis == "electricity_load":
+        denominator = (
+            n.loads_t.p_set.multiply(n.snapshot_weightings.objective, axis=0)
+            .T.groupby([n.loads.carrier, n.loads.country])
+            .sum()
+            .loc["Electricity", country]
+            .sum()
+        )
+    elif share_basis == "total_power_generation":
+        denominator = 0
+        for c in ["Generator", "StorageUnit", "Link"]:
+            df = n.df(c)
+            if df.empty:
+                continue
+            p_gen = "p" if c != "StorageUnit" else "p_dispatch"
+            bus_name = "bus1" if c == "Link" else "bus"
+            power_gen = df[(df.country == country) & (df[bus_name].str.contains("ELEC"))]
+            if power_gen.empty:
+                continue
+            gen_var = get_var(n, c, p_gen).loc[:, power_gen.index]
+            weight_gen = xr.DataArray(
+                expand_series(n.snapshot_weightings.objective, df.index)
+            )
+            if c == "Link":
+                eff = xr.DataArray(df.loc[power_gen.index, "efficiency"])
+                denominator += (weight_gen * gen_var.mul(eff)).sum().sum()
+            else:
+                denominator += (weight_gen * gen_var).sum().sum()
+    else:
+        raise ValueError(
+            f"Unknown share_basis '{share_basis}'. "
+            "Use 'electricity_load' or 'total_power_generation'."
+        )
+
+    rhs = res_generation_share * denominator
     print(
         f"....add minimum renewable generation as: {round(res_generation_share*100)}% "
-        f"of total power load in {country}"
+        f"using basis '{share_basis}' in {country}"
     )
     define_constraints(
         n,

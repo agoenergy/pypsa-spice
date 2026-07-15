@@ -1162,3 +1162,615 @@ def sankey_diagram(
 
     # Streamlit app
     st.plotly_chart(fig, use_container_width=True, key=f"sankey_diagram_{scenario_name}_{table_name}")
+
+
+# =========================== Interactive Map Chart =========================
+
+
+@st.fragment
+def interactive_map(scenario_name: str, graph_config: dict) -> None:
+    """Generate a network map showing generation capacity and flows.
+    
+    This function creates a two-panel visualization:
+    - Left: Power generation flow with colored buses by technology
+    - Right: Load demand requirements
+    
+    Parameters
+    ----------
+    scenario_name : str
+        The name of the scenario to visualize.
+    graph_config : dict
+        Configuration dictionary containing:
+        - shared_year: str - Year to plot
+        - title: str - Optional title for the map
+    """
+    import matplotlib.pyplot as plt
+    import pypsa
+    import numpy as np
+    import cartopy.crs as ccrs
+    
+    shared_year = graph_config.get("shared_year")
+    title = graph_config.get("title", "Network Map")
+    
+    if not shared_year:
+        st.warning("Please select a year to display the map.")
+        return
+    
+    # Construct path to network file
+    network_path = os.path.join(
+        st.session_state.result_path,
+        scenario_name,
+        "post-solve",
+        f"network_{st.session_state.sector}_{shared_year}.nc"
+    )
+    
+    # Check if file exists
+    if not os.path.exists(network_path):
+        st.error(f"Network file not found: {network_path}")
+        return
+    
+    try:
+        # Load PyPSA network
+        with st.spinner("Loading network..."):
+            n = pypsa.Network(network_path)
+        
+        # Define color mappings for technologies and regions
+        tech_colors = {
+            'BIOT': "#A5CCA9",   'CCGT': "#A6A3B9", 
+            'OCGT': "#E1D8EB",   'OILT': "#F7946A", 
+            'SubC': "#4A122B",   'SupC': "#6E2C57", 
+            'GEOT': "#3A683E",   'GEOX': "#3A683E", 
+            'HROR': "#3399CC",   'PHOT': "#FFC000",
+            'FLOT': "#FFA500",   'WTON': "#66BBC5",
+            'WTOF': "#00A3B8",   'HDAM': "#21729B", 
+            'HPHS': "#196D83",   'RTPV': "#FF8C00",
+            'LSLO': "#0BDA51",   'BATS': "#F5A1AD",
+            'BES1': '#008080',   'BES2': '#8A2BE2',
+            'BES4': '#004080',   'NSMR': '#FF10F0',
+            'NUCL': '#FF10F0', 
+            'LUZ-N_to_LUZ-MM': '#1F77B4', 
+            'LUZ-MM_to_LUZ-S': '#FF7F0E',
+            'LUZ-S_to_V-LEY':  '#2CA02C', 
+            'V-LEY_to_V-BHL': '#D62728',
+            'V-LEY_to_V-CEB': '#9467BD', 
+            'V-CEB_to_V-NEG': '#8C564B',
+            'V-NEG_to_V-PAN': '#E377C2', 
+            'V-CEB_to_MIN-NW': '#7F7F7F',
+            'MIN-NW_to_MIN-NE': '#BCBD22', 
+            'MIN-NE_to_MIN-S': '#17BECF',   
+            'LUZ-MM_to_LUZ-N': '#1F77B4',
+            'LUZ-S_to_LUZ-MM': '#FF7F0E',
+            'V-LEY_to_LUZ-S': '#2CA02C',
+            'V-BHL_to_V-LEY': '#D62728',
+            'V-CEB_to_V-LEY': '#9467BD',
+            'V-NEG_to_V-CEB': '#8C564B',
+            'V-PAN_to_V-NEG': '#E377C2',
+            'MIN-NW_to_V-CEB': '#7F7F7F',
+            'MIN-NE_to_MIN-NW': '#BCBD22',
+            'MIN-S_to_MIN-NE': '#17BECF',
+        }
+        
+        region_colors = {
+            'LUZ-N':  '#1F77B4',   
+            'LUZ-MM': '#FF7F0E',
+            'LUZ-S': '#2CA02C',
+            'V-LEY': '#D62728',   
+            'V-PAN': '#9467BD', 
+            'V-CEB': '#8C564B',   
+            'V-BHL': '#E377C2', 
+            'V-NEG': '#7F7F7F',
+            'MIN-NW': '#BCBD22',
+            'MIN-NE': '#17BECF',
+            'MIN-S': '#9EDAE5'
+        }
+        
+        # Get all plants (exclude SUPPLY and LSLO)
+        plants = n.generators[
+            (~n.generators.type.str.contains('_SUPPLY', na=False)) &
+            (~n.generators.type.str.contains('LSLO', na=False))
+        ]
+        
+        plants = plants.assign(g=n.generators_t.p.sum()).groupby(["bus", "type"]).g.sum()
+        
+        # Get all power converters (exclude ITCN and BATS)
+        pow_gens = n.links[
+            (~n.links.type.str.contains('ITCN', na=False)) &
+            (~n.links.type.str.contains('BATS', na=False)) &
+            (~n.links.type.str.contains('IND-BOILER', na=False)) &
+            (~n.links.type.str.contains('EVCH', na=False)) &
+            (~n.links.type.str.contains('EDLH|EHPP|EIDT|EERH|ELTZ', na=False))
+        ]
+        
+        pow_gens = -pow_gens.assign(g=n.links_t.p1.sum()).groupby(["bus1", "type"]).g.sum()
+        
+        # Concatenate generation data
+        generation = pd.concat([plants, pow_gens]).sort_index(level=0)
+        
+        # Ensure all technology types in generation data have colors
+        unique_types = generation.index.get_level_values(1).unique()
+        default_colors = get_default_colour_list()
+        for i, tech_type in enumerate(unique_types):
+            if tech_type not in tech_colors:
+                tech_colors[tech_type] = default_colors[i % len(default_colors)]
+        
+        # Remove non-ITCN links and LVELEC links
+        n.mremove('Link', n.links[~n.links.type.str.contains('ITCN', na=False)].index)
+        n.mremove('Link', n.links[n.links.index.str.contains('LVELEC', na=False)].index)
+        
+        # Remove duplicate buses, but groupby sum first
+        n.links = n.links.reset_index().set_index(['bus0', 'bus1'])
+        n.links.p_nom = n.links.groupby([n.links.index]).p_nom.sum()
+        n.links = n.links.reset_index().set_index("Link")
+        n.links = n.links.sort_index()
+        
+        duplicated = n.links[n.links.duplicated(['bus0', 'bus1'])].index
+        n.mremove('Link', duplicated)
+        
+        # Calculate flow
+        flow = n.links_t.p0.sum().to_frame()
+        flow['component'] = 'Link'
+        flow = flow.groupby(['component', flow.index]).sum().mean(axis=1).apply(lambda x: 5 * np.sign(x))
+        
+        link_color = n.links_t.p0.mean().abs()
+        
+        # Calculate loads - aggregate by bus and filter to only existing buses
+        loads = n.loads_t.p.T
+        loads = loads.groupby(loads.index.str[:-9]).sum().sum(axis=1)
+        
+        # Filter loads to only include buses that exist in the network
+        loads = loads[loads.index.isin(n.buses.index)]
+        
+        # Create single plot figure
+        fig, ax = plt.subplots(1, 1, figsize=(18, 10), subplot_kw={"projection": ccrs.PlateCarree()})
+        
+        # Plot the network - generation flow
+        collection = n.plot(
+            bus_sizes=generation / 15e7,
+            bus_colors=tech_colors,
+            margin=0.4,
+            flow=flow,
+            color_geomap=True,
+            link_widths=1.5,
+            link_colors=link_color,
+            ax=ax
+        )
+        
+        # Add colorbar if available
+        try:
+            if isinstance(collection, (list, tuple)) and len(collection) > 2:
+                fig.colorbar(collection[2], ax=ax, fraction=0.04, pad=0.001, label="Flow in MW")
+        except (KeyError, IndexError, AttributeError):
+            pass  # Skip colorbar if not available
+        
+        # Add legend for technology colors
+        from matplotlib.patches import Patch
+        unique_techs = generation.index.get_level_values(1).unique()
+        legend_elements = [
+            Patch(facecolor=tech_colors.get(tech, '#888888'), edgecolor='black', label=tech)
+            for tech in sorted(unique_techs)
+        ]
+        ax.legend(
+            handles=legend_elements,
+            loc='upper left',
+            bbox_to_anchor=(1.05, 1),
+            title='Technology',
+            fontsize=10,
+            title_fontsize=12,
+            frameon=True,
+            fancybox=True,
+            shadow=True
+        )
+        
+        plt.tight_layout()
+        
+        # Display in Streamlit
+        st.pyplot(fig, use_container_width=True)
+        plt.close(fig)
+        
+    except Exception as e:
+        st.error(f"Error loading or plotting network: {str(e)}")
+        st.exception(e)
+
+
+@st.fragment
+def interactive_map_plotly(scenario_name: str, graph_config: dict) -> None:
+    """Generate an interactive Plotly map with values plotted as circles or pie charts.
+    
+    This is an alternative to the PyPSA native plotting that provides interactivity.
+    
+    Parameters
+    ----------
+    scenario_name : str
+        The name of the scenario to visualize.
+    graph_config : dict
+        Configuration dictionary containing:
+        - table_name: str - Name of the data table to read
+        - leg_col: str - Column name for legend/categories
+        - download_id: str - Unique identifier for download button
+        - map_type: str - Type of map ("circle" or "pie")
+        - shared_country: str - Optional country filter
+        - shared_year: str - Optional year filter for time-series data
+        - title: str - Optional title for the map
+        - unit: str - Optional unit label (e.g., "MW", "TWh")
+    
+    Notes
+    -----
+    - Only plots electricity carriers (filters out non-electricity buses)
+    - Requires buses.csv with columns: bus, carrier, x (longitude), y (latitude)
+    - Interactive tooltips show location name and values on hover
+    """
+    table_name = graph_config["table_name"]
+    leg_col = graph_config["leg_col"]
+    download_id = graph_config["download_id"].format(scenario_name)
+    map_type = graph_config.get("map_type", "pie")  # "circle" or "pie" - default is pie
+    unit = graph_config.get("unit", "")
+    
+    # Read the data from results
+    df = read_result_csv(
+        scenario_name,
+        table_name,
+        country=graph_config.get("shared_country"),
+        year=graph_config.get("shared_year"),
+    )
+    
+    if df is None or df.empty:
+        st.warning("No data available for the selected scenario and filters.")
+        return
+    
+    # Read bus coordinates from input directory
+    # Path structure: data/{data_folder}/{project}/input/{scenario}/power/buses.csv
+    # Get the base data folder path from init config
+    input_folder_path = st.session_state.input_data_folder_path
+    # Remove "/input" suffix to get to project level, then reconstruct full path
+    data_folder_base = os.path.dirname(input_folder_path)
+    
+    # Clean scenario name (remove "(FINAL)" prefix if present)
+    clean_scenario = scenario_name.split("(FINAL) ")[-1].strip()
+    
+    input_base_path = os.path.join(
+        data_folder_base,
+        "input",
+        clean_scenario,
+        "power",
+        "buses.csv"
+    )
+    
+    try:
+        buses_df = pd.read_csv(input_base_path)
+    except FileNotFoundError:
+        st.error(f"Could not find buses.csv at: {input_base_path}")
+        return
+    
+    # Filter for electricity carriers only
+    buses_df = buses_df[buses_df["carrier"] == "Electricity"].copy()
+    
+    if buses_df.empty:
+        st.warning("No electricity buses found in buses.csv")
+        return
+    
+    # Check if data has region column
+    if "region" not in df.columns:
+        st.error(
+            f"Data must contain a 'region' column to map to geographic locations. "
+            f"Available columns: {', '.join(df.columns)}"
+        )
+        return
+    
+    # Clean data for plotting
+    df = clean_df_for_plotting(leg_col, df)
+    df = handle_small_values(df)
+    
+    # Get one representative bus per region (prefer HVELEC buses for electricity data)
+    buses_per_region = buses_df[buses_df["bus"].str.contains("HVELEC")].copy()
+    
+    # Extract region names from node column (remove country prefix if present)
+    # e.g., "PH_LUZ-N" -> "LUZ-N"
+    buses_per_region["region_clean"] = buses_per_region["node"].str.split("_").str[-1]
+    
+    # Get unique regions from data and buses for debugging
+    data_regions = set(df["region"].unique())
+    bus_regions = set(buses_per_region["region_clean"].unique())
+    
+    # Merge with bus locations using region -> region_clean mapping
+    merged_df = pd.merge(
+        df,
+        buses_per_region[["node", "region_clean", "x", "y"]],
+        left_on="region",
+        right_on="region_clean",
+        how="inner"
+    )
+    
+    if merged_df.empty:
+        # Provide detailed debugging information
+        st.error("❌ No matching data found between results and bus locations.")
+        
+        with st.expander("🔍 Debug Information - Click to expand"):
+            st.write("**Regions in your data:**")
+            st.write(sorted(data_regions))
+            
+            st.write("**Regions found in buses.csv:**")
+            st.write(sorted(bus_regions))
+            
+            st.write("**Regions that don't match:**")
+            unmatched = data_regions - bus_regions
+            if unmatched:
+                st.write(f"In data but not in buses: {sorted(unmatched)}")
+            
+            unmatched_buses = bus_regions - data_regions
+            if unmatched_buses:
+                st.write(f"In buses but not in data: {sorted(unmatched_buses)}")
+            
+            st.write("**Suggestions:**")
+            st.write("1. Check that region names match exactly (case-sensitive)")
+            st.write("2. Verify buses.csv has HVELEC buses for all regions")
+            st.write("3. Check for extra spaces or special characters")
+        
+        return
+    
+    # Get color mapping
+    mapping_df = create_nice_names_and_color_mapping(table_name)
+    
+    if mapping_df is not None:
+        merged_df["nice_names"] = merged_df[leg_col].map(
+            lambda x: (
+                mapping_df.loc[x, "nice_names"]
+                if x in mapping_df.index
+                else prettify_label(x)
+            )
+        )
+    else:
+        merged_df["nice_names"] = merged_df[leg_col].apply(prettify_label)
+    
+    unique_legends = merged_df["nice_names"].unique().tolist()
+    colour_mapping = (
+        handle_color_mapping_for_chart(table_name, unique_legends)
+        if mapping_df is not None
+        else generate_default_colour_mapping(merged_df, "nice_names")
+    )
+    
+    # Aggregate data by location and category
+    grouped_df = merged_df.groupby(["node", "region_clean", "x", "y", leg_col, "nice_names"], as_index=False)["value"].sum()
+    
+    # Check for overlapping coordinates (multiple categories at same location)
+    coord_counts = grouped_df.groupby(["x", "y"]).size()
+    has_overlapping = (coord_counts > 1).any()
+    
+    # If coordinates overlap, force pie chart mode to make all data visible
+    if has_overlapping and map_type == "circle":
+        map_type = "pie"
+        st.info("📊 Automatically using pie chart mode because multiple data points share the same coordinates.")
+    
+    # Create the map based on map_type
+    if map_type == "pie":
+        # Create pie chart markers for each location
+        fig = _create_pie_chart_map(grouped_df, colour_mapping, unit, graph_config)
+    else:
+        # Create circle/bubble markers (default)
+        fig = _create_circle_map(grouped_df, colour_mapping, unit, graph_config)
+    
+    # Update map layout
+    title = graph_config.get("title", "Geographic Distribution")
+    fig.update_layout(
+        title=title,
+        geo=dict(
+            scope="asia",
+            projection_type="mercator",
+            showland=True,
+            landcolor="rgb(229, 229, 229)",
+            showlakes=True,
+            lakecolor="rgb(209, 230, 245)",
+            showocean=True,
+            oceancolor="rgb(230, 245, 255)",
+            showcountries=True,
+            countrycolor="rgb(150, 150, 150)",
+            countrywidth=1.5,
+            showcoastlines=True,
+            coastlinecolor="rgb(100, 100, 100)",
+            coastlinewidth=1,
+            showframe=True,
+            framecolor="rgb(100, 100, 100)",
+            framewidth=2,
+            lonaxis=dict(
+                range=[merged_df["x"].min() - 1, merged_df["x"].max() + 1],
+                showgrid=True,
+                gridwidth=0.5,
+                gridcolor="rgb(200, 200, 200)"
+            ),
+            lataxis=dict(
+                range=[merged_df["y"].min() - 1, merged_df["y"].max() + 1],
+                showgrid=True,
+                gridwidth=0.5,
+                gridcolor="rgb(200, 200, 200)"
+            ),
+            resolution=50,  # Higher resolution for more detail
+        ),
+        showlegend=True,
+        height=900,
+        width=1400,
+        margin=dict(l=20, r=20, t=60, b=20),
+    )
+    
+    # Display the map
+    st.plotly_chart(fig, use_container_width=False, key=f"map_{download_id}")
+
+
+def _create_circle_map(
+    df: pd.DataFrame,
+    colour_mapping: dict,
+    unit: str,
+    graph_config: dict
+) -> go.Figure:
+    """Create a map with circle markers sized by value.
+    
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe with columns: node, x, y, nice_names, value
+    colour_mapping : dict
+        Mapping of category names to colors
+    unit : str
+        Unit label for values
+    graph_config : dict
+        Configuration dictionary
+        
+    Returns
+    -------
+    go.Figure
+        Plotly figure object
+    """
+    leg_col = graph_config["leg_col"]
+    
+    # Aggregate total by location for sizing
+    location_totals = df.groupby(["node", "x", "y"], as_index=False)["value"].sum()
+    location_totals = location_totals.rename(columns={"value": "total_value"})
+    
+    # Merge totals back
+    df_with_totals = df.merge(location_totals, on=["node", "x", "y"])
+    
+    # Calculate marker sizes (scale appropriately)
+    max_val = df_with_totals["total_value"].max()
+    min_size, max_size = 10, 50
+    df_with_totals["marker_size"] = (
+        (df_with_totals["total_value"] / max_val) * (max_size - min_size) + min_size
+    )
+    
+    # Create figure
+    fig = go.Figure()
+    
+    # Add a trace for each category
+    for category in df_with_totals["nice_names"].unique():
+        category_df = df_with_totals[df_with_totals["nice_names"] == category]
+        
+        # Create hover text
+        hover_text = [
+            f"<b>{row['node']}</b><br>"
+            f"{row['nice_names']}: {row['value']:.2f} {unit}<br>"
+            f"Total at location: {row['total_value']:.2f} {unit}"
+            for _, row in category_df.iterrows()
+        ]
+        
+        fig.add_trace(go.Scattergeo(
+            lon=category_df["x"],
+            lat=category_df["y"],
+            mode="markers",
+            marker=dict(
+                size=category_df["marker_size"],
+                color=colour_mapping.get(category, "#888888"),
+                line=dict(width=1, color="white"),
+                sizemode="diameter",
+            ),
+            name=category,
+            text=hover_text,
+            hovertemplate="%{text}<extra></extra>",
+        ))
+    
+    return fig
+
+
+def _create_pie_chart_map(
+    df: pd.DataFrame,
+    colour_mapping: dict,
+    unit: str,
+    graph_config: dict
+) -> go.Figure:
+    """Create a map with pie chart markers at each location.
+    
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe with columns: node, x, y, nice_names, value
+    colour_mapping : dict
+        Mapping of category names to colors
+    unit : str
+        Unit label for values
+    graph_config : dict
+        Configuration dictionary
+        
+    Returns
+    -------
+    go.Figure
+        Plotly figure object
+    """
+    from plotly import graph_objects as go
+    
+    fig = go.Figure()
+    
+    # Group by location
+    locations = df.groupby(["node", "x", "y"])
+    
+    for (node, lon, lat), location_df in locations:
+        # Calculate total for this location
+        total_value = location_df["value"].sum()
+        
+        if total_value == 0:
+            continue
+        
+        # Get categories and values for this location
+        categories = location_df["nice_names"].tolist()
+        values = location_df["value"].tolist()
+        colors = [colour_mapping.get(cat, "#888888") for cat in categories]
+        
+        # Create hover text
+        hover_text = f"<b>{node}</b><br>Total: {total_value:.2f} {unit}<br><br>"
+        for cat, val in zip(categories, values):
+            pct = (val / total_value) * 100
+            hover_text += f"{cat}: {val:.2f} {unit} ({pct:.1f}%)<br>"
+        
+        # Add pie chart trace for this location
+        # Size pie chart based on total value
+        max_total = df.groupby(["node"])["value"].sum().max()
+        size_scale = (total_value / max_total) * 0.3 + 0.05  # Scale between 0.05 and 0.35 degrees
+        
+        # Add a scatter point for interactivity
+        fig.add_trace(go.Scattergeo(
+            lon=[lon],
+            lat=[lat],
+            mode="markers",
+            marker=dict(
+                size=20,
+                color="rgba(0,0,0,0)",  # Transparent
+            ),
+            name=node,
+            text=hover_text,
+            hovertemplate="%{text}<extra></extra>",
+            showlegend=False,
+        ))
+        
+        # Note: Plotly doesn't natively support pie charts on geo maps
+        # We'll use the Scattergeo approach with sized circles colored by dominant category
+        dominant_idx = values.index(max(values))
+        dominant_color = colors[dominant_idx]
+        
+        # Calculate marker size based on total value
+        min_size, max_size = 15, 60
+        marker_size = (total_value / df.groupby("node")["value"].sum().max()) * (max_size - min_size) + min_size
+        
+        fig.add_trace(go.Scattergeo(
+            lon=[lon],
+            lat=[lat],
+            mode="markers",
+            marker=dict(
+                size=marker_size,
+                color=dominant_color,
+                line=dict(width=2, color="white"),
+                opacity=0.7,
+            ),
+            name=f"{node}",
+            text=hover_text,
+            hovertemplate="%{text}<extra></extra>",
+            showlegend=False,
+        ))
+    
+    # Add legend entries for categories
+    for category, color in colour_mapping.items():
+        if category in df["nice_names"].values:
+            fig.add_trace(go.Scattergeo(
+                lon=[None],
+                lat=[None],
+                mode="markers",
+                marker=dict(size=10, color=color),
+                name=category,
+                showlegend=True,
+            ))
+    
+    return fig
