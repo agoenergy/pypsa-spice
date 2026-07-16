@@ -45,12 +45,13 @@ export default function ChartCard({ chart, selection, countries, years, mappings
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [showDifference, setShowDifference] = useState(false);
+  const [hiddenLegendValues, setHiddenLegendValues] = useState<Set<string>>(() => new Set());
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
   useEffect(() => {
     setPrimary(null); setComparison(null);
-    setFilterValue("ALL"); setStartTime(""); setEndTime("");
+    setFilterValue("ALL"); setStartTime(""); setEndTime(""); setHiddenLegendValues(new Set());
   }, [selection.dataset, selection.project, selection.scenario, selection.sector]);
   useEffect(() => { setCountry("ALL"); }, [selection.dataset, selection.project]);
   useEffect(() => { if (country !== "ALL" && !countries.includes(country)) setCountry("ALL"); }, [countries, country]);
@@ -82,6 +83,14 @@ export default function ChartCard({ chart, selection, countries, years, mappings
     () => getLegendValues(chart, primary, comparison),
     [chart, primary, comparison],
   );
+  const toggleLegendValue = (value: string) => {
+    setHiddenLegendValues((current) => {
+      const next = new Set(current);
+      if (next.has(value)) next.delete(value);
+      else next.add(value);
+      return next;
+    });
+  };
   const availableStart = timestampToMs(primary?.meta.available_start);
   const availableEnd = timestampToMs(primary?.meta.available_end);
   const selectedStart = timestampToMs(startTime) ?? availableStart;
@@ -136,13 +145,13 @@ export default function ChartCard({ chart, selection, countries, years, mappings
       {loading && !primary && <div className="state"><span className="spinner" />Reading result table…</div>}
       {!loading && error && <div className="state empty"><b>No chart data</b><span>{error}</span></div>}
       {!loading && !error && primary && primary.rows.length === 0 && <div className="state empty"><b>No values in this result table</b><span>The chart will appear when the selected run contains data.</span></div>}
-      {!error && primary && primary.rows.length > 0 && !comparing && <Plot chart={chart} primary={primary} comparison={null} primaryName={selection.scenario} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} />}
+      {!error && primary && primary.rows.length > 0 && !comparing && <Plot chart={chart} primary={primary} comparison={null} primaryName={selection.scenario} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} hiddenLegendValues={hiddenLegendValues} onLegendToggle={toggleLegendValue} />}
       {!error && primary && primary.rows.length > 0 && comparing && !showDifference && <>
-        <div className="scenario-plot"><ChartContextHeading label="Primary scenario" title={selection.scenario} /><Plot chart={chart} primary={primary} comparison={null} primaryName={selection.scenario} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} legendValues={comparisonLegendValues} showLegend={false} /></div>
-        <div className="scenario-plot"><ChartContextHeading label="Comparison scenario" title={selection.comparison} /><Plot chart={chart} primary={comparison!} comparison={null} primaryName={selection.comparison} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} legendValues={comparisonLegendValues} showLegend={false} /></div>
-        <ChartLegend values={comparisonLegendValues} mappings={mappings} />
+        <div className="scenario-plot"><ChartContextHeading label="Primary scenario" title={selection.scenario} /><Plot chart={chart} primary={primary} comparison={null} primaryName={selection.scenario} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} legendValues={comparisonLegendValues} showLegend={false} hiddenLegendValues={hiddenLegendValues} onLegendToggle={toggleLegendValue} /></div>
+        <div className="scenario-plot"><ChartContextHeading label="Comparison scenario" title={selection.comparison} /><Plot chart={chart} primary={comparison!} comparison={null} primaryName={selection.comparison} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} legendValues={comparisonLegendValues} showLegend={false} hiddenLegendValues={hiddenLegendValues} onLegendToggle={toggleLegendValue} /></div>
+        <ChartLegend values={comparisonLegendValues} mappings={mappings} hiddenValues={hiddenLegendValues} onToggle={toggleLegendValue} />
       </>}
-      {!error && primary && primary.rows.length > 0 && comparing && showDifference && <div className="difference-plot"><ChartContextHeading label="Difference" title={`${selection.comparison} − ${selection.scenario}`} /><Plot chart={chart} primary={primary} comparison={comparison} primaryName={selection.scenario} comparisonName={selection.comparison} mappings={mappings} darkMode={darkMode} expanded={expanded} difference /></div>}
+      {!error && primary && primary.rows.length > 0 && comparing && showDifference && <div className="difference-plot"><ChartContextHeading label="Difference" title={`${selection.comparison} − ${selection.scenario}`} /><Plot chart={chart} primary={primary} comparison={comparison} primaryName={selection.scenario} comparisonName={selection.comparison} mappings={mappings} darkMode={darkMode} expanded={expanded} difference hiddenLegendValues={hiddenLegendValues} onLegendToggle={toggleLegendValue} /></div>}
     </div>
   </article>;
 }

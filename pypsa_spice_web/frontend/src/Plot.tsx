@@ -19,6 +19,8 @@ interface Props {
   difference?: boolean;
   legendValues?: string[];
   showLegend?: boolean;
+  hiddenLegendValues: ReadonlySet<string>;
+  onLegendToggle: (value: string) => void;
 }
 
 function pretty(value: string, mappings: Catalog["mappings"]): string {
@@ -58,13 +60,29 @@ function legendColor(value: string, index: number, mappings: Catalog["mappings"]
   return mappings[value]?.color || fallbackColors[Math.max(0, index) % fallbackColors.length];
 }
 
-export function ChartLegend({ values, mappings }: { values: string[]; mappings: Catalog["mappings"] }) {
+export function ChartLegend({ values, mappings, hiddenValues, onToggle }: {
+  values: string[];
+  mappings: Catalog["mappings"];
+  hiddenValues: ReadonlySet<string>;
+  onToggle: (value: string) => void;
+}) {
   return <div className="html-legend" aria-label="Chart legend">
-    {values.map((value, index) => <span className="html-legend-item" key={value}>
+    {values.map((value, index) => <button
+      type="button"
+      className={`html-legend-item ${hiddenValues.has(value) ? "is-hidden" : ""}`}
+      key={value}
+      aria-pressed={!hiddenValues.has(value)}
+      title={`${hiddenValues.has(value) ? "Show" : "Hide"} ${pretty(value, mappings)}`}
+      onClick={() => onToggle(value)}
+    >
       <i style={{ backgroundColor: legendColor(value, index, mappings) }} aria-hidden="true" />
       <span>{pretty(value, mappings)}</span>
-    </span>)}
+    </button>)}
   </div>;
+}
+
+function isSecondarySeries(chart: ChartDefinition, legend: string): boolean {
+  return Boolean(chart.secondary_y_lab?.includes(legend));
 }
 
 function traces(
@@ -74,6 +92,7 @@ function traces(
   mappings: Catalog["mappings"],
   comparison: boolean,
   legendValues: string[],
+  hiddenLegendValues: ReadonlySet<string>,
 ) {
   return [...aggregate(response.rows, chart).entries()].map(([legend, points]) => {
     const color = legendColor(legend, legendValues.indexOf(legend), mappings);
@@ -88,6 +107,7 @@ function traces(
       opacity: comparison ? 0.5 : 0.94,
       hovertemplate: `<b>${pretty(legend, mappings)}</b>: %{y:,.2f} ${chart.units || ""}<extra></extra>`,
       yaxis: chart.secondary_y_lab?.includes(legend) ? "y2" : "y",
+      visible: hiddenLegendValues.has(legend) ? "legendonly" : true,
     };
     if (isArea) Object.assign(trace, { type: "scatter", mode: "lines", fill: comparison ? "none" : "tonexty", stackgroup: comparison ? undefined : "one" });
     else if (chart.hourly && !isBar) Object.assign(trace, { type: "scatter", mode: "lines" });
@@ -104,6 +124,7 @@ function differenceTraces(
   comparisonName: string,
   mappings: Catalog["mappings"],
   legendValues: string[],
+  hiddenLegendValues: ReadonlySet<string>,
 ) {
   const first = aggregate(primary.rows, chart);
   const second = aggregate(comparison.rows, chart);
@@ -122,11 +143,54 @@ function differenceTraces(
       y: xValues.map((value) => (secondPoints.get(value) || 0) - (firstPoints.get(value) || 0)),
       marker: { color }, line: { color, width: 2 },
       hovertemplate: `<b>${pretty(legend, mappings)}</b>: %{y:+,.2f} ${chart.units || ""}<extra></extra>`,
+      visible: hiddenLegendValues.has(legend) ? "legendonly" : true,
     };
   });
 }
 
-export default function Plot({ chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, expanded, difference = false, legendValues: sharedLegendValues, showLegend = true }: Props) {
+function formatTotal(value: number): string {
+  return new Intl.NumberFormat(undefined, {
+    notation: Math.abs(value) >= 10_000 ? "compact" : "standard",
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function stackedBarTotalTrace(
+  response: ChartResponse,
+  chart: ChartDefinition,
+  hiddenLegendValues: ReadonlySet<string>,
+) {
+  if (chart.hourly || !chart.type.includes("bar")) return null;
+  const totals = new Map<string, { x: string | number; total: number; positive: number; negative: number }>();
+  for (const [legend, points] of aggregate(response.rows, chart)) {
+    if (hiddenLegendValues.has(legend) || isSecondarySeries(chart, legend)) continue;
+    for (const point of points) {
+      const key = String(point.x);
+      const current = totals.get(key) || { x: point.x, total: 0, positive: 0, negative: 0 };
+      current.total += point.y;
+      if (point.y >= 0) current.positive += point.y;
+      else current.negative += point.y;
+      totals.set(key, current);
+    }
+  }
+  const values = [...totals.values()].sort((a, b) => String(a.x).localeCompare(String(b.x)));
+  if (values.length === 0) return null;
+  return {
+    type: "scatter",
+    mode: "text",
+    name: "Column total",
+    x: values.map((value) => value.x),
+    y: values.map((value) => value.positive > 0 ? value.positive : value.negative),
+    text: values.map((value) => formatTotal(value.total)),
+    textposition: values.map((value) => value.positive > 0 ? "top center" : "bottom center"),
+    textfont: { size: 10 },
+    cliponaxis: false,
+    hoverinfo: "skip",
+    showlegend: false,
+  };
+}
+
+export default function Plot({ chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, expanded, difference = false, legendValues: sharedLegendValues, showLegend = true, hiddenLegendValues, onLegendToggle }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const derivedLegendValues = useMemo(() => getLegendValues(chart, primary, comparison), [primary, comparison, chart]);
   const legendValues = sharedLegendValues || derivedLegendValues;
@@ -134,12 +198,14 @@ export default function Plot({ chart, primary, comparison, primaryName, comparis
     if (!ref.current || !window.Plotly) return;
     const grid = "#e2e6e4";
     const text = darkMode ? "#a9b5b1" : "#65717d";
-    const allTraces = difference && comparison
-      ? differenceTraces(primary, comparison, chart, primaryName, comparisonName, mappings, legendValues)
-      : [...traces(primary, chart, primaryName, mappings, false, legendValues), ...(comparison ? traces(comparison, chart, comparisonName, mappings, true, legendValues) : [])];
+    const chartTraces = difference && comparison
+      ? differenceTraces(primary, comparison, chart, primaryName, comparisonName, mappings, legendValues, hiddenLegendValues)
+      : [...traces(primary, chart, primaryName, mappings, false, legendValues, hiddenLegendValues), ...(comparison ? traces(comparison, chart, comparisonName, mappings, true, legendValues, hiddenLegendValues) : [])];
+    const totalTrace = difference ? null : stackedBarTotalTrace(primary, chart, hiddenLegendValues);
+    const allTraces = totalTrace ? [...chartTraces, totalTrace] : chartTraces;
     window.Plotly.react(ref.current, allTraces, {
       autosize: true,
-      margin: { l: 58, r: chart.secondary_y_lab ? 58 : 18, t: 14, b: 38 },
+      margin: { l: 58, r: chart.secondary_y_lab ? 58 : 18, t: totalTrace ? 28 : 14, b: 38 },
       paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
       font: { family: "Flexo, sans-serif", size: 10, color: text },
       showlegend: false,
@@ -155,11 +221,11 @@ export default function Plot({ chart, primary, comparison, primaryName, comparis
       toImageButtonOptions: { format: "png", filename: `${primaryName}_${chart.table_name}`, scale: 2 },
     });
     return () => { if (ref.current) window.Plotly.purge(ref.current); };
-  }, [chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, difference, legendValues]);
+  }, [chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, difference, legendValues, hiddenLegendValues]);
 
   useEffect(() => { if (ref.current && window.Plotly) window.Plotly.Plots.resize(ref.current); }, [expanded]);
   return <div className="plot-with-legend">
     <div ref={ref} className="plot" />
-    {showLegend && <ChartLegend values={legendValues} mappings={mappings} />}
+    {showLegend && <ChartLegend values={legendValues} mappings={mappings} hiddenValues={hiddenLegendValues} onToggle={onLegendToggle} />}
   </div>;
 }
