@@ -1622,6 +1622,7 @@ def generation_type_mapping(x: str) -> str:
         return "renewables"
     if x in [
         "CCGT",
+        "CCGT-CCS",
         "OCGT",
         "OILT",
         "SubC",
