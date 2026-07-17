@@ -1,4 +1,4 @@
-import type { Catalog, ChartDefinition, ChartResponse, InputCatalog, InputCell, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology, ScenarioConfigResponse, Selection } from "./types";
+import type { Catalog, ChartDefinition, ChartResponse, InputCatalog, InputCell, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology, ModelRun, ModelRunOptions, ScenarioConfigResponse, Selection, StartModelRunRequest } from "./types";
 
 async function apiJson<T>(response: Response, fallback: string): Promise<T> {
   if (!response.ok) {
@@ -163,5 +163,44 @@ export async function saveScenarioConfigSection(
       body: JSON.stringify({ revision, value }),
     }),
     "Could not save the scenario configuration.",
+  );
+}
+
+export async function getModelRunOptions(): Promise<ModelRunOptions> {
+  return apiJson(
+    await fetch(`/api/runs/options?t=${Date.now()}`),
+    "Could not read base_config.yaml.",
+  );
+}
+
+export async function getLatestModelRun(): Promise<ModelRun | null> {
+  return apiJson(
+    await fetch(`/api/runs/latest?t=${Date.now()}`),
+    "Could not read the latest model run.",
+  );
+}
+
+export async function getModelRun(runId: string): Promise<ModelRun> {
+  return apiJson(
+    await fetch(`/api/runs/${encodeURIComponent(runId)}?t=${Date.now()}`),
+    "Could not refresh the model run.",
+  );
+}
+
+export async function startModelRun(request: StartModelRunRequest): Promise<ModelRun> {
+  return apiJson(
+    await fetch("/api/runs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    }),
+    "Could not start the model run.",
+  );
+}
+
+export async function cancelModelRun(runId: string): Promise<ModelRun> {
+  return apiJson(
+    await fetch(`/api/runs/${encodeURIComponent(runId)}`, { method: "DELETE" }),
+    "Could not stop the model run.",
   );
 }

@@ -133,3 +133,50 @@ export interface ScenarioConfigResponse {
   revision: string;
   sections: Record<string, Record<string, unknown>>;
 }
+
+export interface ModelRunOptions {
+  config_file: string;
+  target: string;
+  defaults: {
+    dataset: string;
+    project: string;
+    input_scenario: string;
+    output_scenario: string;
+  };
+  years: string[];
+  sectors: string[];
+  regions: string[];
+  currency: string;
+}
+
+export type ModelRunStatus = "queued" | "running" | "canceling" | "succeeded" | "failed" | "canceled";
+
+export interface ModelRun {
+  id: string;
+  status: ModelRunStatus;
+  progress: number;
+  message: string;
+  current_rule: string | null;
+  created_at: string;
+  started_at: string | null;
+  ended_at: string | null;
+  exit_code: number | null;
+  pid: number | null;
+  dataset: string;
+  project: string;
+  input_scenario: string;
+  output_scenario: string;
+  cores: number;
+  target: string;
+  config_file: string;
+  log_file: string;
+  log: string;
+}
+
+export interface StartModelRunRequest {
+  dataset: string;
+  project: string;
+  input_scenario: string;
+  output_scenario: string;
+  cores: number;
+}

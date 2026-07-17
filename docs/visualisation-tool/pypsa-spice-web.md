@@ -1,6 +1,6 @@
 # PyPSA-SPICE model workspace
 
-The model workspace is the React and FastAPI interface for working with a local PyPSA-SPICE project. It provides technology-first input editing, scenario configuration, and long-form result analysis while continuing to use the checked-out CSV and YAML files as the source of truth. The Results area covers Power, Industry, Transport, Emissions, and Costs. Comparison mode places both result runs side by side for each indicator; the optional difference view calculates `comparison − primary` for every aligned series and timestamp or model year.
+The model workspace is the React and FastAPI interface for working with a local PyPSA-SPICE project. It provides technology-first input editing, scenario configuration, Snakemake-backed model runs, and long-form result analysis while continuing to use the checked-out CSV and YAML files as the source of truth. The Results area covers Power, Industry, Transport, Emissions, and Costs. Comparison mode places both result runs side by side for each indicator; the optional difference view calculates `comparison − primary` for every aligned series and timestamp or model year.
 
 ## Development boundary
 
@@ -50,6 +50,7 @@ The main workspace pages are:
 
 - **Inputs**, organised primarily by technology with a table/file view for advanced editing.
 - **Scenario configuration**, covering scenario settings, CO₂ management, and custom constraints.
+- **Run model**, preparing a run-specific base configuration and starting the repository Snakemake workflow.
 - **Results**, providing one long analytical page for each energy-system section.
 
 The Results pages provide visualisation and scenario comparison for:
@@ -61,6 +62,25 @@ The Results pages provide visualisation and scenario comparison for:
 - Costs
 
 Result files remain read-only. Input and scenario-configuration changes are written directly to the selected local CSV or YAML file only after the user explicitly saves them. Large timeseries input tables remain read-only in the browser.
+
+## Run model workflow
+
+The Run model page uses the repository-root `base_config.yaml` as its fixed configuration template. Project and input-scenario context come from the shared workspace bar. Before launch, the page lets the user set the output scenario and CPU-core count and shows the years, sector, regions, and currency inherited from `base_configs`.
+
+Starting a run creates `logs/web_runs/<run-id>/base_config.yaml` and replaces only these values in that run-local copy:
+
+- `path_configs.data_folder_name`
+- `path_configs.project_name`
+- `path_configs.input_scenario_name`
+- `path_configs.output_scenario_name`
+
+The checked-in root `base_config.yaml` is not mutated. FastAPI then starts the root `Snakefile` with the `solve_all_networks` target. Only one web-launched run can be active at a time. Current rule, completed-step progress, final state, and the Snakemake log tail are available on the Run model page; complete logs and persisted state remain under `logs/web_runs/<run-id>/`.
+
+The runner looks for a `snakemake` executable first and otherwise tries `python -m snakemake` in the web server environment. Set `SNAKEMAKE_COMMAND` when the workflow needs a different launcher, for example:
+
+```bash
+SNAKEMAKE_COMMAND="conda run -n hotpot snakemake" ./run_web.sh
+```
 
 ## Result-file access
 

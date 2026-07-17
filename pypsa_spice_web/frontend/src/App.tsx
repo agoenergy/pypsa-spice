@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BarChart3, CarFront, CircleDollarSign, Cloud, Factory, FileInput, List, Menu, Moon, RefreshCw, Settings2, Sun, X, Zap } from "lucide-react";
+import { BarChart3, CarFront, CircleDollarSign, Cloud, Factory, FileInput, List, Menu, Moon, Play, RefreshCw, Settings2, Sun, X, Zap } from "lucide-react";
 import { getCatalog, getInputCatalog } from "./api";
 import ChartCard from "./ChartCard";
 import DataDialog from "./DataDialog";
 import InputEditor from "./InputEditor";
+import RunModel from "./RunModel";
 import ScenarioConfigEditor from "./ScenarioConfigEditor";
 import { confirmDiscardChanges } from "./dirtyState";
 import type { Catalog, ChartDefinition, InputCatalog, InputSelection, ResultRow, Selection } from "./types";
 
-type ViewMode = "outputs" | "inputs" | "configure";
+type ViewMode = "outputs" | "inputs" | "configure" | "run";
 type WorkspaceOption = { value: string; label: string };
 
 const WORKSPACE_SEPARATOR = "::";
@@ -18,7 +19,7 @@ const sectionIcons = { power: Zap, industry: Factory, transport: CarFront, emiss
 
 function locationParams() { return new URLSearchParams(window.location.search); }
 function sectionFromLocation() { return locationParams().get("section")?.toLowerCase() || "power"; }
-function viewFromLocation(): ViewMode { const value = locationParams().get("view"); return value === "inputs" || value === "configure" ? value : "outputs"; }
+function viewFromLocation(): ViewMode { const value = locationParams().get("view"); return value === "inputs" || value === "configure" || value === "run" ? value : "outputs"; }
 function countryFromLocation() { return locationParams().get("country") || "ALL"; }
 function workspaceValue(dataset: string, project: string) { return `${dataset}${WORKSPACE_SEPARATOR}${project}`; }
 function splitWorkspace(value: string) { const [dataset, ...project] = value.split(WORKSPACE_SEPARATOR); return { dataset, project: project.join(WORKSPACE_SEPARATOR) }; }
@@ -179,6 +180,9 @@ export default function App() {
           {view === "configure" && <div className="sidebar-submenu-slot" id="config-section-tabs" />}
         </div>
         <div className="sidebar-section">
+          <a className={`sidebar-primary ${view === "run" ? "active" : ""}`} href="?view=run" onClick={(event) => { event.preventDefault(); chooseView("run"); }}><Play aria-hidden="true" />Run model</a>
+        </div>
+        <div className="sidebar-section">
           <a className={`sidebar-primary ${view === "outputs" ? "active" : ""}`} href={`?section=${section?.id || "power"}`} onClick={(event) => { event.preventDefault(); chooseView("outputs"); }}><BarChart3 aria-hidden="true" />Results</a>
           {view === "outputs" && section && <nav className="sidebar-submenu-list" aria-label="Result pages">{sections.map((item) => { const SectionIcon = sectionIcons[item.id as keyof typeof sectionIcons] || Zap; return <a className={`sidebar-submenu-item ${item.id === section.id ? "active" : ""}`} href={`?section=${item.id}`} key={item.id} aria-current={item.id === section.id ? "page" : undefined} onClick={(event) => { event.preventDefault(); chooseSection(item.id); }}><SectionIcon aria-hidden="true" /><b>{item.label}</b><small>{item.charts.length}</small></a>; })}</nav>}
         </div>
@@ -202,7 +206,7 @@ export default function App() {
         <div className="top-actions"><button className="button secondary" onClick={refreshCurrent}><RefreshCw aria-hidden="true" />Refresh</button></div>
       </header>
       <main id="workspace">
-        {view === "outputs" ? outputReady ? <><section className="page-title"><div><p className="eyebrow pink">Results analysis</p><h1>{section!.title}</h1></div>{scenario!.sectors.length > 1 && <div className="page-controls"><ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} /></div>}</section><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} countries={availableCountries} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(title, rows, sourceCount, hourly) => setInspector({ title, rows, sourceCount, hourly })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisations are configured for this section.</div>}</section><ResultsToc key={section!.id} charts={charts} /></> : <Boot message={error || "Discovering local results…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} onNavigate={() => setSidebarOpen(false)} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} /> : <Boot message={inputError || "Discovering model inputs…"} />}
+        {view === "outputs" ? outputReady ? <><section className="page-title"><div><p className="eyebrow pink">Results analysis</p><h1>{section!.title}</h1></div>{scenario!.sectors.length > 1 && <div className="page-controls"><ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} /></div>}</section><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} countries={availableCountries} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(title, rows, sourceCount, hourly) => setInspector({ title, rows, sourceCount, hourly })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisations are configured for this section.</div>}</section><ResultsToc key={section!.id} charts={charts} /></> : <Boot message={error || "Discovering local results…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} onNavigate={() => setSidebarOpen(false)} /> : view === "configure" ? <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} /> : <RunModel key={`${inputRefresh}:${inputSelection.dataset}:${inputSelection.project}:${inputSelection.scenario}`} selection={inputSelection} /> : <Boot message={inputError || "Discovering model inputs…"} />}
       </main>
       <footer><span>PyPSA-SPICE model workspace</span><span>React · FastAPI · Local CSV and YAML source of truth</span></footer>
     </div>

@@ -15,6 +15,7 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
 
 from pypsa_spice_web.input_editor import (
     ConfigSectionUpdate,
@@ -27,6 +28,11 @@ from pypsa_spice_web.input_editor import (
     update_scenario_section,
     update_table,
 )
+from pypsa_spice_web.scenario_runner import (
+    RunConflictError,
+    RunValidationError,
+    ScenarioRunManager,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -35,6 +41,7 @@ DATA_DIR = ROOT / "data"
 GRAPH_CONFIG = ROOT / "pypsa-spice-vis" / "setting" / "graph_settings.yaml"
 MAPPING_DIR = ROOT / "pypsa-spice-vis" / "setting"
 INPUT_CONFIG = MAPPING_DIR / "input_settings.yaml"
+RUN_MANAGER = ScenarioRunManager(ROOT)
 
 CHART_TYPES = {
     "p1": "bar",
@@ -67,6 +74,16 @@ CHART_TYPES = {
     "c7": "bar",
     "c8": "bar",
 }
+
+
+class ModelRunRequest(BaseModel):
+    """Editable base-config path values for a Snakemake model run."""
+
+    dataset: str = Field(min_length=1, max_length=255)
+    project: str = Field(min_length=1, max_length=255)
+    input_scenario: str = Field(min_length=1, max_length=255)
+    output_scenario: str = Field(min_length=1, max_length=255)
+    cores: int = Field(default=1, ge=1, le=128)
 
 SECTION_META = {
     "power": {
@@ -386,6 +403,62 @@ def index(request: Request) -> Response:
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "pypsa-spice-web"}
+
+
+@app.get("/api/runs/options")
+def model_run_options() -> JSONResponse:
+    """Describe the repository base config used for web-launched runs."""
+
+    try:
+        return JSONResponse(RUN_MANAGER.options())
+    except RunValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.get("/api/runs/latest")
+def latest_model_run() -> JSONResponse:
+    """Return the latest persisted web run, including its current log tail."""
+
+    return JSONResponse(RUN_MANAGER.latest())
+
+
+@app.get("/api/runs/{run_id}")
+def model_run(run_id: str) -> JSONResponse:
+    """Return current state for one web-launched Snakemake run."""
+
+    try:
+        return JSONResponse(RUN_MANAGER.get(run_id))
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Model run not found") from exc
+
+
+@app.post("/api/runs", status_code=202)
+def start_model_run(request: ModelRunRequest) -> JSONResponse:
+    """Create a run-local base config and launch the full model workflow."""
+
+    try:
+        run = RUN_MANAGER.start(
+            dataset=request.dataset,
+            project=request.project,
+            input_scenario=request.input_scenario,
+            output_scenario=request.output_scenario,
+            cores=request.cores,
+        )
+    except RunConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RunValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return JSONResponse(run, status_code=202)
+
+
+@app.delete("/api/runs/{run_id}")
+def cancel_model_run(run_id: str) -> JSONResponse:
+    """Request termination of the active Snakemake process."""
+
+    try:
+        return JSONResponse(RUN_MANAGER.cancel(run_id))
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Model run not found") from exc
 
 
 @app.get("/api/catalog")
