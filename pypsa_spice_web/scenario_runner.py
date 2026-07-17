@@ -19,6 +19,11 @@ from typing import Any
 
 import yaml
 
+from pypsa_spice_web.scenario_workspace import (
+    describe_data_repository,
+    input_file_hashes,
+)
+
 
 class RunConflictError(RuntimeError):
     """Raised when a second model run is requested while one is active."""
@@ -99,7 +104,15 @@ class ScenarioRunManager:
             "sectors": [str(value) for value in base.get("sector", [])],
             "regions": [str(value) for value in (base.get("regions") or {})],
             "currency": str(base.get("currency", "")),
+            "environment": "hotpot",
+            "environment_active": self._hotpot_active(),
         }
+
+    @staticmethod
+    def _hotpot_active() -> bool:
+        conda_environment = os.environ.get("CONDA_DEFAULT_ENV", "").strip()
+        conda_prefix = Path(os.environ.get("CONDA_PREFIX", "")).name
+        return conda_environment == "hotpot" or conda_prefix == "hotpot"
 
     def _validate_request(
         self,
@@ -153,14 +166,75 @@ class ScenarioRunManager:
             command = shlex.split(override)
             if command:
                 return command
+        if not self._hotpot_active():
+            conda = shutil.which("conda")
+            if conda:
+                return [conda, "run", "--no-capture-output", "-n", "hotpot", "snakemake"]
+            raise RunValidationError(
+                "Activate the hotpot Conda environment before running the model"
+            )
         executable = shutil.which("snakemake")
         if executable:
             return [executable]
         if importlib.util.find_spec("snakemake") is not None:
             return [sys.executable, "-m", "snakemake"]
         raise RunValidationError(
-            "Snakemake is not available in the web server's Python environment"
+            "Snakemake is not available in the hotpot Conda environment"
         )
+
+    def active(self) -> dict[str, Any] | None:
+        """Return a copy of the active web run without affecting CLI processes."""
+
+        with self._lock:
+            record = self._active_record()
+            return dict(record) if record else None
+
+    def _write_manifest(
+        self,
+        run_dir: Path,
+        *,
+        run_id: str,
+        dataset: str,
+        project: str,
+        input_scenario: str,
+        output_scenario: str,
+        cores: int,
+        config_path: Path,
+    ) -> Path:
+        """Record reproducible input and Git provenance beside the run log."""
+
+        manifest = {
+            "schema_version": 1,
+            "run_id": run_id,
+            "created_at": self._now(),
+            "selection": {
+                "dataset": dataset,
+                "project": project,
+                "input_scenario": input_scenario,
+                "output_scenario": output_scenario,
+            },
+            "workflow": {
+                "snakefile": str(self.snakefile_path.relative_to(self.root)),
+                "target": self.TARGET,
+                "cores": cores,
+                "environment": "hotpot",
+                "source_config": str(self.base_config_path.relative_to(self.root)),
+                "run_config": str(config_path.relative_to(self.root)),
+            },
+            "data_repository": describe_data_repository(
+                self.root / "data", dataset
+            ),
+            "input_sha256": input_file_hashes(
+                self.root / "data", dataset, project, input_scenario
+            ),
+        }
+        path = run_dir / "run_manifest.json"
+        temporary = path.with_suffix(".tmp")
+        temporary.write_text(
+            json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
+        )
+        temporary.replace(path)
+        return path
 
     @staticmethod
     def _signal_process(process: subprocess.Popen[Any], sig: signal.Signals) -> None:
@@ -255,9 +329,23 @@ class ScenarioRunManager:
             run_id = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:8]
             run_dir = self.runs_root / run_id
             run_dir.mkdir(parents=True, exist_ok=False)
-            config_path = self._write_run_config(
-                run_dir, dataset, project, input_scenario, output_scenario
-            )
+            try:
+                config_path = self._write_run_config(
+                    run_dir, dataset, project, input_scenario, output_scenario
+                )
+                manifest_path = self._write_manifest(
+                    run_dir,
+                    run_id=run_id,
+                    dataset=dataset,
+                    project=project,
+                    input_scenario=input_scenario,
+                    output_scenario=output_scenario,
+                    cores=cores,
+                    config_path=config_path,
+                )
+            except Exception:
+                shutil.rmtree(run_dir, ignore_errors=True)
+                raise
             record: dict[str, Any] = {
                 "id": run_id,
                 "status": "queued",
@@ -277,6 +365,7 @@ class ScenarioRunManager:
                 "target": self.TARGET,
                 "config_file": str(config_path.relative_to(self.root)),
                 "log_file": str((run_dir / "snakemake.log").relative_to(self.root)),
+                "manifest_file": str(manifest_path.relative_to(self.root)),
             }
             self._runs[run_id] = record
             self._active_run_id = run_id
@@ -316,9 +405,7 @@ class ScenarioRunManager:
                 self.TARGET,
             ]
             environment = os.environ.copy()
-            environment["HOME"] = str(self.runs_root / run_id / "home")
             environment["TMPDIR"] = str(self.runs_root / run_id / "tmp")
-            Path(environment["HOME"]).mkdir(parents=True, exist_ok=True)
             Path(environment["TMPDIR"]).mkdir(parents=True, exist_ok=True)
             with log_path.open("a", encoding="utf-8", buffering=1) as log:
                 log.write(f"$ {shlex.join(command)}\n\n")

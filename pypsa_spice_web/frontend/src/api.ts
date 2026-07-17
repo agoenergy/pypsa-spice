@@ -1,4 +1,4 @@
-import type { Catalog, ChartDefinition, ChartResponse, InputCatalog, InputCell, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology, ModelRun, ModelRunOptions, ScenarioConfigResponse, Selection, StartModelRunRequest } from "./types";
+import type { Catalog, ChartDefinition, ChartResponse, CreatedScenario, CreateScenarioRequest, InputCatalog, InputCell, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology, ModelRun, ModelRunOptions, ScenarioConfigResponse, ScenarioWorkspaceStatus, Selection, StartModelRunRequest } from "./types";
 
 async function apiJson<T>(response: Response, fallback: string): Promise<T> {
   if (!response.ok) {
@@ -147,6 +147,24 @@ export async function getScenarioConfig(selection: InputSelection, signal?: Abor
   return apiJson(
     await fetch(`/api/input/scenario-config?${configParams(selection)}`, { signal }),
     "Could not read the scenario configuration.",
+  );
+}
+
+export async function getScenarioWorkspaceStatus(dataset: string): Promise<ScenarioWorkspaceStatus> {
+  return apiJson(
+    await fetch(`/api/input/workspace?dataset=${encodeURIComponent(dataset)}&t=${Date.now()}`),
+    "Could not read the local scenario workspace status.",
+  );
+}
+
+export async function createScenario(request: CreateScenarioRequest): Promise<CreatedScenario> {
+  return apiJson(
+    await fetch("/api/input/scenarios", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    }),
+    "Could not create the local scenario.",
   );
 }
 

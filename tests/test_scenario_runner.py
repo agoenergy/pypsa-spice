@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import json
 import tempfile
 import time
 import unittest
@@ -98,6 +99,14 @@ class ScenarioRunManagerTests(unittest.TestCase):
         self.assertEqual(run_config["base_configs"], self.base_config["base_configs"])
         source = yaml.safe_load((self.root / "base_config.yaml").read_text(encoding="utf-8"))
         self.assertEqual(source, self.base_config)
+        manifest = json.loads(
+            (self.root / run["manifest_file"]).read_text(encoding="utf-8")
+        )
+        self.assertEqual(manifest["workflow"]["environment"], "hotpot")
+        self.assertEqual(manifest["selection"]["input_scenario"], "scenario")
+        self.assertIn(
+            "input/scenario/scenario_config.yaml", manifest["input_sha256"]
+        )
 
     def test_run_api_starts_and_reports_a_managed_workflow(self) -> None:
         fake_snakemake = "print('1 of 1 steps (100%) done', flush=True)"

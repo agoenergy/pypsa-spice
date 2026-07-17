@@ -33,6 +33,10 @@ from pypsa_spice_web.scenario_runner import (
     RunValidationError,
     ScenarioRunManager,
 )
+from pypsa_spice_web.scenario_workspace import (
+    ScenarioWorkspace,
+    ScenarioWorkspaceError,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -42,6 +46,7 @@ GRAPH_CONFIG = ROOT / "pypsa-spice-vis" / "setting" / "graph_settings.yaml"
 MAPPING_DIR = ROOT / "pypsa-spice-vis" / "setting"
 INPUT_CONFIG = MAPPING_DIR / "input_settings.yaml"
 RUN_MANAGER = ScenarioRunManager(ROOT)
+SCENARIO_WORKSPACE = ScenarioWorkspace(ROOT, active_run=RUN_MANAGER.active)
 
 CHART_TYPES = {
     "p1": "bar",
@@ -84,6 +89,15 @@ class ModelRunRequest(BaseModel):
     input_scenario: str = Field(min_length=1, max_length=255)
     output_scenario: str = Field(min_length=1, max_length=255)
     cores: int = Field(default=1, ge=1, le=128)
+
+
+class ScenarioCloneRequest(BaseModel):
+    """Create a local scenario by duplicating an existing complete scenario."""
+
+    dataset: str = Field(min_length=1, max_length=255)
+    project: str = Field(min_length=1, max_length=255)
+    source_scenario: str = Field(min_length=1, max_length=255)
+    new_scenario: str = Field(min_length=1, max_length=255)
 
 SECTION_META = {
     "power": {
@@ -473,6 +487,34 @@ def input_data_catalog() -> JSONResponse:
     return JSONResponse(input_catalog(DATA_DIR, INPUT_CONFIG))
 
 
+@app.get("/api/input/workspace")
+def input_workspace_status(dataset: str) -> JSONResponse:
+    """Return web-mutation lock and dataset Git status for review and run."""
+
+    try:
+        return JSONResponse(SCENARIO_WORKSPACE.status(dataset))
+    except ScenarioWorkspaceError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/api/input/scenarios", status_code=201)
+def create_input_scenario(request: ScenarioCloneRequest) -> JSONResponse:
+    """Atomically clone a complete scenario inside the local data worktree."""
+
+    try:
+        scenario = SCENARIO_WORKSPACE.clone(
+            dataset=request.dataset,
+            project=request.project,
+            source_scenario=request.source_scenario,
+            new_scenario=request.new_scenario,
+        )
+    except ScenarioWorkspaceError as exc:
+        detail = str(exc)
+        status_code = 409 if "locked" in detail or "already exists" in detail else 422
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+    return JSONResponse(scenario, status_code=201)
+
+
 @app.get("/api/input/table")
 def input_table_data(
     dataset: str,
@@ -536,6 +578,11 @@ def save_input_table(
 ) -> JSONResponse:
     """Directly and atomically apply validated changes to an input CSV."""
 
+    try:
+        SCENARIO_WORKSPACE.ensure_mutable()
+    except ScenarioWorkspaceError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
     path, config = table_path(
         DATA_DIR,
         INPUT_CONFIG,
@@ -580,6 +627,11 @@ def save_scenario_configuration_section(
     scenario: str,
 ) -> JSONResponse:
     """Directly save one scenario-config section with YAML comments retained."""
+
+    try:
+        SCENARIO_WORKSPACE.ensure_mutable()
+    except ScenarioWorkspaceError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
     path = scenario_config_path(DATA_DIR, dataset, project, scenario)
     return JSONResponse(update_scenario_section(path, section, update))

@@ -147,6 +147,40 @@ export interface ModelRunOptions {
   sectors: string[];
   regions: string[];
   currency: string;
+  environment: string;
+  environment_active: boolean;
+}
+
+export interface DataRepositoryStatus {
+  available: boolean;
+  root: string;
+  remote: string;
+  branch: string;
+  commit: string;
+  dirty: boolean;
+  changes: string[];
+}
+
+export interface ScenarioWorkspaceStatus {
+  mutation_locked: boolean;
+  active_run: { id: string; status: ModelRunStatus } | null;
+  repository: DataRepositoryStatus;
+}
+
+export interface CreateScenarioRequest {
+  dataset: string;
+  project: string;
+  source_scenario: string;
+  new_scenario: string;
+}
+
+export interface CreatedScenario {
+  dataset: string;
+  project: string;
+  scenario: string;
+  source_scenario: string;
+  path: string;
+  repository: DataRepositoryStatus;
 }
 
 export type ModelRunStatus = "queued" | "running" | "canceling" | "succeeded" | "failed" | "canceled";
@@ -170,6 +204,7 @@ export interface ModelRun {
   target: string;
   config_file: string;
   log_file: string;
+  manifest_file: string;
   log: string;
 }
 

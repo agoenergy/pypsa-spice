@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2, CircleStop, Clock3, FileCode2, Play, SquareTerminal } from "lucide-react";
-import { cancelModelRun, getLatestModelRun, getModelRun, getModelRunOptions, startModelRun } from "./api";
-import type { InputSelection, ModelRun, ModelRunOptions } from "./types";
+import { AlertTriangle, CheckCircle2, CircleStop, Clock3, ExternalLink, FileCode2, GitBranch, Pencil, Play, RotateCcw, SquareTerminal } from "lucide-react";
+import { cancelModelRun, getLatestModelRun, getModelRun, getModelRunOptions, getScenarioConfig, getScenarioWorkspaceStatus, startModelRun } from "./api";
+import type { InputSelection, ModelRun, ModelRunOptions, ScenarioConfigResponse, ScenarioWorkspaceStatus } from "./types";
 
 const activeStatuses = new Set(["queued", "running", "canceling"]);
 const CHILLI_COUNT = 12;
@@ -18,8 +18,10 @@ function statusLabel(status: ModelRun["status"]): string {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-export default function RunModel({ selection }: { selection: InputSelection }) {
+export default function RunModel({ selection, onEditConfiguration, onOpenResults }: { selection: InputSelection; onEditConfiguration: () => void; onOpenResults: (runName: string, dataset: string, project: string) => void }) {
   const [options, setOptions] = useState<ModelRunOptions | null>(null);
+  const [scenarioConfig, setScenarioConfig] = useState<ScenarioConfigResponse | null>(null);
+  const [workspace, setWorkspace] = useState<ScenarioWorkspaceStatus | null>(null);
   const [run, setRun] = useState<ModelRun | null>(null);
   const [outputScenario, setOutputScenario] = useState("");
   const [cores, setCores] = useState(1);
@@ -31,10 +33,12 @@ export default function RunModel({ selection }: { selection: InputSelection }) {
   useEffect(() => {
     let current = true;
     setLoading(true);
-    Promise.all([getModelRunOptions(), getLatestModelRun()])
-      .then(([nextOptions, latest]) => {
+    Promise.all([getModelRunOptions(), getLatestModelRun(), getScenarioConfig(selection), getScenarioWorkspaceStatus(selection.dataset)])
+      .then(([nextOptions, latest, nextConfig, nextWorkspace]) => {
         if (!current) return;
         setOptions(nextOptions);
+        setScenarioConfig(nextConfig);
+        setWorkspace(nextWorkspace);
         setRun(latest);
         const defaultsMatch =
           nextOptions.defaults.dataset === selection.dataset
@@ -80,6 +84,18 @@ export default function RunModel({ selection }: { selection: InputSelection }) {
       { label: "Currency", value: options.currency || "Not configured" },
     ];
   }, [options]);
+  const scenarioSummary = useMemo(() => {
+    const settings = scenarioConfig?.sections.scenario_configs || {};
+    const snapshots = (settings.snapshots || {}) as Record<string, unknown>;
+    const resolution = (settings.resolution || {}) as Record<string, unknown>;
+    const resolutionValue = resolution.method === "clustered"
+      ? `${resolution.number_of_days || "—"} representative days`
+      : `Every ${resolution.stepsize || "—"} hour${Number(resolution.stepsize) === 1 ? "" : "s"}`;
+    return {
+      modelYear: String(snapshots.start || "").slice(0, 4) || "Not configured",
+      resolution: resolutionValue,
+    };
+  }, [scenarioConfig]);
 
   const start = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -116,13 +132,32 @@ export default function RunModel({ selection }: { selection: InputSelection }) {
   return <>
     <section className="page-title editor-title run-page-title">
       <div>
-        <p className="eyebrow pink">Snakemake workflow</p>
-        <h1>Run model</h1>
-        <p>Prepare the repository base configuration and run every configured model year.</p>
+        <p className="eyebrow pink">Configure &amp; run</p>
+        <h1>Review &amp; run {selection.scenario}</h1>
+        <p>Confirm the scenario, data worktree, and run settings before starting Snakemake.</p>
       </div>
     </section>
 
     {error && <div className="notice error run-notice"><AlertTriangle aria-hidden="true" />{error}</div>}
+
+    <section className="run-review editor-panel">
+      <header className="editor-panel-head"><div><p className="eyebrow">Final check</p><h2>Run summary</h2><code>{scenarioConfig?.path || "scenario_config.yaml"}</code></div><CheckCircle2 aria-hidden="true" /></header>
+      <div className="run-review-grid">
+        <ReviewItem label="Data folder" value={selection.dataset} />
+        <ReviewItem label="Project" value={selection.project} />
+        <ReviewItem label="Input scenario" value={selection.scenario} />
+        <ReviewItem label="Model year" value={scenarioSummary.modelYear} />
+        <ReviewItem label="Resolution" value={scenarioSummary.resolution} />
+        <ReviewItem label="Regions" value={options?.regions.join(", ") || "Not configured"} />
+        <ReviewItem label="Sectors" value={options?.sectors.join(", ") || "Not configured"} />
+        <ReviewItem label="Currency" value={options?.currency || "Not configured"} />
+      </div>
+      <div className="repository-review">
+        <GitBranch aria-hidden="true" />
+        {workspace?.repository.available ? <><div><span>Data repository</span><b>{workspace.repository.branch || "detached"} · {workspace.repository.commit || "unknown commit"}</b><small>{workspace.repository.remote || workspace.repository.root}</small></div><strong className={workspace.repository.dirty ? "dirty" : "clean"}>{workspace.repository.dirty ? `${workspace.repository.changes.length} local change${workspace.repository.changes.length === 1 ? "" : "s"}` : "Clean worktree"}</strong></> : <><div><span>Data repository</span><b>Local files only</b><small>No dataset-level Git repository was found.</small></div><strong>Not connected</strong></>}
+      </div>
+      <div className="run-requirements"><span><CheckCircle2 aria-hidden="true" /><b>{options?.environment || "hotpot"}</b> Conda environment required</span><span><FileCode2 aria-hidden="true" /><b>{options?.config_file || "base_config.yaml"}</b> copied per run</span><span><SquareTerminal aria-hidden="true" /><b>{options?.target || "solve_all_networks"}</b> target</span></div>
+    </section>
 
     <section className="run-layout">
       <form className="run-setup editor-panel" onSubmit={start}>
@@ -167,14 +202,20 @@ export default function RunModel({ selection }: { selection: InputSelection }) {
               <div><dt>Started</dt><dd>{readableTime(run.started_at || run.created_at)}</dd></div>
               <div><dt>Output</dt><dd>{run.output_scenario}</dd></div>
               <div><dt>Log file</dt><dd>{run.log_file}</dd></div>
+              <div><dt>Manifest</dt><dd>{run.manifest_file || "Not recorded"}</dd></div>
             </dl>
           </div>
           <div className="run-log-head"><span><SquareTerminal aria-hidden="true" />Snakemake log</span>{active && <button className="button secondary" type="button" onClick={cancel} disabled={run.status === "canceling"}><CircleStop aria-hidden="true" />{run.status === "canceling" ? "Stopping…" : "Stop run"}</button>}</div>
           <pre className="run-log" ref={logRef}>{run.log || "Waiting for Snakemake output…"}</pre>
+          {!active && <div className="run-complete-actions"><button className="button secondary" type="button" onClick={onEditConfiguration}><Pencil aria-hidden="true" />Edit configuration</button><button className="button secondary" type="button" onClick={() => setRun(null)}><RotateCcw aria-hidden="true" />Run again</button>{run.status === "succeeded" && <button className="button primary" type="button" onClick={() => onOpenResults(run.output_scenario, run.dataset, run.project)}><ExternalLink aria-hidden="true" />Open results</button>}</div>}
         </> : <div className="run-empty"><SquareTerminal aria-hidden="true" /><b>No web run yet</b><span>Confirm the output scenario and start the model to see progress and logs here.</span></div>}
       </section>
     </section>
   </>;
+}
+
+function ReviewItem({ label, value }: { label: string; value: string }) {
+  return <div><span>{label}</span><b>{value}</b></div>;
 }
 
 function ReadOnlyField({ label, value }: { label: string; value: string }) {

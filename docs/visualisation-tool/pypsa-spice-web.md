@@ -49,8 +49,7 @@ The persistent workspace context separates concepts that have different lifecycl
 The main workspace pages are:
 
 - **Inputs**, organised primarily by technology with a table/file view for advanced editing.
-- **Scenario configuration**, covering scenario settings, CO₂ management, and custom constraints.
-- **Run model**, preparing a run-specific base configuration and starting the repository Snakemake workflow.
+- **Configure & run**, covering scenario settings, CO₂ management, custom constraints, and a final review-and-run stage.
 - **Results**, providing one long analytical page for each energy-system section.
 
 The Results pages provide visualisation and scenario comparison for:
@@ -63,9 +62,11 @@ The Results pages provide visualisation and scenario comparison for:
 
 Result files remain read-only. Input and scenario-configuration changes are written directly to the selected local CSV or YAML file only after the user explicitly saves them. Large timeseries input tables remain read-only in the browser.
 
-## Run model workflow
+## Configure and run workflow
 
-The Run model page uses the repository-root `base_config.yaml` as its fixed configuration template. Project and input-scenario context come from the shared workspace bar. Before launch, the page lets the user set the output scenario and CPU-core count and shows the years, sector, regions, and currency inherited from `base_configs`.
+The Configure & run page uses the repository-root `base_config.yaml` as its fixed configuration template. Project and input-scenario context come from the shared workspace bar. A new scenario can be created locally by atomically duplicating a complete existing scenario folder; it uses the normal model-visible path and adds no web-only metadata file.
+
+The Review & run stage shows scenario year and resolution, model regions, sectors and currency, the output folder, core count, workflow target, and the dataset Git branch, commit, and local-change status when the dataset is its own worktree. It never commits, pulls, or pushes data. While a web-launched run is active, the backend rejects web edits and scenario creation; command-line access remains unchanged.
 
 Starting a run creates `logs/web_runs/<run-id>/base_config.yaml` and replaces only these values in that run-local copy:
 
@@ -74,9 +75,9 @@ Starting a run creates `logs/web_runs/<run-id>/base_config.yaml` and replaces on
 - `path_configs.input_scenario_name`
 - `path_configs.output_scenario_name`
 
-The checked-in root `base_config.yaml` is not mutated. FastAPI then starts the root `Snakefile` with the `solve_all_networks` target. Only one web-launched run can be active at a time. Current rule, completed-step progress, final state, and the Snakemake log tail are available on the Run model page; complete logs and persisted state remain under `logs/web_runs/<run-id>/`.
+The checked-in root `base_config.yaml` is not mutated. Each run also writes `run_manifest.json` with the selection, target, hotpot environment, data-repository state, and SHA-256 hashes of the selected scenario and shared global inputs. FastAPI then starts the root `Snakefile` with the `solve_all_networks` target. Only one web-launched run can be active at a time. Current rule, logo-chilli progress, final state, and the Snakemake log tail are available in Review & run; complete logs and persisted state remain under `logs/web_runs/<run-id>/`.
 
-The runner looks for a `snakemake` executable first and otherwise tries `python -m snakemake` in the web server environment. Set `SNAKEMAKE_COMMAND` when the workflow needs a different launcher, for example:
+Model execution always uses the `hotpot` Conda environment. When the web server is already running in `hotpot`, the runner uses that environment's Snakemake installation. Otherwise it launches `conda run --no-capture-output -n hotpot snakemake`. `SNAKEMAKE_COMMAND` remains available for an explicit local override.
 
 ```bash
 SNAKEMAKE_COMMAND="conda run -n hotpot snakemake" ./run_web.sh

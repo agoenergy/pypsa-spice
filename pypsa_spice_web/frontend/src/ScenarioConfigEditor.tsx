@@ -1,17 +1,21 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, Cloud, Code2, Plus, RotateCcw, Save, Settings2, Trash2 } from "lucide-react";
+import { Check, ClipboardCheck, Cloud, Code2, Plus, RotateCcw, Save, Settings2, Trash2 } from "lucide-react";
 import { getScenarioConfig, saveScenarioConfigSection } from "./api";
 import type { InputSelection, ScenarioConfigResponse } from "./types";
 import { confirmDiscardChanges, setEditorDirty } from "./dirtyState";
+import RunModel from "./RunModel";
 
-const labels: Record<string, string> = { scenario_configs: "Scenario settings", co2_management: "CO₂ management", custom_constraints: "Custom constraints" };
-const icons = { scenario_configs: Settings2, co2_management: Cloud, custom_constraints: Code2 };
+const labels: Record<string, string> = { scenario_configs: "Scenario settings", co2_management: "CO₂ management", custom_constraints: "Custom constraints", review_run: "Review & run" };
+const icons = { scenario_configs: Settings2, co2_management: Cloud, custom_constraints: Code2, review_run: ClipboardCheck };
 
-export default function ScenarioConfigEditor({ selection, country, onNavigate }: { selection: InputSelection; country: string; onNavigate: () => void }) {
+export default function ScenarioConfigEditor({ selection, country, initialSection, onNavigate, onOpenResults }: { selection: InputSelection; country: string; initialSection?: string; onNavigate: () => void; onOpenResults: (runName: string, dataset: string, project: string) => void }) {
   const editorId = useId();
   const [config, setConfig] = useState<ScenarioConfigResponse | null>(null);
-  const [section, setSection] = useState("scenario_configs");
+  const [section, setSection] = useState(() => {
+    const requested = new URLSearchParams(window.location.search).get("step") || initialSection || "scenario_configs";
+    return Object.hasOwn(labels, requested) ? requested : "scenario_configs";
+  });
   const [draft, setDraft] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -47,9 +51,22 @@ export default function ScenarioConfigEditor({ selection, country, onNavigate }:
     finally { setSaving(false); }
   };
 
+  const chooseSection = (name: string) => {
+    if (!confirmDiscardChanges()) return;
+    setSection(name); onNavigate();
+    const params = new URLSearchParams(window.location.search);
+    params.set("view", "configure"); params.set("step", name); params.delete("section");
+    window.history.pushState(null, "", `?${params.toString()}`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const navigation = navigationTarget && createPortal(<nav className="sidebar-submenu-list" aria-label="Configuration and run pages">{Object.keys(labels).map((name) => { const SectionIcon = icons[name as keyof typeof icons]; return <button key={name} className={`sidebar-submenu-item ${section === name ? "active" : ""}`} onClick={() => chooseSection(name)} aria-current={section === name ? "page" : undefined}><SectionIcon aria-hidden="true" /><b>{labels[name]}</b></button>; })}</nav>, navigationTarget);
+
+  if (section === "review_run") return <>{navigation}<RunModel selection={selection} onEditConfiguration={() => chooseSection("scenario_configs")} onOpenResults={onOpenResults} /></>;
+
   return <>
-    {navigationTarget && createPortal(<nav className="sidebar-submenu-list" aria-label="Configuration pages">{Object.keys(labels).map((name) => { const SectionIcon = icons[name as keyof typeof icons]; return <button key={name} className={`sidebar-submenu-item ${section === name ? "active" : ""}`} onClick={() => { if (confirmDiscardChanges()) { setSection(name); onNavigate(); } }} aria-current={section === name ? "page" : undefined}><SectionIcon aria-hidden="true" /><b>{labels[name]}</b></button>; })}</nav>, navigationTarget)}
-    <section className="page-title editor-title"><div><p className="eyebrow pink">Scenario configuration</p><h1>Configure {selection.scenario}</h1><p>Edit the model settings and constraints stored in this scenario’s YAML file.</p></div></section>
+    {navigation}
+    <section className="page-title editor-title"><div><p className="eyebrow pink">Configure &amp; run</p><h1>Configure {selection.scenario}</h1><p>Edit the model settings and constraints stored in this scenario’s YAML file.</p></div></section>
     <div className="config-layout">
       <section className="editor-panel config-panel">
         <header className="editor-panel-head"><div><p className="eyebrow">{selection.project} · {selection.scenario}</p><h2>{labels[section]}</h2>{config && <code>{config.path}</code>}</div></header>
