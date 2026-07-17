@@ -53,6 +53,13 @@ class ConfigSectionUpdate(BaseModel):
     value: dict[str, Any]
 
 
+class ConfigSectionsUpdate(BaseModel):
+    """Optimistic-concurrency request for multiple scenario YAML sections."""
+
+    revision: str
+    sections: dict[str, dict[str, Any]]
+
+
 def _load_yaml(path: Path, *, round_trip: bool = False) -> Any:
     yaml = YAML() if round_trip else YAML(typ="safe", pure=True)
     with path.open(encoding="utf-8") as handle:
@@ -650,5 +657,24 @@ def update_scenario_section(path: Path, section: str, update: ConfigSectionUpdat
         if not isinstance(document, CommentedMap):
             raise HTTPException(status_code=422, detail="Scenario config must be a YAML mapping")
         document[section] = _merge_yaml(document.get(section), update.value)
+        _atomic_yaml_write(path, document)
+    return read_scenario_config(path)
+
+
+def update_scenario_sections(path: Path, update: ConfigSectionsUpdate) -> dict[str, Any]:
+    """Atomically replace multiple editable YAML sections while preserving comments."""
+
+    if not update.sections:
+        raise HTTPException(status_code=422, detail="At least one scenario section is required")
+    if any(section not in EDITABLE_CONFIG_SECTIONS for section in update.sections):
+        raise HTTPException(status_code=404, detail="Scenario section is not editable")
+    with _WRITE_LOCK:
+        if _revision(path) != update.revision:
+            raise HTTPException(status_code=409, detail="This config changed on disk. Reload it before saving.")
+        document = _load_yaml(path, round_trip=True)
+        if not isinstance(document, CommentedMap):
+            raise HTTPException(status_code=422, detail="Scenario config must be a YAML mapping")
+        for section, value in update.sections.items():
+            document[section] = _merge_yaml(document.get(section), value)
         _atomic_yaml_write(path, document)
     return read_scenario_config(path)

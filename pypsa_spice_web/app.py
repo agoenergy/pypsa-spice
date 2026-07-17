@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 from pypsa_spice_web.input_editor import (
     ConfigSectionUpdate,
+    ConfigSectionsUpdate,
     TableUpdate,
     input_catalog,
     read_scenario_config,
@@ -26,6 +27,7 @@ from pypsa_spice_web.input_editor import (
     scenario_config_path,
     table_path,
     update_scenario_section,
+    update_scenario_sections,
     update_table,
 )
 from pypsa_spice_web.scenario_runner import (
@@ -616,6 +618,24 @@ def scenario_configuration(dataset: str, project: str, scenario: str) -> JSONRes
 
     path = scenario_config_path(DATA_DIR, dataset, project, scenario)
     return JSONResponse(read_scenario_config(path))
+
+
+@app.put("/api/input/scenario-config")
+def save_scenario_configuration_sections(
+    update: ConfigSectionsUpdate,
+    dataset: str,
+    project: str,
+    scenario: str,
+) -> JSONResponse:
+    """Directly save multiple scenario-config sections in one atomic write."""
+
+    try:
+        SCENARIO_WORKSPACE.ensure_mutable()
+    except ScenarioWorkspaceError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    path = scenario_config_path(DATA_DIR, dataset, project, scenario)
+    return JSONResponse(update_scenario_sections(path, update))
 
 
 @app.put("/api/input/scenario-config/{section}")

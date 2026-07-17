@@ -16,10 +16,12 @@ from pypsa_spice_web.app import ROOT, app
 from pypsa_spice_web.input_editor import (
     CellChange,
     ConfigSectionUpdate,
+    ConfigSectionsUpdate,
     TableUpdate,
     read_scenario_config,
     read_table,
     update_scenario_section,
+    update_scenario_sections,
     update_table,
 )
 
@@ -125,6 +127,48 @@ class InputEditorTests(unittest.TestCase):
         self.assertIn("# unit: MW", contents)
         self.assertIn("remove_threshold: 0.42", contents)
 
+    def test_yaml_multi_section_update_is_atomic(self) -> None:
+        source = ROOT / "data/example/project_01/input/scenario_01/scenario_config.yaml"
+        target = self.temp_path / source.name
+        shutil.copy2(source, target)
+        before = read_scenario_config(target)
+        co2_management = dict(before["sections"]["co2_management"])
+        custom_constraints = dict(before["sections"]["custom_constraints"])
+        co2_management["combined_test"] = {
+            "option": "co2_price",
+            "value": {"2030": 12},
+        }
+        custom_constraints["combined_test"] = {"enabled": True}
+
+        after = update_scenario_sections(
+            target,
+            ConfigSectionsUpdate(
+                revision=before["revision"],
+                sections={
+                    "co2_management": co2_management,
+                    "custom_constraints": custom_constraints,
+                },
+            ),
+        )
+
+        self.assertEqual(
+            after["sections"]["co2_management"]["combined_test"]["value"]["2030"],
+            12,
+        )
+        self.assertTrue(
+            after["sections"]["custom_constraints"]["combined_test"]["enabled"]
+        )
+
+        with self.assertRaises(HTTPException) as context:
+            update_scenario_sections(
+                target,
+                ConfigSectionsUpdate(
+                    revision=before["revision"],
+                    sections={"co2_management": co2_management},
+                ),
+            )
+        self.assertEqual(context.exception.status_code, 409)
+
     def test_direct_write_endpoints_target_the_selected_project(self) -> None:
         data_root = self.temp_path / "data"
         input_root = data_root / "example" / "project_01" / "input"
@@ -180,10 +224,35 @@ class InputEditorTests(unittest.TestCase):
                 json={"revision": config.json()["revision"], "value": section},
             )
             self.assertEqual(saved_config.status_code, 200)
+            co2_management = saved_config.json()["sections"]["co2_management"]
+            custom_constraints = saved_config.json()["sections"]["custom_constraints"]
+            co2_management["endpoint_test"] = {
+                "option": "co2_cap",
+                "value": {"2030": 99},
+            }
+            custom_constraints["endpoint_test"] = {"enabled": True}
+            saved_combined = client.put(
+                "/api/input/scenario-config",
+                params=config_params,
+                json={
+                    "revision": saved_config.json()["revision"],
+                    "sections": {
+                        "co2_management": co2_management,
+                        "custom_constraints": custom_constraints,
+                    },
+                },
+            )
+            self.assertEqual(saved_combined.status_code, 200)
+            self.assertIn("endpoint_test", saved_combined.json()["sections"]["co2_management"])
+            self.assertIn(
+                "endpoint_test",
+                saved_combined.json()["sections"]["custom_constraints"],
+            )
 
         with csv_target.open(encoding="utf-8", newline="") as handle:
             self.assertEqual(next(csv.DictReader(handle))["efficiency"], "0.987")
         self.assertIn("remove_threshold: 0.321", yaml_target.read_text(encoding="utf-8"))
+        self.assertIn("endpoint_test:", yaml_target.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

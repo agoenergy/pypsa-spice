@@ -135,6 +135,39 @@ export async function saveInputTable(
   );
 }
 
+const FUEL_SUPPLY_TABLE: InputTableDefinition = {
+  id: "Fuel_costs",
+  label: "Fuel costs",
+  scope: "scenario",
+  sector: "power",
+  csv_name: "fuel_supplies.csv",
+  identifier: "fuel_costs",
+  filter_col: "carrier",
+  with_charts: true,
+  editable: true,
+};
+
+export async function getFuelSupplyTable(selection: InputSelection, signal?: AbortSignal): Promise<InputTableResponse> {
+  const first = await getInputTable(selection, FUEL_SUPPLY_TABLE, { limit: 500 }, signal);
+  const rows = [...first.rows];
+  let offset = rows.length;
+  while (offset < first.total_filtered_rows) {
+    const page = await getInputTable(selection, FUEL_SUPPLY_TABLE, { offset, limit: 500 }, signal);
+    rows.push(...page.rows);
+    if (!page.rows.length) break;
+    offset += page.rows.length;
+  }
+  return { ...first, rows, offset: 0, limit: rows.length, truncated: false };
+}
+
+export async function saveFuelSupplyLimits(
+  selection: InputSelection,
+  revision: string,
+  changes: { row: number; column: string; value: InputCell }[],
+): Promise<InputTableResponse> {
+  return saveInputTable(selection, FUEL_SUPPLY_TABLE, revision, changes, { limit: 500 });
+}
+
 function configParams(selection: InputSelection): URLSearchParams {
   return new URLSearchParams({
     dataset: selection.dataset,
@@ -182,6 +215,32 @@ export async function saveScenarioConfigSection(
     }),
     "Could not save the scenario configuration.",
   );
+}
+
+export async function saveScenarioConfigSections(
+  selection: InputSelection,
+  revision: string,
+  sections: Record<string, Record<string, unknown>>,
+): Promise<ScenarioConfigResponse> {
+  const response = await fetch(`/api/input/scenario-config?${configParams(selection)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ revision, sections }),
+  });
+  if (response.status !== 405) {
+    return apiJson(response, "Could not save the scenario configuration.");
+  }
+
+  // Compatibility with a web server process started before the combined-save route
+  // was added. Its established per-section endpoints still provide revision checks.
+  let currentRevision = revision;
+  let saved: ScenarioConfigResponse | null = null;
+  for (const [section, value] of Object.entries(sections)) {
+    saved = await saveScenarioConfigSection(selection, section, currentRevision, value);
+    currentRevision = saved.revision;
+  }
+  if (!saved) throw new Error("No scenario configuration changes were provided.");
+  return saved;
 }
 
 export async function getModelRunOptions(): Promise<ModelRunOptions> {

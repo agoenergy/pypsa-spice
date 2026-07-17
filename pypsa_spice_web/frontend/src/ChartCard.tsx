@@ -15,6 +15,7 @@ interface Props {
 }
 
 const HOUR_MS = 60 * 60 * 1000;
+const LOADING_INDICATOR_DELAY_MS = 500;
 
 function timestampToMs(value: string | null | undefined): number | null {
   if (!value) return null;
@@ -43,6 +44,7 @@ export default function ChartCard({ chart, selection, countries, years, mappings
   const [filterValue, setFilterValue] = useState("ALL");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showDifference, setShowDifference] = useState(false);
   const [hiddenLegendValues, setHiddenLegendValues] = useState<Set<string>>(() => new Set());
@@ -69,6 +71,15 @@ export default function ChartCard({ chart, selection, countries, years, mappings
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [chart, selection.dataset, selection.project, selection.scenario, selection.comparison, selection.sector, chart.hourly ? year : "", country, filterValue, startTime, endTime]);
+
+  useEffect(() => {
+    if (!loading) {
+      setShowLoadingIndicator(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setShowLoadingIndicator(true), LOADING_INDICATOR_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [loading]);
 
   const rows = useMemo(() => [
     ...(primary?.rows.map((row) => ({ ...row, scenario: selection.scenario })) || []),
@@ -142,7 +153,7 @@ export default function ChartCard({ chart, selection, countries, years, mappings
       </div>
     </div>}
     <div className={`chart-body ${primary && primary.rows.length > 0 ? "with-plot" : ""} ${comparing && !showDifference ? "comparison-layout" : ""}`} aria-busy={loading}>
-      {loading && !primary && <div className="state"><span className="spinner" />Reading result table…</div>}
+      {showLoadingIndicator && !primary && <div className="state"><span className="spinner" />Reading result table…</div>}
       {!loading && error && <div className="state empty"><b>No chart data</b><span>{error}</span></div>}
       {!loading && !error && primary && primary.rows.length === 0 && <div className="state empty"><b>No values in this result table</b><span>The chart will appear when the selected run contains data.</span></div>}
       {!error && primary && primary.rows.length > 0 && !comparing && <Plot chart={chart} primary={primary} comparison={null} primaryName={selection.scenario} comparisonName="" mappings={mappings} darkMode={darkMode} expanded={expanded} hiddenLegendValues={hiddenLegendValues} onLegendToggle={toggleLegendValue} />}
@@ -152,6 +163,7 @@ export default function ChartCard({ chart, selection, countries, years, mappings
         <ChartLegend values={comparisonLegendValues} mappings={mappings} hiddenValues={hiddenLegendValues} onToggle={toggleLegendValue} />
       </>}
       {!error && primary && primary.rows.length > 0 && comparing && showDifference && <div className="difference-plot"><ChartContextHeading label="Difference" title={`${selection.comparison} − ${selection.scenario}`} /><Plot chart={chart} primary={primary} comparison={comparison} primaryName={selection.scenario} comparisonName={selection.comparison} mappings={mappings} darkMode={darkMode} expanded={expanded} difference hiddenLegendValues={hiddenLegendValues} onLegendToggle={toggleLegendValue} /></div>}
+      {chart.hourly && showLoadingIndicator && primary && <div className="hourly-loading-overlay" role="status" aria-live="polite"><span className="spinner" aria-hidden="true" /><span>Updating chart…</span></div>}
     </div>
   </article>;
 }
