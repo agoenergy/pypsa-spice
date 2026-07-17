@@ -4,6 +4,7 @@ import { cancelModelRun, getLatestModelRun, getModelRun, getModelRunOptions, sta
 import type { InputSelection, ModelRun, ModelRunOptions } from "./types";
 
 const activeStatuses = new Set(["queued", "running", "canceling"]);
+const CHILLI_COUNT = 12;
 
 function readableTime(value: string | null): string {
   if (!value) return "—";
@@ -160,7 +161,7 @@ export default function RunModel({ selection }: { selection: InputSelection }) {
           <div className="run-progress-block">
             {!runMatchesSelection && <div className="run-selection-warning"><AlertTriangle aria-hidden="true" />This status belongs to {run.project} / {run.input_scenario}.</div>}
             <div className="run-progress-label"><span>{run.message}</span><b>{Math.round(run.progress)}%</b></div>
-            <div className="run-progress" role="progressbar" aria-label="Model run progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(run.progress)}><i style={{ width: `${Math.max(0, Math.min(100, run.progress))}%` }} /></div>
+            <ChilliProgress value={run.progress} />
             <dl className="run-meta">
               <div><dt>Current rule</dt><dd>{run.current_rule || "Waiting for Snakemake"}</dd></div>
               <div><dt>Started</dt><dd>{readableTime(run.started_at || run.created_at)}</dd></div>
@@ -178,6 +179,19 @@ export default function RunModel({ selection }: { selection: InputSelection }) {
 
 function ReadOnlyField({ label, value }: { label: string; value: string }) {
   return <label className="field"><span>{label}</span><input value={value} readOnly aria-readonly="true" /></label>;
+}
+
+function ChilliProgress({ value }: { value: number }) {
+  const progress = Math.max(0, Math.min(100, value));
+  return <div className="chilli-progress" role="progressbar" aria-label="Model run progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress)} aria-valuetext={`${Math.round(progress)} percent complete`}>
+    {Array.from({ length: CHILLI_COUNT }, (_, index) => {
+      const fill = Math.max(0, Math.min(1, progress / 100 * CHILLI_COUNT - index));
+      return <span className="chilli-step" aria-hidden="true" key={index}>
+        <img className="chilli-outline" src="/ui/favicon.svg" alt="" />
+        <span className="chilli-fill" style={{ clipPath: `inset(0 ${100 - fill * 100}% 0 0)` }}><img src="/ui/favicon.svg" alt="" /></span>
+      </span>;
+    })}
+  </div>;
 }
 
 function StatusIcon({ run }: { run: ModelRun | null }) {
