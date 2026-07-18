@@ -175,10 +175,8 @@ function CountryValueEditor({ value, country, onChange }: { value: Record<string
 }
 
 function KeyValueEditor({ value, onChange }: { value: Record<string, unknown>; onChange: (value: Record<string, unknown>) => void }) {
-  const [newKey, setNewKey] = useState("");
-  const add = () => { const key = newKey.trim(); if (!key || Object.hasOwn(value, key)) return; onChange({ ...value, [key]: 0 }); setNewKey(""); };
   const remove = (key: string) => { const next = { ...value }; delete next[key]; onChange(next); };
-  return <div className="mapping-editor"><div className="key-value-grid">{Object.entries(value).map(([key, raw]) => <div className="mapping-field" key={key}><label className="field"><span>{key}</span><input type="number" step="any" value={String(raw ?? "")} onChange={(event) => onChange({ ...value, [key]: Number(event.target.value) })} /></label><button className="icon-button" aria-label={`Remove ${key}`} onClick={() => remove(key)}><Trash2 aria-hidden="true" /></button></div>)}</div><div className="mapping-add"><label className="field"><span>New key</span><input value={newKey} onChange={(event) => setNewKey(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); add(); } }} /></label><button className="button secondary" disabled={!newKey.trim() || Object.hasOwn(value, newKey.trim())} onClick={add}><Plus aria-hidden="true" />Add</button></div></div>;
+  return <div className="mapping-editor"><div className="key-value-grid">{Object.entries(value).map(([key, raw]) => <div className="mapping-field" key={key}><label className="field"><span>{key}</span><input type="number" step="any" value={String(raw ?? "")} onChange={(event) => onChange({ ...value, [key]: Number(event.target.value) })} /></label><button className="icon-button" aria-label={`Remove ${key}`} onClick={() => remove(key)}><Trash2 aria-hidden="true" /></button></div>)}</div></div>;
 }
 
 const YEAR_FIELDS = new Set(["ei_fraction", "res_generation_share"]);

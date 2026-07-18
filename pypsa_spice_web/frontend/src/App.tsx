@@ -199,6 +199,7 @@ export default function App() {
             <ContextControl className="compare-control" label="Compare with" value={selection.comparison} onChange={(comparison) => setSelection((current) => ({ ...current, comparison }))} options={[{ value: "", label: "No comparison" }, ...project!.scenarios.filter((item) => item.name !== selection.scenario).map((item) => ({ value: item.name, label: item.name }))]} />
           </> : <>
             <div className="scenario-context-group"><ContextControl label="Scenario" value={inputSelection.scenario} onChange={chooseInputScenario} options={inputProject!.scenarios.map((item) => ({ value: item, label: item }))} />{(view === "configure" || view === "run") && <button className="context-add" onClick={() => setNewScenarioOpen(true)} aria-label="Create new scenario" title="Create new scenario"><Plus aria-hidden="true" /></button>}</div>
+            {view === "inputs" && <div className="input-topbar-controls" id="input-topbar-controls" />}
             {view === "configure" && <ContextControl className="country-control" label="Country" value={country} onChange={chooseCountry} options={[{ value: "ALL", label: "All countries" }, ...availableCountries.map((item) => ({ value: item, label: item }))]} />}
           </>}
         </div>}

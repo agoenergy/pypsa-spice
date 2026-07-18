@@ -1,6 +1,6 @@
-import { useDeferredValue, useEffect, useId, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AlertTriangle, Check, ChevronLeft, ChevronRight, Cpu, FolderOpen, Globe2, RotateCcw, Save, Search, Table2 } from "lucide-react";
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Cpu, RotateCcw, Save, Search, Table2 } from "lucide-react";
 import { getInputTable, saveInputTable } from "./api";
 import type { InputCatalog, InputCell, InputRow, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology } from "./types";
 import { confirmDiscardChanges, setEditorDirty } from "./dirtyState";
@@ -9,25 +9,28 @@ const PAGE_SIZE = 100;
 
 export default function InputEditor({ catalog, selection, onNavigate }: { catalog: InputCatalog; selection: InputSelection; onNavigate: () => void }) {
   const [view, setView] = useState<"table" | "technology">("technology");
-  const [scope, setScope] = useState<"global" | "scenario">("global");
   const [sector, setSector] = useState("power");
   const project = catalog.datasets.find((item) => item.name === selection.dataset)?.projects.find((item) => item.name === selection.project);
   const technologies = (project?.technologies || []).filter((item) => item.sector === sector);
   const [technologyId, setTechnologyId] = useState("");
   const [menuTarget, setMenuTarget] = useState<HTMLElement | null>(null);
-  const definitions = scope === "global" ? catalog.global_tables : (catalog.sector_tables[sector] || []);
+  const [topbarTarget, setTopbarTarget] = useState<HTMLElement | null>(null);
+  const definitions = useMemo(() => [...catalog.global_tables, ...(catalog.sector_tables[sector] || [])], [catalog, sector]);
   const [tableId, setTableId] = useState(catalog.global_tables.find((item) => item.id === "Technologies")?.id || definitions[0]?.id || "");
 
   useEffect(() => {
-    const available = scope === "global" ? catalog.global_tables : (catalog.sector_tables[sector] || []);
-    const preferred = scope === "global" ? "Technologies" : ({ power: "Power_generators", industry: "Heat_generators", transport: "Transport_loads" } as Record<string, string>)[sector];
-    if (!available.some((item) => item.id === tableId)) setTableId(available.find((item) => item.id === preferred)?.id || available[0]?.id || "");
-  }, [catalog, scope, sector, tableId]);
+    if (definitions.some((item) => item.id === tableId)) return;
+    const preferred = ({ power: "Power_generators", industry: "Heat_generators", transport: "Transport_loads" } as Record<string, string>)[sector];
+    setTableId(definitions.find((item) => item.id === preferred)?.id || catalog.global_tables.find((item) => item.id === "Technologies")?.id || definitions[0]?.id || "");
+  }, [catalog, definitions, sector, tableId]);
 
   useEffect(() => {
     if (!technologies.some((item) => item.id === technologyId)) setTechnologyId(technologies[0]?.id || "");
   }, [technologies, technologyId]);
-  useEffect(() => { setMenuTarget(document.getElementById("input-table-menu")); }, []);
+  useEffect(() => {
+    setMenuTarget(document.getElementById("input-table-menu"));
+    setTopbarTarget(document.getElementById("input-topbar-controls"));
+  }, []);
 
   const definition = definitions.find((item) => item.id === tableId);
   const technology = technologies.find((item) => item.id === technologyId);
@@ -37,18 +40,20 @@ export default function InputEditor({ catalog, selection, onNavigate }: { catalo
       <button className={`sidebar-submenu-item ${view === "technology" ? "active" : ""}`} onClick={() => guarded(() => { setView("technology"); onNavigate(); })} aria-current={view === "technology" ? "page" : undefined}><Cpu aria-hidden="true" /><b>By technology</b></button>
       <button className={`sidebar-submenu-item ${view === "table" ? "active" : ""}`} onClick={() => guarded(() => { setView("table"); onNavigate(); })} aria-current={view === "table" ? "page" : undefined}><Table2 aria-hidden="true" /><b>By table</b></button>
     </nav>, menuTarget)}
+    {topbarTarget && createPortal(<>
+      <label className="context-control input-sector-control"><span>Sector</span><select value={sector} onChange={(event) => guarded(() => setSector(event.target.value))}>{["power", "industry", "transport"].map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
+      {view === "technology" ? <label className="context-control input-technology-control"><span>Technology</span><select value={technologyId} onChange={(event) => guarded(() => setTechnologyId(event.target.value))}>{technologies.map((item) => <option value={item.id} key={item.id}>{item.label} ({item.id})</option>)}</select></label> : <label className="context-control input-table-control"><span>Table</span><select value={tableId} onChange={(event) => guarded(() => setTableId(event.target.value))}>{definitions.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>}
+    </>, topbarTarget)}
     <section className="page-title editor-title"><div><p className="eyebrow pink">Model inputs</p><h1>Input data</h1><p>Explore and edit the model’s source CSV files by table or by technology. Changes are written only when you select Save changes.</p></div></section>
-    {view === "table" && <nav className="table-scope-menu" aria-label="Table input scope" role="tablist"><button className={scope === "global" ? "active" : ""} onClick={() => guarded(() => setScope("global"))} role="tab" aria-selected={scope === "global"}><Globe2 aria-hidden="true" /><b>Global inputs</b></button><button className={scope === "scenario" ? "active" : ""} onClick={() => guarded(() => setScope("scenario"))} role="tab" aria-selected={scope === "scenario"}><FolderOpen aria-hidden="true" /><b>Scenario inputs</b></button></nav>}
-    <section className="editor-primary-select" aria-label={view === "table" ? "Table selection" : "Technology selection"}>
-      <div><p className="eyebrow pink">Current selection</p><h2>{view === "table" ? "Choose a table" : "Choose a technology"}</h2><p>{view === "table" ? "Select the source CSV you want to inspect and edit." : "Technology selection applies across all countries and scenarios. Country filters appear only in tables with country-specific rows."}</p></div>
-      <div className={`editor-selection-fields ${view === "table" ? "table-selection-fields" : ""}`}>
-        {view === "table" && <label className="field sector-select"><span>Sector</span>{scope === "global" ? <select value="ALL" disabled><option value="ALL">All sectors</option></select> : <select value={sector} onChange={(event) => guarded(() => setSector(event.target.value))}>{["power", "industry", "transport"].map((item) => <option value={item} key={item}>{item}</option>)}</select>}</label>}
-        {view === "technology" && <label className="field sector-select"><span>Sector</span><select value={sector} onChange={(event) => guarded(() => setSector(event.target.value))}>{["power", "industry", "transport"].map((item) => <option value={item} key={item}>{item}</option>)}</select></label>}
-        {view === "table" ? <label className="field primary-select"><span>Table</span><select value={tableId} onChange={(event) => guarded(() => setTableId(event.target.value))}>{definitions.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label> : <label className="field primary-select"><span>Technology</span><select value={technologyId} onChange={(event) => guarded(() => setTechnologyId(event.target.value))}>{technologies.map((item) => <option value={item.id} key={item.id}>{item.label} ({item.id})</option>)}</select></label>}
-      </div>
-    </section>
-    {view === "table" ? definition ? <TableEditor key={`${selection.dataset}:${selection.project}:${selection.scenario}:${scope}:${sector}:${definition.id}`} definition={definition} selection={selection} /> : <div className="editor-empty">No configured table is available for this selection.</div> : technology ? <TechnologyEditor catalog={catalog} selection={selection} sector={sector} technology={technology} /> : <div className="editor-empty">No mapped technology is available for this sector.</div>}
+    {view === "table" ? definition ? <TableView key={`${selection.dataset}:${selection.project}:${selection.scenario}:${sector}:${definition.id}`} definition={definition} selection={selection} /> : <div className="editor-empty">No configured table is available for this selection.</div> : technology ? <TechnologyEditor catalog={catalog} selection={selection} sector={sector} technology={technology} /> : <div className="editor-empty">No mapped technology is available for this sector.</div>}
   </>;
+}
+
+function TableView({ definition, selection }: { definition: InputTableDefinition; selection: InputSelection }) {
+  const global = definition.scope === "global";
+  return <div className="table-view">
+    <section className="technology-group"><header><p className="eyebrow">{global ? "Shared assumptions" : selection.scenario}</p><h2>{global ? "Global input" : "Scenario input"}</h2><span>{global ? "Changes here apply to every country and every scenario in this project." : "Assets and constraints for this scenario. Country filters appear only on tables with country-specific rows."}</span></header><TableEditor definition={definition} selection={selection} /></section>
+  </div>;
 }
 
 function TechnologyEditor({ catalog, selection, sector, technology }: { catalog: InputCatalog; selection: InputSelection; sector: string; technology: InputTechnology }) {
