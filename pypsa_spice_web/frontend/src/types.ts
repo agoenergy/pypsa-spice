@@ -7,7 +7,7 @@ export interface ChartDefinition {
   table_name: string;
   leg_col: string;
   fil_col?: string;
-  type: "bar" | "filtered_bar" | "area_share" | "hourly_bar" | "filtered_hourly_bar" | "hourly_line" | "hourly_dual";
+  type: "bar" | "grouped_bar" | "filtered_bar" | "area_share" | "hourly_bar" | "filtered_hourly_bar" | "hourly_line" | "hourly_dual";
   hourly: boolean;
   primary_y_lab?: string[];
   secondary_y_lab?: string[];

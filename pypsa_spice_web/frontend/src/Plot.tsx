@@ -160,7 +160,7 @@ function stackedBarTotalTrace(
   chart: ChartDefinition,
   hiddenLegendValues: ReadonlySet<string>,
 ) {
-  if (chart.hourly || !chart.type.includes("bar")) return null;
+  if (chart.hourly || chart.type === "grouped_bar" || !chart.type.includes("bar")) return null;
   const totals = new Map<string, { x: string | number; total: number; positive: number; negative: number }>();
   for (const [legend, points] of aggregate(response.rows, chart)) {
     if (hiddenLegendValues.has(legend) || isSecondarySeries(chart, legend)) continue;
@@ -209,7 +209,7 @@ export default function Plot({ chart, primary, comparison, primaryName, comparis
       paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
       font: { family: "Flexo, sans-serif", size: 10, color: text },
       showlegend: false,
-      hovermode: "x unified", barmode: difference ? "relative" : comparison ? "group" : "relative",
+      hovermode: "x unified", barmode: chart.type === "grouped_bar" || comparison ? "group" : "relative",
       xaxis: { showgrid: !darkMode, gridcolor: grid, zeroline: false, tickfont: { size: 9 }, unifiedhovertitle: { text: chart.hourly ? "%{x|%d %b · %H:%M}" : "%{x}" } },
       yaxis: { title: { text: difference ? `Difference (${chart.units || "value"})` : chart.units || "", font: { size: 10 } }, showgrid: !darkMode, gridcolor: grid, zeroline: difference, zerolinecolor: darkMode ? "rgba(255,255,255,.18)" : text, zerolinewidth: 1, rangemode: "tozero" },
       yaxis2: { overlaying: "y", side: "right", showgrid: false, title: "State of charge" },

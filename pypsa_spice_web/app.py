@@ -44,7 +44,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIST = PACKAGE_DIR / "frontend" / "dist"
 DATA_DIR = ROOT / "data"
-GRAPH_CONFIG = ROOT / "pypsa-spice-vis" / "setting" / "graph_settings.yaml"
+GRAPH_CONFIG = PACKAGE_DIR / "graph_settings.yaml"
 MAPPING_DIR = ROOT / "pypsa-spice-vis" / "setting"
 INPUT_CONFIG = MAPPING_DIR / "input_settings.yaml"
 RUN_MANAGER = ScenarioRunManager(ROOT)
@@ -53,9 +53,12 @@ SCENARIO_WORKSPACE = ScenarioWorkspace(ROOT, active_run=RUN_MANAGER.active)
 CHART_TYPES = {
     "p1": "bar",
     "p2": "filtered_bar",
+    "p17": "bar",
     "p3": "bar",
+    "p15": "grouped_bar",
     "p4": "area_share",
     "p6": "filtered_bar",
+    "p18": "grouped_bar",
     "p7": "hourly_bar",
     "p8": "filtered_hourly_bar",
     "p9": "bar",
