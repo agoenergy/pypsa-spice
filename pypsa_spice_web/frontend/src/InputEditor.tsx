@@ -33,7 +33,7 @@ export default function InputEditor({ catalog, selection, onNavigate }: { catalo
   }, []);
 
   const definition = definitions.find((item) => item.id === tableId);
-  const technology = technologies.find((item) => item.id === technologyId);
+  const technology = technologies.find((item) => item.id === technologyId) || technologies[0];
   const guarded = (action: () => void) => { if (confirmDiscardChanges()) action(); };
   return <>
     {menuTarget && createPortal(<nav className="sidebar-submenu-list" aria-label="Input pages">
@@ -44,9 +44,17 @@ export default function InputEditor({ catalog, selection, onNavigate }: { catalo
       <label className="context-control input-sector-control"><span>Sector</span><select value={sector} onChange={(event) => guarded(() => setSector(event.target.value))}>{["power", "industry", "transport"].map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
       {view === "technology" ? <label className="context-control input-technology-control"><span>Technology</span><select value={technologyId} onChange={(event) => guarded(() => setTechnologyId(event.target.value))}>{technologies.map((item) => <option value={item.id} key={item.id}>{item.label} ({item.id})</option>)}</select></label> : <label className="context-control input-table-control"><span>Table</span><select value={tableId} onChange={(event) => guarded(() => setTableId(event.target.value))}>{definitions.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>}
     </>, topbarTarget)}
-    <section className="page-title editor-title"><div><p className="eyebrow pink">Model inputs</p><h1>Input data</h1><p>Explore and edit the model’s source CSV files by table or by technology. Changes are written only when you select Save changes.</p></div></section>
+    {view === "technology" ? technology && <TechnologyTitle technology={technology} /> : definition && <TableTitle definition={definition} />}
     {view === "table" ? definition ? <TableView key={`${selection.dataset}:${selection.project}:${selection.scenario}:${sector}:${definition.id}`} definition={definition} selection={selection} /> : <div className="editor-empty">No configured table is available for this selection.</div> : technology ? <TechnologyEditor catalog={catalog} selection={selection} sector={sector} technology={technology} /> : <div className="editor-empty">No mapped technology is available for this sector.</div>}
   </>;
+}
+
+function TechnologyTitle({ technology }: { technology: InputTechnology }) {
+  return <section className="page-title editor-title selection-title"><div><p className="eyebrow pink">Selected technology</p><h1>{technology.label}</h1></div><dl><div><dt>PyPSA class</dt><dd>{technology.classes.join(", ") || "—"}</dd></div><div><dt>Carrier</dt><dd>{technology.carriers.join(", ") || "—"}</dd></div></dl></section>;
+}
+
+function TableTitle({ definition }: { definition: InputTableDefinition }) {
+  return <section className="page-title editor-title selection-title"><div><p className="eyebrow pink">Selected table</p><h1>{definition.label}</h1></div><dl><div><dt>Scope</dt><dd>{definition.scope === "global" ? "Global input" : "Scenario input"}</dd></div><div><dt>Sector</dt><dd>{definition.sector || "All sectors"}</dd></div></dl></section>;
 }
 
 function TableView({ definition, selection }: { definition: InputTableDefinition; selection: InputSelection }) {
@@ -60,7 +68,6 @@ function TechnologyEditor({ catalog, selection, sector, technology }: { catalog:
   const globalDefinitions = catalog.global_tables.filter((item) => item.id !== "Demand_Profiles");
   const scenarioDefinitions = catalog.sector_tables[sector] || [];
   return <div className="technology-view">
-    <section className="technology-summary"><div><p className="eyebrow pink">Selected technology</p><h2>{technology.label}</h2><code>{technology.id}</code></div><dl><div><dt>PyPSA class</dt><dd>{technology.classes.join(", ") || "—"}</dd></div><div><dt>Carrier</dt><dd>{technology.carriers.join(", ") || "—"}</dd></div></dl></section>
     <section className="technology-group"><header><p className="eyebrow">Shared assumptions</p><h2>Global input</h2><span>Changes here apply to every country and every scenario in this project.</span></header><div className="technology-panels">{globalDefinitions.map((definition) => <TableEditor key={`${selection.dataset}:${selection.project}:global:${definition.id}:${technology.id}`} definition={definition} selection={selection} technology={technology} hideWhenEmpty />)}</div></section>
     <section className="technology-group"><header><p className="eyebrow">{selection.scenario}</p><h2>Scenario input</h2><span>Assets and constraints for this scenario. Country filters appear only on tables with country-specific rows.</span></header><div className="technology-panels">{scenarioDefinitions.map((definition) => <TableEditor key={`${selection.dataset}:${selection.project}:${selection.scenario}:${definition.id}:${technology.id}`} definition={definition} selection={selection} technology={technology} hideWhenEmpty />)}</div></section>
   </div>;
