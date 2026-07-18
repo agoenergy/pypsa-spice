@@ -15,6 +15,15 @@ function readableTime(value: string | null): string {
   }).format(new Date(value));
 }
 
+function readableDuration(start: string | null, end: string | null): string {
+  if (!start || !end) return "—";
+  const seconds = Math.max(0, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 1000));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainder = seconds % 60;
+  return [hours ? `${hours}h` : "", minutes ? `${minutes}m` : "", `${remainder}s`].filter(Boolean).join(" ");
+}
+
 function statusLabel(status: ModelRun["status"]): string {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
@@ -195,6 +204,7 @@ export default function RunModel({ selection, onEditConfiguration, onOpenResults
             <dl className="run-meta">
               <div><dt>Current rule</dt><dd>{run.current_rule || "Waiting for Snakemake"}</dd></div>
               <div><dt>Started</dt><dd>{readableTime(run.started_at || run.created_at)}</dd></div>
+              {run.ended_at && <div><dt>Run time</dt><dd>{readableDuration(run.started_at || run.created_at, run.ended_at)}</dd></div>}
               <div><dt>Output</dt><dd>{run.output_scenario}</dd></div>
               <div><dt>Log file</dt><dd>{run.log_file}</dd></div>
               <div><dt>Manifest</dt><dd>{run.manifest_file || "Not recorded"}</dd></div>
