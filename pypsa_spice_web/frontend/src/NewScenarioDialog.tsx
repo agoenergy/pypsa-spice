@@ -42,7 +42,7 @@ export default function NewScenarioDialog({ selection, scenarios, onClose, onCre
 
   return <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !submitting) onClose(); }}>
     <section className="dialog scenario-dialog" role="dialog" aria-modal="true" aria-labelledby="new-scenario-title">
-      <header><div><p className="eyebrow pink">Local data workspace</p><h2 id="new-scenario-title">Create new scenario</h2></div><button className="icon-button" onClick={onClose} disabled={submitting} aria-label="Close"><X aria-hidden="true" /></button></header>
+      <header><h2 id="new-scenario-title">Create new scenario</h2><button className="icon-button" onClick={onClose} disabled={submitting} aria-label="Close"><X aria-hidden="true" /></button></header>
       <form onSubmit={submit}>
         <div className="scenario-dialog-body">
           <p>Duplicate a complete scenario as a new local starting point. Shared <code>global_input</code> files stay shared.</p>

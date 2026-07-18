@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, CircleStop, Clock3, ExternalLink, FileCode2, GitBranch, Pencil, Play, RotateCcw, SquareTerminal } from "lucide-react";
 import { cancelModelRun, getLatestModelRun, getModelRun, getModelRunOptions, getScenarioConfig, getScenarioWorkspaceStatus, startModelRun } from "./api";
+import PageHeader from "./PageHeader";
 import type { InputSelection, ModelRun, ModelRunOptions, ScenarioConfigResponse, ScenarioWorkspaceStatus } from "./types";
 
 const activeStatuses = new Set(["queued", "running", "canceling"]);
@@ -130,18 +131,12 @@ export default function RunModel({ selection, onEditConfiguration, onOpenResults
   if (loading) return <div className="editor-loading"><span className="spinner" />Reading base_config.yaml…</div>;
 
   return <>
-    <section className="page-title editor-title run-page-title">
-      <div>
-        <p className="eyebrow pink">Configure &amp; run</p>
-        <h1>Review &amp; run {selection.scenario}</h1>
-        <p>Confirm the scenario, data worktree, and run settings before starting Snakemake.</p>
-      </div>
-    </section>
+    <PageHeader title={`Review & run ${selection.scenario}`} className="run-page-title" />
 
     {error && <div className="notice error run-notice"><AlertTriangle aria-hidden="true" />{error}</div>}
 
     <section className="run-review editor-panel">
-      <header className="editor-panel-head"><div><p className="eyebrow">Final check</p><h2>Run summary</h2><code>{scenarioConfig?.path || "scenario_config.yaml"}</code></div><CheckCircle2 aria-hidden="true" /></header>
+      <header className="editor-panel-head"><div><h2>Run summary</h2><code>{scenarioConfig?.path || "scenario_config.yaml"}</code></div><CheckCircle2 aria-hidden="true" /></header>
       <div className="run-review-grid">
         <ReviewItem label="Data folder" value={selection.dataset} />
         <ReviewItem label="Project" value={selection.project} />
@@ -162,7 +157,7 @@ export default function RunModel({ selection, onEditConfiguration, onOpenResults
     <section className="run-layout">
       <form className="run-setup editor-panel" onSubmit={start}>
         <header className="editor-panel-head">
-          <div><p className="eyebrow">Run configuration</p><h2>Model selection</h2><code>{options?.config_file || "base_config.yaml"}</code></div>
+          <div><h2>Run configuration</h2><code>{options?.config_file || "base_config.yaml"}</code></div>
           <FileCode2 aria-hidden="true" />
         </header>
         <div className="run-form">

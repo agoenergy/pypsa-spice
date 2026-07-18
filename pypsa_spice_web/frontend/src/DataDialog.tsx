@@ -69,7 +69,7 @@ export default function DataDialog({ title, rows, sourceCount, hourly, onClose }
   const visibleRows = table.rows.slice(0, 500);
   return <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <section className="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
-      <header><div><p className="eyebrow">Displayed data</p><h2 id="dialog-title">{title}</h2></div><button className="icon-button" onClick={onClose} aria-label="Close data table"><X aria-hidden="true" /></button></header>
+      <header><h2 id="dialog-title">{title}</h2><button className="icon-button" onClick={onClose} aria-label="Close data table"><X aria-hidden="true" /></button></header>
       <div className="table-wrap"><table className={table.pivoted ? "pivot-table" : undefined}><thead><tr>{table.columns.map((column) => <th className={table.yearColumns.has(column) ? "number" : undefined} key={column}>{column.replaceAll("_", " ")}</th>)}</tr></thead><tbody>{visibleRows.map((row, index) => <tr key={index}>{table.columns.map((column) => <td className={typeof row[column] === "number" ? "number" : ""} key={column}>{formatCell(row[column])}</td>)}</tr>)}</tbody></table></div>
       <footer><span>{table.pivoted ? <>Showing {visibleRows.length.toLocaleString()} of {table.rows.length.toLocaleString()} pivoted rows from {rows.length.toLocaleString()} displayed values ({sourceCount.toLocaleString()} source rows).</> : <>Showing {visibleRows.length.toLocaleString()} of {table.rows.length.toLocaleString()} displayed rows ({sourceCount.toLocaleString()} source rows).</>}</span><button className="button secondary" onClick={onClose}>Close</button></footer>
     </section>

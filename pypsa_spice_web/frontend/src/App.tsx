@@ -5,6 +5,7 @@ import ChartCard from "./ChartCard";
 import DataDialog from "./DataDialog";
 import InputEditor from "./InputEditor";
 import NewScenarioDialog from "./NewScenarioDialog";
+import PageHeader from "./PageHeader";
 import ScenarioConfigEditor from "./ScenarioConfigEditor";
 import { confirmDiscardChanges } from "./dirtyState";
 import type { Catalog, ChartDefinition, InputCatalog, InputSelection, ResultRow, Selection } from "./types";
@@ -170,9 +171,8 @@ export default function App() {
   return <div className="app-shell">
     <a className="skip-link" href="#workspace">Skip to workspace</a>
     <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-      <div className="brand"><img src="/brand/pypsa-logo.svg" alt="PyPSA-SPICE" /><span>Model workspace</span></div>
+      <div className="brand"><img src="/brand/pypsa-logo.svg" alt="PyPSA-SPICE" /></div>
       <div className="workspace-nav" role="navigation" aria-label="Workflow">
-        <p className="eyebrow">Workflow</p>
         <div className="sidebar-section">
           <a className={`sidebar-primary ${view === "inputs" ? "active" : ""}`} href="?view=inputs" onClick={(event) => { event.preventDefault(); chooseView("inputs"); }}><FileInput aria-hidden="true" />Inputs</a>
           {view === "inputs" && <div className="sidebar-submenu-slot" id="input-table-menu" />}
@@ -206,9 +206,8 @@ export default function App() {
         <div className="top-actions"><button className="button secondary" onClick={refreshCurrent}><RefreshCw aria-hidden="true" />Refresh</button></div>
       </header>
       <main id="workspace">
-        {view === "outputs" ? outputReady ? <><section className="page-title"><div><p className="eyebrow pink">Results analysis</p><h1>{section!.title}</h1></div>{scenario!.sectors.length > 1 && <div className="page-controls"><ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} /></div>}</section><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} countries={availableCountries} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(title, rows, sourceCount, hourly) => setInspector({ title, rows, sourceCount, hourly })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisations are configured for this section.</div>}</section><ResultsToc key={section!.id} charts={charts} /></> : <Boot message={error || "Discovering local results…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} onNavigate={() => setSidebarOpen(false)} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} initialSection={view === "run" ? "review_run" : undefined} onNavigate={() => setSidebarOpen(false)} onOpenResults={(runName, datasetName, projectName) => { window.location.href = `/?section=power&dataset=${encodeURIComponent(datasetName)}&project=${encodeURIComponent(projectName)}&run=${encodeURIComponent(runName)}`; }} /> : <Boot message={inputError || "Discovering model inputs…"} />}
+        {view === "outputs" ? outputReady ? <><PageHeader title={section!.title}>{scenario!.sectors.length > 1 && <div className="page-controls"><ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} /></div>}</PageHeader><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} countries={availableCountries} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(title, rows, sourceCount, hourly) => setInspector({ title, rows, sourceCount, hourly })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisations are configured for this section.</div>}</section><ResultsToc key={section!.id} charts={charts} /></> : <Boot message={error || "Discovering local results…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} onNavigate={() => setSidebarOpen(false)} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} initialSection={view === "run" ? "review_run" : undefined} onNavigate={() => setSidebarOpen(false)} onOpenResults={(runName, datasetName, projectName) => { window.location.href = `/?section=power&dataset=${encodeURIComponent(datasetName)}&project=${encodeURIComponent(projectName)}&run=${encodeURIComponent(runName)}`; }} /> : <Boot message={inputError || "Discovering model inputs…"} />}
       </main>
-      <footer><span>PyPSA-SPICE model workspace</span><span>React · FastAPI · Local CSV and YAML source of truth</span></footer>
     </div>
     {inspector && <DataDialog {...inspector} onClose={() => setInspector(null)} />}
     {newScenarioOpen && inputProject && <NewScenarioDialog selection={inputSelection} scenarios={inputProject.scenarios} onClose={() => setNewScenarioOpen(false)} onCreated={(created) => { setNewScenarioOpen(false); void loadInputs({ dataset: created.dataset, project: created.project, scenario: created.scenario }).then(() => setInputRefresh((current) => current + 1)); }} />}
@@ -232,7 +231,7 @@ function ResultsToc({ charts }: { charts: ChartDefinition[] }) {
   if (!charts.length) return null;
   return <div className={`results-toc ${open ? "open" : ""}`} ref={root}>
     {open && <nav className="results-toc-panel" id="results-figure-list" aria-label="Figures on this page">
-      <header><div><p className="eyebrow pink">On this page</p><h2>Figures</h2></div><button className="icon-button" onClick={() => setOpen(false)} aria-label="Close figure list"><X aria-hidden="true" /></button></header>
+      <header><h2>Figures</h2><button className="icon-button" onClick={() => setOpen(false)} aria-label="Close figure list"><X aria-hidden="true" /></button></header>
       <ol>{charts.map((chart, index) => <li key={chart.id}><a href={`#figure-${chart.id}`} onClick={() => setOpen(false)}><span>{String(index + 1).padStart(2, "0")}</span><b>{chart.name}</b></a></li>)}</ol>
     </nav>}
     <button className="results-toc-trigger" onClick={() => setOpen((current) => !current)} aria-label="Open figure list" aria-expanded={open} aria-controls="results-figure-list"><List aria-hidden="true" /></button>

@@ -4,6 +4,7 @@ import { Check, ClipboardCheck, Code2, List, Plus, RotateCcw, Save, Settings2, T
 import { getFuelSupplyTable, getScenarioConfig, saveFuelSupplyLimits, saveScenarioConfigSection, saveScenarioConfigSections } from "./api";
 import type { InputRow, InputSelection, InputTableResponse, ScenarioConfigResponse } from "./types";
 import { confirmDiscardChanges, setEditorDirty } from "./dirtyState";
+import PageHeader from "./PageHeader";
 import RunModel from "./RunModel";
 
 const COMBINED_SECTION = "co2_constraints";
@@ -121,12 +122,12 @@ export default function ScenarioConfigEditor({ selection, country, initialSectio
 
   return <>
     {navigation}
-    <section className={`page-title editor-title ${section === COMBINED_SECTION ? "compact-config-title" : ""}`}><div><p className="eyebrow pink">Configure &amp; run</p><h1>Configure {selection.scenario}</h1><p>Edit the model settings and constraints stored in this scenario’s input files.</p></div></section>
+    <PageHeader title={`Configure ${selection.scenario}`} />
     <div className="config-layout">
       <section className={`editor-panel config-panel ${section === COMBINED_SECTION ? "combined-config-panel" : ""}`}>
-        <header className="editor-panel-head"><div><p className="eyebrow">{selection.project} · {selection.scenario}</p><h2>{labels[section]}</h2>{config && <code>{config.path}</code>}</div></header>
+        <header className="editor-panel-head"><div><h2>{labels[section]}</h2>{config && <code>{config.path}</code>}</div></header>
         {error && <div className="notice error">{error}<button onClick={() => void load()}>Reload</button></div>}
-        {validationError && <div className="notice error">{validationError}</div>}
+        {!loading && validationError && <div className="notice error">{validationError}</div>}
         {loading ? <div className="editor-loading"><span className="spinner" />Reading configuration…</div> : section === "scenario_configs" ? <ScenarioSettings value={draft} country={country} onChange={setDraft} /> : <CombinedConstraintsEditor value={draft} country={country} fuelRows={fuelRows} fuelError={fuelError} onFuelRowsChange={setFuelRows} onChange={setDraft} />}
         <footer className="config-actions floating-config-actions"><button className="button secondary" disabled={!dirty || saving} onClick={() => { setDraft(structuredClone(original)); setFuelRows(structuredClone(fuelTable?.rows || [])); }}><RotateCcw aria-hidden="true" />Discard</button><button className="button primary" disabled={!dirty || saving || invalid} onClick={save}><Save aria-hidden="true" />{saving ? "Saving…" : "Save changes"}</button>{success && <span className="save-message" role="status"><Check aria-hidden="true" />{success}</span>}</footer>
       </section>
@@ -141,8 +142,8 @@ function CombinedConstraintsEditor({ value, country, fuelRows, fuelError, onFuel
   const constraintNames = [...new Set([...Object.keys(CONSTRAINT_DEFAULTS), ...visibleConstraints.flatMap((raw) => Object.keys(objectValue(raw)))])];
   const tocItems = [{ id: "config-co2-management", label: "CO₂ management" }, ...constraintNames.map((name) => ({ id: constraintAnchor(name), label: prettyConfigLabel(name) }))];
   return <><div className="combined-config">
-    <section className="combined-config-section" id="config-co2-management" aria-labelledby="co2-management-heading"><header><p className="eyebrow pink">Carbon policy</p><h3 id="co2-management-heading">CO₂ management</h3><p>Country carbon cap or price by year.</p></header><Co2Editor value={co2} country={country} onChange={(next) => onChange({ ...value, co2_management: next })} /></section>
-    <section className="combined-config-section" aria-labelledby="custom-constraints-heading"><header><p className="eyebrow pink">Model rules</p><h3 id="custom-constraints-heading">Custom constraints</h3><p>Activate constraints and edit their parameters directly.</p></header><CustomConstraintsEditor value={constraints} country={country} countries={Object.keys(co2)} fuelRows={fuelRows} fuelError={fuelError} onFuelRowsChange={onFuelRowsChange} onChange={(next) => onChange({ ...value, custom_constraints: next })} /></section>
+    <section className="combined-config-section" id="config-co2-management" aria-labelledby="co2-management-heading"><header><h3 id="co2-management-heading">CO₂ management</h3><p>Country carbon cap or price by year.</p></header><Co2Editor value={co2} country={country} onChange={(next) => onChange({ ...value, co2_management: next })} /></section>
+    <section className="combined-config-section" aria-labelledby="custom-constraints-heading"><header><h3 id="custom-constraints-heading">Custom constraints</h3><p>Activate constraints and edit their parameters directly.</p></header><CustomConstraintsEditor value={constraints} country={country} countries={Object.keys(co2)} fuelRows={fuelRows} fuelError={fuelError} onFuelRowsChange={onFuelRowsChange} onChange={(next) => onChange({ ...value, custom_constraints: next })} /></section>
   </div><ConfigToc items={tocItems} /></>;
 }
 
@@ -251,7 +252,7 @@ function CustomConstraintsEditor({ value, country, countries, fuelRows, fuelErro
     {constraintNames.map((constraintName) => {
       const activeCountries = countryNames.filter((countryName) => objectValue(objectValue(value[countryName])[constraintName]).activate === true).length;
       return <section className="constraint-group" id={constraintAnchor(constraintName)} key={constraintName}>
-        <header><div><p className="eyebrow">Constraint</p><h4>{prettyConfigLabel(constraintName)}</h4></div><span>{activeCountries} of {countryNames.length} active</span></header>
+        <header><h4>{prettyConfigLabel(constraintName)}</h4><span>{activeCountries} of {countryNames.length} active</span></header>
         <div className="constraint-country-list">{countryNames.map((countryName) => <ConstraintCard key={countryName} name={constraintName} country={countryName} value={objectValue(objectValue(value[countryName])[constraintName])} fuelRows={fuelRows} fuelError={fuelError} onFuelRowsChange={onFuelRowsChange} onChange={(next) => updateConstraint(countryName, constraintName, next)} />)}</div>
       </section>;
     })}
@@ -272,7 +273,7 @@ function ConfigToc({ items }: { items: { id: string; label: string }[] }) {
   }, [open]);
   return <div className={`results-toc ${open ? "open" : ""}`} ref={root}>
     {open && <nav className="results-toc-panel" id="config-section-list" aria-label="Configuration sections on this page">
-      <header><div><p className="eyebrow pink">On this page</p><h2>Sections</h2></div><button className="icon-button" onClick={() => setOpen(false)} aria-label="Close section list"><X aria-hidden="true" /></button></header>
+      <header><h2>Sections</h2><button className="icon-button" onClick={() => setOpen(false)} aria-label="Close section list"><X aria-hidden="true" /></button></header>
       <ol>{items.map((item, index) => <li key={item.id}><a href={`#${item.id}`} onClick={() => setOpen(false)}><span>{String(index + 1).padStart(2, "0")}</span><b>{item.label}</b></a></li>)}</ol>
     </nav>}
     <button className="results-toc-trigger" onClick={() => setOpen((current) => !current)} aria-label="Open section list" aria-expanded={open} aria-controls="config-section-list"><List aria-hidden="true" /></button>
