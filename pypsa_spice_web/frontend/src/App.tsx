@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BarChart3, CarFront, CircleDollarSign, Cloud, Factory, FileInput, List, Menu, Moon, Plus, RefreshCw, Settings2, Sun, X, Zap } from "lucide-react";
-import { getCatalog, getInputCatalog } from "./api";
+import { getCatalog, getInputCatalog, getLatestModelRun } from "./api";
 import ChartCard from "./ChartCard";
 import DataDialog from "./DataDialog";
 import InputEditor from "./InputEditor";
@@ -8,7 +8,7 @@ import NewScenarioDialog from "./NewScenarioDialog";
 import PageHeader from "./PageHeader";
 import ScenarioConfigEditor from "./ScenarioConfigEditor";
 import { confirmDiscardChanges } from "./dirtyState";
-import type { Catalog, ChartDefinition, InputCatalog, InputSelection, ResultRow, Selection } from "./types";
+import type { Catalog, ChartDefinition, InputCatalog, InputSelection, ModelRunStatus, ResultRow, Selection } from "./types";
 
 type ViewMode = "outputs" | "inputs" | "configure" | "run";
 type WorkspaceOption = { value: string; label: string };
@@ -17,6 +17,7 @@ const WORKSPACE_SEPARATOR = "::";
 const emptySelection: Selection = { dataset: "", project: "", scenario: "", comparison: "", sector: "", year: "" };
 const emptyInputSelection: InputSelection = { dataset: "", project: "", scenario: "" };
 const sectionIcons = { power: Zap, industry: Factory, transport: CarFront, emissions: Cloud, costs: CircleDollarSign };
+const activeModelRunStatuses = new Set<ModelRunStatus>(["queued", "running", "canceling"]);
 
 function locationParams() { return new URLSearchParams(window.location.search); }
 function sectionFromLocation() { return locationParams().get("section")?.toLowerCase() || "power"; }
@@ -73,6 +74,7 @@ export default function App() {
   const [inspector, setInspector] = useState<{ title: string; rows: ResultRow[]; sourceCount: number; hourly: boolean } | null>(null);
   const [dark, setDark] = useState(() => localStorage.getItem("spice-theme") === "dark");
   const [newScenarioOpen, setNewScenarioOpen] = useState(false);
+  const [modelRunStatus, setModelRunStatus] = useState<ModelRunStatus | null>(null);
 
   const loadCatalog = async () => {
     try {
@@ -91,6 +93,17 @@ export default function App() {
   };
 
   useEffect(() => { void loadCatalog(); void loadInputs(); }, []);
+  useEffect(() => {
+    let current = true;
+    const refreshRunStatus = () => {
+      getLatestModelRun()
+        .then((run) => { if (current) setModelRunStatus(run && activeModelRunStatuses.has(run.status) ? run.status : null); })
+        .catch(() => { /* Keep the last known status during a transient refresh failure. */ });
+    };
+    refreshRunStatus();
+    const timer = window.setInterval(refreshRunStatus, 2000);
+    return () => { current = false; window.clearInterval(timer); };
+  }, []);
   useEffect(() => { document.documentElement.dataset.theme = dark ? "dark" : "light"; localStorage.setItem("spice-theme", dark ? "dark" : "light"); }, [dark]);
   useEffect(() => {
     const syncLocation = () => {
@@ -186,7 +199,7 @@ export default function App() {
           {view === "outputs" && section && <nav className="sidebar-submenu-list" aria-label="Result pages">{sections.map((item) => { const SectionIcon = sectionIcons[item.id as keyof typeof sectionIcons] || Zap; return <a className={`sidebar-submenu-item ${item.id === section.id ? "active" : ""}`} href={`?section=${item.id}`} key={item.id} aria-current={item.id === section.id ? "page" : undefined} onClick={(event) => { event.preventDefault(); chooseSection(item.id); }}><SectionIcon aria-hidden="true" /><b>{item.label}</b><small>{item.charts.length}</small></a>; })}</nav>}
         </div>
       </div>
-      <div className="sidebar-foot"><span><i className="status-dot" />Local files connected</span><a href="/docs" target="_blank">API</a><button onClick={() => setDark(!dark)} aria-label="Toggle dark mode">{dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}</button></div>
+      <div className="sidebar-foot"><div className="sidebar-statuses"><span className="sidebar-status-indicator" data-label="Local files connected" aria-label="Local files connected" tabIndex={0}><i className="status-dot" aria-hidden="true" /></span>{modelRunStatus && <span className="sidebar-status-indicator model-run" data-label={modelRunStatus === "queued" ? "Model run queued" : modelRunStatus === "canceling" ? "Stopping model run" : "Model running"} aria-label={modelRunStatus === "queued" ? "Model run queued" : modelRunStatus === "canceling" ? "Stopping model run" : "Model running"} role="status" aria-live="polite" tabIndex={0}><i className="status-dot" aria-hidden="true" /></span>}</div><a href="/docs" target="_blank">API</a><button onClick={() => setDark(!dark)} aria-label="Toggle dark mode">{dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}</button></div>
     </aside>
     <div className="scrim" onClick={() => setSidebarOpen(false)} />
     <div className="main-column">
