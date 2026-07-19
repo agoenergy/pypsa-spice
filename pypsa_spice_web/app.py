@@ -71,33 +71,23 @@ class ScenarioCloneRequest(BaseModel):
 SECTION_META = {
     "power": {
         "label": "Power",
-        "icon": "ϟ",
         "title": "Power Sector",
-        "eyebrow": "Power system",
     },
     "industry": {
         "label": "Industry",
-        "icon": "▦",
         "title": "Industry Sector",
-        "eyebrow": "Industrial energy system",
     },
     "transport": {
         "label": "Transport",
-        "icon": "→",
         "title": "Transport Sector",
-        "eyebrow": "Transport energy system",
     },
     "emissions": {
         "label": "Emissions",
-        "icon": "◌",
         "title": "Emissions",
-        "eyebrow": "Cross-sector emissions",
     },
     "costs": {
         "label": "Costs",
-        "icon": "$",
         "title": "System Costs",
-        "eyebrow": "Cross-sector costs",
     },
 }
 
@@ -327,22 +317,10 @@ def _catalog() -> dict[str, Any]:
                             ],
                             key=_year_sort,
                         )
-                        files = {path.name for path in sector_path.glob("*/*.csv")}
-                        section_counts = {
-                            section: sum(
-                                1
-                                for chart in charts
-                                if f"{chart['table_name']}.csv" in files
-                            )
-                            for section, charts in CHARTS.items()
-                        }
-                        chart_count = sum(section_counts.values())
                         sectors.append(
                             {
                                 "name": sector_path.name,
                                 "years": [year for year in years if year.isdigit()],
-                                "chart_count": chart_count,
-                                "section_counts": section_counts,
                             }
                         )
                     if sectors:

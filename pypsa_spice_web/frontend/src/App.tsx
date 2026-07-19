@@ -10,7 +10,7 @@ import ScenarioConfigEditor from "./ScenarioConfigEditor";
 import { confirmDiscardChanges } from "./dirtyState";
 import type { Catalog, ChartDefinition, InputCatalog, InputSelection, ModelRunStatus, ResultRow, Selection } from "./types";
 
-type ViewMode = "outputs" | "inputs" | "configure" | "run";
+type ViewMode = "outputs" | "inputs" | "configure";
 type WorkspaceOption = { value: string; label: string };
 
 const WORKSPACE_SEPARATOR = "::";
@@ -21,7 +21,7 @@ const activeModelRunStatuses = new Set<ModelRunStatus>(["queued", "running", "ca
 
 function locationParams() { return new URLSearchParams(window.location.search); }
 function sectionFromLocation() { return locationParams().get("section")?.toLowerCase() || "power"; }
-function viewFromLocation(): ViewMode { const value = locationParams().get("view"); return value === "inputs" || value === "configure" || value === "run" ? value : "outputs"; }
+function viewFromLocation(): ViewMode { const value = locationParams().get("view"); return value === "inputs" || value === "configure" ? value : "outputs"; }
 function countryFromLocation() { return locationParams().get("country") || "ALL"; }
 function workspaceValue(dataset: string, project: string) { return `${dataset}${WORKSPACE_SEPARATOR}${project}`; }
 function splitWorkspace(value: string) { const [dataset, ...project] = value.split(WORKSPACE_SEPARATOR); return { dataset, project: project.join(WORKSPACE_SEPARATOR) }; }
@@ -164,8 +164,8 @@ export default function App() {
   const chooseWorkspace = (value: string) => {
     if (!confirmDiscardChanges()) return;
     const next = splitWorkspace(value);
-    if (view === "outputs") setOutputWorkspace(next.dataset, next.project); else setInputWorkspace(next.dataset, next.project);
-    if (view === "outputs") setInputWorkspace(next.dataset, next.project); else setOutputWorkspace(next.dataset, next.project);
+    setOutputWorkspace(next.dataset, next.project);
+    setInputWorkspace(next.dataset, next.project);
   };
   const chooseScenario = (name: string) => { if (!confirmDiscardChanges()) return; const nextScenario = project!.scenarios.find((item) => item.name === name)!; const nextSector = nextScenario.sectors[0]; setSelection((current) => ({ ...current, scenario: name, comparison: current.comparison === name ? "" : current.comparison, sector: nextSector.name, year: nextSector.years[0] || "" })); };
   const chooseInputScenario = (name: string) => { if (confirmDiscardChanges()) setInputSelection((current) => ({ ...current, scenario: name })); };
@@ -190,8 +190,8 @@ export default function App() {
           {view === "inputs" && <div className="sidebar-submenu-slot" id="input-table-menu" />}
         </div>
         <div className="sidebar-section">
-          <a className={`sidebar-primary ${view === "configure" || view === "run" ? "active" : ""}`} href="?view=configure" onClick={(event) => { event.preventDefault(); chooseView("configure"); }}><Settings2 aria-hidden="true" />Configure &amp; run</a>
-          {(view === "configure" || view === "run") && <div className="sidebar-submenu-slot" id="config-section-tabs" />}
+          <a className={`sidebar-primary ${view === "configure" ? "active" : ""}`} href="?view=configure" onClick={(event) => { event.preventDefault(); chooseView("configure"); }}><Settings2 aria-hidden="true" />Configure &amp; run</a>
+          {view === "configure" && <div className="sidebar-submenu-slot" id="config-section-tabs" />}
         </div>
         <div className="sidebar-section">
           <a className={`sidebar-primary ${view === "outputs" ? "active" : ""}`} href={`?section=${section?.id || "power"}`} onClick={(event) => { event.preventDefault(); chooseView("outputs"); }}><BarChart3 aria-hidden="true" />Results</a>
@@ -210,7 +210,7 @@ export default function App() {
             <ContextControl className="scenario-control" label="Result run" value={selection.scenario} onChange={chooseScenario} options={project!.scenarios.map((item) => ({ value: item.name, label: item.name }))} />
             <ContextControl className={`compare-control ${selection.comparison ? "is-active" : ""}`} label="Compare with" value={selection.comparison} onChange={(comparison) => setSelection((current) => ({ ...current, comparison }))} options={[{ value: "", label: "No comparison" }, ...project!.scenarios.filter((item) => item.name !== selection.scenario).map((item) => ({ value: item.name, label: item.name }))]} />
           </> : <>
-            <div className="scenario-context-group"><ContextControl className="scenario-control" label="Scenario" value={inputSelection.scenario} onChange={chooseInputScenario} options={inputProject!.scenarios.map((item) => ({ value: item, label: item }))} />{(view === "configure" || view === "run") && <button className="context-add" onClick={() => setNewScenarioOpen(true)} aria-label="Create new scenario" title="Create new scenario"><Plus aria-hidden="true" /></button>}</div>
+            <div className="scenario-context-group"><ContextControl className="scenario-control" label="Scenario" value={inputSelection.scenario} onChange={chooseInputScenario} options={inputProject!.scenarios.map((item) => ({ value: item, label: item }))} />{view === "configure" && <button className="context-add" onClick={() => setNewScenarioOpen(true)} aria-label="Create new scenario" title="Create new scenario"><Plus aria-hidden="true" /></button>}</div>
             {view === "inputs" && <div className="input-topbar-controls" id="input-topbar-controls" />}
             {view === "configure" && <ContextControl className="country-control" label="Country" value={country} onChange={chooseCountry} options={[{ value: "ALL", label: "All countries" }, ...configurationCountries.map((item) => ({ value: item, label: item }))]} />}
           </>}
@@ -218,7 +218,7 @@ export default function App() {
         <div className="top-actions"><button className="button secondary" onClick={refreshCurrent} aria-label="Refresh data" title="Refresh data"><RefreshCw aria-hidden="true" /></button></div>
       </header>
       <main id="workspace">
-        {view === "outputs" ? outputReady ? <><PageHeader title={section!.title}>{scenario!.sectors.length > 1 && <div className="page-controls"><ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} /></div>}</PageHeader><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(title, rows, sourceCount, hourly) => setInspector({ title, rows, sourceCount, hourly })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisations are configured for this section.</div>}</section><ResultsToc key={section!.id} charts={charts} /></> : <Boot message={error || "Discovering local results…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} onNavigate={() => setSidebarOpen(false)} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} initialSection={view === "run" ? "review_run" : undefined} onNavigate={() => setSidebarOpen(false)} onOpenResults={(runName, datasetName, projectName) => { window.location.href = `/?section=power&dataset=${encodeURIComponent(datasetName)}&project=${encodeURIComponent(projectName)}&run=${encodeURIComponent(runName)}`; }} /> : <Boot message={inputError || "Discovering model inputs…"} />}
+        {view === "outputs" ? outputReady ? <><PageHeader title={section!.title}>{scenario!.sectors.length > 1 && <div className="page-controls"><ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} /></div>}</PageHeader><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(title, rows, sourceCount, hourly) => setInspector({ title, rows, sourceCount, hourly })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisations are configured for this section.</div>}</section><ResultsToc key={section!.id} charts={charts} /></> : <Boot message={error || "Discovering local results…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} onNavigate={() => setSidebarOpen(false)} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} onOpenResults={(runName, datasetName, projectName) => { window.location.href = `/?section=power&dataset=${encodeURIComponent(datasetName)}&project=${encodeURIComponent(projectName)}&run=${encodeURIComponent(runName)}`; }} /> : <Boot message={inputError || "Discovering model inputs…"} />}
       </main>
     </div>
     {inspector && <DataDialog {...inspector} onClose={() => setInspector(null)} />}

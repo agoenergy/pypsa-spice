@@ -105,7 +105,6 @@ class ScenarioRunManager:
             "regions": [str(value) for value in (base.get("regions") or {})],
             "currency": str(base.get("currency", "")),
             "environment": "hotpot",
-            "environment_active": self._hotpot_active(),
         }
 
     @staticmethod

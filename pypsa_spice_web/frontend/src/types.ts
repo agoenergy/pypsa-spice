@@ -9,15 +9,12 @@ export interface ChartDefinition {
   fil_col?: string;
   type: "bar" | "grouped_bar" | "filtered_bar" | "area_share" | "hourly_bar" | "filtered_hourly_bar" | "hourly_line" | "hourly_dual";
   hourly: boolean;
-  primary_y_lab?: string[];
   secondary_y_lab?: string[];
 }
 
 export interface Sector {
   name: string;
   years: string[];
-  chart_count: number;
-  section_counts: Record<string, number>;
 }
 export interface Scenario { name: string; sectors: Sector[] }
 export interface Project { name: string; scenarios: Scenario[] }
@@ -25,9 +22,7 @@ export interface Dataset { name: string; projects: Project[] }
 export interface Section {
   id: string;
   label: string;
-  icon: string;
   title: string;
-  eyebrow: string;
   charts: ChartDefinition[];
 }
 export interface Mapping { label: string; color: string }
@@ -60,13 +55,7 @@ export interface InputTableDefinition {
   label: string;
   scope: "global" | "scenario";
   sector?: "power" | "industry" | "transport";
-  csv_name: string;
-  identifier: string;
-  filter_col: string;
-  with_charts: boolean;
   timeseries?: boolean;
-  editable: boolean;
-  uniform_unit?: string;
 }
 
 export interface InputProject {
@@ -82,7 +71,6 @@ export interface InputTechnology {
   sector: "power" | "industry" | "transport" | "other";
   classes: string[];
   carriers: string[];
-  countries: string[];
 }
 
 export interface InputDataset { name: string; projects: InputProject[] }
@@ -92,7 +80,6 @@ export interface InputCatalog {
   datasets: InputDataset[];
   global_tables: InputTableDefinition[];
   sector_tables: Record<string, InputTableDefinition[]>;
-  config_sections: string[];
 }
 
 export interface InputSelection {
@@ -118,14 +105,9 @@ export interface InputTableResponse {
   rows: InputRow[];
   total_rows: number;
   total_filtered_rows: number;
-  offset: number;
-  limit: number;
-  truncated: boolean;
   filter_column?: string;
   country_options: string[];
   filter_options: string[];
-  with_charts: boolean;
-  timeseries: boolean;
 }
 
 export interface ScenarioConfigResponse {
@@ -148,7 +130,6 @@ export interface ModelRunOptions {
   regions: string[];
   currency: string;
   environment: string;
-  environment_active: boolean;
 }
 
 export interface DataRepositoryStatus {

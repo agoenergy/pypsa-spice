@@ -140,11 +140,6 @@ const FUEL_SUPPLY_TABLE: InputTableDefinition = {
   label: "Fuel costs",
   scope: "scenario",
   sector: "power",
-  csv_name: "fuel_supplies.csv",
-  identifier: "fuel_costs",
-  filter_col: "carrier",
-  with_charts: true,
-  editable: true,
 };
 
 export async function getFuelSupplyTable(selection: InputSelection, signal?: AbortSignal): Promise<InputTableResponse> {
@@ -157,7 +152,7 @@ export async function getFuelSupplyTable(selection: InputSelection, signal?: Abo
     if (!page.rows.length) break;
     offset += page.rows.length;
   }
-  return { ...first, rows, offset: 0, limit: rows.length, truncated: false };
+  return { ...first, rows };
 }
 
 export async function saveFuelSupplyLimits(

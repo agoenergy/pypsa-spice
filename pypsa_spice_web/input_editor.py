@@ -134,21 +134,17 @@ def _technology_catalog(
                     "sector": sector_mapping.get(technology, "other") or "other",
                     "classes": set(),
                     "carriers": set(),
-                    "countries": set(),
                 },
             )
             if row.get("class"):
                 item["classes"].add(row["class"].strip())
             if row.get("carrier"):
                 item["carriers"].add(row["carrier"].strip())
-            if row.get("country"):
-                item["countries"].add(row["country"].strip())
     return [
         {
             **item,
             "classes": sorted(item["classes"]),
             "carriers": sorted(item["carriers"]),
-            "countries": sorted(item["countries"]),
         }
         for item in sorted(
             technologies.values(),
@@ -202,8 +198,7 @@ def input_catalog(data_dir: Path, settings_path: Path) -> dict[str, Any]:
             "id": name,
             "label": _pretty_label(name),
             "scope": "global",
-            **config,
-            "editable": not bool(config.get("timeseries")),
+            "timeseries": bool(config.get("timeseries")),
         }
         for name, config in (settings.get("Global_input", {}) or {}).items()
     ]
@@ -215,8 +210,6 @@ def input_catalog(data_dir: Path, settings_path: Path) -> dict[str, Any]:
                 "label": _pretty_label(name),
                 "scope": "scenario",
                 "sector": slug,
-                **config,
-                "editable": not bool(config.get("timeseries")),
             }
             for name, config in (settings.get(label, {}) or {}).items()
         ]
@@ -228,8 +221,6 @@ def input_catalog(data_dir: Path, settings_path: Path) -> dict[str, Any]:
                 "label": "Interconnectors",
                 "scope": "scenario",
                 "sector": "power",
-                **grid_config,
-                "editable": True,
             }
         )
 
@@ -238,7 +229,6 @@ def input_catalog(data_dir: Path, settings_path: Path) -> dict[str, Any]:
         "datasets": datasets,
         "global_tables": global_tables,
         "sector_tables": sector_tables,
-        "config_sections": list(EDITABLE_CONFIG_SECTIONS),
     }
 
 
@@ -466,14 +456,9 @@ def read_table(
         "rows": rows,
         "total_rows": len(raw_rows),
         "total_filtered_rows": total_filtered_rows,
-        "offset": offset,
-        "limit": limit,
-        "truncated": offset + len(rows) < total_filtered_rows,
         "filter_column": filter_column or None,
         "country_options": country_options,
         "filter_options": filter_options,
-        "with_charts": bool(config.get("with_charts")),
-        "timeseries": bool(config.get("timeseries")),
     }
 
 

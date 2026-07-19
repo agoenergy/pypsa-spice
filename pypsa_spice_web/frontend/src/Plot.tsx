@@ -88,7 +88,6 @@ function isSecondarySeries(chart: ChartDefinition, legend: string): boolean {
 function traces(
   response: ChartResponse,
   chart: ChartDefinition,
-  scenario: string,
   mappings: Catalog["mappings"],
   comparison: boolean,
   legendValues: string[],
@@ -120,8 +119,6 @@ function differenceTraces(
   primary: ChartResponse,
   comparison: ChartResponse,
   chart: ChartDefinition,
-  primaryName: string,
-  comparisonName: string,
   mappings: Catalog["mappings"],
   legendValues: string[],
   hiddenLegendValues: ReadonlySet<string>,
@@ -199,8 +196,8 @@ export default function Plot({ chart, primary, comparison, primaryName, comparis
     const grid = "#e2e6e4";
     const text = darkMode ? "#a9b5b1" : "#65717d";
     const chartTraces = difference && comparison
-      ? differenceTraces(primary, comparison, chart, primaryName, comparisonName, mappings, legendValues, hiddenLegendValues)
-      : [...traces(primary, chart, primaryName, mappings, false, legendValues, hiddenLegendValues), ...(comparison ? traces(comparison, chart, comparisonName, mappings, true, legendValues, hiddenLegendValues) : [])];
+      ? differenceTraces(primary, comparison, chart, mappings, legendValues, hiddenLegendValues)
+      : [...traces(primary, chart, mappings, false, legendValues, hiddenLegendValues), ...(comparison ? traces(comparison, chart, mappings, true, legendValues, hiddenLegendValues) : [])];
     const totalTrace = difference ? null : stackedBarTotalTrace(primary, chart, hiddenLegendValues);
     const allTraces = totalTrace ? [...chartTraces, totalTrace] : chartTraces;
     window.Plotly.react(ref.current, allTraces, {

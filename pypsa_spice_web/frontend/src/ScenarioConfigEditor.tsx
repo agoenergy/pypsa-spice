@@ -30,14 +30,14 @@ function fuelConstraintSnapshot(value: Record<string, unknown>): Record<string, 
   return Object.fromEntries(Object.entries(objectValue(value.custom_constraints)).map(([country, raw]) => [country, objectValue(objectValue(raw).production_constraint_fuels)]));
 }
 
-export default function ScenarioConfigEditor({ selection, country, initialSection, onNavigate, onOpenResults }: { selection: InputSelection; country: string; initialSection?: string; onNavigate: () => void; onOpenResults: (runName: string, dataset: string, project: string) => void }) {
+export default function ScenarioConfigEditor({ selection, country, onNavigate, onOpenResults }: { selection: InputSelection; country: string; onNavigate: () => void; onOpenResults: (runName: string, dataset: string, project: string) => void }) {
   const editorId = useId();
   const [config, setConfig] = useState<ScenarioConfigResponse | null>(null);
   const [fuelTable, setFuelTable] = useState<InputTableResponse | null>(null);
   const [fuelRows, setFuelRows] = useState<InputRow[]>([]);
   const [fuelError, setFuelError] = useState("");
   const [section, setSection] = useState(() => {
-    const requested = new URLSearchParams(window.location.search).get("step") || initialSection || "scenario_configs";
+    const requested = new URLSearchParams(window.location.search).get("step") || "scenario_configs";
     return normaliseSection(requested);
   });
   const [draft, setDraft] = useState<Record<string, unknown>>({});

@@ -121,7 +121,6 @@ power:
     leg_col: status
     type: hourly_dual
     secondary_y_lab: [stateOfCharge]
-    primary_y_lab: [powerFlow]
 
 industry:
   i1:
@@ -161,7 +160,6 @@ transport:
     table_name: tran_load_charging_all_hourly
     leg_col: status
     type: hourly_dual
-    primary_y_lab: [load, charging, storeDischarge]
     secondary_y_lab: [stateOfCharge]
 
 emissions:
