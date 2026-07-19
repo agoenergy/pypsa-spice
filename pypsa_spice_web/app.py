@@ -50,42 +50,6 @@ INPUT_CONFIG = MAPPING_DIR / "input_settings.yaml"
 RUN_MANAGER = ScenarioRunManager(ROOT)
 SCENARIO_WORKSPACE = ScenarioWorkspace(ROOT, active_run=RUN_MANAGER.active)
 
-CHART_TYPES = {
-    "p1": "bar",
-    "p2": "filtered_bar",
-    "p17": "bar",
-    "p3": "bar",
-    "p15": "grouped_bar",
-    "p4": "area_share",
-    "p6": "filtered_bar",
-    "p18": "grouped_bar",
-    "p7": "hourly_bar",
-    "p8": "filtered_hourly_bar",
-    "p9": "bar",
-    "p10": "hourly_bar",
-    "p11": "hourly_line",
-    "p12": "hourly_line",
-    "p13": "bar",
-    "p14": "hourly_dual",
-    "i1": "bar",
-    "i2": "filtered_bar",
-    "i3": "filtered_bar",
-    "i4": "bar",
-    "t1": "hourly_dual",
-    "e1": "bar",
-    "e2": "bar",
-    "e3": "bar",
-    "c1": "bar",
-    "c2": "bar",
-    "c3": "bar",
-    "c4": "bar",
-    "c5": "bar",
-    "c6": "bar",
-    "c7": "bar",
-    "c8": "bar",
-}
-
-
 class ModelRunRequest(BaseModel):
     """Editable base-config path values for a Snakemake model run."""
 
@@ -167,8 +131,7 @@ def _chart_definitions() -> dict[str, list[dict[str, Any]]]:
         sections[section] = []
         for chart_id, values in charts.items():
             chart = {"id": chart_id, **values}
-            chart["type"] = CHART_TYPES.get(chart_id, "bar")
-            chart["hourly"] = "hourly" in chart["table_name"]
+            chart["hourly"] = "hourly" in chart["type"]
             sections[section].append(chart)
     return sections
 
@@ -311,11 +274,14 @@ def _sample_hourly(
     groups: dict[str, list[dict[str, Any]]] = {}
     for row in rows:
         groups.setdefault(str(row.get(legend_column, "Series")), []).append(row)
-    per_group = max(30, limit // max(1, len(groups)))
+    per_group, remainder = divmod(limit, len(groups))
     sampled: list[dict[str, Any]] = []
-    for group in groups.values():
-        step = max(1, math.ceil(len(group) / per_group))
-        sampled.extend(group[::step][:per_group])
+    for index, group in enumerate(groups.values()):
+        target = per_group + (1 if index < remainder else 0)
+        if target == 0:
+            continue
+        step = max(1, math.ceil(len(group) / target))
+        sampled.extend(group[::step][:target])
     return sampled, True
 
 

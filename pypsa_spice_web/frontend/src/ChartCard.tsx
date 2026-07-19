@@ -7,7 +7,6 @@ import type { Catalog, ChartDefinition, ChartResponse, ResultRow, Selection } fr
 interface Props {
   chart: ChartDefinition;
   selection: Selection;
-  countries: string[];
   years: string[];
   mappings: Catalog["mappings"];
   darkMode: boolean;
@@ -36,7 +35,7 @@ function readableTimestamp(value: number): string {
   return `${day} · ${time}`;
 }
 
-export default function ChartCard({ chart, selection, countries, years, mappings, darkMode, onInspect }: Props) {
+export default function ChartCard({ chart, selection, years, mappings, darkMode, onInspect }: Props) {
   const [primary, setPrimary] = useState<ChartResponse | null>(null);
   const [comparison, setComparison] = useState<ChartResponse | null>(null);
   const [country, setCountry] = useState("ALL");
@@ -50,6 +49,10 @@ export default function ChartCard({ chart, selection, countries, years, mappings
   const [hiddenLegendValues, setHiddenLegendValues] = useState<Set<string>>(() => new Set());
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const countries = useMemo(
+    () => [...new Set([...(primary?.dimensions.country || []), ...(comparison?.dimensions.country || [])])],
+    [primary, comparison],
+  );
 
   useEffect(() => {
     setPrimary(null); setComparison(null);

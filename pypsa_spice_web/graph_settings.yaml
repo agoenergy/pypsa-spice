@@ -11,154 +11,115 @@ power:
     units: GW
     table_name: pow_cap_by_type_yearly
     leg_col: technology
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_cap_by_type'
+    type: bar
 
   p2:
     name: Capacity by region
     units: GW
     table_name: pow_cap_by_type_by_region_yearly
     leg_col: technology
+    type: filtered_bar
     fil_col: region
-    yaxis_scale:
-      min: 0
-      max: max
-    slider_id: 'd_{}_cap_by_type_region'
-    download_id: '{}_cap_by_type_region'
 
   p17:
     name: Total capacity by region
     units: GW
     table_name: pow_cap_by_region_yearly
     leg_col: region
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_down_cap_by_region_yearly'
+    type: bar
 
   p3:
     name: Generation by type
     units: TWh
     table_name: pow_gen_by_type_yearly
     leg_col: technology
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_down_gen_by_type_yearly'
+    type: bar
 
   p15:
     name: Full load hours by type
     units: hours
     table_name: pow_flh_by_type_yearly
     leg_col: technology
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_down_flh_by_type_yearly'
+    type: grouped_bar
 
   p4:
     name: Share category
     units: '%'
     table_name: pow_gen_by_category_share_yearly
     leg_col: technology
-    yaxis_scale:
-      min: 0
-      max: 100
-    download_id: '{}_down_gen_by_chategory_yearly'
+    type: area_share
 
   p6:
     name: Transmission capacity between regions
     units: GW
     table_name: pow_intercap_by_region_yearly
     leg_col: from
+    type: filtered_bar
     fil_col: to
-    yaxis_scale:
-      min: 0
-      max: max
-    slider_id: 'd_{}_intercap_by_region'
-    download_id: '{}_intercap_by_region'
 
   p18:
     name: Interconnector capacity factor
     units: p.u.
     table_name: pow_inter_cf_by_region_yearly
     leg_col: from
+    type: grouped_bar
     fil_col: to
-    yaxis_scale:
-      min: 0
-      max: 1
-    slider_id: 'd_{}_inter_cf_by_region'
-    download_id: '{}_down_inter_cf_by_region_yearly'
 
   p7:
     name: Hourly generation
     units: MW
     table_name: pow_gen_by_type_hourly
     leg_col: technology
-    slider_id: 'Gen: ({}):'
-    download_id: '{}_down_pow_gen_by_type_hourly'
+    type: hourly_bar
 
   p8:
     name: Regional hourly generation
     units: MW
     table_name: pow_gen_by_type_region_hourly
     leg_col: type_and_flow
+    type: filtered_hourly_bar
     fil_col: region
-    slider_id: 'NodalFlow: {}'
-    download_id: '{}_down_gen_by_type_region_hourly'
 
   p9:
     name: Energy demand by carrier
     units: TWh
     table_name: ene_dmd_by_carrier_yearly
     leg_col: carrier
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_ene_dmd_by_carrier_yearly'
+    type: bar
 
   p10:
     name: Hourly demand
     units: MW
     table_name: pow_elec_load_by_sector_hourly
     leg_col: sector
-    slider_id: 'Load: ({}):".format(sce_name)'
-    download_id: '{}_down_elec_load_by_sector_hourly'
+    type: hourly_bar
 
   p11:
     name: Hourly elec price
     units: USD/MWh
     table_name: pow_marginal_price_by_region_hourly
     leg_col: region
-    slider_id: 'Price: ({}):".format(sce_name)'
-    download_id: '{}_down_marginal_price_by_region_hourly'
+    type: hourly_line
 
   p12:
     name: Nodal flow between regions
     units: MW
     table_name: pow_nodal_flow_hourly
     leg_col: flow
-    slider_id: 'NodalFlow_regions: {}'
-    download_id: '{}_nodal_flow_hourly'
+    type: hourly_line
 
   p13:
     name: Battery's E/P ratio
     table_name: pow_bats_ep_ratio
     leg_col: bus
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_bats_ep_ratio'
+    type: bar
 
   p14:
     name: Battery's charging profile
     units: MW
     table_name: pow_bats_charging_hourly
     leg_col: status
-    slider_id: 'battery_profile_{}'
-    download_id: '{}_down_bats_charging_hourly'
+    type: hourly_dual
     secondary_y_lab: [stateOfCharge]
     primary_y_lab: [powerFlow]
 
@@ -168,44 +129,30 @@ industry:
     units: GW
     table_name: ind_cap_by_type_by_carrier_yearly
     leg_col: carrier
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_ind_cap_by_carier'
+    type: bar
 
   i2:
     name: Capacity by region
     units: GW
     table_name: ind_cap_by_carrier_by_region_yearly
     leg_col: carrier
+    type: filtered_bar
     fil_col: region
-    yaxis_scale:
-      min: 0
-      max: max
-    slider_id: '{}_ind_cap_by_carrier_by_region'
-    download_id: '{}_down_ind_cap_by_carrier_by_region'
 
   i3:
     name: Generation by region
     units: TWh
     table_name: ind_gen_by_carrier_by_region_yearly
     leg_col: carrier
+    type: filtered_bar
     fil_col: region
-    yaxis_scale:
-      min: 0
-      max: max
-    slider_id: '{}_gen_by_carrier_by_region_yearly'
-    download_id: '{}_down_gen_by_carrier_by_region_yearly'
 
   i4:
     name: Generation by type
     units: TWh
     table_name: ind_gen_by_type_by_carrier_by_heatgroup_yearly
     leg_col: technology
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_down_gen_by_type_by_carrier_by_heatgroup_yearly'
+    type: bar
 
 transport:
   t1:
@@ -213,8 +160,7 @@ transport:
     units: MW
     table_name: tran_load_charging_all_hourly
     leg_col: status
-    slider_id: '{}_tran_ev_profile'
-    download_id: '{}_tran_load_charging_all_hourly'
+    type: hourly_dual
     primary_y_lab: [load, charging, storeDischarge]
     secondary_y_lab: [stateOfCharge]
 
@@ -224,30 +170,21 @@ emissions:
     units: MtCO₂
     table_name: pow_emi_by_carrier_yearly
     leg_col: carrier
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_down_pow_emi_by_carrier_yearly'
+    type: bar
 
   e2:
     name: Emission (Industry sector)
     units: MtCO₂
     table_name: ind_emi_by_carrier_yearly
     leg_col: carrier
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_ind_emi_by_carrier_yearly'
+    type: bar
 
   e3:
     name: Emission (All sectors)
     units: MtCO₂
     table_name: ene_emi_by_carrier_by_sector_yearly
     leg_col: carrier
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_ene_emi_by_carrier_by_sector_yearly'
+    type: bar
 
 costs:
   c1:
@@ -255,77 +192,53 @@ costs:
     units: mUSD
     table_name: pow_capex_by_type_yearly
     leg_col: technology
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_pow_capex_by_type_yearly'
+    type: bar
 
   c2:
     name: OPEX by type (Power sector)
     units: mUSD
     table_name: pow_opex_by_type_yearly
     leg_col: technology
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_pow_opex_by_type_yearly'
+    type: bar
 
   c3:
     name: Overnight investment by type (Power sector)
     units: mUSD
     table_name: pow_overnight_inv_by_type_yearly
     leg_col: technology
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_overnight_inv_by_type_yearly'
+    type: bar
 
   c4:
     name: CAPEX by type (Industry sector)
     units: mUSD
     table_name: ind_capex_by_type_by_carrier_yearly
     leg_col: technology
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}ind_capex_by_type_by_carrier_yearly'
+    type: bar
 
   c5:
     name: CAPEX by type (Transport sector)
     units: mUSD
     table_name: tran_capex_by_type_yearly
     leg_col: technology
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_tran_capex_by_type_yearly'
+    type: bar
 
   c6:
     name: CAPEX by Type (All sectors)
     units: mUSD
     table_name: ene_capex_by_type_by_carrier_yearly
     leg_col: technology
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_ene_capex_by_type_by_carrier_yearly'
+    type: bar
 
   c7:
     name: CAPEX and OPEX (All sectors)
     units: mUSD
     table_name: ene_costs_opex_capex_yearly
     leg_col: finance
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_ene_costs_opex_capex_yearly'
+    type: bar
 
   c8:
     name: Average fuel costs (All sectors)
     units: USD/MWh_th
     table_name: ene_avg_fuel_costs_fuel_yearly
     leg_col: carrier
-    yaxis_scale:
-      min: 0
-      max: max
-    download_id: '{}_ene_avg_fuel_costs_fuel_yearly'
+    type: bar
