@@ -1,4 +1,4 @@
-import type { Catalog, ChartDefinition, ChartResponse, CreatedScenario, CreateScenarioRequest, InputCatalog, InputCell, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology, ModelRun, ModelRunOptions, ScenarioConfigResponse, ScenarioWorkspaceStatus, Selection, StartModelRunRequest } from "./types";
+import type { Catalog, ChartDefinition, ChartResponse, CreatedScenario, CreateScenarioRequest, InputCatalog, InputCell, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology, ModelRun, ModelRunOptions, ScenarioComparisonResponse, ScenarioConfigResponse, ScenarioWorkspaceStatus, Selection, StartModelRunRequest } from "./types";
 
 async function apiJson<T>(response: Response, fallback: string): Promise<T> {
   if (!response.ok) {
@@ -175,6 +175,23 @@ export async function getScenarioConfig(selection: InputSelection, signal?: Abor
   return apiJson(
     await fetch(`/api/input/scenario-config?${configParams(selection)}`, { signal }),
     "Could not read the scenario configuration.",
+  );
+}
+
+export async function getScenarioComparison(
+  selection: InputSelection,
+  comparison: string,
+  signal?: AbortSignal,
+): Promise<ScenarioComparisonResponse> {
+  const params = new URLSearchParams({
+    dataset: selection.dataset,
+    project: selection.project,
+    reference: selection.scenario,
+    comparison,
+  });
+  return apiJson(
+    await fetch(`/api/input/compare?${params}`, { signal }),
+    "Could not compare the selected scenarios.",
   );
 }
 

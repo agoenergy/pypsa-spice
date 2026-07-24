@@ -21,6 +21,7 @@ from pypsa_spice_web.input_editor import (
     ConfigSectionUpdate,
     ConfigSectionsUpdate,
     TableUpdate,
+    compare_scenarios,
     input_catalog,
     read_scenario_config,
     read_table,
@@ -565,6 +566,27 @@ def scenario_configuration(dataset: str, project: str, scenario: str) -> JSONRes
 
     path = scenario_config_path(DATA_DIR, dataset, project, scenario)
     return JSONResponse(read_scenario_config(path))
+
+
+@app.get("/api/input/compare")
+def compare_scenario_inputs(
+    dataset: str,
+    project: str,
+    reference: str = Query(min_length=1),
+    comparison: str = Query(min_length=1),
+) -> JSONResponse:
+    """Show only configuration and scenario-input differences."""
+
+    return JSONResponse(
+        compare_scenarios(
+            DATA_DIR,
+            INPUT_CONFIG,
+            dataset,
+            project,
+            reference,
+            comparison,
+        )
+    )
 
 
 @app.put("/api/input/scenario-config")

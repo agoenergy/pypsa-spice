@@ -117,6 +117,42 @@ export interface ScenarioConfigResponse {
   sections: Record<string, Record<string, unknown>>;
 }
 
+export type ScenarioDifferenceStatus = "changed" | "added" | "removed" | "ambiguous";
+
+export interface ScenarioDifference {
+  status: ScenarioDifferenceStatus;
+  item: string;
+  country: string;
+  parameter: string;
+  reference: unknown;
+  comparison: unknown;
+  delta: number | null;
+}
+
+export interface ScenarioDifferenceSection {
+  id: string;
+  label: string;
+  category: "configuration" | "power" | "industry" | "transport";
+  kind: "config" | "constraint" | "input";
+  changes: ScenarioDifference[];
+}
+
+export interface ScenarioComparisonResponse {
+  dataset: string;
+  project: string;
+  reference: string;
+  comparison: string;
+  global_inputs_shared: boolean;
+  summary: {
+    changes: number;
+    groups: number;
+    input_tables: number;
+    configuration_groups: number;
+  };
+  countries: string[];
+  sections: ScenarioDifferenceSection[];
+}
+
 export interface ModelRunOptions {
   config_file: string;
   target: string;

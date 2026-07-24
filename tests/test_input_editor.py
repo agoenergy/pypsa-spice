@@ -18,6 +18,7 @@ from pypsa_spice_web.input_editor import (
     ConfigSectionUpdate,
     ConfigSectionsUpdate,
     TableUpdate,
+    compare_scenarios,
     read_scenario_config,
     read_table,
     update_scenario_section,
@@ -253,6 +254,90 @@ class InputEditorTests(unittest.TestCase):
             self.assertEqual(next(csv.DictReader(handle))["efficiency"], "0.987")
         self.assertIn("remove_threshold: 0.321", yaml_target.read_text(encoding="utf-8"))
         self.assertIn("endpoint_test:", yaml_target.read_text(encoding="utf-8"))
+
+    def test_scenario_comparison_shows_only_effective_differences(self) -> None:
+        data_root = self.temp_path / "data"
+        input_root = data_root / "dataset" / "project" / "input"
+        reference_root = input_root / "reference"
+        comparison_root = input_root / "comparison"
+        (reference_root / "power").mkdir(parents=True)
+        (comparison_root / "power").mkdir(parents=True)
+        reference_root.joinpath("scenario_config.yaml").write_text(
+            "scenario_configs:\n"
+            "  remove_threshold: 0.1\n"
+            "co2_management:\n"
+            "  DE:\n"
+            "    option: co2_cap\n"
+            "    value:\n"
+            "      2030: 10\n"
+            "custom_constraints: {}\n",
+            encoding="utf-8",
+        )
+        comparison_root.joinpath("scenario_config.yaml").write_text(
+            "scenario_configs:\n"
+            "  remove_threshold: 0.10\n"
+            "co2_management:\n"
+            "  DE:\n"
+            "    option: co2_price\n"
+            "    value:\n"
+            "      2030: 10.0\n"
+            "custom_constraints:\n"
+            "  DE:\n"
+            "    reserve_margin:\n"
+            "      activate: false\n",
+            encoding="utf-8",
+        )
+        reference_root.joinpath("power/power_generators.csv").write_text(
+            "country,name,type,p_nom\n"
+            "DE,solar-a,Solar,1\n"
+            "DE,wind-a,Wind,2\n",
+            encoding="utf-8",
+        )
+        comparison_root.joinpath("power/power_generators.csv").write_text(
+            "country,name,type,p_nom\n"
+            "DE,wind-a,Wind,2.0\n"
+            "DE,solar-a,Solar,3\n",
+            encoding="utf-8",
+        )
+
+        result = compare_scenarios(
+            data_root,
+            ROOT / "pypsa-spice-vis/setting/input_settings.yaml",
+            "dataset",
+            "project",
+            "reference",
+            "comparison",
+        )
+
+        self.assertEqual(result["summary"]["groups"], 2)
+        self.assertEqual(result["summary"]["changes"], 2)
+        section_ids = {section["id"] for section in result["sections"]}
+        self.assertEqual(
+            section_ids,
+            {"config:co2-management", "input:power:Power_generators"},
+        )
+        generator = next(
+            section
+            for section in result["sections"]
+            if section["id"] == "input:power:Power_generators"
+        )
+        self.assertEqual(generator["changes"][0]["item"], "solar-a")
+        self.assertEqual(generator["changes"][0]["parameter"], "P Nom")
+        self.assertEqual(generator["changes"][0]["delta"], 2)
+
+    def test_scenario_comparison_endpoint_rejects_same_scenario(self) -> None:
+        response = TestClient(app).get(
+            "/api/input/compare",
+            params={
+                "dataset": "example",
+                "project": "project_01",
+                "reference": "scenario_01",
+                "comparison": "scenario_01",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["detail"], "Choose two different scenarios")
 
 
 if __name__ == "__main__":

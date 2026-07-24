@@ -13,6 +13,7 @@ import os
 import shutil
 import tempfile
 import threading
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Literal
 
@@ -27,6 +28,27 @@ TABLE_FILE_FALLBACKS = {
     "Power_decommission": ("decommission_capacity.csv", "decomission_capacity.csv"),
     "Industry_decommission": ("decommission_capacity.csv", "decomission_capacity.csv"),
     "Direct_air_capture": ("direct_air_capture.csv",),
+}
+TABLE_COMPARE_KEYS = {
+    "Power_decommission": ("country", "name", "class"),
+    "Industry_decommission": ("country", "name", "class"),
+    "Fuel_costs": ("country", "supply_plant", "year"),
+    "Power_loads": ("country", "name", "year"),
+    "Heat_loads": ("country", "name", "year"),
+    "Transport_loads": ("country", "name", "year"),
+    "Power_generators": ("country", "name"),
+    "Heat_generators": ("country", "name"),
+    "Power_links": ("country", "link"),
+    "Heat_links": ("country", "link"),
+    "Fuel_conversion": ("country", "link"),
+    "Direct_air_capture": ("country", "link"),
+    "Storage_units": ("country", "name"),
+    "Industry_storage_units": ("country", "name"),
+    "Stores": ("country", "store"),
+    "Industry_stores": ("country", "store"),
+    "Interconnectors": ("country", "link"),
+    "Transport_chargers": ("country", "link"),
+    "Transport_storages": ("country", "name"),
 }
 _WRITE_LOCK = threading.Lock()
 
@@ -94,7 +116,63 @@ def _revision(path: Path) -> str:
 
 
 def _pretty_label(value: str) -> str:
-    return value.replace("_", " ").strip().title()
+    words = value.replace("_", " ").strip().split()
+    return " ".join(word if word.isupper() else word.capitalize() for word in words)
+
+
+def _comparison_value(value: Any) -> Any:
+    """Normalise scalar input values without hiding meaningful differences."""
+
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return Decimal(str(value))
+    if isinstance(value, str):
+        stripped = value.strip()
+        lowered = stripped.lower()
+        if lowered in {"true", "false"}:
+            return lowered == "true"
+        if lowered in {"inf", "+inf", "-inf"}:
+            return lowered.replace("+", "")
+        try:
+            return Decimal(stripped)
+        except InvalidOperation:
+            return stripped
+    if isinstance(value, list):
+        normalised = [_comparison_value(item) for item in value]
+        return sorted(normalised, key=str)
+    return value
+
+
+def _display_delta(reference: Any, comparison: Any) -> int | float | None:
+    left = _comparison_value(reference)
+    right = _comparison_value(comparison)
+    if not isinstance(left, Decimal) or not isinstance(right, Decimal):
+        return None
+    delta = right - left
+    return int(delta) if delta == delta.to_integral_value() else float(delta)
+
+
+def _change(
+    *,
+    status: str,
+    item: str,
+    country: str,
+    parameter: str,
+    reference: Any,
+    comparison: Any,
+) -> dict[str, Any]:
+    return {
+        "status": status,
+        "item": item or "General",
+        "country": country,
+        "parameter": parameter,
+        "reference": reference,
+        "comparison": comparison,
+        "delta": _display_delta(reference, comparison),
+    }
 
 
 def _technology_sector_mapping(settings_path: Path) -> dict[str, str]:
@@ -459,6 +537,361 @@ def read_table(
         "filter_column": filter_column or None,
         "country_options": country_options,
         "filter_options": filter_options,
+    }
+
+
+def _comparison_table_path(
+    input_root: Path,
+    scenario: str,
+    sector: str,
+    table: str,
+    config: dict[str, Any],
+) -> Path | None:
+    """Resolve a scenario CSV for comparison while allowing a missing side."""
+
+    scenario_root = _confine(input_root / scenario, input_root)
+    table_sector = "power" if table == "Interconnectors" else sector
+    sector_root = _confine(
+        scenario_root / table_sector, scenario_root, must_exist=False
+    )
+    if table == "Direct_air_capture":
+        direct_path = _confine(
+            sector_root / "direct_air_capture.csv", input_root, must_exist=False
+        )
+        if direct_path.is_file():
+            return direct_path
+    candidate = _confine(
+        sector_root / config["csv_name"], input_root, must_exist=False
+    )
+    if candidate.is_file():
+        return candidate
+    return next(
+        (
+            fallback
+            for filename in TABLE_FILE_FALLBACKS.get(table, ())
+            if (fallback := _confine(sector_root / filename, input_root, must_exist=False)).is_file()
+        ),
+        None,
+    )
+
+
+def _raw_csv(path: Path | None) -> tuple[list[str], list[dict[str, str]]]:
+    if path is None:
+        return [], []
+    with path.open(encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        return reader.fieldnames or [], list(reader)
+
+
+def _row_key(
+    row: dict[str, str], table: str, fieldnames: list[str]
+) -> tuple[str, ...]:
+    requested = TABLE_COMPARE_KEYS.get(table, ())
+    keys = tuple(column for column in requested if column in fieldnames)
+    if not keys or keys == ("country",):
+        preferred = ("country", "name", "link", "store", "supply_plant", "bus", "year")
+        keys = tuple(column for column in preferred if column in fieldnames)
+    return tuple((row.get(column) or "").strip() for column in keys)
+
+
+def _index_rows(
+    rows: list[dict[str, str]], table: str, fieldnames: list[str]
+) -> tuple[dict[tuple[str, ...], dict[str, str]], set[tuple[str, ...]]]:
+    indexed: dict[tuple[str, ...], dict[str, str]] = {}
+    duplicates: set[tuple[str, ...]] = set()
+    for row in rows:
+        key = _row_key(row, table, fieldnames)
+        if key in indexed:
+            duplicates.add(key)
+        indexed[key] = row
+    return indexed, duplicates
+
+
+def _row_item(
+    key: tuple[str, ...], table: str, fieldnames: list[str]
+) -> tuple[str, str]:
+    requested = TABLE_COMPARE_KEYS.get(table, ())
+    key_columns = tuple(column for column in requested if column in fieldnames)
+    if not key_columns or key_columns == ("country",):
+        preferred = ("country", "name", "link", "store", "supply_plant", "bus", "year")
+        key_columns = tuple(column for column in preferred if column in fieldnames)
+    values = dict(zip(key_columns, key))
+    country = values.pop("country", "")
+    item = " · ".join(value for value in values.values() if value)
+    return item, country
+
+
+def _compare_csv_table(
+    *,
+    table: str,
+    label: str,
+    sector: str,
+    reference_path: Path | None,
+    comparison_path: Path | None,
+) -> dict[str, Any] | None:
+    reference_fields, reference_rows = _raw_csv(reference_path)
+    comparison_fields, comparison_rows = _raw_csv(comparison_path)
+    fieldnames = list(dict.fromkeys([*reference_fields, *comparison_fields]))
+    reference_index, reference_duplicates = _index_rows(
+        reference_rows, table, fieldnames
+    )
+    comparison_index, comparison_duplicates = _index_rows(
+        comparison_rows, table, fieldnames
+    )
+    duplicate_keys = reference_duplicates | comparison_duplicates
+    requested_keys = tuple(
+        column for column in TABLE_COMPARE_KEYS.get(table, ()) if column in fieldnames
+    )
+    if not requested_keys or requested_keys == ("country",):
+        preferred = ("country", "name", "link", "store", "supply_plant", "bus", "year")
+        requested_keys = tuple(column for column in preferred if column in fieldnames)
+    key_columns = set(requested_keys)
+    changes: list[dict[str, Any]] = []
+    for key in sorted(set(reference_index) | set(comparison_index)):
+        item, country = _row_item(key, table, fieldnames)
+        left = reference_index.get(key)
+        right = comparison_index.get(key)
+        if key in duplicate_keys:
+            changes.append(
+                _change(
+                    status="ambiguous",
+                    item=item,
+                    country=country,
+                    parameter="Duplicate row identity",
+                    reference="Review source rows",
+                    comparison="Review source rows",
+                )
+            )
+            continue
+        status = "added" if left is None else "removed" if right is None else "changed"
+        for column in fieldnames:
+            if column in key_columns:
+                continue
+            reference_value = left.get(column, "") if left is not None else None
+            comparison_value = right.get(column, "") if right is not None else None
+            if left is not None and right is not None and _comparison_value(
+                reference_value
+            ) == _comparison_value(comparison_value):
+                continue
+            if left is None and comparison_value in (None, ""):
+                continue
+            if right is None and reference_value in (None, ""):
+                continue
+            changes.append(
+                _change(
+                    status=status,
+                    item=item,
+                    country=country,
+                    parameter=_pretty_label(column),
+                    reference=reference_value,
+                    comparison=comparison_value,
+                )
+            )
+    if not changes:
+        return None
+    return {
+        "id": f"input:{sector}:{table}",
+        "label": label,
+        "category": sector,
+        "kind": "input",
+        "changes": changes,
+    }
+
+
+def _flatten_config(
+    value: Any, prefix: tuple[str, ...] = ()
+) -> dict[tuple[str, ...], Any]:
+    if isinstance(value, dict):
+        flattened: dict[tuple[str, ...], Any] = {}
+        for key, child in value.items():
+            flattened.update(_flatten_config(child, (*prefix, str(key))))
+        return flattened
+    return {prefix: value}
+
+
+def _compare_flat_values(
+    reference: Any,
+    comparison: Any,
+    *,
+    item_prefix: str = "",
+) -> list[dict[str, Any]]:
+    left = _flatten_config(reference)
+    right = _flatten_config(comparison)
+    changes: list[dict[str, Any]] = []
+    for path in sorted(set(left) | set(right)):
+        reference_value = left.get(path)
+        comparison_value = right.get(path)
+        if _comparison_value(reference_value) == _comparison_value(comparison_value):
+            continue
+        status = "added" if path not in left else "removed" if path not in right else "changed"
+        country = path[0] if item_prefix == "country" and path else ""
+        parameter_path = path[1:] if country else path
+        if item_prefix == "settings" and len(path) > 1 and path[0] == "interest":
+            country = path[1]
+            parameter_path = (path[0], *path[2:])
+        parameter = " · ".join(_pretty_label(part) for part in parameter_path)
+        changes.append(
+            _change(
+                status=status,
+                item=country or "General",
+                country=country,
+                parameter=parameter or "Value",
+                reference=reference_value,
+                comparison=comparison_value,
+            )
+        )
+    return changes
+
+
+def _effective_constraint(value: Any) -> dict[str, Any]:
+    constraint = value if isinstance(value, dict) else {}
+    if constraint.get("activate") is not True:
+        return {"activate": False}
+    return constraint
+
+
+def _config_comparison_sections(
+    reference: dict[str, Any], comparison: dict[str, Any]
+) -> list[dict[str, Any]]:
+    sections: list[dict[str, Any]] = []
+    settings_changes = _compare_flat_values(
+        reference.get("scenario_configs", {}),
+        comparison.get("scenario_configs", {}),
+        item_prefix="settings",
+    )
+    if settings_changes:
+        sections.append(
+            {
+                "id": "config:scenario-settings",
+                "label": "Scenario settings",
+                "category": "configuration",
+                "kind": "config",
+                "changes": settings_changes,
+            }
+        )
+
+    co2_changes = _compare_flat_values(
+        reference.get("co2_management", {}),
+        comparison.get("co2_management", {}),
+        item_prefix="country",
+    )
+    if co2_changes:
+        sections.append(
+            {
+                "id": "config:co2-management",
+                "label": "CO₂ management",
+                "category": "configuration",
+                "kind": "config",
+                "changes": co2_changes,
+            }
+        )
+
+    left_constraints = reference.get("custom_constraints", {}) or {}
+    right_constraints = comparison.get("custom_constraints", {}) or {}
+    countries = sorted(set(left_constraints) | set(right_constraints))
+    constraint_names = sorted(
+        {
+            name
+            for country in countries
+            for name in set((left_constraints.get(country) or {}))
+            | set((right_constraints.get(country) or {}))
+        }
+    )
+    for constraint_name in constraint_names:
+        left = {
+            country: _effective_constraint(
+                (left_constraints.get(country) or {}).get(constraint_name)
+            )
+            for country in countries
+        }
+        right = {
+            country: _effective_constraint(
+                (right_constraints.get(country) or {}).get(constraint_name)
+            )
+            for country in countries
+        }
+        changes = _compare_flat_values(left, right, item_prefix="country")
+        if changes:
+            sections.append(
+                {
+                    "id": f"config:constraint:{constraint_name}",
+                    "label": _pretty_label(constraint_name),
+                    "category": "configuration",
+                    "kind": "constraint",
+                    "changes": changes,
+                }
+            )
+    return sections
+
+
+def compare_scenarios(
+    data_dir: Path,
+    settings_path: Path,
+    dataset: str,
+    project: str,
+    reference: str,
+    comparison: str,
+) -> dict[str, Any]:
+    """Return only effective model-input differences between two scenarios."""
+
+    if reference == comparison:
+        raise HTTPException(status_code=400, detail="Choose two different scenarios")
+    input_root = _input_root(data_dir, dataset, project)
+    reference_root = _confine(input_root / reference, input_root)
+    comparison_root = _confine(input_root / comparison, input_root)
+    if not reference_root.is_dir() or not comparison_root.is_dir():
+        raise HTTPException(status_code=404, detail="Scenario input folder not found")
+
+    reference_config = read_scenario_config(
+        scenario_config_path(data_dir, dataset, project, reference)
+    )["sections"]
+    comparison_config = read_scenario_config(
+        scenario_config_path(data_dir, dataset, project, comparison)
+    )["sections"]
+    sections = _config_comparison_sections(reference_config, comparison_config)
+
+    settings = _load_yaml(settings_path)
+    for sector_label, sector in SECTOR_LABELS.items():
+        table_configs = dict(settings.get(sector_label, {}) or {})
+        if sector == "power":
+            interconnectors = (settings.get("Grids", {}) or {}).get("Interconnectors")
+            if interconnectors:
+                table_configs["Interconnectors"] = interconnectors
+        for table, raw_config in table_configs.items():
+            config = dict(raw_config)
+            table_diff = _compare_csv_table(
+                table=table,
+                label=_pretty_label(table),
+                sector=sector,
+                reference_path=_comparison_table_path(
+                    input_root, reference, sector, table, config
+                ),
+                comparison_path=_comparison_table_path(
+                    input_root, comparison, sector, table, config
+                ),
+            )
+            if table_diff:
+                sections.append(table_diff)
+
+    changes = [change for section in sections for change in section["changes"]]
+    return {
+        "dataset": dataset,
+        "project": project,
+        "reference": reference,
+        "comparison": comparison,
+        "global_inputs_shared": True,
+        "summary": {
+            "changes": len(changes),
+            "groups": len(sections),
+            "input_tables": sum(section["kind"] == "input" for section in sections),
+            "configuration_groups": sum(
+                section["kind"] != "input" for section in sections
+            ),
+        },
+        "countries": sorted(
+            {change["country"] for change in changes if change["country"]}
+        ),
+        "sections": sections,
     }
 
 
