@@ -115,6 +115,57 @@ function traces(
   });
 }
 
+function differenceAggregates(
+  primary: ChartResponse,
+  comparison: ChartResponse,
+  chart: ChartDefinition,
+): Map<string, { x: string | number; y: number }[]> {
+  const first = aggregate(primary.rows, chart);
+  const second = aggregate(comparison.rows, chart);
+  const legends = [...new Set([...first.keys(), ...second.keys()])];
+  const differences = new Map<string, { x: string | number; y: number }[]>();
+  for (const legend of legends) {
+    const firstPoints = new Map((first.get(legend) || []).map((point) => [String(point.x), point.y]));
+    const secondPoints = new Map((second.get(legend) || []).map((point) => [String(point.x), point.y]));
+    const xValues = [...new Set([...firstPoints.keys(), ...secondPoints.keys()])].sort();
+    differences.set(legend, xValues.map((value) => ({
+      x: chart.hourly ? value : Number(value),
+      y: (secondPoints.get(value) || 0) - (firstPoints.get(value) || 0),
+    })));
+  }
+  return differences;
+}
+
+export function buildDifferenceRows(
+  primary: ChartResponse,
+  comparison: ChartResponse,
+  chart: ChartDefinition,
+  primaryName: string,
+  comparisonName: string,
+): ResultRow[] {
+  const xKey = chart.hourly ? "snapshot" : "year";
+  const unitValues = new Set(
+    [...primary.rows, ...comparison.rows]
+      .map((row) => row.unit)
+      .filter((unit): unit is string | number => unit !== null && unit !== undefined),
+  );
+  const unit = unitValues.size === 1 ? [...unitValues][0] : undefined;
+  const rows: ResultRow[] = [];
+  for (const [legend, points] of differenceAggregates(primary, comparison, chart)) {
+    if (points.every((point) => point.y === 0)) continue;
+    for (const point of points) {
+      rows.push({
+        scenario: `${comparisonName} − ${primaryName}`,
+        [chart.leg_col]: legend,
+        ...(unit !== undefined ? { unit } : {}),
+        [xKey]: point.x,
+        value: point.y,
+      });
+    }
+  }
+  return rows;
+}
+
 function differenceTraces(
   primary: ChartResponse,
   comparison: ChartResponse,
@@ -123,21 +174,15 @@ function differenceTraces(
   legendValues: string[],
   hiddenLegendValues: ReadonlySet<string>,
 ) {
-  const first = aggregate(primary.rows, chart);
-  const second = aggregate(comparison.rows, chart);
-  const legends = [...new Set([...first.keys(), ...second.keys()])];
-  return legends.map((legend) => {
-    const firstPoints = new Map((first.get(legend) || []).map((point) => [String(point.x), point.y]));
-    const secondPoints = new Map((second.get(legend) || []).map((point) => [String(point.x), point.y]));
-    const xValues = [...new Set([...firstPoints.keys(), ...secondPoints.keys()])].sort();
+  return [...differenceAggregates(primary, comparison, chart)].map(([legend, points]) => {
     const color = legendColor(legend, legendValues.indexOf(legend), mappings);
     const isBar = chart.type.includes("bar") || !chart.hourly;
     return {
       type: isBar ? "bar" : "scatter",
       mode: isBar ? undefined : "lines",
       name: pretty(legend, mappings),
-      x: xValues.map((value) => chart.hourly ? value : Number(value)),
-      y: xValues.map((value) => (secondPoints.get(value) || 0) - (firstPoints.get(value) || 0)),
+      x: points.map((point) => point.x),
+      y: points.map((point) => point.y),
       marker: { color }, line: { color, width: 2 },
       hovertemplate: `<b>${pretty(legend, mappings)}</b>: %{y:+,.2f} ${chart.units || ""}<extra></extra>`,
       visible: hiddenLegendValues.has(legend) ? "legendonly" : true,

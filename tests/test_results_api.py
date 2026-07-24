@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from pypsa_spice_web.app import GRAPH_CONFIG, PACKAGE_DIR, app
+from pypsa_spice_web.app import CHARTS, GRAPH_CONFIG, PACKAGE_DIR, app
 
 
 class ResultsApiTests(unittest.TestCase):
@@ -56,6 +56,15 @@ class ResultsApiTests(unittest.TestCase):
     def test_web_uses_package_local_graph_settings(self) -> None:
         self.assertEqual(GRAPH_CONFIG, PACKAGE_DIR / "graph_settings.yaml")
         self.assertTrue(GRAPH_CONFIG.is_file())
+
+    def test_every_result_chart_declares_a_summary_mode(self) -> None:
+        summary_modes = {
+            chart.get("summary")
+            for charts in CHARTS.values()
+            for chart in charts
+        }
+
+        self.assertEqual(summary_modes, {"sum", "none"})
 
     def test_download_accepts_only_a_real_year_in_the_selected_sector(self) -> None:
         params = {

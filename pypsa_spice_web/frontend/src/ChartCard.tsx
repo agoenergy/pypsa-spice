@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Download, Expand, Minimize2, RotateCcw, Table2 } from "lucide-react";
 import { downloadUrl, getChart } from "./api";
-import Plot, { ChartLegend, getLegendValues } from "./Plot";
+import Plot, { buildDifferenceRows, ChartLegend, getLegendValues } from "./Plot";
 import type { Catalog, ChartDefinition, ChartResponse, ResultRow, Selection } from "./types";
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
   years: string[];
   mappings: Catalog["mappings"];
   darkMode: boolean;
-  onInspect: (title: string, rows: ResultRow[], sourceCount: number, hourly: boolean) => void;
+  onInspect: (chart: ChartDefinition, rows: ResultRow[], sourceCount: number) => void;
 }
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -88,6 +88,12 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
     ...(primary?.rows.map((row) => ({ ...row, scenario: selection.scenario })) || []),
     ...(comparison?.rows.map((row) => ({ ...row, scenario: selection.comparison })) || []),
   ], [primary, comparison, selection]);
+  const differenceRows = useMemo(
+    () => primary && comparison
+      ? buildDifferenceRows(primary, comparison, chart, selection.scenario, selection.comparison)
+      : [],
+    [primary, comparison, chart, selection.scenario, selection.comparison],
+  );
   const sourceCount = (primary?.meta.source_rows || 0) + (comparison?.meta.source_rows || 0);
   const filters = chart.fil_col ? primary?.dimensions[chart.fil_col] || [] : [];
   const filterLabel = chart.fil_col === "to" ? "destinations" : `${chart.fil_col}s`;
@@ -140,7 +146,15 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
           {selection.comparison && <label className="chart-difference-toggle" title={`${selection.comparison} − ${selection.scenario}`}><input type="checkbox" checked={showDifference} onChange={(event) => setShowDifference(event.target.checked)} /><i aria-hidden="true" /><span>Difference</span></label>}
         </div>
         <div className="chart-actions">
-          <button title="View source data" aria-label={`View ${chart.name} source data`} onClick={() => onInspect(chart.name, rows, sourceCount, chart.hourly)}><Table2 aria-hidden="true" /></button>
+          <button
+            title={showDifference ? "View difference data" : "View source data"}
+            aria-label={`View ${chart.name} ${showDifference ? "difference" : "source"} data`}
+            onClick={() => onInspect(
+              showDifference ? { ...chart, name: `${chart.name} — Difference` } : chart,
+              showDifference ? differenceRows : rows,
+              sourceCount,
+            )}
+          ><Table2 aria-hidden="true" /></button>
           <a title="Download complete CSV" aria-label={`Download ${chart.name} CSV`} href={downloadUrl(chart, { ...selection, year })} download><Download aria-hidden="true" /></a>
           <button title={expanded ? "Close expanded chart" : "Expand chart"} aria-label={`${expanded ? "Close" : "Expand"} ${chart.name}`} onClick={() => setExpanded(!expanded)}>{expanded ? <Minimize2 aria-hidden="true" /> : <Expand aria-hidden="true" />}</button>
         </div>

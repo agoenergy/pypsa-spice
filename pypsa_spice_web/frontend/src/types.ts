@@ -4,6 +4,7 @@ export interface ChartDefinition {
   id: string;
   name: string;
   units?: string;
+  summary: "sum" | "none";
   table_name: string;
   leg_col: string;
   fil_col?: string;
