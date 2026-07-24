@@ -161,6 +161,9 @@ export default function DataDialog({ chart, rows, sourceCount, onClose }: Props)
 
 function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
   const canPivot = rows.length > 0 && rows.every((row) => row.year !== null && row.year !== undefined);
+  const isDifferenceView = rows.some(
+    (row) => typeof row.scenario === "string" && row.scenario.includes(" − "),
+  );
   const [view, setView] = useState<"pivot" | "raw">(canPivot ? "pivot" : "raw");
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -190,10 +193,10 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
         sortUndefined: "last",
         minSize: 84,
         maxSize: 420,
-        size: numeric ? 116 : column === "scenario" ? 170 : 140,
+        size: numeric ? 116 : column === "scenario" ? (isDifferenceView ? 280 : 170) : 140,
       };
     })
-  ), [displayTable.columns, firstColumn, numericColumns]);
+  ), [displayTable.columns, firstColumn, isDifferenceView, numericColumns]);
 
   const table = useReactTable({
     data: displayTable.rows,
@@ -241,11 +244,31 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
     setPagination((current) => ({ ...current, pageIndex: 0 }));
   }, [view]);
   useEffect(() => {
-    const closeWithEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+    const openTableMenus = () => (
+      [...document.querySelectorAll<HTMLDetailsElement>(".yearly-table-dialog details[open]")]
+    );
+    const closeMenusOutside = (event: PointerEvent) => {
+      if (!(event.target instanceof Node)) return;
+      for (const menu of openTableMenus()) {
+        if (!menu.contains(event.target)) menu.removeAttribute("open");
+      }
     };
+    const closeWithEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      const menus = openTableMenus();
+      if (menus.length > 0) {
+        event.preventDefault();
+        for (const menu of menus) menu.removeAttribute("open");
+        return;
+      }
+      onClose();
+    };
+    document.addEventListener("pointerdown", closeMenusOutside);
     document.addEventListener("keydown", closeWithEscape);
-    return () => document.removeEventListener("keydown", closeWithEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeMenusOutside);
+      document.removeEventListener("keydown", closeWithEscape);
+    };
   }, [onClose]);
 
   const categoricalOptions = (column: string) => [...new Set(
