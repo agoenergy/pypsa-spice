@@ -77,7 +77,10 @@ def setup_year_filter(config_plot: dict, is_dual_scenario: bool) -> str:
     """
     # Set widget configuration params based on one or two scenarios
     if is_dual_scenario:
-        years = sorted(set(st.session_state.sce1_years + st.session_state.sce2_years))
+        years = list(st.session_state.sce1_years + st.session_state.sce2_years)
+        if st.session_state.get("sce3"):
+            years += st.session_state.get("sce3_years", [])
+        years = sorted(set(years))
         scenario_text = "both"
         key_prefix = "shared"
     else:
@@ -527,8 +530,22 @@ def render_st_page_and_plot(graph_type, config_plot: dict):
     )
     st.markdown(f"#### {config_plot['name']}")
 
-    # Track whether sce2 has been selected by the user or not
-    is_dual_scenario = st.session_state.sce2 and st.session_state.sce2 != ""
+    # Track selected scenarios from canonical sidebar state.
+    selected_scenario_names = st.session_state.get("selected_scenarios", [])
+    selected_scenario_keys = st.session_state.get("selected_scenario_keys", [])
+
+    # Backward-compatible fallback when canonical state is not available.
+    if not selected_scenario_names:
+        selected_scenarios = [
+            ("sce1", st.session_state.sce1),
+            ("sce2", st.session_state.sce2),
+            ("sce3", st.session_state.get("sce3", "")),
+        ]
+        selected_scenarios = [(key, name) for key, name in selected_scenarios if name]
+    else:
+        selected_scenarios = list(zip(selected_scenario_keys, selected_scenario_names))
+
+    is_dual_scenario = len(selected_scenarios) > 1
 
     if is_dual_scenario:
         # Optional, but we can use this CSS to centre the radio buttons within the
@@ -610,31 +627,26 @@ def render_st_page_and_plot(graph_type, config_plot: dict):
                 display_download_button_with_data(st.session_state.sce1, config_plot)
 
     else:
-        # Display the graphs for each of the two scenarios
-        col1, col2, col3 = st.columns([6, 1, 6])
-        with col1:
-            config_plot["years"] = st.session_state.sce1_years
-            st.markdown(f"#### {st.session_state.sce1} ")
-            graph_type(scenario_name=st.session_state.sce1, graph_config=config_plot)
-        with col3:
-            config_plot["years"] = st.session_state.sce2_years
-            st.markdown(f"#### {st.session_state.sce2} ")
-            graph_type(scenario_name=st.session_state.sce2, graph_config=config_plot)
+        # Display the graphs for each selected scenario (up to three)
+        graph_cols = st.columns(len(selected_scenarios))
+        for col, (scenario_key, scenario_name) in zip(graph_cols, selected_scenarios):
+            with col:
+                config_plot["years"] = st.session_state.get(
+                    f"{scenario_key}_years", st.session_state.sce1_years
+                )
+                st.markdown(f"#### {scenario_name} ")
+                graph_type(scenario_name=scenario_name, graph_config=config_plot)
 
         # Display the data download part (skip for network maps)
         if not is_network_map:
-            col1, col2, col3 = st.columns([6, 1, 6])
+            download_cols = st.columns(len(selected_scenarios))
 
-            if config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
-                with col1:
-                    display_download_button_without_data(st.session_state.sce1, config_plot)
-                with col3:
-                    display_download_button_without_data(st.session_state.sce2, config_plot)
-            else:
-                with col1:
-                    display_download_button_with_data(st.session_state.sce1, config_plot)
-                with col3:
-                    display_download_button_with_data(st.session_state.sce2, config_plot)
+            for col, (_, scenario_name) in zip(download_cols, selected_scenarios):
+                with col:
+                    if config_plot.get("graph_type") in GRAPHS_WITH_TIME_FILTERS:
+                        display_download_button_without_data(scenario_name, config_plot)
+                    else:
+                        display_download_button_with_data(scenario_name, config_plot)
 
     st.divider()
 

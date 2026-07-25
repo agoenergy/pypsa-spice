@@ -83,6 +83,7 @@ with st.sidebar:
     )
     if len(scenario_list) == 1:
         st.session_state.sce2 = ""
+        st.session_state.sce3 = ""
     else:
         scenario_list.append("None")
         st.session_state.sce2 = st.sidebar.selectbox(
@@ -91,6 +92,16 @@ with st.sidebar:
         if st.session_state.sce2 == "None":
             st.session_state.sce2 = ""
 
+        # Set sce3 name in session state
+        sce3_default_index = 2 if len(scenario_list) > 3 else len(scenario_list) - 1
+        st.session_state.sce3 = st.sidebar.selectbox(
+            ":material/looks_3: Scenario 3:",
+            options=scenario_list,
+            index=sce3_default_index,
+        )
+        if st.session_state.sce3 == "None":
+            st.session_state.sce3 = ""
+
     # Set sector in session state
     st.session_state.sector = st.sidebar.selectbox(
         ":material/crossword: Sector:",  # init_conf["sector"]
@@ -98,9 +109,30 @@ with st.sidebar:
         index=0,
     )
 
-    if st.session_state.sce1 == st.session_state.sce2:
-        st.sidebar.error("⚠️ The two scenarios should not be the same!")
+    selected_scenarios = [
+        sce
+        for sce in [st.session_state.sce1, st.session_state.sce2, st.session_state.sce3]
+        if sce
+    ]
+    if len(selected_scenarios) != len(set(selected_scenarios)):
+        st.sidebar.error("⚠️ Selected scenarios should not be the same!")
         st.stop()
+
+    if st.session_state.sce3 and not st.session_state.sce2:
+        st.sidebar.error("⚠️ Select Scenario 2 before selecting Scenario 3.")
+        st.stop()
+
+    # Keep a canonical ordered list for downstream render logic.
+    st.session_state.selected_scenarios = selected_scenarios
+    st.session_state.selected_scenario_keys = [
+        key
+        for key, name in [
+            ("sce1", st.session_state.sce1),
+            ("sce2", st.session_state.sce2),
+            ("sce3", st.session_state.sce3),
+        ]
+        if name
+    ]
 
 # Set year in session state
 try:
@@ -110,6 +142,10 @@ try:
     if st.session_state.sce2:
         st.session_state.sce2_years = getters.get_year_list(
             st.session_state.sce2, st.session_state.sector
+        )
+    if st.session_state.sce3:
+        st.session_state.sce3_years = getters.get_year_list(
+            st.session_state.sce3, st.session_state.sector
         )
 except FileNotFoundError as e:
     st.write(e)
