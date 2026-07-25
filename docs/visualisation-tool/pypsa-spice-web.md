@@ -60,6 +60,49 @@ The Results pages provide visualisation and scenario comparison for:
 - Emissions
 - Costs
 
+## Custom dashboards
+
+The **Dashboards** page assembles a browser-local selection of existing Results
+charts. Each dashboard belongs to one result dataset and project. The workspace
+is an ordered list of rows. A row is either a compact inline-editable heading or
+one full-width chart. Rows can be reordered and removed. A chart can also be
+replaced with another existing Results chart from its settings.
+
+A chart card can show one or two result runs from that project, or calculate the
+difference between exactly two runs as `comparison − reference`. Two scenarios
+in normal mode render as two side-by-side plots inside the full-width chart row;
+difference mode renders one full-width difference plot. Chart rows can also be
+removed. Country, configured chart filters, hourly year, and hourly time range
+remain configurable per chart. Imported chart selections containing more than
+two scenarios are normalized to their first two unique scenarios. Previous
+two-chart rows are migrated into two separate full-width chart rows.
+
+Dashboard definitions save automatically in the current browser. They contain
+chart IDs, result-run selections, filters, titles, and ordered rows; result rows
+are not copied into browser storage. Returning with the
+same browser profile and application address restores the last-opened
+dashboard. Clearing site storage removes these local definitions.
+
+The canonical schema-2 JSON stores each chart configuration directly inside its
+`chart` row. This keeps row order and chart settings in one place rather than
+maintaining cross-references between separate row and chart lists. Schema-1
+browser data and exported files are migrated when read; subsequent saves and
+exports use schema 2.
+
+Use **Export** to download a versioned
+`pypsa-spice-dashboard` JSON configuration. **Import** validates this format,
+shows a summary, and creates a new local dashboard without overwriting an
+existing one. An imported definition can retain unavailable chart or scenario
+references so that it can be repaired after opening a different result
+checkout. Exported configurations do not contain result data and are not
+published dashboards.
+
+Dashboard persistence is accessed through a frontend storage interface rather
+than directly by chart components. The current implementation uses
+`localStorage`; the versioned configuration and separate read/edit rendering
+boundaries allow a server-backed store or read-only publication route to be
+added later without changing the Results chart registry.
+
 Result files remain read-only. Input and scenario-configuration changes are written directly to the selected local CSV or YAML file only after the user explicitly saves them. Large timeseries input tables remain read-only in the browser.
 
 ## Configure and run workflow
