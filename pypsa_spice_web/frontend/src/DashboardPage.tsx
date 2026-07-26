@@ -307,9 +307,10 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
       ? <section className="dashboard-builder-row dashboard-heading-row" key={row.id}>
         <label className="dashboard-heading-row-field">
           <span className="sr-only">Section heading</span>
-          <input
+          <textarea
             value={row.title}
             maxLength={120}
+            rows={1}
             aria-label="Section heading"
             placeholder="Type a section heading…"
             autoFocus={newHeadingId.current === row.id}
