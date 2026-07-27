@@ -15,9 +15,9 @@ logging:
 #####Init settings#####
 path_configs:
   data_folder_name: mod-data-th-pdp
-  project_name: TH_PDP_v2-2026_fillin_test
-  input_scenario_name: pdp_high
-  output_scenario_name: pdp_high
+  project_name: TH_PDP_v3-2026_final
+  input_scenario_name: pdp_high_LOLE10
+  output_scenario_name: pdp_high_LOLE10
   
 base_configs:
   regions:
