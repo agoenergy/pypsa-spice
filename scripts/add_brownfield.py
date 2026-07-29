@@ -1049,7 +1049,7 @@ if __name__ == "__main__":
 
     sm_c.network.generators.loc[
         (sm_c.network.generators.index == "TH_NE_HVELEC_HDAM-IMP"), "p_nom"
-    ] = (hydro_imports_cap[sm_year] * 1e3)
+    ] = (hydro_imports_cap[sm_year])
     sm_c.network.generators.loc[
         (sm_c.network.generators.index == "TH_NE_HVELEC_HDAM-IMP"), "capital_cost"
     ] = 0
