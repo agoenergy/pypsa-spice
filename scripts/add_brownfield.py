@@ -1036,4 +1036,22 @@ if __name__ == "__main__":
         sm_c.add_ev_storage()
         print(f"Finish adding {sm_year} assets for EV sector")
     sm_c.add_co2_option()
+
+    # Adjust p_nom of hydro imports here due to decrease in future years
+    # Capex is assigned to zero to address the import capacity issue in the future years
+    hydro_imports_cap = {
+        2030: 3713,
+        2035: 4772,
+        2040: 3742,
+        2045: 3742,
+        2050: 1385,
+    }
+
+    sm_c.network.generators.loc[
+        (sm_c.network.generators.index == "TH_NE_HVELEC_HDAM-IMP"), "p_nom"
+    ] = (hydro_imports_cap[sm_year] * 1e3)
+    sm_c.network.generators.loc[
+        (sm_c.network.generators.index == "TH_NE_HVELEC_HDAM-IMP"), "capital_cost"
+    ] = 0
+
     sm_c.network.export_to_netcdf(path=snakemake.output.brownfield_network)
