@@ -366,6 +366,7 @@ def re_pow_generation_constraint(
                             "FLOT",
                             "CSP",
                             "RTPV",
+                            "FTPV",
                             "GEOT",
                             "GEOX",
                             "WTON",

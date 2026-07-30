@@ -48,6 +48,7 @@ PEVCH,PEV charger,Transport,#2581C4
 PHOT,Solar PV,Power,#FFE000
 powerFlow,Power flow,,#5c5d6b
 RTPV,Roof top PV,Power,#ffd300
+FTPV,Floating solar PV,Power,##FCECA4
 stateOfCharge,State of charge,,#8393BE
 SubC,Subcritical coal-fired power plant,Power,#423429
 SupC,Supercritical coal-fired power plant,Power,#B69E8C
