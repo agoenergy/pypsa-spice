@@ -10,6 +10,7 @@
 - Fix correct barmode in plotly to display right stacked column charts. ([:material-source-pull:111](https://github.com/agoenergy/pypsa-spice/pull/111) by @RichChang963)
 - Change website link display. ([:material-source-pull:110](https://github.com/agoenergy/pypsa-spice/pull/110) by @RichChang963)
 - Fix error handling of missing p_max_pu for generators and links. ([:material-source-pull:107](https://github.com/agoenergy/pypsa-spice/pull/107) by @RichChang963)
+- Consolidate all pip package installations into the `environment.yaml` file and removing the previous `requirements.txt` file to simplifies dependency management for new users ([:material-source-pull:117](https://github.com/agoenergy/pypsa-spice/pull/117) by @nhlong2701)
 
 ### Changed
 - Add streamlit-extra pacakge and enhance addtional features in PyPSA-SPICE-Vis. ([:material-source-pull:105](https://github.com/agoenergy/pypsa-spice/pull/105) by @RichChang963)
