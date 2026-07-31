@@ -472,9 +472,9 @@ class AddBaseNetwork:
             links_df["efficiency3"] = 0
         links_df = links_df.set_index("link")
 
-        links_df["committable"] = True
-        if "TH_NUCLN" in links_df["bus0"].values:
-            links_df.loc[links_df["bus0"] == "TH_NUCLN", "committable"] = True
+        # links_df["committable"] = True
+        # if "TH_NUCLN" in links_df["bus0"].values:
+        #     links_df.loc[links_df["bus0"] == "TH_NUCLN", "committable"] = True
 
         self.network.add(
             class_name="Link",
@@ -483,7 +483,7 @@ class AddBaseNetwork:
             bus1=links_df["bus1"],
             bus2=links_df["bus2"],
             bus3=links_df["bus3"],
-            committable=links_df["committable"],
+            # committable=links_df["committable"],
             carrier=links_df["carrier"],
             efficiency=links_df["efficiency"],
             efficiency2=links_df["efficiency2"],
