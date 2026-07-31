@@ -9,7 +9,8 @@ import runpy
 import sys
 
 import streamlit as st
-import yaml
+from ruamel.yaml import YAML
+from ruamel.yaml.error import YAMLError
 from styles import use_flexo
 
 from scripts.get_params import GetParams
@@ -18,8 +19,9 @@ from scripts.get_params import GetParams
 @st.cache_data
 def load_yaml(path: str) -> dict:
     """Load a YAML file."""
+    yaml_loader = YAML()
     with open(path, encoding="utf-8") as file:
-        return yaml.safe_load(file)
+        return yaml_loader.load(file) or {}
 
 
 def render_script_page(relative_script_path: str) -> None:
@@ -168,7 +170,7 @@ def initialize_paths() -> None:
         raise FileNotFoundError(
             "Please ensure your working directory is at the pypsa-spice root level."
         ) from exc
-    except yaml.YAMLError as exc:
+    except YAMLError as exc:
         raise ValueError(f"Invalid YAML configuration: {exc}") from exc
 
     # Build path to project folder.

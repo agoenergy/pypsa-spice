@@ -6,6 +6,7 @@
 
 import glob
 import logging
+import math
 import os
 import urllib
 from itertools import cycle
@@ -543,7 +544,8 @@ def get_time_series_demands(
         result["country"] = row["country"]
         if len(result) > 1:
             raise ValueError(
-                f'{result["load_id"]} has duplicate. Please check input data again'
+                f"{result['load_id']} has duplicate rows. "
+                + "Please check data in demand_profiles.csv again."
             )
         dfs.append(result)
     demand_df = pd.concat(dfs)
@@ -610,21 +612,29 @@ def get_plant_availabilities(
         # If technology type doesn't appear in avail_df
         # take availability from technology database.
         else:
-            p_max_pu = arch_country_df[
+            techonology = arch_country_df[
                 (arch_country_df["technology"].isin([row["type"]]))
                 & (arch_country_df["carrier"].isin([row["carrier"]]))
-            ]["p_max_pu"]
+            ]
+            p_max_pu = techonology["p_max_pu"]
+
+            if math.isnan(p_max_pu.values[0]):
+                raise ValueError(
+                    f"No p_nom_max data found for {row['type']}. "
+                    + "Please check data in technologies.csv again."
+                )
+
             # creating result to match format of other availability dataframes
             result = pd.DataFrame(
                 np.repeat(p_max_pu.values, 8762, axis=0),
             ).T
+            # give column names to match with other availability dataframes
             result.columns = ["node", "technology"] + [str(i) for i in range(0, 8760)]
-            if result.empty:
-                result = avail_df[(avail_df["technology"].isin(["Con10"]))]
 
         if len(result) > 1:
             raise ValueError(
-                f'{row["name"]} has duplicate. Please check input data again'
+                f"{row['name']} has duplicate rows. "
+                + "Please check data in technologies.csv and availability.csv again."
             )
         result = result.iloc[:, 2:]
         result["plant"] = row["name"]
@@ -691,22 +701,29 @@ def get_link_availabilities(
         # If technology type doesn't appear in avail_df
         # get availability from technology database.
         else:
-            p_max_pu = arch_country_df[
+            techonology = arch_country_df[
                 (arch_country_df["technology"].isin([row["type"]]))
                 & (arch_country_df["carrier"].isin([row["carrier"]]))
-            ]["p_max_pu"]
+            ]
+            p_max_pu = techonology["p_max_pu"]
+
+            if math.isnan(p_max_pu.values[0]):
+                raise ValueError(
+                    f"No p_nom_max data found for {row['type']}. "
+                    + "Please check data in technologies.csv again."
+                )
+
             # creating result to match format of other availability dataframes
             result = pd.DataFrame(
                 np.repeat(p_max_pu.values, 8762, axis=0),
             ).T
             # give column names to match with other availability dataframes
             result.columns = ["node", "technology"] + [str(i) for i in range(0, 8760)]
-            if result.empty:
-                result = avail_df[(avail_df["technology"].isin(["Con10"]))]
 
         if len(result) > 1:
             raise ValueError(
-                f'{row["name"]} has duplicate. Please check input data again'
+                f"{row['name']} has duplicate rows. "
+                + "Please check data in technologies.csv and availability.csv again."
             )
         result = result.iloc[:, 2:]
         result["plant"] = row["link"]
@@ -763,7 +780,8 @@ def get_store_min_availabilities(
 
         if len(result) > 1:
             raise ValueError(
-                f'{row["name"]} has duplicate. Please check input data again'
+                f"{row['name']} has duplicate rows. "
+                + "Please check data in technologies.csv and availability.csv again."
             )
         result = result.iloc[:, 2:]
         result["plant"] = row["name"]
@@ -1482,7 +1500,7 @@ def plot_table(
 
         # Update layout properties
         fig.update_layout(
-            barmode="stack",
+            barmode="relative",
             autosize=False,
             plot_bgcolor=agora_style["figure_edgecolor"],
             paper_bgcolor=agora_style["figure_facecolor"],

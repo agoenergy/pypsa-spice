@@ -3,15 +3,17 @@
 
 ## Upcoming
 - Add a legend order control for stacked column charts in PyPSA-SPICE-Vis.
-- Improve the input GUI’s handling of custom constraints and session state.
 - Add minimum curtailment support via a curtailment penalty in the optimisation objective.
 
 ### Fixed
 
+
 ### Changed
+
 
 ### Notes
 
+--8<-- "releases/v2.1.0.md"
 --8<-- "releases/v2.0.0.md"
 --8<-- "releases/v1.1.1.md"
 --8<-- "releases/v1.1.0.md"
