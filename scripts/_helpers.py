@@ -69,6 +69,7 @@ ag_cp = {
     "WTOF": "#006099",
     "BATS": "#00ced1",
     "BATS-4": "#06aeb1",
+    "BATS-6": "#16999B",
     "BATS-8": "#137577",
     "BATS-12": "#105252",
     "BATS_DISCHARGE": "#00ced1",
@@ -1621,6 +1622,7 @@ def generation_type_mapping(x: str) -> str:
         "OCHT",
         "HPHS",
         "BATS-4",
+        "BATS-6",
         "BATS-8",
         "BATS-12",
     ]:
