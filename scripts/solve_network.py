@@ -189,6 +189,25 @@ def extra_functionality_linopt(
         print("No custom constraint was added to the model")
 
 
+def fix_rtpv_generation(network: pypsa.Network):
+    """Fix the generation of rooftop PV to its maximum potential.
+
+    Parameters
+    ----------
+    network : pypsa.Network
+        PyPSA network object containing all components and functions.
+    """
+    rtpv_gens = network.generators.index[network.generators.type == "RTPV"]
+    if len(rtpv_gens) == 0:
+        return
+    # Make sure p_max_pu time series exists for them
+    rtpv_profiles = [p for p in rtpv_gens if p in network.generators_t.p_max_pu.columns]
+    # Copy p_max_pu into p_min_pu (time-varying)
+    network.generators_t.p_min_pu[rtpv_profiles] = network.generators_t.p_max_pu[
+        rtpv_profiles
+    ]
+
+
 def solve_network(
     network: pypsa.Network, year: int, scenario_configs: dict
 ) -> pypsa.Network:
@@ -248,7 +267,6 @@ def solve_network(
         # solve network
         network.optimize(
             solver_name=solver_name,
-            # linearized_unit_commitment=True,
             extra_functionality=extra_functionality_linopt_config,
             **({"remote": oetc_handler} if oetc_handler else {}),
             **solver_options,
@@ -274,7 +292,6 @@ def solve_network(
 
             network.optimize(
                 solver_name=solver_name,
-                # linearized_unit_commitment=False,
                 solver_options=solver_options_numerical,
                 extra_functionality=extra_functionality_linopt_config,
             )
@@ -293,13 +310,13 @@ def solve_network(
             keep_references=True,
             extra_functionality=extra_functionality_linopt_config,
         )
-    if n.model.status != "warning":
+    if network.model.status != "warning":
         print("model feasible! 🌶 ")
         return network
     else:
         print("model infeasible compute infeasibilites")
         if solver_name.lower() in ["gurobi", "cplex"]:
-            n.model.print_infeasibilities()
+            network.model.print_infeasibilities()
 
 
 if __name__ == "__main__":
@@ -321,6 +338,7 @@ if __name__ == "__main__":
     n = pypsa.Network(
         snakemake.input.network,
     )
+    fix_rtpv_generation(n)
     if y > snakemake.params.years[0]:  # Only do for year which is not baseyear
         renewable_potential_constraint(
             n, snakemake.input.re_technical_potential, year=y
