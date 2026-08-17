@@ -40,6 +40,7 @@ describe("home workspace inventory", () => {
         inputScenarios: ["baseline"],
         resultRuns: [],
         countries: [],
+        dashboards: [],
       },
       {
         key: "results::results-only",
@@ -48,6 +49,7 @@ describe("home workspace inventory", () => {
         inputScenarios: [],
         resultRuns: ["latest"],
         countries: [],
+        dashboards: [],
       },
       {
         key: "inputs::shared",
@@ -56,6 +58,7 @@ describe("home workspace inventory", () => {
         inputScenarios: ["baseline", "policy", "high-demand"],
         resultRuns: [],
         countries: [],
+        dashboards: [],
       },
       {
         key: "results::shared",
@@ -64,6 +67,7 @@ describe("home workspace inventory", () => {
         inputScenarios: [],
         resultRuns: ["baseline", "policy"],
         countries: [],
+        dashboards: [],
       },
     ]);
   });
@@ -84,6 +88,26 @@ describe("home workspace inventory", () => {
       inputScenarios: ["baseline", "policy", "high-demand"],
       resultRuns: ["baseline"],
       countries: [],
+      dashboards: [],
     });
+  });
+
+  it("keeps projects with only saved dashboards available in the combined selector", () => {
+    const dashboard = {
+      id: "dashboard-only",
+      title: "Dashboard only",
+      dataset: "archive",
+      project: "saved-project",
+    };
+
+    expect(workspaceInventory(null, null, [dashboard])).toEqual([{
+      key: "archive::saved-project",
+      dataset: "archive",
+      project: "saved-project",
+      inputScenarios: [],
+      resultRuns: [],
+      countries: [],
+      dashboards: [{ id: "dashboard-only", title: "Dashboard only" }],
+    }]);
   });
 });

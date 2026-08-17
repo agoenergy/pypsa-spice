@@ -10,6 +10,7 @@ import {
   Settings2,
 } from "lucide-react";
 import { LocalDashboardStore, type DashboardDefinition } from "./dashboard";
+import PageHeader from "./PageHeader";
 import type { Catalog, InputCatalog } from "./types";
 
 type HomeDestination = "inputs" | "configure" | "compare" | "outputs" | "dashboard";
@@ -21,15 +22,18 @@ interface WorkspaceInventoryItem {
   inputScenarios: string[];
   resultRuns: string[];
   countries: string[];
+  dashboards: Pick<DashboardDefinition, "id" | "title">[];
 }
 
-export function workspaceInventory(catalog: Catalog | null, inputCatalog: InputCatalog | null): WorkspaceInventoryItem[] {
+type DashboardWorkspaceSource = Pick<DashboardDefinition, "dataset" | "project" | "id" | "title">;
+
+export function workspaceInventory(catalog: Catalog | null, inputCatalog: InputCatalog | null, dashboards: DashboardWorkspaceSource[] = []): WorkspaceInventoryItem[] {
   const workspaces = new Map<string, WorkspaceInventoryItem>();
   const ensureWorkspace = (dataset: string, project: string) => {
     const key = `${dataset}::${project}`;
     const existing = workspaces.get(key);
     if (existing) return existing;
-    const created = { key, dataset, project, inputScenarios: [], resultRuns: [], countries: [] };
+    const created: WorkspaceInventoryItem = { key, dataset, project, inputScenarios: [], resultRuns: [], countries: [], dashboards: [] };
     workspaces.set(key, created);
     return created;
   };
@@ -42,6 +46,9 @@ export function workspaceInventory(catalog: Catalog | null, inputCatalog: InputC
   catalog?.datasets.forEach((dataset) => dataset.projects.forEach((project) => {
     ensureWorkspace(dataset.name, project.name).resultRuns = project.scenarios.map((scenario) => scenario.name);
   }));
+  dashboards.forEach((dashboard) => {
+    ensureWorkspace(dashboard.dataset, dashboard.project).dashboards.push({ id: dashboard.id, title: dashboard.title });
+  });
 
   return [...workspaces.values()].sort((left, right) => left.project.localeCompare(right.project) || left.dataset.localeCompare(right.dataset));
 }
@@ -59,11 +66,13 @@ export default function HomePage({
   inputError: string;
   onNavigate: (destination: HomeDestination) => void;
 }) {
-  const inventory = useMemo(() => workspaceInventory(catalog, inputCatalog), [catalog, inputCatalog]);
   const dashboardStore = useMemo(() => new LocalDashboardStore(), []);
   const [dashboards, setDashboards] = useState<DashboardDefinition[] | null>(null);
   const [dashboardError, setDashboardError] = useState("");
+  const inventory = useMemo(() => workspaceInventory(catalog, inputCatalog, dashboards ?? []), [catalog, inputCatalog, dashboards]);
+  const [selectedWorkspaceKey, setSelectedWorkspaceKey] = useState("");
   const loading = !catalog && !inputCatalog && !resultError && !inputError;
+  const selectedWorkspace = inventory.find((workspace) => workspace.key === selectedWorkspaceKey) || inventory[0];
 
   useEffect(() => {
     let current = true;
@@ -88,6 +97,7 @@ export default function HomePage({
   };
 
   return <div className="home-page">
+    <PageHeader title="Workspace overview" />
     <section className="home-guide-panel">
       <header className="home-panel-heading"><div><span className="eyebrow">Workflow</span><h2>How to use the workspace</h2></div></header>
       <ul className="home-workflow">
@@ -104,7 +114,12 @@ export default function HomePage({
       <section className="home-workspaces">
         <header className="home-panel-heading">
           <div><span className="eyebrow">Local data</span><h2>Available projects</h2></div>
-          <span>{inventory.length} {inventory.length === 1 ? "project" : "projects"}</span>
+          {inventory.length > 0 && <label className="home-project-picker">
+            <span>Project · {inventory.length} available</span>
+            <select value={selectedWorkspace?.key ?? ""} onChange={(event) => setSelectedWorkspaceKey(event.target.value)}>
+              {inventory.map((workspace) => <option value={workspace.key} key={workspace.key}>{workspace.project} · {workspace.dataset}</option>)}
+            </select>
+          </label>}
         </header>
 
         {loading && <div className="home-loading"><span className="spinner" />Discovering projects and scenarios…</div>}
@@ -113,17 +128,28 @@ export default function HomePage({
           <b>No projects found</b>
           <span>{inputError || resultError || "Add a project under the local data directory, then refresh the workspace."}</span>
         </div>}
-        {inventory.map((workspace) => <WorkspaceCard key={workspace.key} workspace={workspace} />)}
+        {!loading && selectedWorkspace && <WorkspaceCard
+          key={selectedWorkspace.key}
+          workspace={selectedWorkspace}
+          dashboardsLoading={dashboards === null}
+          dashboardError={dashboardError}
+          onOpenDashboard={openDashboard}
+          onOpenDashboardWorkspace={() => onNavigate("dashboard")}
+        />}
       </section>
-
-      <DashboardList dashboards={dashboards} error={dashboardError} onOpen={openDashboard} onOpenWorkspace={() => onNavigate("dashboard")} />
 
       <p className="home-source-note"><b>Local files are the source of truth.</b> Input changes are written only when saved. Result files remain read-only.</p>
     </div>
   </div>;
 }
 
-function WorkspaceCard({ workspace }: { workspace: WorkspaceInventoryItem }) {
+function WorkspaceCard({ workspace, dashboardsLoading, dashboardError, onOpenDashboard, onOpenDashboardWorkspace }: {
+  workspace: WorkspaceInventoryItem;
+  dashboardsLoading: boolean;
+  dashboardError: string;
+  onOpenDashboard: (id: string) => void;
+  onOpenDashboardWorkspace: () => void;
+}) {
   return <article className="home-project-card">
     <header>
       <div className="home-project-title"><FolderOpen aria-hidden="true" /><div><h3>{workspace.project}</h3><span>{workspace.dataset}</span></div></div>
@@ -131,6 +157,7 @@ function WorkspaceCard({ workspace }: { workspace: WorkspaceInventoryItem }) {
     </header>
     <div className="home-project-columns">
       <ScenarioList
+        className="home-input-scenarios"
         label="Input scenarios"
         emptyLabel="No editable scenarios found"
         items={workspace.inputScenarios}
@@ -138,20 +165,41 @@ function WorkspaceCard({ workspace }: { workspace: WorkspaceInventoryItem }) {
         href={(scenario) => `?view=inputs&dataset=${encodeURIComponent(workspace.dataset)}&project=${encodeURIComponent(workspace.project)}&scenario=${encodeURIComponent(scenario)}`}
       />
       <ScenarioList
+        className="home-result-runs"
         label="Result runs"
         emptyLabel="No result runs found"
         items={workspace.resultRuns}
         icon={<BarChart3 />}
         href={(run) => `?section=power&dataset=${encodeURIComponent(workspace.dataset)}&project=${encodeURIComponent(workspace.project)}&run=${encodeURIComponent(run)}`}
       />
+      <ProjectDashboardList
+        dashboards={workspace.dashboards}
+        loading={dashboardsLoading}
+        error={dashboardError}
+        onOpen={onOpenDashboard}
+        onOpenWorkspace={onOpenDashboardWorkspace}
+      />
     </div>
   </article>;
 }
 
-function ScenarioList({ label, emptyLabel, items, icon, href }: { label: string; emptyLabel: string; items: string[]; icon: ReactNode; href: (item: string) => string }) {
-  return <section className="home-scenario-list">
+function ScenarioList({ className, label, emptyLabel, items, icon, href }: { className: "home-input-scenarios" | "home-result-runs"; label: string; emptyLabel: string; items: string[]; icon: ReactNode; href: (item: string) => string }) {
+  return <section className={`home-scenario-list ${className}`}>
     <header><span>{icon}{label}</span><small>{items.length}</small></header>
     {items.length ? <div>{items.map((item) => <a href={href(item)} key={item}>{item}<ArrowRight aria-hidden="true" /></a>)}</div> : <p>{emptyLabel}</p>}
+  </section>;
+}
+
+function ProjectDashboardList({ dashboards, loading, error, onOpen, onOpenWorkspace }: {
+  dashboards: Pick<DashboardDefinition, "id" | "title">[];
+  loading: boolean;
+  error: string;
+  onOpen: (id: string) => void;
+  onOpenWorkspace: () => void;
+}) {
+  return <section className="home-scenario-list home-project-dashboards">
+    <header><span><LayoutDashboard aria-hidden="true" />Saved dashboards</span><small>{dashboards.length}</small></header>
+    {loading ? <p>Opening saved dashboards…</p> : dashboards.length ? <div>{dashboards.map((dashboard) => <button type="button" onClick={() => onOpen(dashboard.id)} key={dashboard.id}>{dashboard.title}<ArrowRight aria-hidden="true" /></button>)}</div> : <p>{error || "No saved dashboards found"}<button type="button" onClick={onOpenWorkspace}>Create one</button></p>}
   </section>;
 }
 
@@ -159,38 +207,4 @@ function WorkflowStep({ icon, title, description, onClick, disabled = false }: {
   return <li>
     <button type="button" className="home-workflow-main" onClick={onClick} disabled={disabled}><span className="home-step-icon">{icon}</span><span><b>{title}{disabled && <em>Not implemented</em>}</b><small>{description}</small></span>{!disabled && <ArrowRight aria-hidden="true" />}</button>
   </li>;
-}
-
-function DashboardList({ dashboards, error, onOpen, onOpenWorkspace }: { dashboards: DashboardDefinition[] | null; error: string; onOpen: (id: string) => void; onOpenWorkspace: () => void }) {
-  return <section className="home-dashboards">
-    <header className="home-panel-heading">
-      <div><span className="eyebrow">Saved locally in this browser</span><h2>Available dashboards</h2></div>
-      <div className="home-dashboard-heading-actions">
-        {dashboards && <span>{dashboards.length} {dashboards.length === 1 ? "dashboard" : "dashboards"}</span>}
-        <button type="button" className="button secondary" onClick={onOpenWorkspace}><LayoutDashboard aria-hidden="true" />Open dashboard workspace</button>
-      </div>
-    </header>
-    {dashboards === null && <div className="home-dashboard-state"><span className="spinner" />Opening saved dashboards…</div>}
-    {dashboards?.length === 0 && <div className="home-dashboard-state"><LayoutDashboard aria-hidden="true" /><b>No saved dashboards</b><span>{error || "Open the dashboard workspace to create one from existing result figures."}</span><button type="button" className="button primary" onClick={onOpenWorkspace}>Create a dashboard</button></div>}
-    {dashboards && dashboards.length > 0 && <div className="home-dashboard-list">
-      {dashboards.map((dashboard) => {
-        const chartCount = dashboard.rows.filter((row) => row.type === "chart").length;
-        const headingCount = dashboard.rows.filter((row) => row.type === "heading").length;
-        return <button type="button" key={dashboard.id} onClick={() => onOpen(dashboard.id)}>
-          <span className="home-dashboard-icon"><LayoutDashboard aria-hidden="true" /></span>
-          <span className="home-dashboard-copy"><b>{dashboard.title}</b><small>{dashboard.description || "No description"}</small></span>
-          <span className="home-dashboard-project"><small>Result project</small><b>{dashboard.project}</b><em>{dashboard.dataset}</em></span>
-          <span className="home-dashboard-contents"><small>Contents</small><b>{chartCount} {chartCount === 1 ? "chart" : "charts"}</b><em>{headingCount} {headingCount === 1 ? "heading" : "headings"}</em></span>
-          <span className="home-dashboard-updated"><small>Updated</small><b>{formatDashboardDate(dashboard.updatedAt)}</b></span>
-          <ArrowRight aria-hidden="true" />
-        </button>;
-      })}
-    </div>}
-  </section>;
-}
-
-function formatDashboardDate(value: string): string {
-  const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return "Unknown";
-  return new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", year: "numeric" }).format(date);
 }

@@ -15,5 +15,8 @@
   in web-native patterns rather than reproducing the Streamlit interface.
 - Keep Streamlit-specific packages and implementation details out of the web
   frontend and its UI-development guidance.
+- The web application does not need mobile optimization. Prioritize desktop
+  layouts and interactions; mobile-specific responsive work is not required
+  unless the user explicitly requests it.
 - Dont apply agora design skill, instead focus on app to have consistent internal design. 
 -
