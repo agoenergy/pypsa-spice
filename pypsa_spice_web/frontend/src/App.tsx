@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeftRight, BarChart3, CarFront, CircleDollarSign, Cloud, Factory, FileInput, GitCompareArrows, LayoutDashboard, List, Menu, Moon, Plus, RefreshCw, Settings2, Sun, X, Zap } from "lucide-react";
+import { ArrowLeftRight, BarChart3, CarFront, CircleDollarSign, Cloud, Factory, FileInput, GitCompareArrows, House, LayoutDashboard, List, Menu, Moon, Plus, RefreshCw, Settings2, Sun, X, Zap } from "lucide-react";
 import { getCatalog, getInputCatalog, getLatestModelRun } from "./api";
 import ChartCard from "./ChartCard";
 import DashboardPage from "./DashboardPage";
 import DataDialog from "./DataDialog";
+import HomePage from "./HomePage";
 import InputEditor from "./InputEditor";
 import NewScenarioDialog from "./NewScenarioDialog";
 import PageHeader from "./PageHeader";
@@ -12,7 +13,7 @@ import ScenarioComparison from "./ScenarioComparison";
 import { confirmDiscardChanges } from "./dirtyState";
 import type { Catalog, ChartDefinition, InputCatalog, InputSelection, ModelRunStatus, ResultRow, Selection } from "./types";
 
-type ViewMode = "outputs" | "inputs" | "configure" | "compare" | "dashboard";
+type ViewMode = "home" | "outputs" | "inputs" | "configure" | "compare" | "dashboard";
 type WorkspaceOption = { value: string; label: string };
 
 const WORKSPACE_SEPARATOR = "::";
@@ -20,10 +21,21 @@ const emptySelection: Selection = { dataset: "", project: "", scenario: "", comp
 const emptyInputSelection: InputSelection = { dataset: "", project: "", scenario: "" };
 const sectionIcons = { power: Zap, industry: Factory, transport: CarFront, emissions: Cloud, costs: CircleDollarSign };
 const activeModelRunStatuses = new Set<ModelRunStatus>(["queued", "running", "canceling"]);
+const modelRunLabels: Partial<Record<ModelRunStatus, string>> = {
+  queued: "Model run queued",
+  running: "Model running",
+  canceling: "Stopping model run",
+};
 
 function locationParams() { return new URLSearchParams(window.location.search); }
 function sectionFromLocation() { return locationParams().get("section")?.toLowerCase() || "power"; }
-function viewFromLocation(): ViewMode { const value = locationParams().get("view"); return value === "inputs" || value === "configure" || value === "compare" || value === "dashboard" ? value : "outputs"; }
+function viewFromLocation(): ViewMode {
+  const params = locationParams();
+  const value = params.get("view");
+  if (value === "home" || value === "inputs" || value === "configure" || value === "compare" || value === "dashboard") return value;
+  if (value === "outputs" || params.has("section") || params.has("run") || params.has("sector")) return "outputs";
+  return "home";
+}
 function countryFromLocation() { return locationParams().get("country") || "ALL"; }
 function workspaceValue(dataset: string, project: string) { return `${dataset}${WORKSPACE_SEPARATOR}${project}`; }
 function splitWorkspace(value: string) { const [dataset, ...project] = value.split(WORKSPACE_SEPARATOR); return { dataset, project: project.join(WORKSPACE_SEPARATOR) }; }
@@ -145,7 +157,9 @@ export default function App() {
   useEffect(() => {
     if (!(selection.project || inputSelection.project)) return;
     const params = new URLSearchParams();
-    if (view === "dashboard") {
+    if (view === "home") {
+      params.set("view", "home");
+    } else if (view === "dashboard") {
       params.set("view", "dashboard");
     } else {
       if (view !== "outputs") params.set("view", view); else params.set("section", section?.id || sectionId);
@@ -196,29 +210,33 @@ export default function App() {
   const chooseSector = (name: string) => { if (!confirmDiscardChanges()) return; const next = scenario!.sectors.find((item) => item.name === name)!; setSelection((current) => ({ ...current, sector: name, year: next.years[0] || "" })); };
   const chooseSection = (name: string) => { if (!confirmDiscardChanges()) return; setView("outputs"); setSectionId(name); setSidebarOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const chooseView = (next: ViewMode) => { if (!confirmDiscardChanges()) return; const params = locationParams(); if (next === "outputs") { params.delete("view"); params.set("section", section?.id || "power"); } else { params.set("view", next); params.delete("section"); } if (next !== "configure") params.delete("country"); if (next !== "outputs" && next !== "compare") params.delete("compare"); window.history.pushState(null, "", `?${params.toString()}`); setView(next); setSidebarOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
-  const refreshCurrent = () => { if (!confirmDiscardChanges()) return; if (view === "outputs" || view === "dashboard") void loadCatalog(); else { void loadInputs(); setInputRefresh((current) => current + 1); } };
+  const refreshCurrent = () => { if (!confirmDiscardChanges()) return; if (view === "home") { void loadCatalog(); void loadInputs(); } else if (view === "outputs" || view === "dashboard") void loadCatalog(); else { void loadInputs(); setInputRefresh((current) => current + 1); } };
 
   const outputReady = Boolean(catalog && selection.scenario && section && sector);
   const inputReady = Boolean(inputCatalog && inputSelection.dataset && inputSelection.project && inputSelection.scenario);
   const comparisonReady = Boolean(inputReady && inputComparison);
-  const contextReady = view === "dashboard" ? false : view === "outputs" ? outputReady : inputReady;
+  const contextReady = view === "home" || view === "dashboard" ? false : view === "outputs" ? outputReady : inputReady;
   const activeWorkspace = workspaceValue(activeDatasetName, activeProjectName);
+  const modelRunLabel = modelRunStatus ? modelRunLabels[modelRunStatus] : undefined;
 
   return <div className="app-shell">
     <a className="skip-link" href="#workspace">Skip to workspace</a>
     <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-      <div className="brand"><img src="/brand/pypsa-logo.svg" alt="PyPSA-SPICE" /></div>
+      <div className="brand"><a href="?view=home" onClick={(event) => { event.preventDefault(); chooseView("home"); }} aria-label="Go to home"><img src="/brand/pypsa-logo.svg" alt="PyPSA-SPICE" /></a></div>
       <div className="workspace-nav" role="navigation" aria-label="Workflow">
+        <div className="sidebar-section">
+          <a className={`sidebar-primary ${view === "home" ? "active" : ""}`} href="?view=home" onClick={(event) => { event.preventDefault(); chooseView("home"); }}><House aria-hidden="true" />Home</a>
+        </div>
         <div className="sidebar-section">
           <a className={`sidebar-primary ${view === "inputs" ? "active" : ""}`} href="?view=inputs" onClick={(event) => { event.preventDefault(); chooseView("inputs"); }}><FileInput aria-hidden="true" />Inputs</a>
           {view === "inputs" && <div className="sidebar-submenu-slot" id="input-table-menu" />}
         </div>
         <div className="sidebar-section">
-          <a className={`sidebar-primary ${view === "configure" ? "active" : ""}`} href="?view=configure" onClick={(event) => { event.preventDefault(); chooseView("configure"); }}><Settings2 aria-hidden="true" />Configure &amp; run</a>
-          {view === "configure" && <div className="sidebar-submenu-slot" id="config-section-tabs" />}
+          <a className={`sidebar-primary ${view === "compare" ? "active" : ""}`} href="?view=compare" onClick={(event) => { event.preventDefault(); chooseView("compare"); }}><GitCompareArrows aria-hidden="true" />Scenario differences</a>
         </div>
         <div className="sidebar-section">
-          <a className={`sidebar-primary ${view === "compare" ? "active" : ""}`} href="?view=compare" onClick={(event) => { event.preventDefault(); chooseView("compare"); }}><GitCompareArrows aria-hidden="true" />Scenario differences</a>
+          <a className={`sidebar-primary ${view === "configure" ? "active" : ""}`} href="?view=configure" onClick={(event) => { event.preventDefault(); chooseView("configure"); }}><Settings2 aria-hidden="true" />Configure &amp; run</a>
+          {view === "configure" && <div className="sidebar-submenu-slot" id="config-section-tabs" />}
         </div>
         <div className="sidebar-section">
           <a className={`sidebar-primary ${view === "outputs" ? "active" : ""}`} href={`?section=${section?.id || "power"}`} onClick={(event) => { event.preventDefault(); chooseView("outputs"); }}><BarChart3 aria-hidden="true" />Results</a>
@@ -228,12 +246,13 @@ export default function App() {
           <a className={`sidebar-primary ${view === "dashboard" ? "active" : ""}`} href="?view=dashboard" onClick={(event) => { event.preventDefault(); chooseView("dashboard"); }}><LayoutDashboard aria-hidden="true" />Dashboards</a>
         </div>
       </div>
-      <div className="sidebar-foot"><div className="sidebar-statuses"><span className="sidebar-status-indicator" data-label="Local files connected" aria-label="Local files connected" tabIndex={0}><i className="status-dot" aria-hidden="true" /></span>{modelRunStatus && <span className="sidebar-status-indicator model-run" data-label={modelRunStatus === "queued" ? "Model run queued" : modelRunStatus === "canceling" ? "Stopping model run" : "Model running"} aria-label={modelRunStatus === "queued" ? "Model run queued" : modelRunStatus === "canceling" ? "Stopping model run" : "Model running"} role="status" aria-live="polite" tabIndex={0}><i className="status-dot" aria-hidden="true" /></span>}</div><a href="/docs" target="_blank">API</a><button onClick={() => setDark(!dark)} aria-label="Toggle dark mode">{dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}</button></div>
+      <div className="sidebar-foot"><div className="sidebar-statuses"><span className="sidebar-status-indicator" data-label="Local files connected" aria-label="Local files connected" tabIndex={0}><i className="status-dot" aria-hidden="true" /></span>{modelRunLabel && <span className="sidebar-status-indicator model-run" data-label={modelRunLabel} aria-label={modelRunLabel} role="status" aria-live="polite" tabIndex={0}><i className="status-dot" aria-hidden="true" /></span>}</div><a href="/docs" target="_blank">API</a><button onClick={() => setDark(!dark)} aria-label="Toggle dark mode">{dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}</button></div>
     </aside>
     <div className="scrim" onClick={() => setSidebarOpen(false)} />
     <div className="main-column">
       <header className="workspace-bar">
         <button className="menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Open workspace navigation"><Menu aria-hidden="true" /></button>
+        {view === "home" && <div className="home-bar-copy"><b>Workspace overview</b><span>Open a local project, select a scenario, or continue with a saved dashboard.</span></div>}
         {contextReady && <div className="workspace-context">
           <ContextControl className="project-control" label="Project" value={activeWorkspace} onChange={chooseWorkspace} options={projectChoices} />
           {view === "outputs" ? <>
@@ -250,10 +269,11 @@ export default function App() {
           </>}
         </div>}
         {view === "dashboard" && <div className="workspace-context"><div id="dashboard-topbar-controls" className="dashboard-topbar-controls" /></div>}
+        {view === "home" && modelRunLabel && <span className="home-run-status" role="status" aria-live="polite"><i />{modelRunLabel}</span>}
         <div className="top-actions"><button className="button secondary" onClick={refreshCurrent} aria-label="Refresh data" title="Refresh data"><RefreshCw aria-hidden="true" /></button></div>
       </header>
       <main id="workspace">
-        {view === "dashboard" ? catalog ? <DashboardPage catalog={catalog} darkMode={dark} onInspect={(inspectedChart, rows, sourceCount) => setInspector({ chart: inspectedChart, rows, sourceCount })} /> : <Boot message={error || "Discovering local results…"} /> : view === "outputs" ? outputReady ? <><PageHeader title={section!.title}>{scenario!.sectors.length > 1 && <div className="page-controls"><ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} /></div>}</PageHeader><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(inspectedChart, rows, sourceCount) => setInspector({ chart: inspectedChart, rows, sourceCount })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisations are configured for this section.</div>}</section><ResultsToc key={section!.id} charts={charts} /></> : <Boot message={error || "Discovering local results…"} /> : view === "compare" ? comparisonReady ? <ScenarioComparison key={`${inputRefresh}:${inputSelection.scenario}:${inputComparison}`} selection={inputSelection} comparison={inputComparison} /> : inputReady ? <div className="comparison-empty"><GitCompareArrows aria-hidden="true" /><b>Two scenarios are required</b><span>Create another scenario before opening the comparison workspace.</span></div> : <Boot message={inputError || "Discovering model inputs…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} onNavigate={() => setSidebarOpen(false)} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} onOpenResults={(runName, datasetName, projectName) => { window.location.href = `/?section=power&dataset=${encodeURIComponent(datasetName)}&project=${encodeURIComponent(projectName)}&run=${encodeURIComponent(runName)}`; }} /> : <Boot message={inputError || "Discovering model inputs…"} />}
+        {view === "home" ? <HomePage catalog={catalog} inputCatalog={inputCatalog} resultError={error} inputError={inputError} onNavigate={chooseView} /> : view === "dashboard" ? catalog ? <DashboardPage catalog={catalog} darkMode={dark} onInspect={(inspectedChart, rows, sourceCount) => setInspector({ chart: inspectedChart, rows, sourceCount })} /> : <Boot message={error || "Discovering local results…"} /> : view === "outputs" ? outputReady ? <><PageHeader title={section!.title}>{scenario!.sectors.length > 1 && <div className="page-controls"><ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} /></div>}</PageHeader><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(inspectedChart, rows, sourceCount) => setInspector({ chart: inspectedChart, rows, sourceCount })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisations are configured for this section.</div>}</section><ResultsToc key={section!.id} charts={charts} /></> : <Boot message={error || "Discovering local results…"} /> : view === "compare" ? comparisonReady ? <ScenarioComparison key={`${inputRefresh}:${inputSelection.scenario}:${inputComparison}`} selection={inputSelection} comparison={inputComparison} /> : inputReady ? <div className="comparison-empty"><GitCompareArrows aria-hidden="true" /><b>Two scenarios are required</b><span>Create another scenario before opening the comparison workspace.</span></div> : <Boot message={inputError || "Discovering model inputs…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} onNavigate={() => setSidebarOpen(false)} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} onOpenResults={(runName, datasetName, projectName) => { window.location.href = `/?section=power&dataset=${encodeURIComponent(datasetName)}&project=${encodeURIComponent(projectName)}&run=${encodeURIComponent(runName)}`; }} /> : <Boot message={inputError || "Discovering model inputs…"} />}
       </main>
     </div>
     {inspector && <DataDialog {...inspector} onClose={() => setInspector(null)} />}
