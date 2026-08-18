@@ -2,6 +2,8 @@
 
 The model workspace is the React and FastAPI interface for working with a local PyPSA-SPICE project. It provides technology-first input editing, scenario configuration, Snakemake-backed model runs, and long-form result analysis while continuing to use the checked-out CSV and YAML files as the source of truth. The Results area covers Power, Industry, Transport, Emissions, and Costs. Comparison mode places both result runs side by side for each indicator; the optional difference view calculates `comparison − primary` for every aligned series and timestamp or model year.
 
+For a developer-oriented map of the modules, request flows, persistence, and safety boundaries, open the standalone [web application code structure and logic guide](code-structure.html).
+
 ## Development boundary
 
 The web interface is an independent React, TypeScript, CSS, and FastAPI application. When developing `pypsa-spice-vis-ui` or the code in `pypsa_spice_web/`, do not use the legacy Streamlit application in `pypsa-spice-vis/` as UI or UX guidance. Its layouts, controls, component choices, styles, and interaction patterns are not a design reference for the web interface.
@@ -167,7 +169,7 @@ Verification commands:
 ```bash
 npm --prefix pypsa_spice_web/frontend run build
 conda run -n hotpot python -m unittest discover -s tests -p 'test*.py' -q
-git diff --check -- pypsa_spice_web tests docs/visualisation-tool/pypsa-spice-web.md
+git diff --check -- pypsa_spice_web tests
 ```
 
 The current data-management strategy is local discovery of the checked-out `data/` tree. This local-file workflow remains the primary operating mode even when the interface is deployed alongside a model checkout. Uploads, object storage, authentication, and hosted data persistence are separate future concerns.

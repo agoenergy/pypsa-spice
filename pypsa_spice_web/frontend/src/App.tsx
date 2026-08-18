@@ -219,6 +219,74 @@ export default function App() {
   const activeWorkspace = workspaceValue(activeDatasetName, activeProjectName);
   const modelRunLabel = modelRunStatus ? modelRunLabels[modelRunStatus] : undefined;
 
+  const renderWorkspace = () => {
+    if (view === "home") {
+      return <HomePage catalog={catalog} inputCatalog={inputCatalog} resultError={error} inputError={inputError} onNavigate={chooseView} />;
+    }
+    if (view === "dashboard") {
+      return catalog
+        ? <DashboardPage catalog={catalog} darkMode={dark} onInspect={(inspectedChart, rows, sourceCount) => setInspector({ chart: inspectedChart, rows, sourceCount })} />
+        : <Boot message={error || "Discovering local results…"} />;
+    }
+    if (view === "outputs") {
+      if (!outputReady) return <Boot message={error || "Discovering local results…"} />;
+      return <>
+        <PageHeader title={section!.title}>
+          {scenario!.sectors.length > 1 && <div className="page-controls">
+            <ContextControl
+              label="Sector run"
+              value={selection.sector}
+              onChange={chooseSector}
+              options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))}
+            />
+          </div>}
+        </PageHeader>
+        <section className="analysis">
+          {error && <div className="notice">{error}</div>}
+          <div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>
+            {charts.map((chart) => <ChartCard
+              key={chart.id}
+              chart={chart}
+              selection={selection}
+              years={sector!.years}
+              mappings={catalog!.mappings}
+              darkMode={dark}
+              onInspect={(inspectedChart, rows, sourceCount) => setInspector({ chart: inspectedChart, rows, sourceCount })}
+            />)}
+          </div>
+          {charts.length === 0 && <div className="no-results">No visualisations are configured for this section.</div>}
+        </section>
+        <ResultsToc key={section!.id} charts={charts} />
+      </>;
+    }
+    if (view === "compare") {
+      if (comparisonReady) {
+        return <ScenarioComparison key={`${inputRefresh}:${inputSelection.scenario}:${inputComparison}`} selection={inputSelection} comparison={inputComparison} />;
+      }
+      if (inputReady) {
+        return <div className="comparison-empty">
+          <GitCompareArrows aria-hidden="true" />
+          <b>Two scenarios are required</b>
+          <span>Create another scenario before opening the comparison workspace.</span>
+        </div>;
+      }
+      return <Boot message={inputError || "Discovering model inputs…"} />;
+    }
+    if (!inputReady) return <Boot message={inputError || "Discovering model inputs…"} />;
+    if (view === "inputs") {
+      return <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} onNavigate={() => setSidebarOpen(false)} />;
+    }
+    return <ScenarioConfigEditor
+      key={inputRefresh}
+      selection={inputSelection}
+      country={country}
+      onNavigate={() => setSidebarOpen(false)}
+      onOpenResults={(runName, datasetName, projectName) => {
+        window.location.href = `/?section=power&dataset=${encodeURIComponent(datasetName)}&project=${encodeURIComponent(projectName)}&run=${encodeURIComponent(runName)}`;
+      }}
+    />;
+  };
+
   return <div className="app-shell">
     <a className="skip-link" href="#workspace">Skip to workspace</a>
     <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
@@ -272,9 +340,7 @@ export default function App() {
         {view === "home" && modelRunLabel && <span className="home-run-status" role="status" aria-live="polite"><i />{modelRunLabel}</span>}
         <div className="top-actions"><button className="button secondary" onClick={refreshCurrent} aria-label="Refresh data" title="Refresh data"><RefreshCw aria-hidden="true" /></button></div>
       </header>
-      <main id="workspace">
-        {view === "home" ? <HomePage catalog={catalog} inputCatalog={inputCatalog} resultError={error} inputError={inputError} onNavigate={chooseView} /> : view === "dashboard" ? catalog ? <DashboardPage catalog={catalog} darkMode={dark} onInspect={(inspectedChart, rows, sourceCount) => setInspector({ chart: inspectedChart, rows, sourceCount })} /> : <Boot message={error || "Discovering local results…"} /> : view === "outputs" ? outputReady ? <><PageHeader title={section!.title}>{scenario!.sectors.length > 1 && <div className="page-controls"><ContextControl label="Sector run" value={selection.sector} onChange={chooseSector} options={scenario!.sectors.map((item) => ({ value: item.name, label: item.name }))} /></div>}</PageHeader><section className="analysis">{error && <div className="notice">{error}</div>}<div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>{charts.map((chart) => <ChartCard key={chart.id} chart={chart} selection={selection} years={sector!.years} mappings={catalog!.mappings} darkMode={dark} onInspect={(inspectedChart, rows, sourceCount) => setInspector({ chart: inspectedChart, rows, sourceCount })} />)}</div>{charts.length === 0 && <div className="no-results">No visualisations are configured for this section.</div>}</section><ResultsToc key={section!.id} charts={charts} /></> : <Boot message={error || "Discovering local results…"} /> : view === "compare" ? comparisonReady ? <ScenarioComparison key={`${inputRefresh}:${inputSelection.scenario}:${inputComparison}`} selection={inputSelection} comparison={inputComparison} /> : inputReady ? <div className="comparison-empty"><GitCompareArrows aria-hidden="true" /><b>Two scenarios are required</b><span>Create another scenario before opening the comparison workspace.</span></div> : <Boot message={inputError || "Discovering model inputs…"} /> : inputReady ? view === "inputs" ? <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} onNavigate={() => setSidebarOpen(false)} /> : <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} onNavigate={() => setSidebarOpen(false)} onOpenResults={(runName, datasetName, projectName) => { window.location.href = `/?section=power&dataset=${encodeURIComponent(datasetName)}&project=${encodeURIComponent(projectName)}&run=${encodeURIComponent(runName)}`; }} /> : <Boot message={inputError || "Discovering model inputs…"} />}
-      </main>
+      <main id="workspace">{renderWorkspace()}</main>
     </div>
     {inspector && <DataDialog {...inspector} onClose={() => setInspector(null)} />}
     {newScenarioOpen && inputProject && <NewScenarioDialog selection={inputSelection} scenarios={inputProject.scenarios} onClose={() => setNewScenarioOpen(false)} onCreated={(created) => { setNewScenarioOpen(false); void loadInputs({ dataset: created.dataset, project: created.project, scenario: created.scenario }).then(() => setInputRefresh((current) => current + 1)); }} />}

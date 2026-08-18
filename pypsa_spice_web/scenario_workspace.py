@@ -105,7 +105,7 @@ def input_file_hashes(
         for path in sorted(item for item in folder.rglob("*") if item.is_file()):
             digest = hashlib.sha256()
             with path.open("rb") as handle:
-                for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                while chunk := handle.read(1024 * 1024):
                     digest.update(chunk)
             hashes[str(path.relative_to(project_root))] = digest.hexdigest()
     return hashes

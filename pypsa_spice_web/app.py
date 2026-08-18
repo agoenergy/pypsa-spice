@@ -267,8 +267,8 @@ def _sample_hourly(
         groups.setdefault(str(row.get(legend_column, "Series")), []).append(row)
     per_group, remainder = divmod(limit, len(groups))
     sampled: list[dict[str, Any]] = []
-    for index, group in enumerate(groups.values()):
-        target = per_group + (1 if index < remainder else 0)
+    for group_index, group in enumerate(groups.values()):
+        target = per_group + (1 if group_index < remainder else 0)
         if target == 0:
             continue
         step = max(1, math.ceil(len(group) / target))

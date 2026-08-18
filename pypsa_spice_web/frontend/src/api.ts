@@ -9,9 +9,10 @@ async function apiJson<T>(response: Response, fallback: string): Promise<T> {
 }
 
 export async function getCatalog(refresh = false): Promise<Catalog> {
-  const response = await fetch(`/api/catalog${refresh ? `?t=${Date.now()}` : ""}`);
-  if (!response.ok) throw new Error("The local result catalog could not be read.");
-  return response.json();
+  return apiJson(
+    await fetch(`/api/catalog${refresh ? `?t=${Date.now()}` : ""}`),
+    "The local result catalog could not be read.",
+  );
 }
 
 export function chartParams(
@@ -53,15 +54,13 @@ export async function getChart(
   endTime: string,
   signal: AbortSignal,
 ): Promise<ChartResponse> {
-  const response = await fetch(
-    `/api/chart?${chartParams(chart, selection, scenario, country, filterValue, startTime, endTime)}`,
-    { signal },
+  return apiJson(
+    await fetch(
+      `/api/chart?${chartParams(chart, selection, scenario, country, filterValue, startTime, endTime)}`,
+      { signal },
+    ),
+    `No data found for ${chart.name}.`,
   );
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    throw new Error(body.detail || `No data found for ${chart.name}.`);
-  }
-  return response.json();
 }
 
 export function downloadUrl(chart: ChartDefinition, selection: Selection): string {
@@ -234,25 +233,14 @@ export async function saveScenarioConfigSections(
   revision: string,
   sections: Record<string, Record<string, unknown>>,
 ): Promise<ScenarioConfigResponse> {
-  const response = await fetch(`/api/input/scenario-config?${configParams(selection)}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ revision, sections }),
-  });
-  if (response.status !== 405) {
-    return apiJson(response, "Could not save the scenario configuration.");
-  }
-
-  // Compatibility with a web server process started before the combined-save route
-  // was added. Its established per-section endpoints still provide revision checks.
-  let currentRevision = revision;
-  let saved: ScenarioConfigResponse | null = null;
-  for (const [section, value] of Object.entries(sections)) {
-    saved = await saveScenarioConfigSection(selection, section, currentRevision, value);
-    currentRevision = saved.revision;
-  }
-  if (!saved) throw new Error("No scenario configuration changes were provided.");
-  return saved;
+  return apiJson(
+    await fetch(`/api/input/scenario-config?${configParams(selection)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ revision, sections }),
+    }),
+    "Could not save the scenario configuration.",
+  );
 }
 
 export async function getModelRunOptions(): Promise<ModelRunOptions> {

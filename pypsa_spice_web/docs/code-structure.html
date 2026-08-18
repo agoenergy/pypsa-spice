@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PyPSA-SPICE web application — code structure and logic</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --page: #f4f3ef;
+      --surface: #fff;
+      --surface-2: #f8f7f3;
+      --ink: #182027;
+      --muted: #5d6871;
+      --line: #d9ddd8;
+      --accent: #005ca9;
+      --accent-soft: #e6f1fb;
+      --code: #202a31;
+      --code-ink: #edf4f7;
+      --success: #16744b;
+      --warning: #a85b00;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.6 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    a { color: var(--accent); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    code { padding: .12em .32em; border-radius: 4px; background: var(--accent-soft); font-size: .9em; }
+    pre { margin: 0; padding: 18px; overflow: auto; border-radius: var(--radius); background: var(--code); color: var(--code-ink); font-size: 13px; line-height: 1.55; }
+    h1, h2, h3 { line-height: 1.2; letter-spacing: -.025em; }
+    h1 { max-width: 850px; margin: 0; font-size: clamp(36px, 5vw, 62px); }
+    h2 { margin: 0 0 18px; font-size: 29px; }
+    h3 { margin: 0 0 8px; font-size: 18px; }
+    p { margin: 0 0 14px; }
+    .shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }
+    .toc { position: sticky; top: 0; height: 100vh; padding: 26px 20px; overflow: auto; border-right: 1px solid var(--line); background: var(--surface); }
+    .toc strong { display: block; margin-bottom: 18px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+    .toc a { display: block; padding: 6px 0; color: var(--muted); text-decoration: none; }
+    .toc a:hover { color: var(--accent); }
+    main { min-width: 0; }
+    .hero { padding: 70px clamp(28px, 6vw, 90px); border-bottom: 1px solid var(--line); background: var(--surface); }
+    .eyebrow { margin-bottom: 18px; color: var(--accent); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .lede { max-width: 850px; margin: 22px 0 0; color: var(--muted); font-size: 19px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+    .meta span { padding: 5px 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-2); color: var(--muted); font-size: 12px; }
+    section { padding: 58px clamp(28px, 6vw, 90px); border-bottom: 1px solid var(--line); }
+    .intro { max-width: 900px; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 24px; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card { padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+    .tag { display: inline-block; margin-bottom: 12px; padding: 3px 7px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .flow { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 28px; margin-top: 28px; }
+    .flow .node { position: relative; min-height: 116px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .flow .node:not(:last-child)::after { content: "→"; position: absolute; top: 42px; right: -23px; color: var(--accent); font-size: 24px; }
+    .node b { display: block; margin-bottom: 6px; }
+    .node small { color: var(--muted); }
+    .file-map { width: 100%; margin-top: 24px; border-collapse: collapse; border: 1px solid var(--line); background: var(--surface); }
+    .file-map th, .file-map td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .file-map th { background: var(--surface-2); font-size: 12px; letter-spacing: .05em; text-transform: uppercase; }
+    .file-map tr:last-child td { border-bottom: 0; }
+    .file-map td:first-child { white-space: nowrap; }
+    .steps { counter-reset: step; display: grid; gap: 12px; margin-top: 22px; }
+    .step { position: relative; padding: 16px 18px 16px 58px; border-left: 3px solid var(--accent); background: var(--surface); }
+    .step::before { counter-increment: step; content: counter(step); position: absolute; left: 18px; top: 15px; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: white; text-align: center; font-size: 12px; font-weight: 700; line-height: 24px; }
+    .step b { display: block; }
+    .callout { margin-top: 20px; padding: 16px 18px; border-left: 4px solid var(--success); background: #eaf6ef; color: #164b34; }
+    .callout.warning { border-color: var(--warning); background: #fff3df; color: #68400b; }
+    details { margin-top: 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    summary { padding: 14px 16px; cursor: pointer; font-weight: 700; }
+    details > div { padding: 0 16px 16px; }
+    ul { margin: 8px 0 14px; padding-left: 20px; }
+    footer { padding: 30px clamp(28px, 6vw, 90px); color: var(--muted); background: var(--surface); }
+    @media (max-width: 1050px) {
+      .shell { grid-template-columns: 1fr; }
+      .toc { position: static; width: 100%; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      .toc nav { display: flex; flex-wrap: wrap; gap: 5px 18px; }
+      .flow { grid-template-columns: 1fr; }
+      .flow .node:not(:last-child)::after { content: "↓"; top: auto; right: auto; bottom: -28px; left: 50%; }
+    }
+    @media (max-width: 760px) { .grid, .grid.two { grid-template-columns: 1fr; } .file-map { display: block; overflow-x: auto; } }
+    @media print { .shell { display: block; } .toc { display: none; } section { break-inside: avoid; } }
+    @media (prefers-color-scheme: dark) {
+      :root { --page: #11171b; --surface: #182126; --surface-2: #202a30; --ink: #edf2f4; --muted: #acb8be; --line: #344148; --accent: #72b7f2; --accent-soft: #193b56; --code: #0c1114; }
+      .callout { background: #163728; color: #c9f3da; }
+      .callout.warning { background: #462f12; color: #ffe1ad; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="toc">
+      <strong>Code guide</strong>
+      <nav aria-label="Page contents">
+        <a href="#overview">Overview</a>
+        <a href="#request-flow">Runtime flow</a>
+        <a href="#source-map">Source map</a>
+        <a href="#frontend">Frontend logic</a>
+        <a href="#backend">Backend logic</a>
+        <a href="#data">Data and persistence</a>
+        <a href="#safety">Safety and concurrency</a>
+        <a href="#change-guide">Where to make changes</a>
+        <a href="#verification">Verification</a>
+      </nav>
+    </aside>
+    <main>
+      <header class="hero">
+        <div class="eyebrow">Developer architecture reference</div>
+        <h1>PyPSA-SPICE web application</h1>
+        <p class="lede">A map of the React, TypeScript, FastAPI, and filesystem code: what owns each responsibility, how requests move through the application, and where to make a change without crossing architectural boundaries.</p>
+        <div class="meta"><span>React 19</span><span>TypeScript</span><span>Vite</span><span>FastAPI</span><span>CSV + YAML source of truth</span><span>Snakemake execution</span></div>
+      </header>
+
+      <section id="overview">
+        <h2>Overview</h2>
+        <p class="intro">The web workspace is a local, two-layer application. The browser owns interaction and temporary editing state. FastAPI owns discovery, validation, file access, and process control. Model files under <code>data/</code> remain authoritative; the app does not introduce a database or a second model-data format.</p>
+        <div class="grid">
+          <article class="card"><span class="tag">Browser</span><h3>React workspace</h3><p>Chooses project and scenario context, renders editors and charts, keeps unsaved drafts, and calls typed API helpers.</p></article>
+          <article class="card"><span class="tag">Server</span><h3>FastAPI boundary</h3><p>Validates query and body data, confines filesystem paths, serialises responses, and coordinates edits and model runs.</p></article>
+          <article class="card"><span class="tag">Repository</span><h3>Model source of truth</h3><p>CSV and YAML inputs are edited atomically. Result CSVs are read-only. Snakemake consumes a run-local copy of <code>base_config.yaml</code>.</p></article>
+        </div>
+        <div class="callout warning"><strong>Design boundary:</strong> <code>pypsa_spice_web/</code> is independent of the legacy Streamlit visualisation. The Streamlit app may explain data semantics, but it is not a UI structure, component, styling, or interaction reference.</div>
+      </section>
+
+      <section id="request-flow">
+        <h2>Runtime request flow</h2>
+        <p class="intro">All user-visible data follows the same dependency direction. Components never read repository files directly, and backend domain modules do not depend on React.</p>
+        <div class="flow" aria-label="Request flow from user to repository and back">
+          <div class="node"><b>1. User action</b><small>Choose context, edit a cell, open a chart, or start a run.</small></div>
+          <div class="node"><b>2. React component</b><small>Owns view state and invokes an API helper.</small></div>
+          <div class="node"><b>3. <code>api.ts</code></b><small>Builds request parameters and normalises HTTP errors.</small></div>
+          <div class="node"><b>4. FastAPI route</b><small>Validates the HTTP contract and delegates domain work.</small></div>
+          <div class="node"><b>5. Local resources</b><small>CSV, YAML, result folders, Git metadata, or Snakemake.</small></div>
+        </div>
+        <div class="callout"><strong>Response path:</strong> domain functions return JSON-safe dictionaries; FastAPI sends them to the browser; React updates component state and renders. Aborted reads are ignored when the user has already changed context.</div>
+      </section>
+
+      <section id="source-map">
+        <h2>Source map</h2>
+        <p class="intro">The table lists the files that define the architecture. Component tests sit beside their TypeScript source; backend tests live in <code>tests/</code>.</p>
+        <table class="file-map">
+          <thead><tr><th>Path</th><th>Responsibility</th><th>Depends on</th></tr></thead>
+          <tbody>
+            <tr><td><code>pypsa_spice_web/app.py</code></td><td>FastAPI construction, HTTP routes, result cataloguing, chart data, downloads, and static assets.</td><td>Input editor, scenario workspace, run manager</td></tr>
+            <tr><td><code>input_editor.py</code></td><td>Input cataloguing, safe CSV/YAML paths, typed pagination, optimistic updates, and scenario differences.</td><td>Input settings YAML and model input files</td></tr>
+            <tr><td><code>scenario_workspace.py</code></td><td>Scenario cloning, edit locking, data-worktree status, and reproducibility hashes.</td><td>Filesystem and read-only Git commands</td></tr>
+            <tr><td><code>scenario_runner.py</code></td><td>Run validation, run-local config and manifest creation, Snakemake process lifecycle, logs, and persisted status.</td><td>Root config, Snakefile, scenario workspace helpers</td></tr>
+            <tr><td><code>graph_settings.yaml</code></td><td>Declarative Results sections and chart definitions.</td><td>Result CSV schemas</td></tr>
+            <tr><td><code>frontend/src/App.tsx</code></td><td>Top-level view routing, shared project/scenario context, URL synchronisation, navigation, and theme.</td><td>Page components and catalogs</td></tr>
+            <tr><td><code>frontend/src/api.ts</code></td><td>The browser's only HTTP access layer and query-string construction.</td><td>FastAPI endpoint contracts</td></tr>
+            <tr><td><code>frontend/src/types.ts</code></td><td>Shared browser-side models for catalogs, inputs, results, differences, dashboards, and runs.</td><td>Backend response shapes</td></tr>
+            <tr><td><code>InputEditor.tsx</code></td><td>Technology/table navigation, filters, paging, dirty cells, and CSV saves.</td><td>Input catalog and table APIs</td></tr>
+            <tr><td><code>ScenarioConfigEditor.tsx</code></td><td>Configuration steps, draft sections, YAML saves, fuel limits, and hand-off to model execution.</td><td>Configuration and run APIs</td></tr>
+            <tr><td><code>ScenarioComparison.tsx</code></td><td>Filterable, grouped display of effective scenario differences.</td><td>Comparison API</td></tr>
+            <tr><td><code>ChartCard.tsx</code> / <code>Plot.tsx</code></td><td>Results controls, primary/comparison requests, difference rows, Plotly traces, legends, and inspection.</td><td>Chart API and global Plotly runtime</td></tr>
+            <tr><td><code>DashboardPage.tsx</code> / <code>dashboard.ts</code></td><td>Dashboard editor plus versioned schema parsing, migration, import/export, and storage abstraction.</td><td>Catalog, chart cards, localStorage</td></tr>
+            <tr><td><code>styles.css</code></td><td>Shared application shell, component, editor, results, dashboard, and theme styles.</td><td>Class names emitted by React</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="frontend">
+        <h2>Frontend logic</h2>
+        <div class="grid two">
+          <article class="card"><h3>Shared application state</h3><ul><li><code>view</code> selects Home, Inputs, Scenario differences, Configure &amp; run, Results, or Dashboards.</li><li><code>selection</code> is Results context: dataset, project, result run, comparison run, sector, and year.</li><li><code>inputSelection</code> is editable-input context: dataset, project, and input scenario.</li><li>The URL mirrors durable context so refresh and browser history restore the workspace.</li></ul></article>
+          <article class="card"><h3>Local page state</h3><ul><li>Editors own unsaved drafts and register with <code>dirtyState.ts</code>.</li><li>Chart cards own filters, time range, request state, and loaded rows.</li><li>Dashboard definitions are browser-local; fetched result rows are not persisted.</li><li>Dialogs and menus remain inside the component that controls their lifecycle.</li></ul></article>
+        </div>
+        <h3 style="margin-top:28px">Page selection sequence</h3>
+        <div class="steps">
+          <div class="step"><b>Catalogs load</b><span><code>App.tsx</code> requests result and input catalogs independently so either side can show its own error.</span></div>
+          <div class="step"><b>Context resolves</b><span>URL values are accepted only when present in the current catalog; otherwise the first valid option is selected.</span></div>
+          <div class="step"><b>URL stays in sync</b><span>A replace-state effect records current context without adding history entries for every selection change.</span></div>
+          <div class="step"><b>View renders</b><span><code>renderWorkspace()</code> selects one page and gives it the smallest required context.</span></div>
+          <div class="step"><b>Page fetches its data</b><span>Effects own <code>AbortController</code> instances so stale responses cannot overwrite newer selections.</span></div>
+        </div>
+        <details><summary>Results and comparison charts</summary><div><p><code>ChartCard.tsx</code> requests the primary run and, when selected, the comparison run. <code>Plot.tsx</code> converts result rows into Plotly traces. Difference mode aligns rows by their analytical identity and calculates <code>comparison − primary</code>.</p><p>Hourly charts request one year and may send a time range. The server samples only the displayed response; downloads keep the complete source CSV.</p></div></details>
+        <details><summary>Input editing</summary><div><p>The browser stores changed cells using the original <code>__row_id</code>, not the visible page index. Filters and pagination therefore cannot redirect an edit to another CSV row. A save includes the last observed file revision; HTTP 409 forces a reload when the file changed externally.</p></div></details>
+        <details><summary>Dashboard persistence</summary><div><p><code>dashboard.ts</code> owns the versioned JSON format and <code>DashboardStore</code> abstraction. The local implementation uses <code>localStorage</code>. Schema migration is performed when reading older definitions; current saves and exports use the canonical schema.</p></div></details>
+      </section>
+
+      <section id="backend">
+        <h2>Backend logic</h2>
+        <p class="intro"><code>app.py</code> is the transport layer: it defines request validation and translates domain errors into HTTP responses. File semantics belong in the three domain modules.</p>
+        <div class="grid">
+          <article class="card"><span class="tag">Read</span><h3>Catalog and charts</h3><p>The result catalog walks <code>results/&lt;run&gt;/csvs</code>. Chart access is restricted to configured table names and modes. Yearly files are combined and deduplicated; hourly data can be range-filtered and sampled.</p></article>
+          <article class="card"><span class="tag">Edit</span><h3>Inputs and configuration</h3><p>Input settings determine visible tables. CSV values are typed for the UI, but updates are serialised back to model-compatible text. Round-trip YAML preserves comments and surviving key layout.</p></article>
+          <article class="card"><span class="tag">Execute</span><h3>Model runs</h3><p>One web-launched run is allowed at a time. Each run gets a config copy, provenance manifest, state file, log, process group, and temporary directory under <code>logs/web_runs/</code>.</p></article>
+        </div>
+        <h3 style="margin-top:28px">Endpoint groups</h3>
+        <table class="file-map">
+          <thead><tr><th>Prefix</th><th>Purpose</th><th>Mutation</th></tr></thead>
+          <tbody>
+            <tr><td><code>/api/catalog</code><br><code>/api/chart</code><br><code>/api/download</code></td><td>Discover and read result data.</td><td>None</td></tr>
+            <tr><td><code>/api/input/catalog</code><br><code>/api/input/table</code></td><td>Discover, filter, page, and update input CSVs.</td><td><code>PUT</code> writes one CSV atomically</td></tr>
+            <tr><td><code>/api/input/scenario-config</code></td><td>Read or update editable YAML sections.</td><td><code>PUT</code> writes YAML atomically</td></tr>
+            <tr><td><code>/api/input/compare</code></td><td>Calculate effective differences between two scenarios.</td><td>None</td></tr>
+            <tr><td><code>/api/input/workspace</code><br><code>/api/input/scenarios</code></td><td>Read worktree state and clone scenarios.</td><td><code>POST</code> creates one scenario folder</td></tr>
+            <tr><td><code>/api/runs</code></td><td>Inspect, start, refresh, and cancel model runs.</td><td>Creates run artifacts and controls a process</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="data">
+        <h2>Data and persistence</h2>
+        <div class="grid two">
+          <article class="card"><h3>Repository data</h3><pre>data/&lt;dataset&gt;/&lt;project&gt;/
+├── input/
+│   ├── global_input/          # shared CSVs
+│   └── &lt;scenario&gt;/
+│       ├── scenario_config.yaml
+│       └── &lt;sector&gt;/*.csv
+└── results/&lt;run&gt;/csvs/
+    └── &lt;sector&gt;/
+        ├── all_years/*.csv
+        └── &lt;year&gt;/*.csv</pre></article>
+          <article class="card"><h3>Web-owned persistence</h3><pre>logs/web_runs/&lt;run-id&gt;/
+├── base_config.yaml           # run-local copy
+├── run_manifest.json          # provenance + hashes
+├── state.json                 # durable run status
+├── snakemake.log              # complete process output
+└── tmp/                       # process temp directory
+
+browser localStorage
+└── versioned dashboard definitions</pre></article>
+        </div>
+        <p class="callout"><strong>Lifecycle distinction:</strong> input scenario, result run, and dashboard are separate concepts. A result run is not assumed to share a name with an input scenario, and a dashboard stores references to result data rather than copying that data.</p>
+      </section>
+
+      <section id="safety">
+        <h2>Safety and concurrency</h2>
+        <div class="grid two">
+          <article class="card"><h3>Filesystem confinement</h3><ul><li>User-selected path segments resolve below known roots.</li><li>Result tables must appear in <code>graph_settings.yaml</code>.</li><li>Hourly/yearly mode must match the chart definition.</li><li>Resolved result files must remain under the selected sector folder.</li></ul></article>
+          <article class="card"><h3>Write integrity</h3><ul><li>CSV and YAML writes use a temporary sibling followed by <code>os.replace</code>.</li><li>File revisions implement optimistic concurrency.</li><li>A process-local write lock serialises edits.</li><li>All web edits and scenario creation are rejected while a web model run is active.</li></ul></article>
+          <article class="card"><h3>Run integrity</h3><ul><li>The repository-root config is never mutated.</li><li>Selection and core count are validated before launch.</li><li>Only one web-launched process is active.</li><li>Cancellation signals the process group, then escalates after a grace period.</li></ul></article>
+          <article class="card"><h3>Browser race prevention</h3><ul><li>Context-changing reads use abort signals.</li><li>Dirty editors prompt before navigation.</li><li>Stable source row IDs survive filtering and paging.</li><li>Dashboard imports are parsed and normalised before storage.</li></ul></article>
+        </div>
+      </section>
+
+      <section id="change-guide">
+        <h2>Where to make a change</h2>
+        <table class="file-map">
+          <thead><tr><th>Desired change</th><th>Start here</th><th>Also check</th></tr></thead>
+          <tbody>
+            <tr><td>Add or change a Results chart</td><td><code>graph_settings.yaml</code></td><td>Result CSV columns, <code>ChartDefinition</code>, Plot trace logic</td></tr>
+            <tr><td>Change chart loading or download parameters</td><td><code>frontend/src/api.ts</code></td><td><code>app.py</code> chart/download routes and API tests</td></tr>
+            <tr><td>Add an input table</td><td>Model input settings YAML</td><td><code>input_editor.py</code> special paths, keys, and edit rules</td></tr>
+            <tr><td>Add a scenario configuration section</td><td><code>EDITABLE_CONFIG_SECTIONS</code></td><td><code>ScenarioConfigEditor.tsx</code>, frontend types, comparison logic</td></tr>
+            <tr><td>Change workspace navigation or URL state</td><td><code>App.tsx</code></td><td>Dirty-state confirmation and catalog resolution</td></tr>
+            <tr><td>Change scenario cloning</td><td><code>scenario_workspace.py</code></td><td>Mutation lock and workspace tests</td></tr>
+            <tr><td>Change model execution</td><td><code>scenario_runner.py</code></td><td>Run API, <code>RunModel.tsx</code>, manifests, runner tests</td></tr>
+            <tr><td>Change dashboard format</td><td><code>dashboard.ts</code></td><td>Schema migration tests, import/export, browser storage</td></tr>
+            <tr><td>Change visual styling</td><td><code>styles.css</code></td><td>Component class names and both themes</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="verification">
+        <h2>Verification</h2>
+        <p class="intro">Run checks from the repository root. The Python suite needs the web dependencies available in the selected environment.</p>
+        <pre>npm --prefix pypsa_spice_web/frontend test
+npm --prefix pypsa_spice_web/frontend run build
+conda run -n hotpot python -m unittest discover -s tests -p 'test*.py' -q
+git diff --check -- pypsa_spice_web tests</pre>
+        <div class="grid two">
+          <article class="card"><h3>For frontend changes</h3><p>Exercise the affected view, URL refresh/back navigation, empty/loading/error states, light and dark themes, and unsaved-change prompts.</p></article>
+          <article class="card"><h3>For backend changes</h3><p>Test success plus invalid paths, missing files, stale revisions, active-run locks, and files that differ from the common happy-path schema.</p></article>
+        </div>
+      </section>
+      <footer>Maintainer reference for <code>pypsa_spice_web/</code>. Keep this guide aligned when ownership, request flow, persistence, or safety boundaries change.</footer>
+    </main>
+  </div>
+</body>
+</html>

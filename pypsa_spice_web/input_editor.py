@@ -586,12 +586,21 @@ def _raw_csv(path: Path | None) -> tuple[list[str], list[dict[str, str]]]:
 def _row_key(
     row: dict[str, str], table: str, fieldnames: list[str]
 ) -> tuple[str, ...]:
+    return tuple(
+        (row.get(column) or "").strip()
+        for column in _row_key_columns(table, fieldnames)
+    )
+
+
+def _row_key_columns(table: str, fieldnames: list[str]) -> tuple[str, ...]:
+    """Choose the stable CSV columns that identify a comparison row."""
+
     requested = TABLE_COMPARE_KEYS.get(table, ())
-    keys = tuple(column for column in requested if column in fieldnames)
-    if not keys or keys == ("country",):
-        preferred = ("country", "name", "link", "store", "supply_plant", "bus", "year")
-        keys = tuple(column for column in preferred if column in fieldnames)
-    return tuple((row.get(column) or "").strip() for column in keys)
+    columns = tuple(column for column in requested if column in fieldnames)
+    if columns and columns != ("country",):
+        return columns
+    preferred = ("country", "name", "link", "store", "supply_plant", "bus", "year")
+    return tuple(column for column in preferred if column in fieldnames)
 
 
 def _index_rows(
@@ -610,12 +619,7 @@ def _index_rows(
 def _row_item(
     key: tuple[str, ...], table: str, fieldnames: list[str]
 ) -> tuple[str, str]:
-    requested = TABLE_COMPARE_KEYS.get(table, ())
-    key_columns = tuple(column for column in requested if column in fieldnames)
-    if not key_columns or key_columns == ("country",):
-        preferred = ("country", "name", "link", "store", "supply_plant", "bus", "year")
-        key_columns = tuple(column for column in preferred if column in fieldnames)
-    values = dict(zip(key_columns, key))
+    values = dict(zip(_row_key_columns(table, fieldnames), key))
     country = values.pop("country", "")
     item = " · ".join(value for value in values.values() if value)
     return item, country
@@ -639,13 +643,7 @@ def _compare_csv_table(
         comparison_rows, table, fieldnames
     )
     duplicate_keys = reference_duplicates | comparison_duplicates
-    requested_keys = tuple(
-        column for column in TABLE_COMPARE_KEYS.get(table, ()) if column in fieldnames
-    )
-    if not requested_keys or requested_keys == ("country",):
-        preferred = ("country", "name", "link", "store", "supply_plant", "bus", "year")
-        requested_keys = tuple(column for column in preferred if column in fieldnames)
-    key_columns = set(requested_keys)
+    key_columns = set(_row_key_columns(table, fieldnames))
     changes: list[dict[str, Any]] = []
     for key in sorted(set(reference_index) | set(comparison_index)):
         item, country = _row_item(key, table, fieldnames)
@@ -1068,15 +1066,10 @@ def update_scenario_section(path: Path, section: str, update: ConfigSectionUpdat
 
     if section not in EDITABLE_CONFIG_SECTIONS:
         raise HTTPException(status_code=404, detail="Scenario section is not editable")
-    with _WRITE_LOCK:
-        if _revision(path) != update.revision:
-            raise HTTPException(status_code=409, detail="This config changed on disk. Reload it before saving.")
-        document = _load_yaml(path, round_trip=True)
-        if not isinstance(document, CommentedMap):
-            raise HTTPException(status_code=422, detail="Scenario config must be a YAML mapping")
-        document[section] = _merge_yaml(document.get(section), update.value)
-        _atomic_yaml_write(path, document)
-    return read_scenario_config(path)
+    return update_scenario_sections(
+        path,
+        ConfigSectionsUpdate(revision=update.revision, sections={section: update.value}),
+    )
 
 
 def update_scenario_sections(path: Path, update: ConfigSectionsUpdate) -> dict[str, Any]:
