@@ -150,12 +150,10 @@
             <tr><td><code>frontend/src/App.tsx</code></td><td>Top-level view routing, shared project/scenario context, URL synchronisation, navigation, and theme.</td><td>Page components and catalogs</td></tr>
             <tr><td><code>frontend/src/api.ts</code></td><td>The browser's only HTTP access layer and query-string construction.</td><td>FastAPI endpoint contracts</td></tr>
             <tr><td><code>frontend/src/types.ts</code></td><td>Shared browser-side models for catalogs, inputs, results, differences, dashboards, and runs.</td><td>Backend response shapes</td></tr>
-            <tr><td><code>InputEditor.tsx</code></td><td>Technology/table navigation, filters, paging, dirty cells, and CSV saves.</td><td>Input catalog and table APIs</td></tr>
-            <tr><td><code>ScenarioConfigEditor.tsx</code></td><td>Configuration steps, draft sections, YAML saves, fuel limits, and hand-off to model execution.</td><td>Configuration and run APIs</td></tr>
-            <tr><td><code>ScenarioComparison.tsx</code></td><td>Filterable, grouped display of effective scenario differences.</td><td>Comparison API</td></tr>
-            <tr><td><code>ChartCard.tsx</code> / <code>Plot.tsx</code></td><td>Results controls, primary/comparison requests, difference rows, Plotly traces, legends, and inspection.</td><td>Chart API and global Plotly runtime</td></tr>
-            <tr><td><code>DashboardPage.tsx</code> / <code>dashboard.ts</code></td><td>Dashboard editor plus versioned schema parsing, migration, import/export, and storage abstraction.</td><td>Catalog, chart cards, localStorage</td></tr>
-            <tr><td><code>styles.css</code></td><td>Shared application shell, component, editor, results, dashboard, and theme styles.</td><td>Class names emitted by React</td></tr>
+            <tr><td><code>frontend/src/pages/</code></td><td>Top-level workspaces such as Inputs, Configure, Scenario comparison, Home, and Dashboards. Each page keeps its CSS and tests beside its source.</td><td>Components, API, types, and utilities</td></tr>
+            <tr><td><code>frontend/src/components/</code></td><td>Reusable chart, dialog, header, plotting, and model-run UI. Each component keeps its CSS and tests beside its source.</td><td>API, types, and utilities</td></tr>
+            <tr><td><code>frontend/src/utility.tsx</code></td><td>Dashboard schema parsing, migration, import/export, browser storage, and shared dirty-editor guards.</td><td>Catalog types and localStorage</td></tr>
+            <tr><td><code>frontend/src/App.css</code></td><td>Global tokens, resets, application shell, and shared control styles.</td><td>Class names emitted by the application shell</td></tr>
           </tbody>
         </table>
       </section>
@@ -164,7 +162,7 @@
         <h2>Frontend logic</h2>
         <div class="grid two">
           <article class="card"><h3>Shared application state</h3><ul><li><code>view</code> selects Home, Inputs, Scenario differences, Configure &amp; run, Results, or Dashboards.</li><li><code>selection</code> holds the Results dataset, project, result run, comparison run, sector, and year.</li><li><code>inputSelection</code> holds the editable input dataset, project, and scenario.</li><li>The URL records durable context so refresh and browser history can restore the workspace.</li></ul></article>
-          <article class="card"><h3>Local page state</h3><ul><li>Editors own unsaved drafts and register with <code>dirtyState.ts</code>.</li><li>Chart cards own filters, time range, request state, and loaded rows.</li><li>Dashboard definitions are browser-local; fetched result rows are not persisted.</li><li>Dialogs and menus remain inside the component that controls their lifecycle.</li></ul></article>
+          <article class="card"><h3>Local page state</h3><ul><li>Editors own unsaved drafts and register through <code>utility.tsx</code>.</li><li>Chart cards own filters, time range, request state, and loaded rows.</li><li>Dashboard definitions are browser-local; fetched result rows are not persisted.</li><li>Dialogs and menus remain inside the component that controls their lifecycle.</li></ul></article>
         </div>
         <h3 style="margin-top:28px">Page selection sequence</h3>
         <div class="steps">
@@ -176,7 +174,7 @@
         </div>
         <details><summary>Results and comparison charts</summary><div><p><code>ChartCard.tsx</code> requests the primary run and, when selected, the comparison run. <code>Plot.tsx</code> converts result rows into Plotly traces. Difference mode aligns rows by their analytical identity and calculates <code>comparison − primary</code>.</p><p>Hourly charts request one year and may send a time range. The server samples only the displayed response; downloads keep the complete source CSV.</p></div></details>
         <details><summary>Input editing</summary><div><p>The browser stores changed cells using the original <code>__row_id</code>, not the visible page index. Filters and pagination therefore cannot redirect an edit to another CSV row. A save includes the last observed file revision; HTTP 409 forces a reload when the file changed externally.</p></div></details>
-        <details><summary>Dashboard persistence</summary><div><p><code>dashboard.ts</code> owns the versioned JSON format and <code>DashboardStore</code> abstraction. The local implementation uses <code>localStorage</code>. It converts older definitions when it reads them. New saves and exports use the current schema.</p></div></details>
+        <details><summary>Dashboard persistence</summary><div><p><code>utility.tsx</code> owns the versioned JSON format and <code>DashboardStore</code> abstraction. The local implementation uses <code>localStorage</code>. It converts older definitions when it reads them. New saves and exports use the current schema.</p></div></details>
       </section>
 
       <section id="backend">
@@ -245,12 +243,12 @@ browser localStorage
             <tr><td>Add or change a Results chart</td><td><code>graph_settings.yaml</code></td><td>Result CSV columns, <code>ChartDefinition</code>, Plot trace logic</td></tr>
             <tr><td>Change chart loading or download parameters</td><td><code>frontend/src/api.ts</code></td><td><code>app.py</code> chart/download routes and API tests</td></tr>
             <tr><td>Add an input table</td><td>Model input settings YAML</td><td><code>input_editor.py</code> special paths, keys, and edit rules</td></tr>
-            <tr><td>Add a scenario configuration section</td><td><code>EDITABLE_CONFIG_SECTIONS</code></td><td><code>ScenarioConfigEditor.tsx</code>, frontend types, comparison logic</td></tr>
+            <tr><td>Add a scenario configuration section</td><td><code>EDITABLE_CONFIG_SECTIONS</code></td><td><code>pages/ScenarioConfigEditor.tsx</code>, frontend types, comparison logic</td></tr>
             <tr><td>Change workspace navigation or URL state</td><td><code>App.tsx</code></td><td>Dirty-state confirmation and catalog resolution</td></tr>
             <tr><td>Change scenario cloning</td><td><code>scenario_workspace.py</code></td><td>Mutation lock and workspace tests</td></tr>
-            <tr><td>Change model execution</td><td><code>scenario_runner.py</code></td><td>Run API, <code>RunModel.tsx</code>, manifests, runner tests</td></tr>
-            <tr><td>Change dashboard format</td><td><code>dashboard.ts</code></td><td>Schema migration tests, import/export, browser storage</td></tr>
-            <tr><td>Change visual styling</td><td><code>styles.css</code></td><td>Component class names and both themes</td></tr>
+            <tr><td>Change model execution</td><td><code>scenario_runner.py</code></td><td>Run API, <code>components/RunModel.tsx</code>, manifests, runner tests</td></tr>
+            <tr><td>Change dashboard format</td><td><code>frontend/src/utility.tsx</code></td><td>Schema migration tests, import/export, browser storage</td></tr>
+            <tr><td>Change visual styling</td><td>The page or component's adjacent <code>.css</code> file</td><td><code>App.css</code> for global tokens and shell rules</td></tr>
           </tbody>
         </table>
       </section>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { filterComparisonSections } from "./ScenarioComparison";
-import type { ScenarioDifferenceSection } from "./types";
+import type { ScenarioDifferenceSection } from "../types";
 
 const sections: ScenarioDifferenceSection[] = [
   {

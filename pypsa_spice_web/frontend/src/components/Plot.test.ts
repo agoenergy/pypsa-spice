@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildDifferenceRows } from "./Plot";
-import type { ChartDefinition, ChartResponse, ResultRow } from "./types";
+import type { ChartDefinition, ChartResponse, ResultRow } from "../types";
 
 const chart: ChartDefinition = {
   id: "capacity",

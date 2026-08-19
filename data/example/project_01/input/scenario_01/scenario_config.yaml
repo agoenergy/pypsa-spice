@@ -10,22 +10,22 @@ version: 0.1.0
 
 logging:
   level: INFO
-  format: "%(levelname)s:%(name)s:%(message)s"
+  format: '%(levelname)s:%(name)s:%(message)s'
 
 
 #####Scenario settings#####
 scenario_configs:
   snapshots:
-    start: "2025-01-01"
-    end: "2026-01-01"   #should be "12-31" if base year is a leap year
-    inclusive: "left"
+    start: 20266-01-01
+    end: 20267-01-01    #should be "12-31" if base year is a leap year
+    inclusive: left
   resolution:
-    method: "nth_hour" # options: ["nth_hour", "clustered"]
+    method: nth_hour   # options: ["nth_hour", "clustered"]
     number_of_days: 3 # the number of representative days (used fo "clustered" method)
     stepsize: 25 # used for "nth_hour" method
   interest: # interest rate in decimals (e.g. 0.05 represents 5%)
     XY: 0.05
-    YZ: 0.10
+    YZ: 0.1
   remove_threshold: 0.1 # unit: MW (remove assests with capacity below this threshold)
 
 
@@ -36,7 +36,7 @@ co2_management:
   # "co2_cap" is a cap on the total CO2 emissions in the system. Values are in mtCO2.
   # "co2_price" is a price on CO2 emissions in the system. Values are in currency/tonne of CO2.
   XY:
-    option: "co2_cap"
+    option: co2_cap
     value:
       2025: 130
       2030: 110
@@ -45,7 +45,7 @@ co2_management:
       2045: 50
       2050: 30
   YZ:
-    option: "co2_price"
+    option: co2_price
     value:
       2025: 1
       2030: 1
@@ -73,7 +73,7 @@ custom_constraints:
         2050: 0.8
     production_constraint_fuels:
       activate: true
-      fuels: ["Bio", "Bit", "Gas", "Oil"]
+      fuels: [Bio, Bit, Gas, Oil]
     reserve_margin:
       activate: true
       epsilon_load: 0.1 # the fraction of load that is considered as reserve (pu)
@@ -82,7 +82,7 @@ custom_constraints:
       method: static # static or dynamic. If static, ignore epsilon_vre
     res_generation:
       activate: true
-      math_symbol: "<=" # Left hand side of the formula is the objective
+      math_symbol: <=   # Left hand side of the formula is the objective
       res_generation_share: # Share of res generation as the Right hand side of the formula
         2030: 0.25
         2035: 0.35
@@ -95,18 +95,18 @@ custom_constraints:
     maximum_power_generation_constraint:
       activate: true
       value:
-        "BIOT":
+        BIOT:
           2025: 18 # unit in TWh
           2030: 18 # unit in TWh
-        "SubC":
+        SubC:
           2025: 40 # unit in TWh
   YZ:
-    production_constraint_fuels: 
+    production_constraint_fuels:
       activate: true
-      fuels: ["Bio", "Bit", "Gas", "Oil"]
+      fuels: [Bio, Bit, Gas, Oil]
     res_generation:
       activate: true
-      math_symbol: "<="
+      math_symbol: <=
       res_generation_share:
         2030: 0.1
         2035: 0.2
@@ -116,10 +116,10 @@ custom_constraints:
     capacity_factor_constraint:
       activate: true
       value:
-        "SubC": 0.6
-        "SupC": 0.6
-        "HDAM": 0.4
-        
+        SubC: 0.6
+        SupC: 0.6
+        HDAM: 0.4
+
 #####Solver settings#####
 solving:
   solver:
@@ -169,18 +169,18 @@ solving:
     highs-default:
       # refer to https://ergo-code.github.io/HiGHS/dev/options/definitions/
       threads: 4
-      solver: "ipm"
-      run_crossover: "on"
+      solver: ipm
+      run_crossover: on
       small_matrix_value: 1e-6
       large_matrix_value: 1e15
       primal_feasibility_tolerance: 1e-6
       dual_feasibility_tolerance: 1e-6
       ipm_optimality_tolerance: 1e-6
-      parallel: "on"
+      parallel: on
       random_seed: 123
     highs-simplex:
-      solver: "simplex"
-      parallel: "on"
+      solver: simplex
+      parallel: on
       primal_feasibility_tolerance: 1e-5
       dual_feasibility_tolerance: 1e-5
       random_seed: 123

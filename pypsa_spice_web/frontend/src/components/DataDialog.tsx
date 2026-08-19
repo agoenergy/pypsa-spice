@@ -14,7 +14,8 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { ChevronLeft, ChevronRight, Columns, Download, ListFilter, RotateCcw, Search, X } from "lucide-react";
-import type { ChartDefinition, ResultRow } from "./types";
+import "./DataDialog.css";
+import type { ChartDefinition, ResultRow } from "../types";
 
 interface Props {
   chart: ChartDefinition;

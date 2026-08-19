@@ -1,4 +1,4 @@
-import type { Catalog } from "./types";
+import type { Catalog, InputCatalog, InputSelection, Selection } from "./types";
 
 export const DASHBOARD_FORMAT = "pypsa-spice-dashboard";
 export const DASHBOARD_SCHEMA_VERSION = 2;
@@ -378,4 +378,85 @@ export function dashboardFilename(title: string): string {
     .replace(/-+/g, "-")
     .toLowerCase();
   return `${stem || "dashboard"}.json`;
+}
+
+const dirtyEditors = new Set<string>();
+
+export function setEditorDirty(id: string, dirty: boolean): void {
+  if (dirty) dirtyEditors.add(id);
+  else dirtyEditors.delete(id);
+}
+
+export function confirmDiscardChanges(): boolean {
+  return dirtyEditors.size === 0 || window.confirm("You have unsaved changes. Discard them?");
+}
+
+export type ViewMode = "home" | "outputs" | "inputs" | "configure" | "compare" | "dashboard";
+export type WorkspaceOption = { value: string; label: string };
+
+const WORKSPACE_SEPARATOR = "::";
+
+export function locationParams(): URLSearchParams {
+  return new URLSearchParams(window.location.search);
+}
+
+export function sectionFromLocation(): string {
+  return locationParams().get("section")?.toLowerCase() || "power";
+}
+
+export function viewFromLocation(): ViewMode {
+  const params = locationParams();
+  const value = params.get("view");
+  if (value === "home" || value === "inputs" || value === "configure" || value === "compare" || value === "dashboard") return value;
+  if (value === "outputs" || params.has("section") || params.has("run") || params.has("sector")) return "outputs";
+  return "home";
+}
+
+export function countryFromLocation(): string {
+  return locationParams().get("country") || "ALL";
+}
+
+export function workspaceValue(dataset: string, project: string): string {
+  return `${dataset}${WORKSPACE_SEPARATOR}${project}`;
+}
+
+export function splitWorkspace(value: string): { dataset: string; project: string } {
+  const [dataset, ...project] = value.split(WORKSPACE_SEPARATOR);
+  return { dataset, project: project.join(WORKSPACE_SEPARATOR) };
+}
+
+export function resolveOutputSelection(data: Catalog, current: Selection, params = locationParams()): Selection {
+  const dataset = data.datasets.find((item) => item.name === (params.get("dataset") || current.dataset)) || data.datasets[0];
+  const project = dataset.projects.find((item) => item.name === (params.get("project") || current.project)) || dataset.projects[0];
+  const scenario = project.scenarios.find((item) => item.name === (params.get("run") || current.scenario)) || project.scenarios[0];
+  const sector = scenario.sectors.find((item) => item.name === (params.get("sector") || current.sector)) || scenario.sectors[0];
+  const comparisonName = params.get("compare") || current.comparison;
+  return {
+    dataset: dataset.name,
+    project: project.name,
+    scenario: scenario.name,
+    comparison: project.scenarios.some((item) => item.name === comparisonName && item.name !== scenario.name) ? comparisonName : "",
+    sector: sector.name,
+    year: sector.years.includes(current.year) ? current.year : sector.years[0] || "",
+  };
+}
+
+export function resolveInputSelection(data: InputCatalog, current: InputSelection, params = locationParams()): InputSelection {
+  const dataset = data.datasets.find((item) => item.name === (params.get("dataset") || current.dataset)) || data.datasets[0];
+  const project = dataset.projects.find((item) => item.name === (params.get("project") || current.project)) || dataset.projects[0];
+  const requestedScenario = params.get("scenario") || current.scenario;
+  return { dataset: dataset.name, project: project.name, scenario: project.scenarios.includes(requestedScenario) ? requestedScenario : project.scenarios[0] || "" };
+}
+
+export function workspaceOptions(datasets: { name: string; projects: { name: string }[] }[]): WorkspaceOption[] {
+  const duplicateNames = new Set<string>();
+  const seen = new Set<string>();
+  datasets.flatMap((dataset) => dataset.projects).forEach((project) => {
+    if (seen.has(project.name)) duplicateNames.add(project.name);
+    seen.add(project.name);
+  });
+  return datasets.flatMap((dataset) => dataset.projects.map((project) => ({
+    value: workspaceValue(dataset.name, project.name),
+    label: duplicateNames.has(project.name) ? `${project.name} · ${dataset.name}` : project.name,
+  })));
 }

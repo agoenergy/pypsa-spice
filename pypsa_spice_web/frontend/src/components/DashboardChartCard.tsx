@@ -6,10 +6,11 @@ import {
   Settings2,
   Table2,
 } from "lucide-react";
-import { getChart } from "./api";
-import type { DashboardChartConfig } from "./dashboard";
+import "./DashboardChartCard.css";
+import { getChart } from "../api";
+import type { DashboardChartConfig } from "../utility";
 import Plot, { buildDifferenceRows, ChartLegend, getLegendValues } from "./Plot";
-import type { Catalog, ChartDefinition, ChartResponse, Project, ResultRow, Selection } from "./types";
+import type { Catalog, ChartDefinition, ChartResponse, Project, ResultRow, Selection } from "../types";
 
 interface Props {
   config: DashboardChartConfig;

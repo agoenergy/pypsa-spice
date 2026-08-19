@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Copy, X } from "lucide-react";
-import { createScenario } from "./api";
-import type { CreatedScenario, InputSelection } from "./types";
+import "./NewScenarioDialog.css";
+import { createScenario } from "../api";
+import type { CreatedScenario, InputSelection } from "../types";
 
 export default function NewScenarioDialog({ selection, scenarios, onClose, onCreated }: {
   selection: InputSelection;

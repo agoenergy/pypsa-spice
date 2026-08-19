@@ -1,0 +1,79 @@
+/* Unified configure-and-run workflow. */
+.scenario-context-group {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+}
+.scenario-context-group .context-control {
+  flex: 1;
+}
+.context-add {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.context-add:hover {
+  border-color: var(--pink);
+  color: var(--pink);
+}
+.context-add svg {
+  width: 17px;
+  height: 17px;
+}
+.scenario-dialog {
+  width: min(620px, 100%);
+}
+.scenario-dialog > form {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+.scenario-dialog-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.scenario-dialog-body > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.scenario-dialog-body .notice {
+  margin: 0;
+}
+.scenario-path-preview {
+  padding: 13px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: var(--surface-2);
+}
+.scenario-path-preview span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.scenario-path-preview code {
+  overflow-wrap: anywhere;
+  font:
+    11px/1.5 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+}
+.scenario-dialog form > footer {
+  padding: 14px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+}

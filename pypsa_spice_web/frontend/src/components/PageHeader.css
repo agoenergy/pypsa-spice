@@ -1,0 +1,20 @@
+.page-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.page-title .search {
+  flex: 0 1 300px;
+}
+@media (max-width: 840px) {
+  .page-title {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .page-title .search {
+    width: 100%;
+    flex-basis: auto;
+  }
+}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Info, List, Search, X } from "lucide-react";
-import { getScenarioComparison } from "./api";
-import PageHeader from "./PageHeader";
+import { getScenarioComparison } from "../api";
+import PageHeader from "../components/PageHeader";
 import "./ScenarioComparison.css";
 import type {
   InputSelection,
@@ -9,7 +9,7 @@ import type {
   ScenarioDifference,
   ScenarioDifferenceSection,
   ScenarioDifferenceStatus,
-} from "./types";
+} from "../types";
 
 export interface ScenarioComparisonFilters {
   query: string;

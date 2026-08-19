@@ -1,11 +1,13 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, ClipboardCheck, Code2, List, Plus, RotateCcw, Save, Settings2, Trash2, X } from "lucide-react";
-import { getFuelSupplyTable, getScenarioConfig, saveFuelSupplyLimits, saveScenarioConfigSection, saveScenarioConfigSections } from "./api";
-import type { InputRow, InputSelection, InputTableResponse, ScenarioConfigResponse } from "./types";
-import { confirmDiscardChanges, setEditorDirty } from "./dirtyState";
-import PageHeader from "./PageHeader";
-import RunModel from "./RunModel";
+import { ClipboardCheck, Code2, List, Plus, Settings2, Trash2, X } from "lucide-react";
+import "./ScenarioConfigEditor.css";
+import { getFuelSupplyTable, getScenarioConfig, saveFuelSupplyLimits, saveScenarioConfigSection, saveScenarioConfigSections } from "../api";
+import PageHeader from "../components/PageHeader";
+import RunModel from "../components/RunModel";
+import SaveDiscardActions from "../components/SaveDiscardActions";
+import type { InputRow, InputSelection, InputTableResponse, ScenarioConfigResponse } from "../types";
+import { confirmDiscardChanges, setEditorDirty } from "../utility";
 
 const COMBINED_SECTION = "co2_constraints";
 const labels: Record<string, string> = { scenario_configs: "Scenario settings", [COMBINED_SECTION]: "CO₂ & constraints", review_run: "Review & run" };
@@ -129,7 +131,16 @@ export default function ScenarioConfigEditor({ selection, country, onNavigate, o
         {error && <div className="notice error">{error}<button onClick={() => void load()}>Reload</button></div>}
         {!loading && validationError && <div className="notice error">{validationError}</div>}
         {loading ? <div className="editor-loading"><span className="spinner" />Reading configuration…</div> : section === "scenario_configs" ? <ScenarioSettings value={draft} country={country} onChange={setDraft} /> : <CombinedConstraintsEditor value={draft} country={country} fuelRows={fuelRows} fuelError={fuelError} onFuelRowsChange={setFuelRows} onChange={setDraft} />}
-        <footer className="config-actions floating-config-actions"><button className="button secondary" disabled={!dirty || saving} onClick={() => { setDraft(structuredClone(original)); setFuelRows(structuredClone(fuelTable?.rows || [])); }}><RotateCcw aria-hidden="true" />Discard</button><button className="button primary" disabled={!dirty || saving || invalid} onClick={save}><Save aria-hidden="true" />{saving ? "Saving…" : "Save changes"}</button>{success && <span className="save-message" role="status"><Check aria-hidden="true" />{success}</span>}</footer>
+        <SaveDiscardActions
+          hasChanges={dirty}
+          saving={saving}
+          saveDisabled={invalid}
+          status={success}
+          floating
+          avoidSideControl={section === COMBINED_SECTION}
+          onDiscard={() => { setDraft(structuredClone(original)); setFuelRows(structuredClone(fuelTable?.rows || [])); }}
+          onSave={() => void save()}
+        />
       </section>
     </div>
   </>;

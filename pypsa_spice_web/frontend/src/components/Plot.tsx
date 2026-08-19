@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
-import type { Catalog, ChartDefinition, ChartResponse, ResultRow } from "./types";
+import "./Plot.css";
+import type { Catalog, ChartDefinition, ChartResponse, ResultRow } from "../types";
 
 declare global {
   interface Window { Plotly: any }

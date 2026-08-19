@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { workspaceInventory } from "./HomePage";
-import type { Catalog, InputCatalog } from "./types";
+import type { Catalog, InputCatalog } from "../types";
 
 const catalog: Catalog = {
   datasets: [{

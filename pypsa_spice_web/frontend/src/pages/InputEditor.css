@@ -1,0 +1,221 @@
+/* Input and scenario configuration workspace. */
+.table-tools {
+  min-height: 72px;
+  padding: 13px 20px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.table-tools .search {
+  width: min(360px, 100%);
+}
+.table-tools .field.compact {
+  margin-left: 0;
+  min-width: 200px;
+}
+.row-count {
+  margin-left: auto;
+  padding-bottom: 13px;
+  color: var(--muted);
+  font-size: 10px;
+  white-space: nowrap;
+}
+.editable-table-wrap {
+  max-width: 100%;
+  overflow: auto;
+  max-height: 62vh;
+  contain: paint;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+}
+.editable-table {
+  width: max-content;
+  min-width: 100%;
+  font-size: 10px;
+}
+.editable-table th {
+  z-index: 2;
+  min-width: 120px;
+  padding: 9px 10px;
+  vertical-align: bottom;
+}
+.editable-table th span,
+.editable-table th small {
+  display: block;
+}
+.editable-table th small {
+  margin-top: 3px;
+  color: var(--pink);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.editable-table td {
+  height: 44px;
+  padding: 0;
+  max-width: 280px;
+}
+.editable-table .locked-cell {
+  padding: 0 10px;
+  background: color-mix(in srgb, var(--surface-2) 50%, var(--surface));
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.editable-table .locked-cell span {
+  display: block;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.editable-cell {
+  background: var(--surface);
+}
+.cell-input {
+  width: 100%;
+  height: 43px;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 0 10px;
+  font-variant-numeric: tabular-nums;
+}
+.cell-input:hover {
+  background: var(--surface-2);
+}
+.cell-input:focus {
+  border-color: var(--pink);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--pink);
+}
+.cell-check {
+  width: 44px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.cell-check input {
+  position: absolute;
+  opacity: 0;
+}
+.cell-check span {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--strong);
+  background: var(--surface);
+  position: relative;
+}
+.cell-check input:checked + span {
+  background: var(--pink);
+  border-color: var(--pink);
+}
+.cell-check input:checked + span:after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 5px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg);
+  left: 6px;
+  top: 6px;
+}
+.cell-check input:focus-visible + span {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--pink);
+}
+.table-pagination {
+  min-height: 58px;
+  padding: 7px 14px 7px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 10px;
+}
+.table-pagination > div {
+  display: flex;
+}
+.table-pagination .icon-button {
+  margin: 0;
+}
+.technology-view {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.selection-title {
+  align-items: flex-end;
+}
+.selection-title dl {
+  min-width: 230px;
+  margin: 0 0 5px;
+  display: grid;
+  gap: 7px;
+}
+.selection-title dl div {
+  display: grid;
+  grid-template-columns: auto minmax(90px, auto);
+  align-items: baseline;
+  justify-content: end;
+  gap: 14px;
+  white-space: nowrap;
+}
+.selection-title dt {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: right;
+  text-transform: uppercase;
+}
+.selection-title dd {
+  margin: 0;
+  font-size: 12px;
+  text-align: right;
+}
+.technology-group > header {
+  margin-bottom: 12px;
+}
+.technology-group > header h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 500;
+}
+.technology-group > header span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.technology-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.technology-panel .editor-panel-head {
+  min-height: 80px;
+}
+.technology-panel .editable-table-wrap {
+  max-height: 46vh;
+}
+@media (max-width: 700px) {
+  .selection-title {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .selection-title dl {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+  .selection-title dl div {
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+  }
+  .selection-title dt,
+  .selection-title dd {
+    text-align: left;
+  }
+}

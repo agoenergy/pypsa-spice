@@ -1,77 +1,41 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeftRight, BarChart3, CarFront, CircleDollarSign, Cloud, Factory, FileInput, GitCompareArrows, House, LayoutDashboard, List, Menu, Moon, Plus, RefreshCw, Settings2, Sun, X, Zap } from "lucide-react";
+import { ArrowLeftRight, GitCompareArrows, List, Menu, Plus, RefreshCw, X } from "lucide-react";
+import "./App.css";
 import { getCatalog, getInputCatalog, getLatestModelRun } from "./api";
-import ChartCard from "./ChartCard";
-import DashboardPage from "./DashboardPage";
-import DataDialog from "./DataDialog";
-import HomePage from "./HomePage";
-import InputEditor from "./InputEditor";
-import NewScenarioDialog from "./NewScenarioDialog";
-import PageHeader from "./PageHeader";
-import ScenarioConfigEditor from "./ScenarioConfigEditor";
-import ScenarioComparison from "./ScenarioComparison";
-import { confirmDiscardChanges } from "./dirtyState";
+import ChartCard from "./components/ChartCard";
+import DataDialog from "./components/DataDialog";
+import NewScenarioDialog from "./components/NewScenarioDialog";
+import PageHeader from "./components/PageHeader";
+import Sidebar from "./components/Sidebar";
+import DashboardPage from "./pages/DashboardPage";
+import HomePage from "./pages/HomePage";
+import InputEditor from "./pages/InputEditor";
+import ScenarioConfigEditor from "./pages/ScenarioConfigEditor";
+import ScenarioComparison from "./pages/ScenarioComparison";
+import {
+  confirmDiscardChanges,
+  countryFromLocation,
+  locationParams,
+  resolveInputSelection,
+  resolveOutputSelection,
+  sectionFromLocation,
+  splitWorkspace,
+  viewFromLocation,
+  workspaceOptions,
+  workspaceValue,
+  type ViewMode,
+  type WorkspaceOption,
+} from "./utility";
 import type { Catalog, ChartDefinition, InputCatalog, InputSelection, ModelRunStatus, ResultRow, Selection } from "./types";
 
-type ViewMode = "home" | "outputs" | "inputs" | "configure" | "compare" | "dashboard";
-type WorkspaceOption = { value: string; label: string };
-
-const WORKSPACE_SEPARATOR = "::";
 const emptySelection: Selection = { dataset: "", project: "", scenario: "", comparison: "", sector: "", year: "" };
 const emptyInputSelection: InputSelection = { dataset: "", project: "", scenario: "" };
-const sectionIcons = { power: Zap, industry: Factory, transport: CarFront, emissions: Cloud, costs: CircleDollarSign };
 const activeModelRunStatuses = new Set<ModelRunStatus>(["queued", "running", "canceling"]);
 const modelRunLabels: Partial<Record<ModelRunStatus, string>> = {
   queued: "Model run queued",
   running: "Model running",
   canceling: "Stopping model run",
 };
-
-function locationParams() { return new URLSearchParams(window.location.search); }
-function sectionFromLocation() { return locationParams().get("section")?.toLowerCase() || "power"; }
-function viewFromLocation(): ViewMode {
-  const params = locationParams();
-  const value = params.get("view");
-  if (value === "home" || value === "inputs" || value === "configure" || value === "compare" || value === "dashboard") return value;
-  if (value === "outputs" || params.has("section") || params.has("run") || params.has("sector")) return "outputs";
-  return "home";
-}
-function countryFromLocation() { return locationParams().get("country") || "ALL"; }
-function workspaceValue(dataset: string, project: string) { return `${dataset}${WORKSPACE_SEPARATOR}${project}`; }
-function splitWorkspace(value: string) { const [dataset, ...project] = value.split(WORKSPACE_SEPARATOR); return { dataset, project: project.join(WORKSPACE_SEPARATOR) }; }
-
-function resolveOutputSelection(data: Catalog, current: Selection, params = locationParams()): Selection {
-  const dataset = data.datasets.find((item) => item.name === (params.get("dataset") || current.dataset)) || data.datasets[0];
-  const project = dataset.projects.find((item) => item.name === (params.get("project") || current.project)) || dataset.projects[0];
-  const scenario = project.scenarios.find((item) => item.name === (params.get("run") || current.scenario)) || project.scenarios[0];
-  const sector = scenario.sectors.find((item) => item.name === (params.get("sector") || current.sector)) || scenario.sectors[0];
-  const comparisonName = params.get("compare") || current.comparison;
-  return {
-    dataset: dataset.name,
-    project: project.name,
-    scenario: scenario.name,
-    comparison: project.scenarios.some((item) => item.name === comparisonName && item.name !== scenario.name) ? comparisonName : "",
-    sector: sector.name,
-    year: sector.years.includes(current.year) ? current.year : sector.years[0] || "",
-  };
-}
-
-function resolveInputSelection(data: InputCatalog, current: InputSelection, params = locationParams()): InputSelection {
-  const dataset = data.datasets.find((item) => item.name === (params.get("dataset") || current.dataset)) || data.datasets[0];
-  const project = dataset.projects.find((item) => item.name === (params.get("project") || current.project)) || dataset.projects[0];
-  const requestedScenario = params.get("scenario") || current.scenario;
-  return { dataset: dataset.name, project: project.name, scenario: project.scenarios.includes(requestedScenario) ? requestedScenario : project.scenarios[0] || "" };
-}
-
-function workspaceOptions(datasets: { name: string; projects: { name: string }[] }[]): WorkspaceOption[] {
-  const duplicateNames = new Set<string>();
-  const seen = new Set<string>();
-  datasets.flatMap((dataset) => dataset.projects).forEach((project) => { if (seen.has(project.name)) duplicateNames.add(project.name); seen.add(project.name); });
-  return datasets.flatMap((dataset) => dataset.projects.map((project) => ({
-    value: workspaceValue(dataset.name, project.name),
-    label: duplicateNames.has(project.name) ? `${project.name} · ${dataset.name}` : project.name,
-  })));
-}
 
 export default function App() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
@@ -289,33 +253,17 @@ export default function App() {
 
   return <div className="app-shell">
     <a className="skip-link" href="#workspace">Skip to workspace</a>
-    <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-      <div className="brand"><a href="?view=home" onClick={(event) => { event.preventDefault(); chooseView("home"); }} aria-label="Go to home"><img src="/brand/pypsa-logo.svg" alt="PyPSA-SPICE" /></a></div>
-      <div className="workspace-nav" role="navigation" aria-label="Workflow">
-        <div className="sidebar-section">
-          <a className={`sidebar-primary ${view === "home" ? "active" : ""}`} href="?view=home" onClick={(event) => { event.preventDefault(); chooseView("home"); }}><House aria-hidden="true" />Home</a>
-        </div>
-        <div className="sidebar-section">
-          <a className={`sidebar-primary ${view === "inputs" ? "active" : ""}`} href="?view=inputs" onClick={(event) => { event.preventDefault(); chooseView("inputs"); }}><FileInput aria-hidden="true" />Inputs</a>
-          {view === "inputs" && <div className="sidebar-submenu-slot" id="input-table-menu" />}
-        </div>
-        <div className="sidebar-section">
-          <a className={`sidebar-primary ${view === "compare" ? "active" : ""}`} href="?view=compare" onClick={(event) => { event.preventDefault(); chooseView("compare"); }}><GitCompareArrows aria-hidden="true" />Scenario differences</a>
-        </div>
-        <div className="sidebar-section">
-          <a className={`sidebar-primary ${view === "configure" ? "active" : ""}`} href="?view=configure" onClick={(event) => { event.preventDefault(); chooseView("configure"); }}><Settings2 aria-hidden="true" />Configure &amp; run</a>
-          {view === "configure" && <div className="sidebar-submenu-slot" id="config-section-tabs" />}
-        </div>
-        <div className="sidebar-section">
-          <a className={`sidebar-primary ${view === "outputs" ? "active" : ""}`} href={`?section=${section?.id || "power"}`} onClick={(event) => { event.preventDefault(); chooseView("outputs"); }}><BarChart3 aria-hidden="true" />Results</a>
-          {view === "outputs" && section && <nav className="sidebar-submenu-list" aria-label="Result pages">{sections.map((item) => { const SectionIcon = sectionIcons[item.id as keyof typeof sectionIcons] || Zap; return <a className={`sidebar-submenu-item ${item.id === section.id ? "active" : ""}`} href={`?section=${item.id}`} key={item.id} aria-current={item.id === section.id ? "page" : undefined} onClick={(event) => { event.preventDefault(); chooseSection(item.id); }}><SectionIcon aria-hidden="true" /><b>{item.label}</b><small>{item.charts.length}</small></a>; })}</nav>}
-        </div>
-        <div className="sidebar-section">
-          <a className={`sidebar-primary ${view === "dashboard" ? "active" : ""}`} href="?view=dashboard" onClick={(event) => { event.preventDefault(); chooseView("dashboard"); }}><LayoutDashboard aria-hidden="true" />Dashboards</a>
-        </div>
-      </div>
-      <div className="sidebar-foot"><div className="sidebar-statuses"><span className="sidebar-status-indicator" data-label="Local files connected" aria-label="Local files connected" tabIndex={0}><i className="status-dot" aria-hidden="true" /></span>{modelRunLabel && <span className="sidebar-status-indicator model-run" data-label={modelRunLabel} aria-label={modelRunLabel} role="status" aria-live="polite" tabIndex={0}><i className="status-dot" aria-hidden="true" /></span>}</div><a href="/docs" target="_blank">API</a><button onClick={() => setDark(!dark)} aria-label="Toggle dark mode">{dark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}</button></div>
-    </aside>
+    <Sidebar
+      open={sidebarOpen}
+      view={view}
+      sections={sections}
+      activeSectionId={section?.id}
+      darkMode={dark}
+      modelRunLabel={modelRunLabel}
+      onSelectView={chooseView}
+      onSelectSection={chooseSection}
+      onToggleDarkMode={() => setDark((current) => !current)}
+    />
     <div className="scrim" onClick={() => setSidebarOpen(false)} />
     <div className="main-column">
       <header className="workspace-bar">

@@ -5,7 +5,7 @@ import {
   summarizeRows,
   tableToCsv,
 } from "./DataDialog";
-import type { ResultRow } from "./types";
+import type { ResultRow } from "../types";
 
 const yearlyRows: ResultRow[] = [
   { scenario: "base", country: "DE", technology: "wind", year: 2030, value: 4, unit: "GW" },

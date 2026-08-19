@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, CircleStop, Clock3, ExternalLink, FileCode2, GitBranch, Pencil, Play, RotateCcw, SquareTerminal } from "lucide-react";
-import { cancelModelRun, getLatestModelRun, getModelRun, getModelRunOptions, getScenarioConfig, getScenarioWorkspaceStatus, startModelRun } from "./api";
+import "./RunModel.css";
+import { cancelModelRun, getLatestModelRun, getModelRun, getModelRunOptions, getScenarioConfig, getScenarioWorkspaceStatus, startModelRun } from "../api";
 import PageHeader from "./PageHeader";
-import type { InputSelection, ModelRun, ModelRunOptions, ScenarioConfigResponse, ScenarioWorkspaceStatus } from "./types";
+import type { InputSelection, ModelRun, ModelRunOptions, ScenarioConfigResponse, ScenarioWorkspaceStatus } from "../types";
 
 const activeStatuses = new Set(["queued", "running", "canceling"]);
 const CHILLI_COUNT = 12;

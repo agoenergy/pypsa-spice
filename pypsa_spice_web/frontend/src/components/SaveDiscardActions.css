@@ -1,0 +1,94 @@
+.save-discard-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.save-discard-status {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+  color: var(--green);
+  font-size: 11px;
+}
+.save-discard-status svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+.floating-save-discard-actions {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 19;
+  min-height: 44px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.floating-save-discard-actions.avoid-side-control {
+  right: 76px;
+}
+.floating-save-discard-actions .button {
+  min-height: 36px;
+}
+.floating-save-discard-actions .save-discard-status {
+  margin-right: 6px;
+}
+@media (max-width: 1000px) {
+  .save-discard-actions:not(.floating-save-discard-actions) {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+@media (max-width: 700px) {
+  .save-discard-actions:not(.floating-save-discard-actions) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .save-discard-actions:not(.floating-save-discard-actions)
+    .save-discard-status {
+    grid-column: 1/-1;
+    width: 100%;
+    margin: 4px 0 0;
+  }
+  .floating-save-discard-actions {
+    right: 24px;
+    bottom: 24px;
+    flex-wrap: nowrap;
+  }
+  .floating-save-discard-actions.avoid-side-control {
+    right: 76px;
+  }
+  .floating-save-discard-actions .button {
+    min-width: 0;
+    flex: 0 0 auto;
+    padding-inline: 10px;
+  }
+  .floating-save-discard-actions .save-discard-status {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    margin: 0;
+    padding: 7px 9px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+}
+@media (max-width: 560px) {
+  .floating-save-discard-actions {
+    right: 14px;
+    bottom: 14px;
+  }
+  .floating-save-discard-actions.avoid-side-control {
+    right: 66px;
+  }
+}

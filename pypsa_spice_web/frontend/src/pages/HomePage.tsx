@@ -9,9 +9,10 @@ import {
   LayoutDashboard,
   Settings2,
 } from "lucide-react";
-import { LocalDashboardStore, type DashboardDefinition } from "./dashboard";
-import PageHeader from "./PageHeader";
-import type { Catalog, InputCatalog } from "./types";
+import "./HomePage.css";
+import { LocalDashboardStore, type DashboardDefinition } from "../utility";
+import PageHeader from "../components/PageHeader";
+import type { Catalog, InputCatalog } from "../types";
 
 type HomeDestination = "inputs" | "configure" | "compare" | "outputs" | "dashboard";
 

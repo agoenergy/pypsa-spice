@@ -1,10 +1,12 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AlertTriangle, Check, ChevronLeft, ChevronRight, Cpu, RotateCcw, Save, Search, Table2 } from "lucide-react";
-import { getInputTable, saveInputTable } from "./api";
-import type { InputCatalog, InputCell, InputRow, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology } from "./types";
-import { confirmDiscardChanges, setEditorDirty } from "./dirtyState";
-import PageHeader from "./PageHeader";
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Cpu, Search, Table2 } from "lucide-react";
+import "./InputEditor.css";
+import { getInputTable, saveInputTable } from "../api";
+import PageHeader from "../components/PageHeader";
+import SaveDiscardActions from "../components/SaveDiscardActions";
+import type { InputCatalog, InputCell, InputRow, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology } from "../types";
+import { confirmDiscardChanges, setEditorDirty } from "../utility";
 
 const PAGE_SIZE = 100;
 
@@ -166,7 +168,7 @@ function TableEditor({ definition, selection, technology, hideWhenEmpty = false 
 
   if (hideWhenEmpty && (loading || (!error && table?.total_filtered_rows === 0))) return null;
   return <section className={`editor-panel${technology ? " technology-panel" : ""}`}>
-    <header className="editor-panel-head"><div><p className="eyebrow">{definition.scope === "global" ? "Global source" : `${definition.sector} · ${selection.scenario}`}</p><h2>{definition.label}</h2>{table && <code>{table.path}</code>}</div><div className="editor-actions"><button className="button secondary" disabled={!changes.size || saving} onClick={discard}><RotateCcw aria-hidden="true" />Discard</button><button className="button primary" disabled={!changes.size || saving || definition.timeseries} onClick={save}><Save aria-hidden="true" />{saving ? "Saving…" : `Save changes${changes.size ? ` (${changes.size})` : ""}`}</button></div></header>
+    <header className="editor-panel-head"><div><p className="eyebrow">{definition.scope === "global" ? "Global source" : `${definition.sector} · ${selection.scenario}`}</p><h2>{definition.label}</h2>{table && <code>{table.path}</code>}</div><SaveDiscardActions hasChanges={changes.size > 0} saving={saving} saveDisabled={definition.timeseries} saveLabel={`Save changes${changes.size ? ` (${changes.size})` : ""}`} onDiscard={discard} onSave={() => void save()} /></header>
     {definition.timeseries && <div className="editor-warning"><AlertTriangle aria-hidden="true" /><span><b>Read-only timeseries.</b> Large hourly inputs are shown for inspection and edited locally outside the browser.</span></div>}
     {error && <div className="notice error">{error}<button onClick={() => void load()}>Reload</button></div>}
     {success && <div className="notice success"><Check aria-hidden="true" />{success}</div>}

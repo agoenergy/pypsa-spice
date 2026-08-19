@@ -12,8 +12,9 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import DashboardChartCard from "./DashboardChartCard";
-import PageHeader from "./PageHeader";
+import "./DashboardPage.css";
+import DashboardChartCard from "../components/DashboardChartCard";
+import PageHeader from "../components/PageHeader";
 import {
   LocalDashboardStore,
   createDashboard,
@@ -29,8 +30,8 @@ import {
   type DashboardHeadingRow,
   type DashboardRow,
   type DashboardSummary,
-} from "./dashboard";
-import type { Catalog, ChartDefinition, Project, ResultRow } from "./types";
+} from "../utility";
+import type { Catalog, ChartDefinition, Project, ResultRow } from "../types";
 
 interface Props {
   catalog: Catalog;

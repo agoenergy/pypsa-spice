@@ -9,7 +9,7 @@ import {
   serializeDashboard,
   type DashboardChartConfig,
   type DashboardDefinition,
-} from "./dashboard";
+} from "./utility";
 
 const chart: DashboardChartConfig = {
   sectionId: "power",

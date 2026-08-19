@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Download, Expand, Minimize2, RotateCcw, Table2 } from "lucide-react";
-import { downloadUrl, getChart } from "./api";
+import "./ChartCard.css";
+import { downloadUrl, getChart } from "../api";
 import Plot, { buildDifferenceRows, ChartLegend, getLegendValues } from "./Plot";
-import type { Catalog, ChartDefinition, ChartResponse, ResultRow, Selection } from "./types";
+import type { Catalog, ChartDefinition, ChartResponse, ResultRow, Selection } from "../types";
 
 interface Props {
   chart: ChartDefinition;

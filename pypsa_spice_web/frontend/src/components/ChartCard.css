@@ -1,0 +1,597 @@
+.main-column {
+  min-width: 0;
+}
+.menu {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  font-size: 20px;
+}
+.top-actions {
+  margin-left: 16px;
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.button {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+.button.primary {
+  background: var(--pink);
+  color: #fff;
+}
+.button.primary:hover {
+  background: var(--pink-dark);
+}
+.button.secondary {
+  background: var(--surface);
+  border-color: var(--line);
+}
+.button.secondary:hover {
+  border-color: var(--ink);
+}
+main {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 56px) clamp(20px, 3vw, 48px) 64px;
+}
+.analysis {
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.search {
+  height: 44px;
+  width: min(300px, 100%);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+}
+.search span {
+  font-size: 20px;
+  color: var(--muted);
+}
+.search input {
+  border: 0;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+}
+.notice {
+  margin: 0 28px 18px;
+  border-left: 3px solid var(--orange);
+  padding: 12px 15px;
+  background: color-mix(in srgb, var(--orange) 7%, var(--surface));
+}
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 0 28px 28px;
+}
+.chart-card {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  min-width: 0;
+}
+.chart-card:hover {
+  box-shadow: var(--shadow);
+}
+.chart-card.expanded {
+  position: fixed;
+  inset: 18px;
+  z-index: 100;
+  background: var(--surface);
+  box-shadow: 0 20px 80px rgb(0 0 0/0.4);
+  display: flex;
+  flex-direction: column;
+}
+.chart-card.expanded .chart-body {
+  height: calc(100vh - 150px);
+}
+.chart-head {
+  min-height: 76px;
+  padding: 12px 14px 12px 18px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.chart-title {
+  min-width: 130px;
+  flex: 1 1 auto;
+}
+.chart-title small {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.chart-title h3 {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 4px 0 0;
+}
+.chart-toolbar {
+  margin-left: auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 4px;
+  background: var(--surface-2);
+}
+.chart-controls,
+.chart-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.chart-controls select {
+  height: 44px;
+  max-width: 150px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--surface);
+  font-size: 10px;
+  padding: 0 30px 0 11px;
+  cursor: pointer;
+}
+.chart-actions {
+  margin-left: 4px;
+  padding-left: 8px;
+  position: relative;
+}
+.chart-actions:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: var(--strong);
+}
+.chart-actions button,
+.chart-actions a {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 17px;
+  cursor: pointer;
+}
+.chart-actions button:hover,
+.chart-actions a:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+.chart-body {
+  height: 340px;
+  padding: 4px;
+  position: relative;
+}
+.plot {
+  width: 100%;
+  height: 100%;
+}
+.state {
+  height: 100%;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  gap: 8px;
+}
+.state.empty b {
+  color: var(--ink);
+  font-size: 14px;
+}
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--line);
+  border-top-color: var(--pink);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  margin: auto;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.no-results {
+  padding: 50px;
+  text-align: center;
+  color: var(--muted);
+}
+.chart-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+.page-title {
+  margin: 0 0 24px;
+}
+.page-title h1 {
+  margin: 0;
+  font-size: clamp(34px, 4vw, 52px);
+  line-height: 1.05;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+.chart-difference-toggle {
+  position: relative;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 11px;
+  border-radius: 3px;
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.chart-difference-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.chart-difference-toggle > i {
+  position: relative;
+  width: 36px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--strong);
+  flex: 0 0 auto;
+  transition: background 0.2s;
+}
+.chart-difference-toggle > i:after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 3px;
+  top: 3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0/0.25);
+  transition: transform 0.2s;
+}
+.chart-difference-toggle input:checked + i {
+  background: var(--pink);
+}
+.chart-difference-toggle input:checked + i:after {
+  transform: translateX(14px);
+}
+.chart-difference-toggle:focus-within {
+  box-shadow: inset 0 0 0 2px var(--pink);
+}
+.chart-grid.comparison-active .chart-card {
+  grid-column: 1/-1;
+}
+.chart-card.comparing .chart-body {
+  height: 390px;
+  overflow: hidden;
+}
+.chart-card.comparing .comparison-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1px;
+  background: var(--line);
+  padding: 0;
+}
+.scenario-plot,
+.difference-plot {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+}
+.scenario-plot .plot,
+.difference-plot .plot {
+  height: 0;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.scenario-label {
+  height: 46px;
+  flex: 0 0 46px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  overflow: hidden;
+}
+.scenario-label small {
+  color: var(--muted);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.scenario-label b {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scenario-label.difference {
+  border-left: 3px solid var(--pink);
+}
+.chart-card.expanded.comparing .chart-body {
+  height: calc(100vh - 150px);
+}
+.time-range-controls {
+  min-height: 82px;
+  padding: 9px 14px 11px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  font-size: 10px;
+}
+.time-range-head,
+.time-range-values {
+  display: flex;
+  align-items: center;
+}
+.time-range-head > span {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+.time-range-head button {
+  margin-left: auto;
+  min-width: 44px;
+  min-height: 28px;
+  border: 0;
+  background: transparent;
+  color: var(--pink);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.time-range-head button:hover {
+  background: var(--surface);
+}
+.time-range-values {
+  justify-content: space-between;
+  gap: 8px;
+  margin: 1px 0 5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.time-range-values output {
+  color: var(--ink);
+  font-size: 10px;
+}
+.dual-range {
+  position: relative;
+  height: 24px;
+}
+.range-track {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 10px;
+  height: 4px;
+  background: var(--strong);
+  pointer-events: none;
+}
+.range-track i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--pink);
+}
+.dual-range input[type="range"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: none;
+}
+.dual-range input[type="range"]:focus-visible {
+  box-shadow: none !important;
+}
+.dual-range input[type="range"]:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--pink);
+}
+.dual-range input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: transparent;
+}
+.dual-range input[type="range"]::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border: 2px solid var(--pink);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgb(0 0 0/0.22);
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: auto;
+  cursor: grab;
+}
+.dual-range input[type="range"]::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  background: var(--pink);
+}
+.dual-range input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: transparent;
+}
+.dual-range input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--pink);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgb(0 0 0/0.22);
+  pointer-events: auto;
+  cursor: grab;
+}
+@media (max-width: 1150px) {
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 900px) {
+  .chart-card.comparing .comparison-layout {
+    grid-template-columns: 1fr;
+  }
+  .chart-card.comparing .chart-body {
+    height: 760px;
+  }
+  .chart-card.comparing .chart-body.with-plot {
+    height: auto;
+  }
+  .chart-card.expanded.comparing .chart-body {
+    height: calc(100vh - 150px);
+    overflow: auto;
+  }
+  .scenario-plot {
+    min-height: 370px;
+  }
+}
+@media (max-width: 700px) {
+  .chart-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .chart-title {
+    padding-top: 4px;
+  }
+  .chart-toolbar {
+    width: 100%;
+    margin-left: 0;
+  }
+  .chart-controls {
+    min-width: 0;
+    flex: 1;
+  }
+  .chart-controls select {
+    min-width: 0;
+    max-width: none;
+    flex: 1;
+  }
+  .chart-actions {
+    margin-left: auto;
+  }
+}
+@media (max-width: 560px) {
+  .chart-toolbar {
+    overflow-x: auto;
+  }
+  .chart-difference-toggle span {
+    display: none;
+  }
+  .time-range-values output {
+    font-size: 9px;
+  }
+  .chart-body {
+    height: 300px;
+  }
+  .main-column > footer {
+    display: block;
+  }
+  .main-column > footer span {
+    display: block;
+    margin: 4px 0;
+  }
+}
+.search > svg {
+  flex: 0 0 18px;
+  color: var(--muted);
+}
+.chart-title h3 {
+  margin: 0;
+  font-size: clamp(17px, 1.4vw, 19px);
+  line-height: 1.2;
+}
+.time-range-head button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.time-range-head button svg {
+  width: 13px;
+  height: 13px;
+}
+/* One shared subheading treatment for primary, comparison, and difference plots. */
+.chart-card.comparing .chart-body.with-plot {
+  padding: 0;
+}
+.scenario-label h4 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Keep the last hourly plot visible while a slider change fetches its replacement. */
+.hourly-loading-overlay {
+  position: absolute;
+  inset: 4px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: color-mix(in srgb, var(--surface) 74%, transparent);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+}
+.hourly-loading-overlay .spinner {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  background: var(--surface);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hourly-loading-overlay .spinner {
+    animation: none;
+  }
+}
