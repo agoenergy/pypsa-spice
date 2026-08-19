@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PyPSA-SPICE web application — code structure and logic</title>
+  <title>PyPSA-SPICE web application: code structure and logic</title>
   <style>
     :root {
       color-scheme: light dark;
@@ -108,24 +108,24 @@
       <header class="hero">
         <div class="eyebrow">Developer architecture reference</div>
         <h1>PyPSA-SPICE web application</h1>
-        <p class="lede">A map of the React, TypeScript, FastAPI, and filesystem code: what owns each responsibility, how requests move through the application, and where to make a change without crossing architectural boundaries.</p>
+        <p class="lede">This guide maps the React, TypeScript, FastAPI, and filesystem code. It shows which module owns each job, how requests move through the app, and where to make a change.</p>
         <div class="meta"><span>React 19</span><span>TypeScript</span><span>Vite</span><span>FastAPI</span><span>CSV + YAML source of truth</span><span>Snakemake execution</span></div>
       </header>
 
       <section id="overview">
         <h2>Overview</h2>
-        <p class="intro">The web workspace is a local, two-layer application. The browser owns interaction and temporary editing state. FastAPI owns discovery, validation, file access, and process control. Model files under <code>data/</code> remain authoritative; the app does not introduce a database or a second model-data format.</p>
+        <p class="intro">The web workspace has two local layers. The browser handles interaction and unsaved editing state. FastAPI handles discovery, validation, file access, and process control. Model files under <code>data/</code> remain authoritative. The app has no database or second model-data format.</p>
         <div class="grid">
           <article class="card"><span class="tag">Browser</span><h3>React workspace</h3><p>Chooses project and scenario context, renders editors and charts, keeps unsaved drafts, and calls typed API helpers.</p></article>
           <article class="card"><span class="tag">Server</span><h3>FastAPI boundary</h3><p>Validates query and body data, confines filesystem paths, serialises responses, and coordinates edits and model runs.</p></article>
-          <article class="card"><span class="tag">Repository</span><h3>Model source of truth</h3><p>CSV and YAML inputs are edited atomically. Result CSVs are read-only. Snakemake consumes a run-local copy of <code>base_config.yaml</code>.</p></article>
+          <article class="card"><span class="tag">Repository</span><h3>Model source of truth</h3><p>The backend updates CSV and YAML inputs atomically. It does not change result CSVs. Snakemake reads a run-local copy of <code>base_config.yaml</code>.</p></article>
         </div>
-        <div class="callout warning"><strong>Design boundary:</strong> <code>pypsa_spice_web/</code> is independent of the legacy Streamlit visualisation. The Streamlit app may explain data semantics, but it is not a UI structure, component, styling, or interaction reference.</div>
+        <div class="callout warning"><strong>Design boundary.</strong> <code>pypsa_spice_web/</code> is independent of the legacy Streamlit visualisation. Consult Streamlit for data semantics only. Do not use its structure, components, styling, or interactions as web UI references.</div>
       </section>
 
       <section id="request-flow">
         <h2>Runtime request flow</h2>
-        <p class="intro">All user-visible data follows the same dependency direction. Components never read repository files directly, and backend domain modules do not depend on React.</p>
+        <p class="intro">User-visible data follows one dependency direction. React components never read repository files, and backend domain modules do not depend on React.</p>
         <div class="flow" aria-label="Request flow from user to repository and back">
           <div class="node"><b>1. User action</b><small>Choose context, edit a cell, open a chart, or start a run.</small></div>
           <div class="node"><b>2. React component</b><small>Owns view state and invokes an API helper.</small></div>
@@ -133,7 +133,7 @@
           <div class="node"><b>4. FastAPI route</b><small>Validates the HTTP contract and delegates domain work.</small></div>
           <div class="node"><b>5. Local resources</b><small>CSV, YAML, result folders, Git metadata, or Snakemake.</small></div>
         </div>
-        <div class="callout"><strong>Response path:</strong> domain functions return JSON-safe dictionaries; FastAPI sends them to the browser; React updates component state and renders. Aborted reads are ignored when the user has already changed context.</div>
+        <div class="callout"><strong>Response path.</strong> Domain functions return JSON-safe dictionaries. FastAPI sends them to the browser, then React updates component state and renders. React ignores an aborted read after the user changes context.</div>
       </section>
 
       <section id="source-map">
@@ -163,29 +163,29 @@
       <section id="frontend">
         <h2>Frontend logic</h2>
         <div class="grid two">
-          <article class="card"><h3>Shared application state</h3><ul><li><code>view</code> selects Home, Inputs, Scenario differences, Configure &amp; run, Results, or Dashboards.</li><li><code>selection</code> is Results context: dataset, project, result run, comparison run, sector, and year.</li><li><code>inputSelection</code> is editable-input context: dataset, project, and input scenario.</li><li>The URL mirrors durable context so refresh and browser history restore the workspace.</li></ul></article>
+          <article class="card"><h3>Shared application state</h3><ul><li><code>view</code> selects Home, Inputs, Scenario differences, Configure &amp; run, Results, or Dashboards.</li><li><code>selection</code> holds the Results dataset, project, result run, comparison run, sector, and year.</li><li><code>inputSelection</code> holds the editable input dataset, project, and scenario.</li><li>The URL records durable context so refresh and browser history can restore the workspace.</li></ul></article>
           <article class="card"><h3>Local page state</h3><ul><li>Editors own unsaved drafts and register with <code>dirtyState.ts</code>.</li><li>Chart cards own filters, time range, request state, and loaded rows.</li><li>Dashboard definitions are browser-local; fetched result rows are not persisted.</li><li>Dialogs and menus remain inside the component that controls their lifecycle.</li></ul></article>
         </div>
         <h3 style="margin-top:28px">Page selection sequence</h3>
         <div class="steps">
           <div class="step"><b>Catalogs load</b><span><code>App.tsx</code> requests result and input catalogs independently so either side can show its own error.</span></div>
-          <div class="step"><b>Context resolves</b><span>URL values are accepted only when present in the current catalog; otherwise the first valid option is selected.</span></div>
+          <div class="step"><b>Context resolves</b><span>The app accepts a URL value only if it appears in the current catalog. Otherwise, it selects the first valid option.</span></div>
           <div class="step"><b>URL stays in sync</b><span>A replace-state effect records current context without adding history entries for every selection change.</span></div>
           <div class="step"><b>View renders</b><span><code>renderWorkspace()</code> selects one page and gives it the smallest required context.</span></div>
           <div class="step"><b>Page fetches its data</b><span>Effects own <code>AbortController</code> instances so stale responses cannot overwrite newer selections.</span></div>
         </div>
         <details><summary>Results and comparison charts</summary><div><p><code>ChartCard.tsx</code> requests the primary run and, when selected, the comparison run. <code>Plot.tsx</code> converts result rows into Plotly traces. Difference mode aligns rows by their analytical identity and calculates <code>comparison − primary</code>.</p><p>Hourly charts request one year and may send a time range. The server samples only the displayed response; downloads keep the complete source CSV.</p></div></details>
         <details><summary>Input editing</summary><div><p>The browser stores changed cells using the original <code>__row_id</code>, not the visible page index. Filters and pagination therefore cannot redirect an edit to another CSV row. A save includes the last observed file revision; HTTP 409 forces a reload when the file changed externally.</p></div></details>
-        <details><summary>Dashboard persistence</summary><div><p><code>dashboard.ts</code> owns the versioned JSON format and <code>DashboardStore</code> abstraction. The local implementation uses <code>localStorage</code>. Schema migration is performed when reading older definitions; current saves and exports use the canonical schema.</p></div></details>
+        <details><summary>Dashboard persistence</summary><div><p><code>dashboard.ts</code> owns the versioned JSON format and <code>DashboardStore</code> abstraction. The local implementation uses <code>localStorage</code>. It converts older definitions when it reads them. New saves and exports use the current schema.</p></div></details>
       </section>
 
       <section id="backend">
         <h2>Backend logic</h2>
-        <p class="intro"><code>app.py</code> is the transport layer: it defines request validation and translates domain errors into HTTP responses. File semantics belong in the three domain modules.</p>
+        <p class="intro"><code>app.py</code> is the transport layer. It validates requests and translates domain errors into HTTP responses. The three domain modules own file semantics.</p>
         <div class="grid">
-          <article class="card"><span class="tag">Read</span><h3>Catalog and charts</h3><p>The result catalog walks <code>results/&lt;run&gt;/csvs</code>. Chart access is restricted to configured table names and modes. Yearly files are combined and deduplicated; hourly data can be range-filtered and sampled.</p></article>
-          <article class="card"><span class="tag">Edit</span><h3>Inputs and configuration</h3><p>Input settings determine visible tables. CSV values are typed for the UI, but updates are serialised back to model-compatible text. Round-trip YAML preserves comments and surviving key layout.</p></article>
-          <article class="card"><span class="tag">Execute</span><h3>Model runs</h3><p>One web-launched run is allowed at a time. Each run gets a config copy, provenance manifest, state file, log, process group, and temporary directory under <code>logs/web_runs/</code>.</p></article>
+          <article class="card"><span class="tag">Read</span><h3>Catalog and charts</h3><p>The result catalog walks <code>results/&lt;run&gt;/csvs</code>. The server permits only configured table names and modes. It combines and deduplicates yearly files, and can filter and sample hourly data.</p></article>
+          <article class="card"><span class="tag">Edit</span><h3>Inputs and configuration</h3><p>Input settings determine which tables appear. The UI receives typed CSV values, while saves convert them back to model-compatible text. Round-trip YAML preserves comments and keys that survive an edit.</p></article>
+          <article class="card"><span class="tag">Execute</span><h3>Model runs</h3><p>Only one web-launched run can operate at a time. Each run has a config copy, provenance manifest, state file, log, process group, and temporary directory under <code>logs/web_runs/</code>.</p></article>
         </div>
         <h3 style="margin-top:28px">Endpoint groups</h3>
         <table class="file-map">
@@ -224,16 +224,16 @@
 browser localStorage
 └── versioned dashboard definitions</pre></article>
         </div>
-        <p class="callout"><strong>Lifecycle distinction:</strong> input scenario, result run, and dashboard are separate concepts. A result run is not assumed to share a name with an input scenario, and a dashboard stores references to result data rather than copying that data.</p>
+        <p class="callout"><strong>Separate lifecycles.</strong> Input scenarios, result runs, and dashboards are different records. A result run does not need the same name as an input scenario. A dashboard stores references to result data, not copies.</p>
       </section>
 
       <section id="safety">
         <h2>Safety and concurrency</h2>
         <div class="grid two">
           <article class="card"><h3>Filesystem confinement</h3><ul><li>User-selected path segments resolve below known roots.</li><li>Result tables must appear in <code>graph_settings.yaml</code>.</li><li>Hourly/yearly mode must match the chart definition.</li><li>Resolved result files must remain under the selected sector folder.</li></ul></article>
-          <article class="card"><h3>Write integrity</h3><ul><li>CSV and YAML writes use a temporary sibling followed by <code>os.replace</code>.</li><li>File revisions implement optimistic concurrency.</li><li>A process-local write lock serialises edits.</li><li>All web edits and scenario creation are rejected while a web model run is active.</li></ul></article>
-          <article class="card"><h3>Run integrity</h3><ul><li>The repository-root config is never mutated.</li><li>Selection and core count are validated before launch.</li><li>Only one web-launched process is active.</li><li>Cancellation signals the process group, then escalates after a grace period.</li></ul></article>
-          <article class="card"><h3>Browser race prevention</h3><ul><li>Context-changing reads use abort signals.</li><li>Dirty editors prompt before navigation.</li><li>Stable source row IDs survive filtering and paging.</li><li>Dashboard imports are parsed and normalised before storage.</li></ul></article>
+          <article class="card"><h3>Write integrity</h3><ul><li>CSV and YAML writes use a temporary sibling followed by <code>os.replace</code>.</li><li>File revisions implement optimistic concurrency.</li><li>A process-local write lock serialises edits.</li><li>The backend rejects web edits and new scenarios while a web model run is active.</li></ul></article>
+          <article class="card"><h3>Run integrity</h3><ul><li>Runs do not change the repository-root config.</li><li>The runner validates the selection and core count before launch.</li><li>Only one web-launched process can run at a time.</li><li>Cancellation signals the process group, then escalates after a grace period.</li></ul></article>
+          <article class="card"><h3>Browser race prevention</h3><ul><li>Context-changing reads use abort signals.</li><li>Dirty editors prompt before navigation.</li><li>Stable source row IDs survive filtering and paging.</li><li>The browser parses and normalises dashboard imports before storage.</li></ul></article>
         </div>
       </section>
 
