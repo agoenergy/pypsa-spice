@@ -32,7 +32,7 @@
 }
 .html-legend {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(215px, 100%), 1fr));
   gap: 6px 12px;
   padding: 10px 16px 14px;
   border-top: 1px solid var(--line);
@@ -44,7 +44,7 @@
   align-items: flex-start;
   gap: 7px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-xs);
   line-height: 1.25;
 }
 .html-legend-item > i {
@@ -79,7 +79,7 @@ html[data-theme="dark"] .html-legend {
   border-radius: 3px;
   background: transparent;
   font-family: inherit;
-  font-size: 9px;
+  font-size: var(--text-xs);
   line-height: 1.25;
   text-align: left;
   cursor: pointer;

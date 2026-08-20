@@ -17,7 +17,7 @@
   border-radius: 18px;
   background: var(--surface);
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -94,9 +94,9 @@
   border: 0;
   background: transparent;
   color: var(--ink);
-  font-size: clamp(21px, 2.2vw, 28px);
+  font-size: var(--text-xl);
   font-weight: 500;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 .dashboard-title-input:focus {
   box-shadow: none !important;
@@ -109,7 +109,7 @@
   border: 0;
   background: transparent;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-sm);
   line-height: 1.4;
   resize: vertical;
 }
@@ -155,7 +155,7 @@
 .dashboard-builder-footer > span {
   margin-right: auto;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 .dashboard-empty-actions {
@@ -177,7 +177,7 @@
   border: 0;
   background: transparent;
   color: var(--ink);
-  font-size: clamp(18px, 1.8vw, 23px);
+  font-size: var(--text-lg);
   font-weight: 500;
   line-height: 1.2;
   letter-spacing: -0.01em;
@@ -242,12 +242,12 @@
 }
 .dashboard-difference-preview span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-xs);
   font-weight: 700;
   text-transform: uppercase;
 }
 .dashboard-difference-preview b {
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 .dashboard-difference-preview .button {
   min-height: 38px;
@@ -284,14 +284,14 @@
 }
 .dashboard-import-summary dt {
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--text-xs);
   font-weight: 700;
   text-transform: uppercase;
 }
 .dashboard-import-summary dd {
   margin: 4px 0 0;
   overflow-wrap: anywhere;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 .dashboard-import-summary .notice {
   margin: 0 0 12px;
@@ -299,7 +299,7 @@
 .dashboard-import-summary > p {
   margin: 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 .dashboard-import-dialog > footer {
   justify-content: flex-end;

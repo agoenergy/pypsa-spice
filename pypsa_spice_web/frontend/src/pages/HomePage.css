@@ -10,13 +10,13 @@
   gap: 3px;
 }
 .home-bar-copy b {
-  font-size: 17px;
+  font-size: var(--text-md);
   font-weight: 600;
 }
 .home-bar-copy span {
   overflow: hidden;
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -30,7 +30,7 @@
   border-radius: 18px;
   background: var(--surface-2);
   color: var(--ink);
-  font-size: 9px;
+  font-size: var(--text-xs);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -70,11 +70,11 @@
 }
 .home-panel-heading h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 500;
 }
 .home-project-picker {
-  width: min(280px, 45%);
+  width: min(340px, 45%);
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
@@ -82,7 +82,7 @@
 }
 .home-project-picker > span {
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -94,7 +94,7 @@
   border: 1px solid var(--strong);
   border-radius: 4px;
   background: var(--surface);
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
 }
@@ -111,7 +111,7 @@
   flex-direction: column;
   gap: 8px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-base);
   text-align: center;
 }
 .home-loading .spinner {
@@ -125,7 +125,7 @@
 }
 .home-empty b {
   color: var(--ink);
-  font-size: 13px;
+  font-size: var(--text-md);
 }
 .home-empty span {
   max-width: 520px;
@@ -154,7 +154,7 @@
 }
 .home-project-title h3 {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -162,14 +162,14 @@
   display: block;
   margin-top: 2px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 .home-project-country-count {
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-xs);
 }
 .home-project-columns {
   display: grid;
@@ -204,7 +204,7 @@
   align-items: center;
   gap: 7px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -214,11 +214,11 @@
   height: 13px;
 }
 .home-scenario-list > header small {
-  min-width: 20px;
-  padding: 2px 5px;
+  min-width: 24px;
+  padding: 2px 6px;
   background: var(--surface-2);
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--text-xs);
   text-align: center;
 }
 .home-scenario-list > div {
@@ -239,7 +239,7 @@
   border-radius: 3px;
   background: var(--surface);
   color: var(--ink);
-  font-size: 9px;
+  font-size: var(--text-sm);
   text-align: left;
   text-decoration: none;
   white-space: nowrap;
@@ -264,7 +264,7 @@
   padding: 8px;
   background: var(--surface-2);
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-sm);
 }
 .home-project-dashboards p > button {
   margin-left: 5px;
@@ -272,7 +272,7 @@
   border: 0;
   background: transparent;
   color: var(--pink);
-  font-size: 9px;
+  font-size: var(--text-sm);
   font-weight: 700;
   cursor: pointer;
 }
@@ -348,7 +348,7 @@
   gap: 6px;
 }
 .home-workflow b {
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 .home-workflow b em {
   display: block;
@@ -357,7 +357,7 @@
   padding: 3px 6px;
   background: var(--surface-2);
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--text-xs);
   font-style: normal;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -365,7 +365,7 @@
 }
 .home-workflow small {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-base);
   line-height: 1.5;
 }
 .home-workflow-main > svg {
@@ -379,7 +379,7 @@
   border: 1px solid var(--line);
   background: var(--surface-2);
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 .home-source-note b {

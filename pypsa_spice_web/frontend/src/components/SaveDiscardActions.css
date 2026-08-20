@@ -11,7 +11,7 @@
   gap: 6px;
   margin-left: 4px;
   color: var(--green);
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 .save-discard-status svg {
   width: 16px;

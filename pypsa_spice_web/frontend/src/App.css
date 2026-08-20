@@ -19,7 +19,16 @@
   --strong: #b9c1be;
   --shadow: 0 8px 30px rgb(23 33 43/0.09);
   --sidebar: 276px;
-  --workspace-bar-height: 82px;
+  --workspace-bar-height: 84px;
+  /* Type scale. Every text size in the app comes from these seven steps.
+     12px is the floor: nothing readable should be smaller. */
+  --text-xs: 12px; /* uppercase eyebrows, badges, counts, monospace paths */
+  --text-sm: 13px; /* controls, table cells, dense metadata */
+  --text-base: 15px; /* body copy, help text, empty-state descriptions */
+  --text-md: 17px; /* card and entity titles */
+  --text-lg: 20px; /* chart titles, sub-section headings */
+  --text-xl: 24px; /* panel and dialog headings */
+  --text-2xl: 28px; /* page title */
 }
 html[data-theme="dark"] {
   --ink: #eff4f2;
@@ -42,7 +51,7 @@ body {
   background: var(--paper);
   color: var(--ink);
   font:
-    15px/1.45 Flexo,
+    var(--text-base)/1.45 Flexo,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
@@ -96,7 +105,8 @@ textarea {
   z-index: 30;
 }
 .brand {
-  height: calc(var(--workspace-bar-height) - 24px);
+  /* -23px, not -24px: the workspace bar's own bottom border adds a pixel. */
+  height: calc(var(--workspace-bar-height) - 23px);
   display: flex;
   align-items: center;
   padding: 2px 8px 25px;
@@ -114,7 +124,7 @@ textarea {
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
   color: var(--muted);
   margin: 0 0 8px;
@@ -149,7 +159,7 @@ textarea {
   stroke-width: 1.8;
 }
 .sidebar nav small {
-  font-size: 9px;
+  font-size: var(--text-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-left: auto;
@@ -164,7 +174,7 @@ textarea {
   align-items: center;
   gap: 8px;
   color: #acb6b2;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 .sidebar-foot button {
   margin-left: auto;
@@ -209,7 +219,7 @@ textarea {
 }
 .dialog h2 {
   margin: 0;
-  font-size: 22px;
+  font-size: var(--text-xl);
 }
 .icon-button {
   margin-left: auto;
@@ -230,7 +240,7 @@ textarea {
 table {
   border-collapse: collapse;
   width: 100%;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 th {
   position: sticky;
@@ -262,7 +272,7 @@ td.number {
   display: flex;
   align-items: center;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 .dialog > footer button {
   margin-left: auto;
@@ -271,7 +281,7 @@ td.number {
   padding: 20px clamp(20px, 3vw, 48px);
   border-top: 1px solid var(--line);
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-xs);
   display: flex;
   justify-content: space-between;
 }
@@ -414,7 +424,7 @@ td.number {
 }
 .results-toc-panel h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--text-lg);
   font-weight: 500;
 }
 .results-toc-panel .eyebrow {
@@ -439,14 +449,14 @@ td.number {
   gap: 8px;
   color: var(--ink);
   text-decoration: none;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 .results-toc-panel li a:hover {
   background: var(--surface-2);
 }
 .results-toc-panel li a span {
   color: var(--pink);
-  font-size: 9px;
+  font-size: var(--text-xs);
   font-variant-numeric: tabular-nums;
 }
 .results-toc-panel li a b {
@@ -492,7 +502,7 @@ td.number {
 }
 .field > span {
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -522,7 +532,7 @@ td.number {
 .field-help {
   margin: 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 .editor-panel {
   min-width: 0;
@@ -540,7 +550,7 @@ td.number {
 }
 .editor-panel-head h2 {
   margin: 0;
-  font-size: clamp(21px, 2vw, 27px);
+  font-size: var(--text-xl);
   font-weight: 500;
 }
 .editor-panel-head code {
@@ -549,7 +559,7 @@ td.number {
   margin-top: 5px;
   color: var(--muted);
   font:
-    10px/1.4 ui-monospace,
+    var(--text-xs)/1.4 ui-monospace,
     SFMono-Regular,
     Menlo,
     monospace;
@@ -570,7 +580,7 @@ td.number {
   padding: 13px 15px;
   border-left: 3px solid var(--orange);
   background: color-mix(in srgb, var(--orange) 7%, var(--surface));
-  font-size: 12px;
+  font-size: var(--text-base);
 }
 .editor-warning svg {
   width: 18px;
@@ -715,7 +725,7 @@ td.number {
   text-align: left;
   text-decoration: none;
   font: inherit;
-  font-size: 11px;
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 .sidebar .sidebar-submenu-item:hover {
@@ -742,7 +752,7 @@ td.number {
   margin-left: auto;
   padding: 2px 5px;
   background: rgb(255 255 255/0.08);
-  font-size: 9px;
+  font-size: var(--text-xs);
   letter-spacing: normal;
   text-transform: none;
 }
@@ -812,7 +822,7 @@ td.number {
   background: #111816;
   color: #f6f8f7;
   box-shadow: 0 6px 18px rgb(0 0 0/0.28);
-  font-size: 9px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1.2;
@@ -850,7 +860,7 @@ td.number {
   margin-left: auto;
   color: #c6d0cc;
   text-decoration: none;
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.06em;
 }
@@ -897,7 +907,7 @@ td.number {
 }
 .context-control > span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-xs);
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.09em;
@@ -910,7 +920,7 @@ td.number {
   border: 1px solid var(--line);
   border-radius: 4px;
   background: var(--surface);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
 }

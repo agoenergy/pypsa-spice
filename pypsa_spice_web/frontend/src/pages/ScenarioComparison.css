@@ -41,7 +41,7 @@
 }
 .comparison-direction small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -51,7 +51,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 .comparison-direction svg {
   width: 17px;
@@ -73,7 +73,7 @@
   align-items: center;
   gap: 7px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-sm);
   line-height: 1.45;
 }
 .comparison-scope-note svg {
@@ -115,12 +115,12 @@
   min-width: 0;
   border: 0;
   background: transparent;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 .comparison-filter-count {
   margin-left: auto;
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-xs);
   white-space: nowrap;
 }
 .comparison-results {
@@ -140,7 +140,7 @@
 }
 .comparison-category > header h2 {
   margin: 0;
-  font-size: 21px;
+  font-size: var(--text-xl);
   font-weight: 500;
 }
 .comparison-section-list {
@@ -157,7 +157,7 @@
 }
 .comparison-panel .editor-panel-head h3 {
   margin: 3px 0 0;
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 500;
 }
 .comparison-table-wrap {
@@ -169,7 +169,7 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 .comparison-table th,
 .comparison-table td {
@@ -188,7 +188,7 @@
   border-bottom-color: var(--strong);
   background: var(--surface-2);
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -202,7 +202,7 @@
   margin-top: 3px;
   overflow: hidden;
   color: var(--ink);
-  font-size: 9px;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0;
   text-overflow: ellipsis;
@@ -232,7 +232,7 @@
   display: block;
   margin-top: 3px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--text-xs);
   font-weight: 600;
 }
 .comparison-table tbody tr:last-child > * {
@@ -247,7 +247,7 @@
   align-items: center;
   gap: 7px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: var(--text-xs);
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -304,11 +304,11 @@
 .comparison-empty b {
   margin-bottom: 5px;
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--text-md);
 }
 .comparison-empty span {
   max-width: 440px;
-  font-size: 10px;
+  font-size: var(--text-base);
   line-height: 1.5;
 }
 html[data-theme="dark"] .comparison-table tbody tr:hover > * {

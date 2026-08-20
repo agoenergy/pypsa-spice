@@ -18,7 +18,7 @@
   margin-left: auto;
   padding-bottom: 13px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-sm);
   white-space: nowrap;
 }
 .editable-table-wrap {
@@ -32,7 +32,7 @@
 .editable-table {
   width: max-content;
   min-width: 100%;
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 .editable-table th {
   z-index: 2;
@@ -47,7 +47,7 @@
 .editable-table th small {
   margin-top: 3px;
   color: var(--pink);
-  font-size: 8px;
+  font-size: var(--text-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -134,7 +134,7 @@
   justify-content: space-between;
   border-top: 1px solid var(--line);
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 .table-pagination > div {
   display: flex;
@@ -166,7 +166,7 @@
 }
 .selection-title dt {
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-align: right;
@@ -174,7 +174,7 @@
 }
 .selection-title dd {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--text-sm);
   text-align: right;
 }
 .technology-group > header {
@@ -182,12 +182,12 @@
 }
 .technology-group > header h2 {
   margin: 0 0 4px;
-  font-size: 22px;
+  font-size: var(--text-xl);
   font-weight: 500;
 }
 .technology-group > header span {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-base);
 }
 .technology-panels {
   display: flex;

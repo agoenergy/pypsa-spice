@@ -6,11 +6,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 8px;
+  font-size: var(--text-xs);
 }
 .dashboard-chart-card .chart-title h3 {
   margin-top: 2px;
-  font-size: 13px;
+  font-size: var(--text-md);
 }
 .dashboard-chart-card .chart-head {
   min-height: 56px;
@@ -145,13 +145,13 @@
 .dashboard-project-missing b,
 .dashboard-empty b {
   color: var(--ink);
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 .dashboard-source-missing span,
 .dashboard-project-missing span,
 .dashboard-empty span {
   max-width: 520px;
-  font-size: 11px;
+  font-size: var(--text-sm);
 }
 .dashboard-project-missing,
 .dashboard-empty {
@@ -178,7 +178,7 @@
 .dashboard-scenario-picker legend {
   padding: 0 5px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -190,7 +190,7 @@
   align-items: center;
   gap: 8px;
   border-radius: 3px;
-  font-size: 10px;
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 .dashboard-scenario-picker label:hover {
@@ -202,7 +202,7 @@
 .dashboard-scenario-picker small {
   margin-left: auto;
   color: var(--pink);
-  font-size: 8px;
+  font-size: var(--text-xs);
   font-weight: 700;
   text-transform: uppercase;
 }

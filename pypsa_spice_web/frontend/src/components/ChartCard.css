@@ -26,7 +26,7 @@
   gap: 8px;
   text-decoration: none;
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 .button.primary {
@@ -118,12 +118,11 @@ main {
 .chart-title small {
   display: block;
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 .chart-title h3 {
-  font-size: 15px;
   font-weight: 500;
   margin: 4px 0 0;
 }
@@ -149,7 +148,7 @@ main {
   border: 0;
   border-radius: 3px;
   background: var(--surface);
-  font-size: 10px;
+  font-size: var(--text-sm);
   padding: 0 30px 0 11px;
   cursor: pointer;
 }
@@ -201,12 +200,12 @@ main {
   place-content: center;
   text-align: center;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-base);
   gap: 8px;
 }
 .state.empty b {
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--text-md);
 }
 .spinner {
   width: 22px;
@@ -236,10 +235,10 @@ main {
 }
 .page-title h1 {
   margin: 0;
-  font-size: clamp(34px, 4vw, 52px);
-  line-height: 1.05;
+  font-size: var(--text-2xl);
+  line-height: 1.2;
   font-weight: 500;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.01em;
 }
 .chart-difference-toggle {
   position: relative;
@@ -251,7 +250,7 @@ main {
   border-radius: 3px;
   background: var(--surface);
   cursor: pointer;
-  font-size: 10px;
+  font-size: var(--text-sm);
   white-space: nowrap;
 }
 .chart-difference-toggle input {
@@ -334,13 +333,13 @@ main {
 }
 .scenario-label small {
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   white-space: nowrap;
 }
 .scenario-label b {
-  font-size: 11px;
+  font-size: var(--text-sm);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -356,7 +355,7 @@ main {
   padding: 9px 14px 11px;
   border-bottom: 1px solid var(--line);
   background: var(--surface-2);
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 .time-range-head,
 .time-range-values {
@@ -376,7 +375,7 @@ main {
   border: 0;
   background: transparent;
   color: var(--pink);
-  font-size: 10px;
+  font-size: var(--text-sm);
   font-weight: 700;
   cursor: pointer;
 }
@@ -392,7 +391,7 @@ main {
 }
 .time-range-values output {
   color: var(--ink);
-  font-size: 10px;
+  font-size: var(--text-sm);
 }
 .dual-range {
   position: relative;
@@ -525,7 +524,7 @@ main {
     display: none;
   }
   .time-range-values output {
-    font-size: 9px;
+    font-size: var(--text-xs);
   }
   .chart-body {
     height: 300px;
@@ -544,7 +543,7 @@ main {
 }
 .chart-title h3 {
   margin: 0;
-  font-size: clamp(17px, 1.4vw, 19px);
+  font-size: var(--text-lg);
   line-height: 1.2;
 }
 .time-range-head button {
@@ -562,7 +561,7 @@ main {
 }
 .scenario-label h4 {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 700;
   line-height: 1.35;
   overflow: hidden;
@@ -580,7 +579,7 @@ main {
   gap: 9px;
   background: color-mix(in srgb, var(--surface) 74%, transparent);
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-sm);
   font-weight: 600;
   pointer-events: none;
 }

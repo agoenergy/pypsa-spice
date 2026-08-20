@@ -8,6 +8,10 @@ declare global {
 
 const fallbackColors = ["#e6007e", "#005ca9", "#60a917", "#ec6608", "#7553a6", "#009e8e", "#c33c54", "#79848d", "#d5a400", "#3f7c85", "#9b4b96", "#86a6c2"];
 
+// Plotly draws its own text, so it cannot read the CSS type scale in App.css.
+// These mirror --text-xs and --text-sm so chart type matches the surrounding interface.
+const chartFont = { body: 12, hover: 13 };
+
 interface Props {
   chart: ChartDefinition;
   primary: ChartResponse;
@@ -226,7 +230,7 @@ function stackedBarTotalTrace(
     y: values.map((value) => value.positive > 0 ? value.positive : value.negative),
     text: values.map((value) => formatTotal(value.total)),
     textposition: values.map((value) => value.positive > 0 ? "top center" : "bottom center"),
-    textfont: { size: 10 },
+    textfont: { size: chartFont.body },
     cliponaxis: false,
     hoverinfo: "skip",
     showlegend: false,
@@ -248,15 +252,15 @@ export default function Plot({ chart, primary, comparison, primaryName, comparis
     const allTraces = totalTrace ? [...chartTraces, totalTrace] : chartTraces;
     window.Plotly.react(ref.current, allTraces, {
       autosize: true,
-      margin: { l: 58, r: chart.secondary_y_lab ? 58 : 18, t: totalTrace ? 28 : 14, b: 38 },
+      margin: { l: 66, r: chart.secondary_y_lab ? 66 : 20, t: totalTrace ? 34 : 16, b: 46 },
       paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
-      font: { family: "Flexo, sans-serif", size: 10, color: text },
+      font: { family: "Flexo, sans-serif", size: chartFont.body, color: text },
       showlegend: false,
       hovermode: "x unified", barmode: chart.type === "grouped_bar" || comparison ? "group" : "relative",
-      xaxis: { showgrid: !darkMode, gridcolor: grid, zeroline: false, tickfont: { size: 9 }, unifiedhovertitle: { text: chart.hourly ? "%{x|%d %b · %H:%M}" : "%{x}" } },
-      yaxis: { title: { text: difference ? `Difference (${chart.units || "value"})` : chart.units || "", font: { size: 10 } }, showgrid: !darkMode, gridcolor: grid, zeroline: difference, zerolinecolor: darkMode ? "rgba(255,255,255,.18)" : text, zerolinewidth: 1, rangemode: "tozero" },
+      xaxis: { showgrid: !darkMode, gridcolor: grid, zeroline: false, tickfont: { size: chartFont.body }, unifiedhovertitle: { text: chart.hourly ? "%{x|%d %b · %H:%M}" : "%{x}" } },
+      yaxis: { title: { text: difference ? `Difference (${chart.units || "value"})` : chart.units || "", font: { size: chartFont.body } }, showgrid: !darkMode, gridcolor: grid, zeroline: difference, zerolinecolor: darkMode ? "rgba(255,255,255,.18)" : text, zerolinewidth: 1, rangemode: "tozero" },
       yaxis2: { overlaying: "y", side: "right", showgrid: false, title: "State of charge" },
-      hoverlabel: { bgcolor: darkMode ? "#222b28" : "#fff", bordercolor: darkMode ? "#34403c" : grid, font: { size: 10 }, align: "left" },
+      hoverlabel: { bgcolor: darkMode ? "#222b28" : "#fff", bordercolor: darkMode ? "#34403c" : grid, font: { size: chartFont.hover }, align: "left" },
       uirevision: `${chart.id}-${primaryName}-${difference}`,
     }, {
       responsive: true, displaylogo: false,
