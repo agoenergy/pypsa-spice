@@ -117,10 +117,10 @@
         <p class="intro">The web workspace has two local layers. The browser handles interaction and unsaved editing state. FastAPI handles discovery, validation, file access, and process control. Model files under <code>data/</code> remain authoritative. The app has no database or second model-data format.</p>
         <div class="grid">
           <article class="card"><span class="tag">Browser</span><h3>React workspace</h3><p>Chooses project and scenario context, renders editors and charts, keeps unsaved drafts, and calls typed API helpers.</p></article>
-          <article class="card"><span class="tag">Server</span><h3>FastAPI boundary</h3><p>Validates query and body data, confines filesystem paths, serialises responses, and coordinates edits and model runs.</p></article>
+          <article class="card"><span class="tag">Server</span><h3>FastAPI server</h3><p>Validates query and body data, confines filesystem paths, serialises responses, and coordinates edits and model runs.</p></article>
           <article class="card"><span class="tag">Repository</span><h3>Model source of truth</h3><p>The backend updates CSV and YAML inputs atomically. It does not change result CSVs. Snakemake reads a run-local copy of <code>base_config.yaml</code>.</p></article>
         </div>
-        <div class="callout warning"><strong>Design boundary.</strong> <code>pypsa_spice_web/</code> is independent of the legacy Streamlit visualisation. Consult Streamlit for data semantics only. Do not use its structure, components, styling, or interactions as web UI references.</div>
+        <div class="callout warning"><strong>Design rule.</strong> <code>pypsa_spice_web/</code> is independent of the legacy Streamlit visualisation. Consult Streamlit for data semantics only. Do not use its structure, components, styling, or interactions as web UI references.</div>
       </section>
 
       <section id="request-flow">
@@ -138,7 +138,7 @@
 
       <section id="source-map">
         <h2>Source map</h2>
-        <p class="intro">The table lists the files that define the architecture. Component tests sit beside their TypeScript source; backend tests live in <code>tests/</code>.</p>
+        <p class="intro">The table lists the files that define the architecture. Component tests sit beside their TypeScript source. Backend tests live in <code>tests/</code>.</p>
         <table class="file-map">
           <thead><tr><th>Path</th><th>Responsibility</th><th>Depends on</th></tr></thead>
           <tbody>
@@ -162,7 +162,7 @@
         <h2>Frontend logic</h2>
         <div class="grid two">
           <article class="card"><h3>Shared application state</h3><ul><li><code>view</code> selects Home, Inputs, Scenario differences, Configure &amp; run, Results, or Dashboards.</li><li><code>selection</code> holds the Results dataset, project, result run, comparison run, sector, and year.</li><li><code>inputSelection</code> holds the editable input dataset, project, and scenario.</li><li>The URL records durable context so refresh and browser history can restore the workspace.</li></ul></article>
-          <article class="card"><h3>Local page state</h3><ul><li>Editors own unsaved drafts and register through <code>utility.tsx</code>.</li><li>Chart cards own filters, time range, request state, and loaded rows.</li><li>Dashboard definitions are browser-local; fetched result rows are not persisted.</li><li>Dialogs and menus remain inside the component that controls their lifecycle.</li></ul></article>
+          <article class="card"><h3>Local page state</h3><ul><li>Editors own unsaved drafts and register through <code>utility.tsx</code>.</li><li>Chart cards own filters, time range, request state, and loaded rows.</li><li>Dashboard definitions live in the browser. Fetched result rows are never saved.</li><li>Dialogs and menus remain inside the component that controls their lifecycle.</li></ul></article>
         </div>
         <h3 style="margin-top:28px">Page selection sequence</h3>
         <div class="steps">
@@ -172,8 +172,8 @@
           <div class="step"><b>View renders</b><span><code>renderWorkspace()</code> selects one page and gives it the smallest required context.</span></div>
           <div class="step"><b>Page fetches its data</b><span>Effects own <code>AbortController</code> instances so stale responses cannot overwrite newer selections.</span></div>
         </div>
-        <details><summary>Results and comparison charts</summary><div><p><code>ChartCard.tsx</code> requests the primary run and, when selected, the comparison run. <code>Plot.tsx</code> converts result rows into Plotly traces. Difference mode aligns rows by their analytical identity and calculates <code>comparison − primary</code>.</p><p>Hourly charts request one year and may send a time range. The server samples only the displayed response; downloads keep the complete source CSV.</p></div></details>
-        <details><summary>Input editing</summary><div><p>The browser stores changed cells using the original <code>__row_id</code>, not the visible page index. Filters and pagination therefore cannot redirect an edit to another CSV row. A save includes the last observed file revision; HTTP 409 forces a reload when the file changed externally.</p></div></details>
+        <details><summary>Results and comparison charts</summary><div><p><code>ChartCard.tsx</code> requests the primary run and, when selected, the comparison run. <code>Plot.tsx</code> converts result rows into Plotly traces. Difference mode aligns rows by their analytical identity and calculates <code>comparison − primary</code>.</p><p>Hourly charts request one year and may send a time range. The server samples the displayed response only. Downloads keep the complete source CSV.</p></div></details>
+        <details><summary>Input editing</summary><div><p>The browser stores changed cells using the original <code>__row_id</code>, not the visible page index. Filters and pagination therefore cannot redirect an edit to another CSV row. A save includes the last observed file revision. If the file changed on disk, the server returns HTTP 409 and the editor reloads it.</p></div></details>
         <details><summary>Dashboard persistence</summary><div><p><code>utility.tsx</code> owns the versioned JSON format and <code>DashboardStore</code> abstraction. The local implementation uses <code>localStorage</code>. It converts older definitions when it reads them. New saves and exports use the current schema.</p></div></details>
       </section>
 
@@ -182,7 +182,7 @@
         <p class="intro"><code>app.py</code> is the transport layer. It validates requests and translates domain errors into HTTP responses. The three domain modules own file semantics.</p>
         <div class="grid">
           <article class="card"><span class="tag">Read</span><h3>Catalog and charts</h3><p>The result catalog walks <code>results/&lt;run&gt;/csvs</code>. The server permits only configured table names and modes. It combines and deduplicates yearly files, and can filter and sample hourly data.</p></article>
-          <article class="card"><span class="tag">Edit</span><h3>Inputs and configuration</h3><p>Input settings determine which tables appear. The UI receives typed CSV values, while saves convert them back to model-compatible text. Round-trip YAML preserves comments and keys that survive an edit.</p></article>
+          <article class="card"><span class="tag">Edit</span><h3>Inputs and configuration</h3><p>Input settings determine which tables appear. The UI receives typed CSV values, while saves convert them back to model-compatible text. Round-trip YAML parsing keeps comments and key order across an edit.</p></article>
           <article class="card"><span class="tag">Execute</span><h3>Model runs</h3><p>Only one web-launched run can operate at a time. Each run has a config copy, provenance manifest, state file, log, process group, and temporary directory under <code>logs/web_runs/</code>.</p></article>
         </div>
         <h3 style="margin-top:28px">Endpoint groups</h3>
@@ -228,9 +228,9 @@ browser localStorage
       <section id="safety">
         <h2>Safety and concurrency</h2>
         <div class="grid two">
-          <article class="card"><h3>Filesystem confinement</h3><ul><li>User-selected path segments resolve below known roots.</li><li>Result tables must appear in <code>graph_settings.yaml</code>.</li><li>Hourly/yearly mode must match the chart definition.</li><li>Resolved result files must remain under the selected sector folder.</li></ul></article>
-          <article class="card"><h3>Write integrity</h3><ul><li>CSV and YAML writes use a temporary sibling followed by <code>os.replace</code>.</li><li>File revisions implement optimistic concurrency.</li><li>A process-local write lock serialises edits.</li><li>The backend rejects web edits and new scenarios while a web model run is active.</li></ul></article>
-          <article class="card"><h3>Run integrity</h3><ul><li>Runs do not change the repository-root config.</li><li>The runner validates the selection and core count before launch.</li><li>Only one web-launched process can run at a time.</li><li>Cancellation signals the process group, then escalates after a grace period.</li></ul></article>
+          <article class="card"><h3>Filesystem confinement</h3><ul><li>The server resolves user-selected path segments and rejects anything outside the known roots.</li><li>Result tables must appear in <code>graph_settings.yaml</code>.</li><li>Hourly/yearly mode must match the chart definition.</li><li>Resolved result files must remain under the selected sector folder.</li></ul></article>
+          <article class="card"><h3>Write integrity</h3><ul><li>CSV and YAML writes use a temporary sibling followed by <code>os.replace</code>.</li><li>A file revision is its modification time and size. A save carrying a stale one is rejected.</li><li>A process-local write lock serialises edits.</li><li>The backend rejects web edits and new scenarios while a web model run is active.</li></ul></article>
+          <article class="card"><h3>Run integrity</h3><ul><li>Runs do not change the repository-root config.</li><li>The runner validates the selection and core count before launch.</li><li>Only one web-launched process can run at a time.</li><li>Cancelling sends SIGTERM to the process group, then SIGKILL 10 seconds later.</li></ul></article>
           <article class="card"><h3>Browser race prevention</h3><ul><li>Context-changing reads use abort signals.</li><li>Dirty editors prompt before navigation.</li><li>Stable source row IDs survive filtering and paging.</li><li>The browser parses and normalises dashboard imports before storage.</li></ul></article>
         </div>
       </section>
@@ -265,7 +265,7 @@ git diff --check -- pypsa_spice_web tests</pre>
           <article class="card"><h3>For backend changes</h3><p>Test success plus invalid paths, missing files, stale revisions, active-run locks, and files that differ from the common happy-path schema.</p></article>
         </div>
       </section>
-      <footer>Maintainer reference for <code>pypsa_spice_web/</code>. Keep this guide aligned when ownership, request flow, persistence, or safety boundaries change.</footer>
+      <footer>Maintainer reference for <code>pypsa_spice_web/</code>. Keep this guide aligned when ownership, request flow, persistence, or safety checks change.</footer>
     </main>
   </div>
 </body>

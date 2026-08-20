@@ -2,11 +2,13 @@
 
 The model workspace is a React and FastAPI interface for a local PyPSA-SPICE project. Use it to edit inputs grouped by technology, configure scenarios, run Snakemake, and inspect results. The checked-out CSV and YAML files remain the source of truth.
 
-Results are split into Power, Industry, Transport, Emissions, and Costs. Comparison mode shows two result runs beside each other for every indicator. The difference view calculates `comparison − primary` for each aligned series and timestamp or model year.
+Results cover Power, Industry, Transport, Emissions, and Costs. Comparison mode shows two result runs beside each other for every indicator. The difference view calculates `comparison − primary` for each aligned series and timestamp or model year.
 
-The standalone [web application code structure and logic guide](code-structure.html) maps the modules, request flow, stored data, and safety checks.
+The [web application code structure and logic guide](code-structure.html) maps the modules, request flow, stored data, and safety checks.
 
-## Development boundary
+The [UI and UX backlog](ui-review-backlog.md) records open interface findings with file references and a suggested order of work.
+
+## Do not copy the Streamlit UI
 
 The web interface is an independent React, TypeScript, CSS, and FastAPI application. When developing `pypsa-spice-vis-ui` or the code in `pypsa_spice_web/`, do not use the legacy Streamlit application in `pypsa-spice-vis/` as UI or UX guidance. Its layouts, controls, component choices, styles, and interaction patterns are not a design reference for the web interface.
 
@@ -32,13 +34,13 @@ HOST=0.0.0.0 PORT=8080 ./run_web.sh
 
 ## Result layout
 
-The app discovers data in the established structure:
+The app expects this structure:
 
 ```text
 data/<dataset>/<project>/results/<scenario>/csvs/<sector>/<year>/<table>.csv
 ```
 
-Yearly visualisations combine the tables found across modelled-year folders. Hourly visualisations use the selected year. The server samples large hourly results for display. CSV downloads always return the full source file.
+Yearly visualisations combine the tables in each modelled-year folder. Hourly visualisations use the selected year. The server samples large hourly results for display. CSV downloads always return the full source file.
 
 ## Workspace structure
 
@@ -46,7 +48,7 @@ The workspace keeps these selections separate because they change at different t
 
 - **Project** selects the local model project. It usually changes less often than the other selections.
 - **Scenario** selects the editable input/configuration scenario.
-- **Result run** selects an available result folder and is intentionally distinct from the input scenario.
+- **Result run** selects an available result folder. It is separate from the input scenario and does not have to share its name.
 - **Country** belongs to each Results chart, so charts can show different countries side by side. Inputs shows it only for tables with country-specific rows. Configuration uses one shared country selection for country-specific sections.
 - **Compare with** is a persistent Results control in the top workspace bar.
 
@@ -54,15 +56,7 @@ The main workspace pages are:
 
 - **Inputs** groups data by technology and includes a table and file view for advanced editing.
 - **Configure & run** covers scenario settings, CO₂ management, custom constraints, and the final review and run step.
-- **Results** has one analysis page for each energy-system section.
-
-The Results pages provide visualisation and scenario comparison for:
-
-- Power
-- Industry
-- Transport
-- Emissions
-- Costs
+- **Results** has one analysis page per energy-system section: Power, Industry, Transport, Emissions, and Costs. Each page plots that section and can compare two runs.
 
 ## Custom dashboards
 
@@ -79,7 +73,7 @@ Each chart keeps its own country, filters, hourly year, and time range. On
 import, the app keeps the first two unique scenarios if a chart lists more than
 two. It also converts old two-chart rows into two full-width rows.
 
-The browser saves dashboard definitions automatically. They contain chart IDs,
+The browser saves dashboard definitions as you edit them. They contain chart IDs,
 result-run selections, filters, titles, and row order. They do not contain
 result data. The same browser profile and application address restore the last
 open dashboard. Clearing site storage deletes these definitions.
@@ -91,15 +85,15 @@ schema 2.
 
 Use **Export** to download a versioned `pypsa-spice-dashboard` JSON file.
 **Import** validates the file, shows a summary, and creates a new local
-dashboard without overwriting an existing one. Imports retain missing chart or
-scenario references. You can repair them after opening the matching result
-checkout. An exported configuration contains no result data and does not
+dashboard without overwriting an existing one. An import keeps references to
+charts or scenarios it cannot find. Open the matching result checkout to
+repair them. An exported configuration contains no result data and does not
 publish the dashboard.
 
-Chart components access saved dashboards through a frontend storage interface.
-The current implementation uses `localStorage`. A future server-backed store or
-read-only publication route can use the same versioned format and rendering
-boundaries without changing the Results chart registry.
+Chart components reach saved dashboards through a storage interface, and the
+current implementation is `localStorage`. Moving to a server-backed store later
+means writing a second implementation of that interface. The versioned JSON
+format and the Results chart registry stay as they are.
 
 Result files remain read-only. The app writes input and scenario configuration changes to the selected local CSV or YAML file only when the user saves. The browser also keeps large time-series input tables read-only.
 
@@ -128,28 +122,44 @@ SNAKEMAKE_COMMAND="conda run -n hotpot snakemake" ./run_web.sh
 
 Chart and download requests cannot supply arbitrary CSV paths. FastAPI:
 
-- accepts only table names present in the configured chart definitions;
-- requires the requested hourly/yearly mode to match the chart definition;
-- accepts an hourly year only when its numeric year directory exists; and
-- resolves every result path and confirms that it remains inside the selected sector directory.
+- accepts only table names present in the configured chart definitions
+- requires the requested hourly/yearly mode to match the chart definition
+- accepts an hourly year only when its numeric year directory exists
+- resolves every result path and confirms it stays inside the selected sector directory
 
-These checks protect the local filesystem boundary. They do not provide authentication or hosted access control. A malformed URL cannot use them to select a CSV elsewhere in the model checkout.
+These checks keep a request inside the result folder. They are not authentication or hosted access control. A malformed URL cannot reach a CSV elsewhere in the model checkout.
 
 ## Input filtering and pagination
 
 FastAPI filters input tables before pagination. The table endpoint accepts technology, technology carrier, country, configured filter value, free-text query, offset, and limit parameters. It returns:
 
-- the current page of typed rows;
-- original CSV row IDs, which stay stable when the user saves filtered rows;
-- total source and matching-row counts;
-- country and configured-filter options from the complete matching dataset; and
-- offset, limit, and truncation metadata.
+- the current page of typed rows
+- original CSV row IDs, which stay stable when the user saves filtered rows
+- total source and matching-row counts
+- country and configured-filter options from the complete matching dataset
+- offset, limit, and truncation metadata
 
 The React table editor requests 100 rows per page. FastAPI matches technologies against the complete source table instead of limiting the search to rows already loaded in the browser. The editor keeps unsaved changes while the user moves between pages. After the user confirms a project or scenario change, the remounted editor clears them. A table loading error stays visible instead of appearing as an empty technology match.
 
 Each React effect owns the `AbortController` for its input or scenario configuration request. Changing context or unmounting the editor aborts the active request. An older response therefore cannot overwrite a newly selected table, project, or scenario.
 
 ## Implementation record
+
+### 2026-08-20: type scale
+
+- Added seven size tokens to `App.css` with a 12px floor and mapped all 158 size declarations across 13 stylesheets onto them.
+- Dropped the page title from `clamp(34px, 4vw, 52px)` to 28px and retuned its leading and tracking for the smaller size.
+- Added a `chartFont` constant in `Plot.tsx` mirroring the tokens, because Plotly draws its own SVG text. Axis ticks moved from 9px to 12px and plot margins grew to fit the larger labels.
+- Widened the chart legend columns, the Home project picker and the count badges, which had started truncating.
+- Aligned the sidebar brand border with the workspace bar border, previously 1px out.
+- Recorded the open findings from the same review in the [UI and UX backlog](ui-review-backlog.md).
+
+Verification commands:
+
+```bash
+npm --prefix pypsa_spice_web/frontend run build
+npm --prefix pypsa_spice_web/frontend test
+```
 
 ### 2026-07-15: result paths and input-editor data flow
 
@@ -168,4 +178,4 @@ conda run -n hotpot python -m unittest discover -s tests -p 'test*.py' -q
 git diff --check -- pypsa_spice_web tests
 ```
 
-The app discovers data from the checked-out `data/` tree. Local files remain the main operating mode, including deployments beside a model checkout. Uploads, object storage, authentication, and hosted persistence are outside the current design.
+The app reads the checked-out `data/` tree, including deployments that sit beside a model checkout. Uploads, object storage, authentication, and hosted persistence are out of scope.
