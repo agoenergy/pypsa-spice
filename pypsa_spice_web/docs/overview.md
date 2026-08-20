@@ -14,23 +14,32 @@ The web interface is an independent React, TypeScript, CSS, and FastAPI applicat
 
 Base web UI decisions on the current React frontend, this documentation, and explicit product requirements. Consult the Streamlit implementation only when you need to understand data semantics, calculations, or feature behaviour. Reimplement that behaviour for the web instead of copying the Streamlit interface.
 
-## Run locally
+## Local development
+
+### 1. Install dependencies
 
 From the repository root:
 
 ```bash
 python -m pip install -r requirements-web.txt
 npm install --prefix pypsa_spice_web/frontend
-./run_web.sh
 ```
 
-Open <http://127.0.0.1:8000>. The launcher uses the active Python environment if it contains the web dependencies. Otherwise, it uses the existing `hotpot` Conda environment when available.
+This installs Python and Node dependencies for initial set-up. Rerun only if dependencies change, or if you switch/create Python or Node environments.
 
-Set `HOST` or `PORT` to override the defaults:
+### 2. Run app locally
+
+For convenience, a `run-web-locally.sh` script can be used to run the react app locally. 
+
+From the repository root:
 
 ```bash
-HOST=0.0.0.0 PORT=8080 ./run_web.sh
+./run-web-locally.sh
 ```
+
+This starts FastAPI at http://127.0.0.1:8000, using the active Python environment if it contains the web dependencies, otherwise, it uses the existing `hotpot` Conda environment when available.
+
+The app is then served at Vite's default dev-server port. Open the app in your browser at http://127.0.0.1:5713/ui/.
 
 ## Result layout
 
