@@ -463,3 +463,15 @@
 .mapping-field .icon-button svg {
   width: 17px;
 }
+
+@media (max-width: 768px) {
+  .country-config > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .country-config .field.compact {
+    width: 100%;
+    margin-left: 0;
+  }
+}

@@ -3,7 +3,7 @@ import { AlertTriangle, CheckCircle2, CircleStop, Clock3, ExternalLink, FileCode
 import "./RunModel.css";
 import { cancelModelRun, getLatestModelRun, getModelRun, getModelRunOptions, getScenarioConfig, getScenarioWorkspaceStatus, startModelRun } from "../api";
 import PageHeader from "./PageHeader";
-import type { InputSelection, ModelRun, ModelRunOptions, ScenarioConfigResponse, ScenarioWorkspaceStatus } from "../types";
+import type { InputSelection, ModelRun, ModelRunOptions, ModelRunStatus, ScenarioConfigResponse, ScenarioWorkspaceStatus } from "../types";
 
 const activeStatuses = new Set(["queued", "running", "canceling"]);
 const CHILLI_COUNT = 12;
@@ -29,7 +29,7 @@ function statusLabel(status: ModelRun["status"]): string {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-export default function RunModel({ selection, onEditConfiguration, onOpenResults }: { selection: InputSelection; onEditConfiguration: () => void; onOpenResults: (runName: string, dataset: string, project: string) => void }) {
+export default function RunModel({ selection, onEditConfiguration, onRunStatusChange, onOpenResults }: { selection: InputSelection; onEditConfiguration: () => void; onRunStatusChange?: (status: ModelRunStatus | null) => void; onOpenResults: (runName: string, dataset: string, project: string) => void }) {
   const [options, setOptions] = useState<ModelRunOptions | null>(null);
   const [scenarioConfig, setScenarioConfig] = useState<ScenarioConfigResponse | null>(null);
   const [workspace, setWorkspace] = useState<ScenarioWorkspaceStatus | null>(null);
@@ -78,6 +78,10 @@ export default function RunModel({ selection, onEditConfiguration, onOpenResults
   useEffect(() => {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [run?.log]);
+
+  useEffect(() => {
+    onRunStatusChange?.(run && activeStatuses.has(run.status) ? run.status : null);
+  }, [onRunStatusChange, run?.status]);
 
   const active = Boolean(run && activeStatuses.has(run.status));
   const runMatchesSelection = Boolean(
