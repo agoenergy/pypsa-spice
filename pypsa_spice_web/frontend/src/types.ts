@@ -233,3 +233,85 @@ export interface StartModelRunRequest {
   output_scenario: string;
   cores: number;
 }
+
+export type DashboardMode = "scenario" | "difference";
+
+export interface DashboardChartConfig {
+  sectionId: string;
+  chartId: string;
+  sector: string;
+  scenarios: string[];
+  mode: DashboardMode;
+  country: string;
+  year?: string;
+  filterValue?: string;
+  startTime?: string;
+  endTime?: string;
+  customTitle?: string;
+}
+
+export interface DashboardHeadingRow {
+  id: string;
+  type: "heading";
+  title: string;
+}
+
+export interface DashboardChartRow {
+  id: string;
+  type: "chart";
+  chart: DashboardChartConfig;
+}
+
+export type DashboardRow = DashboardHeadingRow | DashboardChartRow;
+
+export interface DashboardDefinition {
+  schemaVersion: 2;
+  id: string;
+  title: string;
+  description: string;
+  dataset: string;
+  project: string;
+  rows: DashboardRow[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DashboardSummary {
+  id: string;
+  title: string;
+  chartCount: number;
+  updatedAt: string;
+}
+
+export interface DashboardExport {
+  format: "pypsa-spice-dashboard";
+  schemaVersion: 2;
+  exportedAt: string;
+  dashboard: DashboardDefinition;
+}
+
+export interface DashboardStore {
+  list(): Promise<DashboardSummary[]>;
+  get(id: string): Promise<DashboardDefinition | null>;
+  save(dashboard: DashboardDefinition): Promise<void>;
+  delete(id: string): Promise<void>;
+  getLastOpenedId(): string | null;
+  setLastOpenedId(id: string): void;
+}
+
+export type ViewMode = "home" | "outputs" | "inputs" | "configure" | "compare" | "dashboard";
+
+export interface WorkspaceOption {
+  value: string;
+  label: string;
+}
+
+export interface WorkspaceInventoryItem {
+  key: string;
+  dataset: string;
+  project: string;
+  inputScenarios: string[];
+  resultRuns: string[];
+  countries: string[];
+  dashboards: Pick<DashboardDefinition, "id" | "title">[];
+}

@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import "./DashboardChartCard.css";
 import { getChart } from "../api";
-import type { DashboardChartConfig } from "../utility";
+import type { DashboardChartConfig } from "../types";
 import Plot, { buildDifferenceRows, ChartLegend, getLegendValues } from "./Plot";
 import type { Catalog, ChartDefinition, ChartResponse, Project, ResultRow, Selection } from "../types";
 

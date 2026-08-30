@@ -7,9 +7,8 @@ import {
   parseDashboardDefinition,
   parseDashboardExport,
   serializeDashboard,
-  type DashboardChartConfig,
-  type DashboardDefinition,
 } from "./utility";
+import type { DashboardChartConfig, DashboardDefinition } from "./types";
 
 const chart: DashboardChartConfig = {
   sectionId: "power",

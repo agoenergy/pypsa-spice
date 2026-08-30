@@ -1,75 +1,34 @@
-import type { Catalog, InputCatalog, InputSelection, Selection } from "./types";
+import type {
+  Catalog,
+  DashboardChartConfig,
+  DashboardDefinition,
+  DashboardExport,
+  DashboardHeadingRow,
+  DashboardRow,
+  DashboardStore,
+  DashboardSummary,
+  InputCatalog,
+  InputSelection,
+  Selection,
+  ViewMode,
+  WorkspaceOption,
+} from "./types";
+
+export type {
+  DashboardChartConfig,
+  DashboardDefinition,
+  DashboardHeadingRow,
+  DashboardRow,
+  DashboardSummary,
+  ViewMode,
+  WorkspaceOption,
+} from "./types";
 
 export const DASHBOARD_FORMAT = "pypsa-spice-dashboard";
 export const DASHBOARD_SCHEMA_VERSION = 2;
 const DASHBOARD_STORAGE_KEY = "pypsa-spice-dashboards-v2";
 const LEGACY_DASHBOARD_STORAGE_KEY = "pypsa-spice-dashboards-v1";
 const LAST_DASHBOARD_KEY = "pypsa-spice-last-dashboard";
-
-export type DashboardMode = "scenario" | "difference";
-
-export interface DashboardChartConfig {
-  sectionId: string;
-  chartId: string;
-  sector: string;
-  scenarios: string[];
-  mode: DashboardMode;
-  country: string;
-  year?: string;
-  filterValue?: string;
-  startTime?: string;
-  endTime?: string;
-  customTitle?: string;
-}
-
-export interface DashboardHeadingRow {
-  id: string;
-  type: "heading";
-  title: string;
-}
-
-export interface DashboardChartRow {
-  id: string;
-  type: "chart";
-  chart: DashboardChartConfig;
-}
-
-export type DashboardRow = DashboardHeadingRow | DashboardChartRow;
-
-export interface DashboardDefinition {
-  schemaVersion: 2;
-  id: string;
-  title: string;
-  description: string;
-  dataset: string;
-  project: string;
-  rows: DashboardRow[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface DashboardSummary {
-  id: string;
-  title: string;
-  chartCount: number;
-  updatedAt: string;
-}
-
-export interface DashboardExport {
-  format: typeof DASHBOARD_FORMAT;
-  schemaVersion: 2;
-  exportedAt: string;
-  dashboard: DashboardDefinition;
-}
-
-export interface DashboardStore {
-  list(): Promise<DashboardSummary[]>;
-  get(id: string): Promise<DashboardDefinition | null>;
-  save(dashboard: DashboardDefinition): Promise<void>;
-  delete(id: string): Promise<void>;
-  getLastOpenedId(): string | null;
-  setLastOpenedId(id: string): void;
-}
 
 type StoredDashboards = {
   schemaVersion: 2;
@@ -390,9 +349,6 @@ export function setEditorDirty(id: string, dirty: boolean): void {
 export function confirmDiscardChanges(): boolean {
   return dirtyEditors.size === 0 || window.confirm("You have unsaved changes. Discard them?");
 }
-
-export type ViewMode = "home" | "outputs" | "inputs" | "configure" | "compare" | "dashboard";
-export type WorkspaceOption = { value: string; label: string };
 
 const WORKSPACE_SEPARATOR = "::";
 

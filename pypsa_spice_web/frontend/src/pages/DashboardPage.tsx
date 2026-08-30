@@ -24,14 +24,19 @@ import {
   importedDashboardCopy,
   parseDashboardExport,
   serializeDashboard,
-  type DashboardChartConfig,
-  type DashboardDefinition,
-  type DashboardChartRow,
-  type DashboardHeadingRow,
-  type DashboardRow,
-  type DashboardSummary,
 } from "../utility";
-import type { Catalog, ChartDefinition, Project, ResultRow } from "../types";
+import type {
+  Catalog,
+  ChartDefinition,
+  DashboardChartConfig,
+  DashboardChartRow,
+  DashboardDefinition,
+  DashboardHeadingRow,
+  DashboardRow,
+  DashboardSummary,
+  Project,
+  ResultRow,
+} from "../types";
 
 interface Props {
   catalog: Catalog;
