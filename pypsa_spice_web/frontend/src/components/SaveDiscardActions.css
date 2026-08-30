@@ -39,13 +39,13 @@
 .floating-save-discard-actions .save-discard-status {
   margin-right: 6px;
 }
-@media (max-width: 1000px) {
+@media (max-width: 1280px) {
   .save-discard-actions:not(.floating-save-discard-actions) {
     width: 100%;
     justify-content: flex-end;
   }
 }
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .save-discard-actions:not(.floating-save-discard-actions) {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -83,7 +83,7 @@
     box-shadow: var(--shadow);
   }
 }
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .floating-save-discard-actions {
     right: 14px;
     bottom: 14px;

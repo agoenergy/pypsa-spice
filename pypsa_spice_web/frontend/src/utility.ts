@@ -14,16 +14,6 @@ import type {
   WorkspaceOption,
 } from "./types";
 
-export type {
-  DashboardChartConfig,
-  DashboardDefinition,
-  DashboardHeadingRow,
-  DashboardRow,
-  DashboardSummary,
-  ViewMode,
-  WorkspaceOption,
-} from "./types";
-
 export const DASHBOARD_FORMAT = "pypsa-spice-dashboard";
 export const DASHBOARD_SCHEMA_VERSION = 2;
 const DASHBOARD_STORAGE_KEY = "pypsa-spice-dashboards-v2";

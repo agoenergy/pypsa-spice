@@ -7,7 +7,7 @@
 .page-title .search {
   flex: 0 1 300px;
 }
-@media (max-width: 840px) {
+@media (max-width: 1024px) {
   .page-title {
     align-items: stretch;
     flex-direction: column;

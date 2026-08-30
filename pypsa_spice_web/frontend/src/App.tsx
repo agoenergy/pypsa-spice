@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeftRight, GitCompareArrows, List, Menu, Plus, RefreshCw, X } from "lucide-react";
-import "./App.css";
 import { getCatalog, getInputCatalog, getLatestModelRun } from "./api";
 import ChartCard from "./components/ChartCard";
 import DataDialog from "./components/DataDialog";
+import { SelectField } from "./components/FormControls";
 import NewScenarioDialog from "./components/NewScenarioDialog";
 import PageHeader from "./components/PageHeader";
 import Sidebar from "./components/Sidebar";
@@ -23,10 +23,18 @@ import {
   viewFromLocation,
   workspaceOptions,
   workspaceValue,
-  type ViewMode,
-  type WorkspaceOption,
 } from "./utility";
-import type { Catalog, ChartDefinition, InputCatalog, InputSelection, ModelRunStatus, ResultRow, Selection } from "./types";
+import type {
+  Catalog,
+  ChartDefinition,
+  InputCatalog,
+  InputSelection,
+  ModelRunStatus,
+  ResultRow,
+  Selection,
+  ViewMode,
+  WorkspaceOption,
+} from "./types";
 
 const emptySelection: Selection = { dataset: "", project: "", scenario: "", comparison: "", sector: "", year: "" };
 const emptyInputSelection: InputSelection = { dataset: "", project: "", scenario: "" };
@@ -80,9 +88,12 @@ export default function App() {
         .catch(() => { /* Keep the last known status during a transient refresh failure. */ });
     };
     refreshRunStatus();
-    const timer = window.setInterval(refreshRunStatus, 2000);
-    return () => { current = false; window.clearInterval(timer); };
-  }, []);
+    const timer = modelRunStatus ? window.setInterval(refreshRunStatus, 2000) : undefined;
+    return () => {
+      current = false;
+      if (timer) window.clearInterval(timer);
+    };
+  }, [modelRunStatus]);
   useEffect(() => { document.documentElement.dataset.theme = dark ? "dark" : "light"; localStorage.setItem("spice-theme", dark ? "dark" : "light"); }, [dark]);
   useEffect(() => {
     const syncLocation = () => {
@@ -245,6 +256,7 @@ export default function App() {
       selection={inputSelection}
       country={country}
       onNavigate={() => setSidebarOpen(false)}
+      onRunStatusChange={setModelRunStatus}
       onOpenResults={(runName, datasetName, projectName) => {
         window.location.href = `/?section=power&dataset=${encodeURIComponent(datasetName)}&project=${encodeURIComponent(projectName)}&run=${encodeURIComponent(runName)}`;
       }}
@@ -296,7 +308,7 @@ export default function App() {
 }
 
 function ContextControl({ className = "", label, value, onChange, options }: { className?: string; label: string; value: string; onChange: (value: string) => void; options: WorkspaceOption[] }) {
-  return <label className={`context-control ${className}`.trim()}><span>{label}</span><select value={value} onChange={(event) => onChange(event.target.value)}>{options.map((option) => <option value={option.value} key={option.value || "empty"}>{option.label}</option>)}</select></label>;
+  return <SelectField variant="context" className={className} label={label} value={value} onChange={onChange} options={options} />;
 }
 function ResultsToc({ charts }: { charts: ChartDefinition[] }) {
   const [open, setOpen] = useState(false);
@@ -318,4 +330,4 @@ function ResultsToc({ charts }: { charts: ChartDefinition[] }) {
     <button className="results-toc-trigger" onClick={() => setOpen((current) => !current)} aria-label="Open figure list" aria-expanded={open} aria-controls="results-figure-list"><List aria-hidden="true" /></button>
   </div>;
 }
-function Boot({ message }: { message: string }) { return <div className="boot inline"><img src="/brand/pypsa-logo.svg" alt="PyPSA" /><span className="spinner" />{message}</div>; }
+function Boot({ message }: { message: string }) { return <div className="boot inline"><img src="/ui/pypsa-logo.svg" alt="PyPSA" /><span className="spinner" />{message}</div>; }

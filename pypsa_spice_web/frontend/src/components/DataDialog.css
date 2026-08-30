@@ -567,7 +567,7 @@
 html[data-theme="dark"] .yearly-results-table tbody tr:hover td {
   background: color-mix(in srgb, var(--pink) 6%, var(--surface));
 }
-@media (max-width: 880px) {
+@media (max-width: 1024px) {
   .yearly-table-toolbar {
     align-items: stretch;
   }
@@ -590,7 +590,7 @@ html[data-theme="dark"] .yearly-results-table tbody tr:hover td {
     margin-left: auto;
   }
 }
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .yearly-table-backdrop {
     padding: 0;
   }

@@ -468,12 +468,12 @@ main {
   pointer-events: auto;
   cursor: grab;
 }
-@media (max-width: 1150px) {
+@media (max-width: 1280px) {
   .chart-grid {
     grid-template-columns: 1fr;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .chart-card.comparing .comparison-layout {
     grid-template-columns: 1fr;
   }
@@ -491,7 +491,7 @@ main {
     min-height: 370px;
   }
 }
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .chart-head {
     align-items: flex-start;
     flex-wrap: wrap;
@@ -516,7 +516,7 @@ main {
     margin-left: auto;
   }
 }
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .chart-toolbar {
     overflow-x: auto;
   }

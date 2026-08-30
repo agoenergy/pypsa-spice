@@ -8,7 +8,7 @@ declare global {
 
 const fallbackColors = ["#e6007e", "#005ca9", "#60a917", "#ec6608", "#7553a6", "#009e8e", "#c33c54", "#79848d", "#d5a400", "#3f7c85", "#9b4b96", "#86a6c2"];
 
-// Plotly draws its own text, so it cannot read the CSS type scale in App.css.
+// Plotly draws its own text, so it cannot read the CSS type scale in global.scss.
 // These mirror --text-xs and --text-sm so chart type matches the surrounding interface.
 const chartFont = { body: 12, hover: 13 };
 
