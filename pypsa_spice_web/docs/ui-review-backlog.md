@@ -12,7 +12,7 @@ symbol names are the more durable pointers.
 
 **Type scale.** 97% of text-bearing elements on the Power results page rendered
 below 12px (328 at 9px, 371 at 10px, 56 at 11px) while the page title sat at 52px.
-`App.css` now defines seven size tokens with a 12px floor, all 158 size
+`global.scss` now defines seven size tokens with a 12px floor, all 158 size
 declarations across 13 stylesheets map onto them, and `Plot.tsx` carries a matching
 `chartFont` constant because Plotly draws its own SVG text and cannot read CSS.
 Measured after the change: no element renders below 12px on any page, in either
@@ -211,11 +211,11 @@ first-time user hovers five icons to find Export.
 
 `.main-column`, `main`, `.button`, `.menu`, `.search`, `.notice` and `.page-title`
 are all defined in `components/ChartCard.css` (lines 1 to 74 and 233). Move them to
-`App.css` or a new `shell.css`.
+`global.scss` or a new `shell.css`.
 
 ### 27. Corrections pile up instead of edits
 
-`App.css` ends in several blocks that undo earlier declarations. One zeroes
+`global.scss` ends in several blocks that undo earlier declarations. One zeroes
 `border-left` on `.notice` and `.editor-warning` under the comment "Left-edge accent
 bars are intentionally not part of this app's visual language". `.sidebar nav`
 re-sets `flex: 1` after `.sidebar .workspace-nav` already did. `.sidebar-foot button`

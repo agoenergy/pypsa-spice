@@ -156,7 +156,7 @@ Each React effect owns the `AbortController` for its input or scenario configura
 
 ### 2026-08-20: type scale
 
-- Added seven size tokens to `App.css` with a 12px floor and mapped all 158 size declarations across 13 stylesheets onto them.
+- Added seven size tokens to `global.scss` with a 12px floor and mapped all 158 size declarations across 13 stylesheets onto them.
 - Dropped the page title from `clamp(34px, 4vw, 52px)` to 28px and retuned its leading and tracking for the smaller size.
 - Added a `chartFont` constant in `Plot.tsx` mirroring the tokens, because Plotly draws its own SVG text. Axis ticks moved from 9px to 12px and plot margins grew to fit the larger labels.
 - Widened the chart legend columns, the Home project picker and the count badges, which had started truncating.
