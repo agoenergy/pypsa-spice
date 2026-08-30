@@ -24,11 +24,23 @@
 .plot-with-legend .plot,
 .scenario-plot .plot-with-legend .plot,
 .difference-plot .plot-with-legend .plot {
+  position: relative;
   width: 100%;
   height: 300px;
   min-height: 300px;
   flex: 0 0 300px;
   overflow: hidden;
+}
+.plot-message {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.plot-message.error {
+  color: var(--danger);
 }
 .html-legend {
   display: grid;

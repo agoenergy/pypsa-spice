@@ -1,10 +1,7 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./Plot.css";
+import { loadPlotly } from "../plotly";
 import type { Catalog, ChartDefinition, ChartResponse, ResultRow } from "../types";
-
-declare global {
-  interface Window { Plotly: any }
-}
 
 const fallbackColors = ["#e6007e", "#005ca9", "#60a917", "#ec6608", "#7553a6", "#009e8e", "#c33c54", "#79848d", "#d5a400", "#3f7c85", "#9b4b96", "#86a6c2"];
 
@@ -239,10 +236,24 @@ function stackedBarTotalTrace(
 
 export default function Plot({ chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, expanded, difference = false, legendValues: sharedLegendValues, showLegend = true, hiddenLegendValues, onLegendToggle }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const [plotlyReady, setPlotlyReady] = useState(() => Boolean(window.Plotly));
+  const [plotlyError, setPlotlyError] = useState("");
   const derivedLegendValues = useMemo(() => getLegendValues(chart, primary, comparison), [primary, comparison, chart]);
   const legendValues = sharedLegendValues || derivedLegendValues;
   useEffect(() => {
-    if (!ref.current || !window.Plotly) return;
+    let current = true;
+    loadPlotly()
+      .then(() => { if (current) setPlotlyReady(true); })
+      .catch((reason) => {
+        if (!current) return;
+        setPlotlyError(reason instanceof Error ? reason.message : "The chart library could not be loaded.");
+      });
+    return () => { current = false; };
+  }, []);
+  useEffect(() => {
+    if (!plotlyReady || !ref.current || !window.Plotly) return;
+    const plotly = window.Plotly;
+    const plotElement = ref.current;
     const grid = "#e2e6e4";
     const text = darkMode ? "#a9b5b1" : "#65717d";
     const chartTraces = difference && comparison
@@ -250,7 +261,7 @@ export default function Plot({ chart, primary, comparison, primaryName, comparis
       : [...traces(primary, chart, mappings, false, legendValues, hiddenLegendValues), ...(comparison ? traces(comparison, chart, mappings, true, legendValues, hiddenLegendValues) : [])];
     const totalTrace = difference ? null : stackedBarTotalTrace(primary, chart, hiddenLegendValues);
     const allTraces = totalTrace ? [...chartTraces, totalTrace] : chartTraces;
-    window.Plotly.react(ref.current, allTraces, {
+    plotly.react(plotElement, allTraces, {
       autosize: true,
       margin: { l: 66, r: chart.secondary_y_lab ? 66 : 20, t: totalTrace ? 34 : 16, b: 46 },
       paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
@@ -267,12 +278,15 @@ export default function Plot({ chart, primary, comparison, primaryName, comparis
       modeBarButtonsToRemove: ["lasso2d", "select2d"],
       toImageButtonOptions: { format: "png", filename: `${primaryName}_${chart.table_name}`, scale: 2 },
     });
-    return () => { if (ref.current) window.Plotly.purge(ref.current); };
-  }, [chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, difference, legendValues, hiddenLegendValues]);
+    return () => { plotly.purge(plotElement); };
+  }, [chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, difference, legendValues, hiddenLegendValues, plotlyReady]);
 
   useEffect(() => { if (ref.current && window.Plotly) window.Plotly.Plots.resize(ref.current); }, [expanded]);
   return <div className="plot-with-legend">
-    <div ref={ref} className="plot" />
+    <div ref={ref} className="plot">
+      {!plotlyReady && !plotlyError && <span className="plot-message">Loading chart…</span>}
+      {plotlyError && <span className="plot-message error">{plotlyError}</span>}
+    </div>
     {showLegend && <ChartLegend values={legendValues} mappings={mappings} hiddenValues={hiddenLegendValues} onToggle={onLegendToggle} />}
   </div>;
 }
