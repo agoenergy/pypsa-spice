@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowRight,
   BarChart3,
   FilePlus2,
   FileInput,
@@ -10,21 +9,13 @@ import {
   Settings2,
 } from "lucide-react";
 import "./HomePage.css";
-import { LocalDashboardStore, type DashboardDefinition } from "../utility";
+import { LocalDashboardStore } from "../utility";
 import PageHeader from "../components/PageHeader";
-import type { Catalog, InputCatalog } from "../types";
+import WorkspaceActionCard from "../components/WorkspaceActionCard";
+import WorkspaceCard from "../components/WorkspaceCard";
+import type { Catalog, DashboardDefinition, InputCatalog, WorkspaceInventoryItem } from "../types";
 
 type HomeDestination = "inputs" | "configure" | "compare" | "outputs" | "dashboard";
-
-interface WorkspaceInventoryItem {
-  key: string;
-  dataset: string;
-  project: string;
-  inputScenarios: string[];
-  resultRuns: string[];
-  countries: string[];
-  dashboards: Pick<DashboardDefinition, "id" | "title">[];
-}
 
 type DashboardWorkspaceSource = Pick<DashboardDefinition, "dataset" | "project" | "id" | "title">;
 
@@ -102,12 +93,12 @@ export default function HomePage({
     <section className="home-guide-panel">
       <header className="home-panel-heading"><div><span className="eyebrow">Workflow</span><h2>How to use the workspace</h2></div></header>
       <ul className="home-workflow">
-        <WorkflowStep icon={<FilePlus2 />} title="Build input data skeleton" description="Create the initial project and input-file structure." disabled />
-        <WorkflowStep icon={<FileInput />} title="Inputs" description="Inspect technologies and edit the selected scenario's CSV inputs." onClick={() => onNavigate("inputs")} />
-        <WorkflowStep icon={<GitCompareArrows />} title="Scenario differences" description="Review configuration and input differences before running the model." onClick={() => onNavigate("compare")} />
-        <WorkflowStep icon={<Settings2 />} title="Configure & run" description="Set scenario parameters, review the model scope, and start Snakemake." onClick={() => onNavigate("configure")} />
-        <WorkflowStep icon={<BarChart3 />} title="Results" description="Inspect Power, Industry, Transport, Emissions, and Costs." onClick={() => onNavigate("outputs")} />
-        <WorkflowStep icon={<LayoutDashboard />} title="Dashboards" description="Open, create, and arrange saved result dashboards." onClick={() => onNavigate("dashboard")} />
+        <WorkspaceActionCard icon={<FilePlus2 />} title="Build input data skeleton" description="Create the initial project and input-file structure." disabled />
+        <WorkspaceActionCard icon={<FileInput />} title="Inputs" description="Inspect technologies and edit the selected scenario's CSV inputs." onClick={() => onNavigate("inputs")} />
+        <WorkspaceActionCard icon={<GitCompareArrows />} title="Scenario differences" description="Review configuration and input differences before running the model." onClick={() => onNavigate("compare")} />
+        <WorkspaceActionCard icon={<Settings2 />} title="Configure & run" description="Set scenario parameters, review the model scope, and start Snakemake." onClick={() => onNavigate("configure")} />
+        <WorkspaceActionCard icon={<BarChart3 />} title="Results" description="Inspect Power, Industry, Transport, Emissions, and Costs." onClick={() => onNavigate("outputs")} />
+        <WorkspaceActionCard icon={<LayoutDashboard />} title="Dashboards" description="Open, create, and arrange saved result dashboards." onClick={() => onNavigate("dashboard")} />
       </ul>
     </section>
 
@@ -142,70 +133,4 @@ export default function HomePage({
       <p className="home-source-note"><b>Local files are the source of truth.</b> Input changes are written only when saved. Result files remain read-only.</p>
     </div>
   </div>;
-}
-
-function WorkspaceCard({ workspace, dashboardsLoading, dashboardError, onOpenDashboard, onOpenDashboardWorkspace }: {
-  workspace: WorkspaceInventoryItem;
-  dashboardsLoading: boolean;
-  dashboardError: string;
-  onOpenDashboard: (id: string) => void;
-  onOpenDashboardWorkspace: () => void;
-}) {
-  return <article className="home-project-card">
-    <header>
-      <div className="home-project-title"><FolderOpen aria-hidden="true" /><div><h3>{workspace.project}</h3><span>{workspace.dataset}</span></div></div>
-      {workspace.countries.length > 0 && <span className="home-project-country-count">{workspace.countries.length} {workspace.countries.length === 1 ? "country" : "countries"}</span>}
-    </header>
-    <div className="home-project-columns">
-      <ScenarioList
-        className="home-input-scenarios"
-        label="Input scenarios"
-        emptyLabel="No editable scenarios found"
-        items={workspace.inputScenarios}
-        icon={<FileInput />}
-        href={(scenario) => `?view=inputs&dataset=${encodeURIComponent(workspace.dataset)}&project=${encodeURIComponent(workspace.project)}&scenario=${encodeURIComponent(scenario)}`}
-      />
-      <ScenarioList
-        className="home-result-runs"
-        label="Result runs"
-        emptyLabel="No result runs found"
-        items={workspace.resultRuns}
-        icon={<BarChart3 />}
-        href={(run) => `?section=power&dataset=${encodeURIComponent(workspace.dataset)}&project=${encodeURIComponent(workspace.project)}&run=${encodeURIComponent(run)}`}
-      />
-      <ProjectDashboardList
-        dashboards={workspace.dashboards}
-        loading={dashboardsLoading}
-        error={dashboardError}
-        onOpen={onOpenDashboard}
-        onOpenWorkspace={onOpenDashboardWorkspace}
-      />
-    </div>
-  </article>;
-}
-
-function ScenarioList({ className, label, emptyLabel, items, icon, href }: { className: "home-input-scenarios" | "home-result-runs"; label: string; emptyLabel: string; items: string[]; icon: ReactNode; href: (item: string) => string }) {
-  return <section className={`home-scenario-list ${className}`}>
-    <header><span>{icon}{label}</span><small>{items.length}</small></header>
-    {items.length ? <div>{items.map((item) => <a href={href(item)} key={item}>{item}<ArrowRight aria-hidden="true" /></a>)}</div> : <p>{emptyLabel}</p>}
-  </section>;
-}
-
-function ProjectDashboardList({ dashboards, loading, error, onOpen, onOpenWorkspace }: {
-  dashboards: Pick<DashboardDefinition, "id" | "title">[];
-  loading: boolean;
-  error: string;
-  onOpen: (id: string) => void;
-  onOpenWorkspace: () => void;
-}) {
-  return <section className="home-scenario-list home-project-dashboards">
-    <header><span><LayoutDashboard aria-hidden="true" />Saved dashboards</span><small>{dashboards.length}</small></header>
-    {loading ? <p>Opening saved dashboards…</p> : dashboards.length ? <div>{dashboards.map((dashboard) => <button type="button" onClick={() => onOpen(dashboard.id)} key={dashboard.id}>{dashboard.title}<ArrowRight aria-hidden="true" /></button>)}</div> : <p>{error || "No saved dashboards found"}<button type="button" onClick={onOpenWorkspace}>Create one</button></p>}
-  </section>;
-}
-
-function WorkflowStep({ icon, title, description, onClick, disabled = false }: { icon: ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean }) {
-  return <li>
-    <button type="button" className="home-workflow-main" onClick={onClick} disabled={disabled}><span className="home-step-icon">{icon}</span><span><b>{title}{disabled && <em>Not implemented</em>}</b><small>{description}</small></span>{!disabled && <ArrowRight aria-hidden="true" />}</button>
-  </li>;
 }

@@ -1,0 +1,97 @@
+.action-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+
+.action-button {
+  width: 100%;
+  min-height: 132px;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 15px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    position: relative;
+    z-index: 1;
+    background: var(--surface-2);
+    box-shadow: inset 0 3px 0 var(--pink);
+  }
+
+  &:disabled {
+    cursor: default;
+    color: var(--muted);
+    background: color-mix(in srgb, var(--surface-2) 55%, var(--surface));
+  }
+
+  &:disabled:hover {
+    position: static;
+    box-shadow: none;
+  }
+
+  > svg {
+    width: 16px;
+    height: 16px;
+    color: var(--muted);
+  }
+}
+
+.action-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--strong);
+  border-radius: 4px;
+  background: var(--surface-2);
+
+  svg {
+    width: 21px;
+    height: 21px;
+    color: var(--pink);
+    stroke-width: 1.7;
+  }
+
+  .action-button:disabled & svg {
+    color: var(--muted);
+  }
+}
+
+.action-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  b {
+    font-size: var(--text-md);
+  }
+
+  em {
+    display: block;
+    width: max-content;
+    margin-top: 6px;
+    padding: 3px 6px;
+    background: var(--surface-2);
+    color: var(--muted);
+    font-size: var(--text-xs);
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  small {
+    color: var(--muted);
+    font-size: var(--text-base);
+    line-height: 1.5;
+  }
+}

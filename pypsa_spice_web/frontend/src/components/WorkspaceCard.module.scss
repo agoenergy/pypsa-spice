@@ -1,0 +1,194 @@
+.project-card > header {
+  min-height: 70px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: var(--surface-2);
+}
+
+.project-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  > svg {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    color: var(--pink);
+    stroke-width: 1.6;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: var(--text-md);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+}
+
+.country-count {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.project-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.scenario-list {
+  min-width: 0;
+  padding: 14px 16px 16px;
+
+  > header {
+    min-height: 28px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+
+    > span {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    small {
+      min-width: 24px;
+      padding: 2px 6px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: var(--text-xs);
+      text-align: center;
+    }
+  }
+
+  > div {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+    gap: 5px;
+  }
+
+  a,
+  > div > button {
+    min-width: 0;
+    min-height: 32px;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: var(--text-sm);
+    text-align: left;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--pink);
+      color: var(--pink);
+      background: color-mix(in srgb, var(--pink) 3%, var(--surface));
+    }
+
+    svg {
+      width: 11px;
+      height: 11px;
+      flex: 0 0 11px;
+      color: var(--muted);
+    }
+  }
+
+  p {
+    min-height: 32px;
+    margin: 0;
+    padding: 8px;
+    background: var(--surface-2);
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+}
+
+.inputs {
+  border-right: 1px solid var(--line);
+}
+
+.results {
+  grid-column: span 2;
+
+  > div {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.dashboards {
+  grid-column: 1/-1;
+  border-top: 1px solid var(--line);
+
+  p > button {
+    margin-left: 5px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--pink);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 640px) {
+  .project-card > header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .project-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .inputs {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .results {
+    grid-column: auto;
+
+    > div {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .scenario-list > div {
+    grid-template-columns: 1fr;
+  }
+}

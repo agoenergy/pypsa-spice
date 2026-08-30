@@ -200,7 +200,7 @@
 .technology-panel .editable-table-wrap {
   max-height: 46vh;
 }
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .selection-title {
     align-items: flex-start;
     flex-direction: column;
