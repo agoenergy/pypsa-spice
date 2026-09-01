@@ -2,8 +2,10 @@
     The features and bugfixes listed under **Upcoming** aren't released yet but will be included in the next version. If you'd like to try them early, you can switch to the `develop` branch. Just keep in mind that it's not stable and may contain issues. All previous releases are already available on the `main` branch.
 
 ## Upcoming
-- Add a legend order control for stacked column charts in PyPSA-SPICE-Vis.
-- Add minimum curtailment support via a curtailment penalty in the optimisation objective.
+- Add legend ordering control for stacked column charts in PyPSA-SPICE-Vis.
+- Add minimum curtailment support with curtailment penalty in the optimization objective.
+- Add ramp rate costs for thermal power units.
+- Support piecewise linear efficiency and rate curves for thermal power units.
 
 ### Fixed
 
