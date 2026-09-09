@@ -16,9 +16,9 @@ logging:
 #####Scenario settings#####
 scenario_configs:
   snapshots:
-    start: 20266-01-01
-    end: 20267-01-01    #should be "12-31" if base year is a leap year
-    inclusive: left
+    start: "2025-01-01"
+    end: "2026-01-01"   #should be "12-31" if base year is a leap year
+    inclusive: "left"
   resolution:
     method: nth_hour   # options: ["nth_hour", "clustered"]
     number_of_days: 3 # the number of representative days (used fo "clustered" method)
