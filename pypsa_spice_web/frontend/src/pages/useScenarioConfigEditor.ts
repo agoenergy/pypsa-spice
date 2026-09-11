@@ -71,27 +71,33 @@ export default function useScenarioConfigEditor(selection: InputSelection, secti
     setError("");
   }, [config, fuelTable, section]);
 
-  const original = useMemo(() => config ? draftForSection(config, section) : {}, [config, section]);
+  const original = useMemo(() => (config ? draftForSection(config, section) : {}), [config, section]);
   const configDirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(original), [draft, original]);
   const fuelChanges = useMemo(() => {
     if (section !== COMBINED_SECTION || !fuelTable) return [];
     const originals = new Map(fuelTable.rows.map((row) => [row.__row_id, row.max_supply__mwh_year]));
-    return fuelRows.flatMap((row) => JSON.stringify(row.max_supply__mwh_year) === JSON.stringify(originals.get(row.__row_id))
-      ? []
-      : [{ row: row.__row_id, column: "max_supply__mwh_year", value: row.max_supply__mwh_year }]);
+    return fuelRows.flatMap((row) =>
+      JSON.stringify(row.max_supply__mwh_year) === JSON.stringify(originals.get(row.__row_id))
+        ? []
+        : [{ row: row.__row_id, column: "max_supply__mwh_year", value: row.max_supply__mwh_year }],
+    );
   }, [fuelRows, fuelTable, section]);
   const fuelDirty = fuelChanges.length > 0;
   const dirty = configDirty || fuelDirty;
-  const fuelConstraintDirty = section === COMBINED_SECTION
-    && JSON.stringify(fuelConstraintSnapshot(draft)) !== JSON.stringify(fuelConstraintSnapshot(original));
+  const fuelConstraintDirty =
+    section === COMBINED_SECTION &&
+    JSON.stringify(fuelConstraintSnapshot(draft)) !== JSON.stringify(fuelConstraintSnapshot(original));
   const validationError = useMemo(
-    () => validateSection(section, draft)
-      || (fuelError ? fuelConstraintDirty ? fuelError : "" : validateFuelLimits(section, draft, fuelRows)),
+    () =>
+      validateSection(section, draft) ||
+      (fuelError ? (fuelConstraintDirty ? fuelError : "") : validateFuelLimits(section, draft, fuelRows)),
     [section, draft, fuelRows, fuelError, fuelConstraintDirty],
   );
 
   useEffect(() => {
-    const warn = (event: BeforeUnloadEvent) => { if (dirty) event.preventDefault(); };
+    const warn = (event: BeforeUnloadEvent) => {
+      if (dirty) event.preventDefault();
+    };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
@@ -110,11 +116,14 @@ export default function useScenarioConfigEditor(selection: InputSelection, secti
         const savedFuel = await saveFuelSupplyLimits(selection, fuelTable.revision, fuelChanges);
         setFuelTable({ ...fuelTable, revision: savedFuel.revision, rows: structuredClone(fuelRows) });
       }
-      const changedSections = section === COMBINED_SECTION ? Object.fromEntries(
-        ["co2_management", "custom_constraints"]
-          .filter((name) => JSON.stringify(draft[name]) !== JSON.stringify(original[name]))
-          .map((name) => [name, draft[name] as Record<string, unknown>]),
-      ) : {};
+      const changedSections =
+        section === COMBINED_SECTION
+          ? Object.fromEntries(
+              ["co2_management", "custom_constraints"]
+                .filter((name) => JSON.stringify(draft[name]) !== JSON.stringify(original[name]))
+                .map((name) => [name, draft[name] as Record<string, unknown>]),
+            )
+          : {};
       const data = configDirty
         ? section === COMBINED_SECTION
           ? await saveScenarioConfigSections(selection, config.revision, changedSections)

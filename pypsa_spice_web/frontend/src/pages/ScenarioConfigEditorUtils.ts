@@ -58,14 +58,16 @@ export function draftForSection(config: ScenarioConfigResponse, section: string)
 }
 
 export function fuelConstraintSnapshot(value: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(objectValue(value.custom_constraints)).map(([country, raw]) => [
-    country,
-    objectValue(objectValue(raw).production_constraint_fuels),
-  ]));
+  return Object.fromEntries(
+    Object.entries(objectValue(value.custom_constraints)).map(([country, raw]) => [
+      country,
+      objectValue(objectValue(raw).production_constraint_fuels),
+    ]),
+  );
 }
 
 export function objectValue(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 
 export function prettyConfigLabel(value: string): string {
@@ -86,10 +88,13 @@ export function isScalar(value: unknown): boolean {
 
 export function isYearMatrix(value: Record<string, unknown>): boolean {
   const entries = Object.values(value);
-  return entries.length > 0 && entries.every((raw) => {
-    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
-    return Object.keys(objectValue(raw)).every(isYearKey);
-  });
+  return (
+    entries.length > 0 &&
+    entries.every((raw) => {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
+      return Object.keys(objectValue(raw)).every(isYearKey);
+    })
+  );
 }
 
 export function inputNumber(value: string): number | null {

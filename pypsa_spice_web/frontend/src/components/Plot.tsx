@@ -3,7 +3,20 @@ import "./Plot.css";
 import { loadPlotly } from "../plotly";
 import type { Catalog, ChartDefinition, ChartResponse, ResultRow } from "../types";
 
-const fallbackColors = ["#e6007e", "#005ca9", "#60a917", "#ec6608", "#7553a6", "#009e8e", "#c33c54", "#79848d", "#d5a400", "#3f7c85", "#9b4b96", "#86a6c2"];
+const fallbackColors = [
+  "#e6007e",
+  "#005ca9",
+  "#60a917",
+  "#ec6608",
+  "#7553a6",
+  "#009e8e",
+  "#c33c54",
+  "#79848d",
+  "#d5a400",
+  "#3f7c85",
+  "#9b4b96",
+  "#86a6c2",
+];
 
 // Plotly draws its own text, so it cannot read the CSS type scale in global.scss.
 // These mirror --text-xs and --text-sm so chart type matches the surrounding interface.
@@ -62,25 +75,34 @@ function legendColor(value: string, index: number, mappings: Catalog["mappings"]
   return mappings[value]?.color || fallbackColors[Math.max(0, index) % fallbackColors.length];
 }
 
-export function ChartLegend({ values, mappings, hiddenValues, onToggle }: {
+export function ChartLegend({
+  values,
+  mappings,
+  hiddenValues,
+  onToggle,
+}: {
   values: string[];
   mappings: Catalog["mappings"];
   hiddenValues: ReadonlySet<string>;
   onToggle: (value: string) => void;
 }) {
-  return <div className="html-legend" aria-label="Chart legend">
-    {values.map((value, index) => <button
-      type="button"
-      className={`html-legend-item ${hiddenValues.has(value) ? "is-hidden" : ""}`}
-      key={value}
-      aria-pressed={!hiddenValues.has(value)}
-      title={`${hiddenValues.has(value) ? "Show" : "Hide"} ${pretty(value, mappings)}`}
-      onClick={() => onToggle(value)}
-    >
-      <i style={{ backgroundColor: legendColor(value, index, mappings) }} aria-hidden="true" />
-      <span>{pretty(value, mappings)}</span>
-    </button>)}
-  </div>;
+  return (
+    <div className="html-legend" aria-label="Chart legend">
+      {values.map((value, index) => (
+        <button
+          type="button"
+          className={`html-legend-item ${hiddenValues.has(value) ? "is-hidden" : ""}`}
+          key={value}
+          aria-pressed={!hiddenValues.has(value)}
+          title={`${hiddenValues.has(value) ? "Show" : "Hide"} ${pretty(value, mappings)}`}
+          onClick={() => onToggle(value)}
+        >
+          <i style={{ backgroundColor: legendColor(value, index, mappings) }} aria-hidden="true" />
+          <span>{pretty(value, mappings)}</span>
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function isSecondarySeries(chart: ChartDefinition, legend: string): boolean {
@@ -110,7 +132,13 @@ function traces(
       yaxis: chart.secondary_y_lab?.includes(legend) ? "y2" : "y",
       visible: hiddenLegendValues.has(legend) ? "legendonly" : true,
     };
-    if (isArea) Object.assign(trace, { type: "scatter", mode: "lines", fill: comparison ? "none" : "tonexty", stackgroup: comparison ? undefined : "one" });
+    if (isArea)
+      Object.assign(trace, {
+        type: "scatter",
+        mode: "lines",
+        fill: comparison ? "none" : "tonexty",
+        stackgroup: comparison ? undefined : "one",
+      });
     else if (chart.hourly && !isBar) Object.assign(trace, { type: "scatter", mode: "lines" });
     else trace.type = "bar";
     return trace;
@@ -130,10 +158,13 @@ function differenceAggregates(
     const firstPoints = new Map((first.get(legend) || []).map((point) => [String(point.x), point.y]));
     const secondPoints = new Map((second.get(legend) || []).map((point) => [String(point.x), point.y]));
     const xValues = [...new Set([...firstPoints.keys(), ...secondPoints.keys()])].sort();
-    differences.set(legend, xValues.map((value) => ({
-      x: chart.hourly ? value : Number(value),
-      y: (secondPoints.get(value) || 0) - (firstPoints.get(value) || 0),
-    })));
+    differences.set(
+      legend,
+      xValues.map((value) => ({
+        x: chart.hourly ? value : Number(value),
+        y: (secondPoints.get(value) || 0) - (firstPoints.get(value) || 0),
+      })),
+    );
   }
   return differences;
 }
@@ -185,7 +216,8 @@ function differenceTraces(
       name: pretty(legend, mappings),
       x: points.map((point) => point.x),
       y: points.map((point) => point.y),
-      marker: { color }, line: { color, width: 2 },
+      marker: { color },
+      line: { color, width: 2 },
       hovertemplate: `<b>${pretty(legend, mappings)}</b>: %{y:+,.2f} ${chart.units || ""}<extra></extra>`,
       visible: hiddenLegendValues.has(legend) ? "legendonly" : true,
     };
@@ -224,9 +256,9 @@ function stackedBarTotalTrace(
     mode: "text",
     name: "Column total",
     x: values.map((value) => value.x),
-    y: values.map((value) => value.positive > 0 ? value.positive : value.negative),
+    y: values.map((value) => (value.positive > 0 ? value.positive : value.negative)),
     text: values.map((value) => formatTotal(value.total)),
-    textposition: values.map((value) => value.positive > 0 ? "top center" : "bottom center"),
+    textposition: values.map((value) => (value.positive > 0 ? "top center" : "bottom center")),
     textfont: { size: chartFont.body },
     cliponaxis: false,
     hoverinfo: "skip",
@@ -234,7 +266,21 @@ function stackedBarTotalTrace(
   };
 }
 
-export default function Plot({ chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, expanded, difference = false, legendValues: sharedLegendValues, showLegend = true, hiddenLegendValues, onLegendToggle }: Props) {
+export default function Plot({
+  chart,
+  primary,
+  comparison,
+  primaryName,
+  comparisonName,
+  mappings,
+  darkMode,
+  expanded,
+  difference = false,
+  legendValues: sharedLegendValues,
+  showLegend = true,
+  hiddenLegendValues,
+  onLegendToggle,
+}: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [plotlyReady, setPlotlyReady] = useState(() => Boolean(window.Plotly));
   const [plotlyError, setPlotlyError] = useState("");
@@ -243,12 +289,16 @@ export default function Plot({ chart, primary, comparison, primaryName, comparis
   useEffect(() => {
     let current = true;
     loadPlotly()
-      .then(() => { if (current) setPlotlyReady(true); })
+      .then(() => {
+        if (current) setPlotlyReady(true);
+      })
       .catch((reason) => {
         if (!current) return;
         setPlotlyError(reason instanceof Error ? reason.message : "The chart library could not be loaded.");
       });
-    return () => { current = false; };
+    return () => {
+      current = false;
+    };
   }, []);
   useEffect(() => {
     if (!plotlyReady || !ref.current || !window.Plotly) return;
@@ -256,37 +306,96 @@ export default function Plot({ chart, primary, comparison, primaryName, comparis
     const plotElement = ref.current;
     const grid = "#e2e6e4";
     const text = darkMode ? "#a9b5b1" : "#65717d";
-    const chartTraces = difference && comparison
-      ? differenceTraces(primary, comparison, chart, mappings, legendValues, hiddenLegendValues)
-      : [...traces(primary, chart, mappings, false, legendValues, hiddenLegendValues), ...(comparison ? traces(comparison, chart, mappings, true, legendValues, hiddenLegendValues) : [])];
+    const chartTraces =
+      difference && comparison
+        ? differenceTraces(primary, comparison, chart, mappings, legendValues, hiddenLegendValues)
+        : [
+            ...traces(primary, chart, mappings, false, legendValues, hiddenLegendValues),
+            ...(comparison ? traces(comparison, chart, mappings, true, legendValues, hiddenLegendValues) : []),
+          ];
     const totalTrace = difference ? null : stackedBarTotalTrace(primary, chart, hiddenLegendValues);
     const allTraces = totalTrace ? [...chartTraces, totalTrace] : chartTraces;
-    plotly.react(plotElement, allTraces, {
-      autosize: true,
-      margin: { l: 66, r: chart.secondary_y_lab ? 66 : 20, t: totalTrace ? 34 : 16, b: 46 },
-      paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
-      font: { family: "Flexo, sans-serif", size: chartFont.body, color: text },
-      showlegend: false,
-      hovermode: "x unified", barmode: chart.type === "grouped_bar" || comparison ? "group" : "relative",
-      xaxis: { showgrid: !darkMode, gridcolor: grid, zeroline: false, tickfont: { size: chartFont.body }, unifiedhovertitle: { text: chart.hourly ? "%{x|%d %b · %H:%M}" : "%{x}" } },
-      yaxis: { title: { text: difference ? `Difference (${chart.units || "value"})` : chart.units || "", font: { size: chartFont.body } }, showgrid: !darkMode, gridcolor: grid, zeroline: difference, zerolinecolor: darkMode ? "rgba(255,255,255,.18)" : text, zerolinewidth: 1, rangemode: "tozero" },
-      yaxis2: { overlaying: "y", side: "right", showgrid: false, title: "State of charge" },
-      hoverlabel: { bgcolor: darkMode ? "#222b28" : "#fff", bordercolor: darkMode ? "#34403c" : grid, font: { size: chartFont.hover }, align: "left" },
-      uirevision: `${chart.id}-${primaryName}-${difference}`,
-    }, {
-      responsive: true, displaylogo: false,
-      modeBarButtonsToRemove: ["lasso2d", "select2d"],
-      toImageButtonOptions: { format: "png", filename: `${primaryName}_${chart.table_name}`, scale: 2 },
-    });
-    return () => { plotly.purge(plotElement); };
-  }, [chart, primary, comparison, primaryName, comparisonName, mappings, darkMode, difference, legendValues, hiddenLegendValues, plotlyReady]);
+    plotly.react(
+      plotElement,
+      allTraces,
+      {
+        autosize: true,
+        margin: { l: 66, r: chart.secondary_y_lab ? 66 : 20, t: totalTrace ? 34 : 16, b: 46 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        font: { family: "Flexo, sans-serif", size: chartFont.body, color: text },
+        showlegend: false,
+        hovermode: "x unified",
+        barmode: chart.type === "grouped_bar" || comparison ? "group" : "relative",
+        xaxis: {
+          showgrid: !darkMode,
+          gridcolor: grid,
+          zeroline: false,
+          tickfont: { size: chartFont.body },
+          unifiedhovertitle: { text: chart.hourly ? "%{x|%d %b · %H:%M}" : "%{x}" },
+        },
+        yaxis: {
+          title: {
+            text: difference ? `Difference (${chart.units || "value"})` : chart.units || "",
+            font: { size: chartFont.body },
+          },
+          showgrid: !darkMode,
+          gridcolor: grid,
+          zeroline: difference,
+          zerolinecolor: darkMode ? "rgba(255,255,255,.18)" : text,
+          zerolinewidth: 1,
+          rangemode: "tozero",
+        },
+        yaxis2: { overlaying: "y", side: "right", showgrid: false, title: "State of charge" },
+        hoverlabel: {
+          bgcolor: darkMode ? "#222b28" : "#fff",
+          bordercolor: darkMode ? "#34403c" : grid,
+          font: { size: chartFont.hover },
+          align: "left",
+        },
+        uirevision: `${chart.id}-${primaryName}-${difference}`,
+      },
+      {
+        responsive: true,
+        displaylogo: false,
+        modeBarButtonsToRemove: ["lasso2d", "select2d"],
+        toImageButtonOptions: { format: "png", filename: `${primaryName}_${chart.table_name}`, scale: 2 },
+      },
+    );
+    return () => {
+      plotly.purge(plotElement);
+    };
+  }, [
+    chart,
+    primary,
+    comparison,
+    primaryName,
+    comparisonName,
+    mappings,
+    darkMode,
+    difference,
+    legendValues,
+    hiddenLegendValues,
+    plotlyReady,
+  ]);
 
-  useEffect(() => { if (ref.current && window.Plotly) window.Plotly.Plots.resize(ref.current); }, [expanded]);
-  return <div className="plot-with-legend">
-    <div ref={ref} className="plot">
-      {!plotlyReady && !plotlyError && <span className="plot-message">Loading chart…</span>}
-      {plotlyError && <span className="plot-message error">{plotlyError}</span>}
+  useEffect(() => {
+    if (ref.current && window.Plotly) window.Plotly.Plots.resize(ref.current);
+  }, [expanded]);
+  return (
+    <div className="plot-with-legend">
+      <div ref={ref} className="plot">
+        {!plotlyReady && !plotlyError && <span className="plot-message">Loading chart…</span>}
+        {plotlyError && <span className="plot-message error">{plotlyError}</span>}
+      </div>
+      {showLegend && (
+        <ChartLegend
+          values={legendValues}
+          mappings={mappings}
+          hiddenValues={hiddenLegendValues}
+          onToggle={onLegendToggle}
+        />
+      )}
     </div>
-    {showLegend && <ChartLegend values={legendValues} mappings={mappings} hiddenValues={hiddenLegendValues} onToggle={onLegendToggle} />}
-  </div>;
+  );
 }

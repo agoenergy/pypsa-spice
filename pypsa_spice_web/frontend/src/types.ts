@@ -8,7 +8,15 @@ export interface ChartDefinition {
   table_name: string;
   leg_col: string;
   fil_col?: string;
-  type: "bar" | "grouped_bar" | "filtered_bar" | "area_share" | "hourly_bar" | "filtered_hourly_bar" | "hourly_line" | "hourly_dual";
+  type:
+    | "bar"
+    | "grouped_bar"
+    | "filtered_bar"
+    | "area_share"
+    | "hourly_bar"
+    | "filtered_hourly_bar"
+    | "hourly_line"
+    | "hourly_dual";
   hourly: boolean;
   secondary_y_lab?: string[];
 }
@@ -17,17 +25,33 @@ export interface Sector {
   name: string;
   years: string[];
 }
-export interface Scenario { name: string; sectors: Sector[] }
-export interface Project { name: string; scenarios: Scenario[] }
-export interface Dataset { name: string; projects: Project[] }
+export interface Scenario {
+  name: string;
+  sectors: Sector[];
+}
+export interface Project {
+  name: string;
+  scenarios: Scenario[];
+}
+export interface Dataset {
+  name: string;
+  projects: Project[];
+}
 export interface Section {
   id: string;
   label: string;
   title: string;
   charts: ChartDefinition[];
 }
-export interface Mapping { label: string; color: string }
-export interface Catalog { datasets: Dataset[]; sections: Section[]; mappings: Record<string, Mapping> }
+export interface Mapping {
+  label: string;
+  color: string;
+}
+export interface Catalog {
+  datasets: Dataset[];
+  sections: Section[];
+  mappings: Record<string, Mapping>;
+}
 
 export interface ChartResponse {
   rows: ResultRow[];
@@ -74,7 +98,10 @@ export interface InputTechnology {
   carriers: string[];
 }
 
-export interface InputDataset { name: string; projects: InputProject[] }
+export interface InputDataset {
+  name: string;
+  projects: InputProject[];
+}
 
 export interface InputCatalog {
   table_query_version: number;
@@ -202,6 +229,16 @@ export interface CreatedScenario {
 }
 
 export type ModelRunStatus = "queued" | "running" | "canceling" | "succeeded" | "failed" | "canceled";
+
+export interface ModelRunMonitorState {
+  run: ModelRun | null;
+  error: string;
+  loading: boolean;
+}
+
+export interface ModelRunMonitor extends ModelRunMonitorState {
+  updateRun: (run: ModelRun | null) => void;
+}
 
 export interface ModelRun {
   id: string;

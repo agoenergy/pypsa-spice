@@ -1,6 +1,9 @@
 
 ### Suggestions batch 2
 
+Implementation update, 2026-09-11: addressed automatic formatting under General 4
+and reliable polling under RunModel 1. Other batch-2 suggestions remain open.
+
 #### General
 1. Uses a mix of scss and css, probably because it implemented SCSS from the last batch of comments. Mixing is not inherently problematic, but for the sake of cleanliness i'd suggest just using one or the other
 
@@ -9,6 +12,8 @@
 3. Repeated control patterns, e.g., icon-button appears in a ton of components, and they all reuse the same styling concept. This should be its own component and imported throughout. DataDialog and RunModel (and probably some other components) contain the same generic action-button convention, just with different class names like primary/secondary. Warrants a shared button component, probably with variant as a prop. I'd suggest doing a sweep through of the whole codebase and extracting all these repeated control patterns (probably not just limited to buttons) and turning them into shared components
 
 4. JSX throughout is not at all formatted at all, which makes the whole codebase look like an explosion. Please introduce some normal code formatting (suggest prettier package, but even just a line char limit and auto saving should do the trick! :)
+
+    > Reply: Fixed. Added a pinned Prettier development dependency, a frontend configuration with a 120-character print width, and `npm run format` / `npm run format:check`. Formatted the frontend source and configuration files in a mechanical pass before the polling edits. Generated files, bundled public assets, dependencies, and the lockfile are excluded. The Web frontend GitHub Actions workflow checks formatting, runs tests, and builds the frontend on relevant pull requests and pushes to main/develop. Local formatting checks, all 36 frontend tests, and the production build pass.
 
 5. Testing is minimal and a bit random at the moment. The tests that are there are fairly sensible, but I'm not sure why there are only tests for a couple of components. If tests are desired, I'd suggest to actually have a test file per component (or conceptual 'group of behaviour'), living alongside the component, as is more conventional. However, tests are normally run separately in the development process anyway, and at specific points e.g., after fixing a bug, before pushing/building/deploying etc., and the dev needs to know when to run them. For purposes of this repo (assuming it's going to be run by non-devs), it might not make sense to include tests since they would not be so meaningful for people looking at the codebase and they would not know how to interpret them
 
@@ -61,6 +66,8 @@ useEffect(() => {
 // Essentially this does request -> wait for response -> wait 1s -> request again
 ```
 
+    > Reply: Fixed. `App` now owns one shared monitor through `useModelRun`, and passes its run state to `RunModel`. This replaces both status intervals and the run page's separate latest-run lookup. Each active-run request finishes before a one-second delay starts. Cleanup and start/cancel responses abort and invalidate pending status requests so late responses cannot overwrite newer state. Requests time out after 15 seconds. Connection failures retain the last known status, show a retry message, and retry after 2, 4, 8, 16, then at most 30 seconds; a successful response restores the normal delay. Polling stops for succeeded, failed, or canceled runs. Idle workspaces perform only the initial lookup; reload the app to discover a run started elsewhere. Fourteen regression cases cover slow requests, active and terminal statuses, idle workspaces, cleanup, cancellation and startup races, timeout, retry recovery, and stop/start lifecycle handling.
+
 2. the JSX is giant and the component is doing a lot of different things. Conceptually, i'd suggest separating out `RunSummary`, `RunConfiguration`, and `RunMonitor` as their own components
 
 3. encoded repititons again occur inside the JSX, e.g., `ReviewItem` has already been extracted out, but the same structure essentially appears again in run-dimensions and in repository-review. Suggest using a generic presentation primitive of span and b within a div across all these (essentially what `ReviewItem` is already, just use it more consistently). Check for other repeated patterns -- header within section also seems to happen alot
@@ -84,7 +91,7 @@ useEffect(() => {
 
 - Your frontend seems to be polling your backend every 2 seconds (can be seen when you run `run-web-locally.sh`, and you see the GET request logged every 2s). This comes from line 83 in `App.tsx`, which calls `refreshRunStatus` every 2000 ms). I'm not sure if this is a deliberate design choice, but if it's not a technical requirement to actually keep the model-run status fresh, I would suggest just fetching the latest run once, then keep polling only when a run is queued/running/cancelling. Alternatively maybe poll less often like every 10-20s or so. Every 2s is a lot of background activity.
 
-    > Reply: Fixed. `App.tsx` calls `getLatestModelRun()` once when the app starts. It creates the two-second interval only when the returned status is `queued`, `running`, or `canceling`, and clears that interval when the status becomes terminal or the component unmounts. Idle use no longer produces a request every two seconds.
+    > Reply: Fixed, with a further update on 2026-09-11. `App.tsx` now owns the shared `useModelRun` monitor described in batch 2. It fetches the latest run on startup, then sequentially fetches that run while queued, running, or canceling. Terminal responses stop polling. Idle use produces no recurring requests, and the run page shares the same state rather than starting another poll.
 
 - Project currently does not declare Node type definitions, so your vite.config.ts file complains. 
 
@@ -169,4 +176,3 @@ $breakpoint-l: 1024px;
 - In general the pages and components are all rather messy and are trying to handle a lot of different concerns at once. Perhaps just additionally run the whole project through AI and ask it to generally refactor the codebase around clear component responsibilities, like extract repeated UI/control patterns, split large components into meaningful feature-level components, move shared styles into appropriate global/shared stylesheets, and remove duplicated markup, styling, and logic.
 
     > Reply: Addressed in the reviewed areas. The homepage, input editor, scenario configuration editor, controls, sidebar, shared types, and global styles now each have a clear owner. Repeated controls and state workflows were extracted only where more than one view benefits from them. Chart rendering and dashboard behaviour stayed outside this refactor, which kept the change set reviewable and avoided mixing structural cleanup with feature changes. TypeScript checks, frontend tests, and the production build pass after the split.
-

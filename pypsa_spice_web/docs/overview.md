@@ -39,7 +39,29 @@ From the repository root:
 
 This starts FastAPI at http://127.0.0.1:8000, using the active Python environment if it contains the web dependencies, otherwise, it uses the existing `hotpot` Conda environment when available.
 
-The app is then served at Vite's default dev-server port. Open the app in your browser at http://127.0.0.1:5713/ui/.
+The app is then served at Vite's configured dev-server port. Open the app in your browser at http://127.0.0.1:5173/ui/.
+
+### 3. Format and check frontend changes
+
+From the repository root:
+
+```bash
+npm run format --prefix pypsa_spice_web/frontend
+npm run format:check --prefix pypsa_spice_web/frontend
+npm test --prefix pypsa_spice_web/frontend
+npm run build --prefix pypsa_spice_web/frontend
+```
+
+Prettier uses a 120-character print width and formats frontend source and configuration
+files. It excludes generated files, public assets, dependencies, and the lockfile.
+The Web frontend GitHub Actions workflow runs the formatting check, tests, and
+production build for frontend changes on pull requests and pushes to main/develop.
+
+The app shares one run-status monitor between its navigation and run page. Active
+runs refresh one second after each successful response. A status request times out
+after 15 seconds; connection failures retain the last known status and retry with
+increasing delays up to 30 seconds. Finishing a run stops polling. Idle workspaces
+check once on startup; reload the app to discover runs started in another session.
 
 ## Result layout
 

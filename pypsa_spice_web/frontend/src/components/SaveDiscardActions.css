@@ -50,8 +50,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
   }
-  .save-discard-actions:not(.floating-save-discard-actions)
-    .save-discard-status {
+  .save-discard-actions:not(.floating-save-discard-actions) .save-discard-status {
     grid-column: 1/-1;
     width: 100%;
     margin: 4px 0 0;

@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  limitHourlyRows,
-  pivotYearlyRows,
-  summarizeRows,
-  tableToCsv,
-} from "./DataDialog";
+import { limitHourlyRows, pivotYearlyRows, summarizeRows, tableToCsv } from "./DataDialog";
 import type { ResultRow } from "../types";
 
 const yearlyRows: ResultRow[] = [

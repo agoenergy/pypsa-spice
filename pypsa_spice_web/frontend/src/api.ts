@@ -1,4 +1,23 @@
-import type { Catalog, ChartDefinition, ChartResponse, CreatedScenario, CreateScenarioRequest, InputCatalog, InputCell, InputSelection, InputTableDefinition, InputTableResponse, InputTechnology, ModelRun, ModelRunOptions, ScenarioComparisonResponse, ScenarioConfigResponse, ScenarioWorkspaceStatus, Selection, StartModelRunRequest } from "./types";
+import type {
+  Catalog,
+  ChartDefinition,
+  ChartResponse,
+  CreatedScenario,
+  CreateScenarioRequest,
+  InputCatalog,
+  InputCell,
+  InputSelection,
+  InputTableDefinition,
+  InputTableResponse,
+  InputTechnology,
+  ModelRun,
+  ModelRunOptions,
+  ScenarioComparisonResponse,
+  ScenarioConfigResponse,
+  ScenarioWorkspaceStatus,
+  Selection,
+  StartModelRunRequest,
+} from "./types";
 
 async function apiJson<T>(response: Response, fallback: string): Promise<T> {
   if (!response.ok) {
@@ -55,10 +74,9 @@ export async function getChart(
   signal: AbortSignal,
 ): Promise<ChartResponse> {
   return apiJson(
-    await fetch(
-      `/api/chart?${chartParams(chart, selection, scenario, country, filterValue, startTime, endTime)}`,
-      { signal },
-    ),
+    await fetch(`/api/chart?${chartParams(chart, selection, scenario, country, filterValue, startTime, endTime)}`, {
+      signal,
+    }),
     `No data found for ${chart.name}.`,
   );
 }
@@ -89,7 +107,11 @@ export interface InputTableQuery {
   limit?: number;
 }
 
-function inputParams(selection: InputSelection, definition: InputTableDefinition, query: InputTableQuery = {}): URLSearchParams {
+function inputParams(
+  selection: InputSelection,
+  definition: InputTableDefinition,
+  query: InputTableQuery = {},
+): URLSearchParams {
   const params = new URLSearchParams({
     dataset: selection.dataset,
     project: selection.project,
@@ -110,7 +132,12 @@ function inputParams(selection: InputSelection, definition: InputTableDefinition
   return params;
 }
 
-export async function getInputTable(selection: InputSelection, definition: InputTableDefinition, query: InputTableQuery = {}, signal?: AbortSignal): Promise<InputTableResponse> {
+export async function getInputTable(
+  selection: InputSelection,
+  definition: InputTableDefinition,
+  query: InputTableQuery = {},
+  signal?: AbortSignal,
+): Promise<InputTableResponse> {
   return apiJson(
     await fetch(`/api/input/table?${inputParams(selection, definition, query)}`, { signal }),
     `Could not read ${definition.label}.`,
@@ -170,7 +197,10 @@ function configParams(selection: InputSelection): URLSearchParams {
   });
 }
 
-export async function getScenarioConfig(selection: InputSelection, signal?: AbortSignal): Promise<ScenarioConfigResponse> {
+export async function getScenarioConfig(
+  selection: InputSelection,
+  signal?: AbortSignal,
+): Promise<ScenarioConfigResponse> {
   return apiJson(
     await fetch(`/api/input/scenario-config?${configParams(selection)}`, { signal }),
     "Could not read the scenario configuration.",
@@ -188,10 +218,7 @@ export async function getScenarioComparison(
     reference: selection.scenario,
     comparison,
   });
-  return apiJson(
-    await fetch(`/api/input/compare?${params}`, { signal }),
-    "Could not compare the selected scenarios.",
-  );
+  return apiJson(await fetch(`/api/input/compare?${params}`, { signal }), "Could not compare the selected scenarios.");
 }
 
 export async function getScenarioWorkspaceStatus(dataset: string): Promise<ScenarioWorkspaceStatus> {
@@ -244,22 +271,16 @@ export async function saveScenarioConfigSections(
 }
 
 export async function getModelRunOptions(): Promise<ModelRunOptions> {
-  return apiJson(
-    await fetch(`/api/runs/options?t=${Date.now()}`),
-    "Could not read base_config.yaml.",
-  );
+  return apiJson(await fetch(`/api/runs/options?t=${Date.now()}`), "Could not read base_config.yaml.");
 }
 
-export async function getLatestModelRun(): Promise<ModelRun | null> {
-  return apiJson(
-    await fetch(`/api/runs/latest?t=${Date.now()}`),
-    "Could not read the latest model run.",
-  );
+export async function getLatestModelRun(signal?: AbortSignal): Promise<ModelRun | null> {
+  return apiJson(await fetch(`/api/runs/latest?t=${Date.now()}`, { signal }), "Could not read the latest model run.");
 }
 
-export async function getModelRun(runId: string): Promise<ModelRun> {
+export async function getModelRun(runId: string, signal?: AbortSignal): Promise<ModelRun> {
   return apiJson(
-    await fetch(`/api/runs/${encodeURIComponent(runId)}?t=${Date.now()}`),
+    await fetch(`/api/runs/${encodeURIComponent(runId)}?t=${Date.now()}`, { signal }),
     "Could not refresh the model run.",
   );
 }

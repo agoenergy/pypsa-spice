@@ -27,15 +27,18 @@ const dashboard: DashboardDefinition = {
   description: "Selected results",
   dataset: "dataset",
   project: "project",
-  rows: [{
-    id: "heading-1",
-    type: "heading",
-    title: "Power system",
-  }, {
-    id: "row-1",
-    type: "chart",
-    chart,
-  }],
+  rows: [
+    {
+      id: "heading-1",
+      type: "heading",
+      title: "Power system",
+    },
+    {
+      id: "row-1",
+      type: "chart",
+      chart,
+    },
+  ],
   createdAt: "2026-07-25T10:00:00.000Z",
   updatedAt: "2026-07-25T10:00:00.000Z",
 };
@@ -44,10 +47,7 @@ function schema1Dashboard() {
   return {
     ...dashboard,
     schemaVersion: 1,
-    rows: [
-      dashboard.rows[0],
-      { id: "old-chart-row", type: "charts", chartCount: 2 },
-    ],
+    rows: [dashboard.rows[0], { id: "old-chart-row", type: "charts", chartCount: 2 }],
     items: [
       { id: "left-chart", rowId: "old-chart-row", column: "left", ...chart },
       { id: "right-chart", rowId: "old-chart-row", column: "right", ...chart, chartId: "p2" },
@@ -57,12 +57,24 @@ function schema1Dashboard() {
 
 class MemoryStorage implements Storage {
   private values = new Map<string, string>();
-  get length() { return this.values.size; }
-  clear() { this.values.clear(); }
-  getItem(key: string) { return this.values.get(key) ?? null; }
-  key(index: number) { return [...this.values.keys()][index] ?? null; }
-  removeItem(key: string) { this.values.delete(key); }
-  setItem(key: string, value: string) { this.values.set(key, value); }
+  get length() {
+    return this.values.size;
+  }
+  clear() {
+    this.values.clear();
+  }
+  getItem(key: string) {
+    return this.values.get(key) ?? null;
+  }
+  key(index: number) {
+    return [...this.values.keys()][index] ?? null;
+  }
+  removeItem(key: string) {
+    this.values.delete(key);
+  }
+  setItem(key: string, value: string) {
+    this.values.set(key, value);
+  }
 }
 
 describe("dashboard configuration", () => {
@@ -98,13 +110,13 @@ describe("dashboard configuration", () => {
     const legacy: Record<string, unknown> = schema1Dashboard();
     const legacyItems = legacy.items as Record<string, unknown>[];
     delete legacy.rows;
-    legacy.headingSections = [{
-      id: "old-heading",
-      title: "Old heading",
-    }];
-    legacy.items = [
-      { ...legacyItems[0], rowId: undefined, headingId: "old-heading" },
+    legacy.headingSections = [
+      {
+        id: "old-heading",
+        title: "Old heading",
+      },
     ];
+    legacy.items = [{ ...legacyItems[0], rowId: undefined, headingId: "old-heading" }];
 
     const parsed = parseDashboardDefinition(legacy);
     expect(parsed.rows.map((row) => row.type)).toEqual(["heading", "chart"]);
@@ -131,10 +143,13 @@ describe("dashboard configuration", () => {
 describe("LocalDashboardStore", () => {
   it("reads schema-1 browser storage and writes subsequent saves as schema 2", async () => {
     const storage = new MemoryStorage();
-    storage.setItem("pypsa-spice-dashboards-v1", JSON.stringify({
-      schemaVersion: 1,
-      dashboards: { [dashboard.id]: schema1Dashboard() },
-    }));
+    storage.setItem(
+      "pypsa-spice-dashboards-v1",
+      JSON.stringify({
+        schemaVersion: 1,
+        dashboards: { [dashboard.id]: schema1Dashboard() },
+      }),
+    );
     const store = new LocalDashboardStore(storage);
 
     const migrated = await store.get(dashboard.id);
@@ -153,12 +168,14 @@ describe("LocalDashboardStore", () => {
     await store.save(dashboard);
     store.setLastOpenedId(dashboard.id);
 
-    expect(await store.list()).toEqual([{
-      id: dashboard.id,
-      title: dashboard.title,
-      chartCount: 1,
-      updatedAt: dashboard.updatedAt,
-    }]);
+    expect(await store.list()).toEqual([
+      {
+        id: dashboard.id,
+        title: dashboard.title,
+        chartCount: 1,
+        updatedAt: dashboard.updatedAt,
+      },
+    ]);
     expect(await store.get(dashboard.id)).toEqual(dashboard);
 
     await store.delete(dashboard.id);

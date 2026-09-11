@@ -205,7 +205,10 @@
     opacity: 0;
     visibility: hidden;
     transform: translateY(2px);
-    transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s;
+    transition:
+      opacity 0.12s ease,
+      transform 0.12s ease,
+      visibility 0.12s;
   }
 
   &:hover::after,

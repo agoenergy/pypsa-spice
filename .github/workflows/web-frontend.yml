@@ -1,0 +1,33 @@
+name: Web frontend
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "pypsa_spice_web/frontend/**"
+      - ".github/workflows/web-frontend.yml"
+  push:
+    branches: [main, develop]
+    paths:
+      - "pypsa_spice_web/frontend/**"
+      - ".github/workflows/web-frontend.yml"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: pypsa_spice_web/frontend/package-lock.json
+      - run: npm ci
+        working-directory: pypsa_spice_web/frontend
+      - run: npm run format:check
+        working-directory: pypsa_spice_web/frontend
+      - run: npm test
+        working-directory: pypsa_spice_web/frontend
+      - run: npm run build
+        working-directory: pypsa_spice_web/frontend

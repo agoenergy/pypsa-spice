@@ -49,9 +49,7 @@
 }
 .dashboard-card-actions button:hover:not(:disabled),
 .dashboard-card-actions button.active,
-.dashboard-chart-toolbar
-  .dashboard-row-actions
-  .icon-button:hover:not(:disabled) {
+.dashboard-chart-toolbar .dashboard-row-actions .icon-button:hover:not(:disabled) {
   background: var(--surface);
   color: var(--ink);
 }
@@ -122,9 +120,7 @@
   overflow: auto;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-.dashboard-chart-card.expanded
-  .dashboard-chart-body.dashboard-multi-layout
-  .scenario-plot {
+.dashboard-chart-card.expanded .dashboard-chart-body.dashboard-multi-layout .scenario-plot {
   height: min(470px, calc(100vh - 230px));
 }
 .dashboard-source-missing,

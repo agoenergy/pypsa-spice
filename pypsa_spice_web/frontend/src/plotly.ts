@@ -21,11 +21,17 @@ export function loadPlotly(): Promise<PlotlyApi> {
     script.src = "/vendor/plotly.min.js";
     script.async = true;
     script.dataset.plotlyLoader = "true";
-    script.addEventListener("load", () => {
-      if (window.Plotly) resolve(window.Plotly);
-      else reject(new Error("The Plotly script loaded without exposing its chart API."));
-    }, { once: true });
-    script.addEventListener("error", () => reject(new Error("The Plotly chart library could not be loaded.")), { once: true });
+    script.addEventListener(
+      "load",
+      () => {
+        if (window.Plotly) resolve(window.Plotly);
+        else reject(new Error("The Plotly script loaded without exposing its chart API."));
+      },
+      { once: true },
+    );
+    script.addEventListener("error", () => reject(new Error("The Plotly chart library could not be loaded.")), {
+      once: true,
+    });
     document.head.append(script);
   }).catch((reason) => {
     plotlyPromise = null;
@@ -34,4 +40,3 @@ export function loadPlotly(): Promise<PlotlyApi> {
 
   return plotlyPromise;
 }
-

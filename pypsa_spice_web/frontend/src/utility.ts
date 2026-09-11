@@ -39,7 +39,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function stringValue(record: Record<string, unknown>, key: string, fallback = ""): string {
-  return typeof record[key] === "string" ? record[key] as string : fallback;
+  return typeof record[key] === "string" ? (record[key] as string) : fallback;
 }
 
 function validIsoDate(value: string): boolean {
@@ -59,9 +59,13 @@ function parseChartConfig(value: unknown): DashboardChartConfig {
   const sectionId = stringValue(value, "sectionId");
   const chartId = stringValue(value, "chartId");
   const sector = stringValue(value, "sector");
-  const scenarios = [...new Set(Array.isArray(value.scenarios)
-    ? value.scenarios.filter((item): item is string => typeof item === "string" && Boolean(item))
-    : [])].slice(0, 2);
+  const scenarios = [
+    ...new Set(
+      Array.isArray(value.scenarios)
+        ? value.scenarios.filter((item): item is string => typeof item === "string" && Boolean(item))
+        : [],
+    ),
+  ].slice(0, 2);
   const mode = value.mode === "difference" ? "difference" : "scenario";
   if (!sectionId || !chartId || !sector) throw new Error("A dashboard chart is missing its source.");
   if (scenarios.length === 0) throw new Error("Every dashboard chart needs at least one scenario.");
@@ -176,9 +180,7 @@ export function parseDashboardDefinition(value: unknown): DashboardDefinition {
     description: stringValue(value, "description"),
     dataset,
     project,
-    rows: value.schemaVersion === DASHBOARD_SCHEMA_VERSION
-      ? parseSchema2Rows(value.rows)
-      : migrateSchema1Rows(value),
+    rows: value.schemaVersion === DASHBOARD_SCHEMA_VERSION ? parseSchema2Rows(value.rows) : migrateSchema1Rows(value),
     createdAt: validIsoDate(createdAt) ? createdAt : now,
     updatedAt: validIsoDate(updatedAt) ? updatedAt : now,
   };
@@ -215,9 +217,11 @@ export function importedDashboardCopy(dashboard: DashboardDefinition): Dashboard
   return {
     ...dashboard,
     id: identifier(),
-    rows: dashboard.rows.map((row) => row.type === "heading"
-      ? { ...row, id: identifier() }
-      : { ...row, id: identifier(), chart: { ...row.chart, scenarios: [...row.chart.scenarios] } }),
+    rows: dashboard.rows.map((row) =>
+      row.type === "heading"
+        ? { ...row, id: identifier() }
+        : { ...row, id: identifier(), chart: { ...row.chart, scenarios: [...row.chart.scenarios] } },
+    ),
     createdAt: now,
     updatedAt: now,
   };
@@ -256,8 +260,7 @@ export class LocalDashboardStore implements DashboardStore {
   constructor(private readonly storage: Storage = window.localStorage) {}
 
   private read(): StoredDashboards {
-    const raw = this.storage.getItem(DASHBOARD_STORAGE_KEY)
-      || this.storage.getItem(LEGACY_DASHBOARD_STORAGE_KEY);
+    const raw = this.storage.getItem(DASHBOARD_STORAGE_KEY) || this.storage.getItem(LEGACY_DASHBOARD_STORAGE_KEY);
     if (!raw) return emptyStorage();
     try {
       const parsed = JSON.parse(raw) as unknown;
@@ -353,7 +356,8 @@ export function sectionFromLocation(): string {
 export function viewFromLocation(): ViewMode {
   const params = locationParams();
   const value = params.get("view");
-  if (value === "home" || value === "inputs" || value === "configure" || value === "compare" || value === "dashboard") return value;
+  if (value === "home" || value === "inputs" || value === "configure" || value === "compare" || value === "dashboard")
+    return value;
   if (value === "outputs" || params.has("section") || params.has("run") || params.has("sector")) return "outputs";
   return "home";
 }
@@ -372,37 +376,57 @@ export function splitWorkspace(value: string): { dataset: string; project: strin
 }
 
 export function resolveOutputSelection(data: Catalog, current: Selection, params = locationParams()): Selection {
-  const dataset = data.datasets.find((item) => item.name === (params.get("dataset") || current.dataset)) || data.datasets[0];
-  const project = dataset.projects.find((item) => item.name === (params.get("project") || current.project)) || dataset.projects[0];
-  const scenario = project.scenarios.find((item) => item.name === (params.get("run") || current.scenario)) || project.scenarios[0];
-  const sector = scenario.sectors.find((item) => item.name === (params.get("sector") || current.sector)) || scenario.sectors[0];
+  const dataset =
+    data.datasets.find((item) => item.name === (params.get("dataset") || current.dataset)) || data.datasets[0];
+  const project =
+    dataset.projects.find((item) => item.name === (params.get("project") || current.project)) || dataset.projects[0];
+  const scenario =
+    project.scenarios.find((item) => item.name === (params.get("run") || current.scenario)) || project.scenarios[0];
+  const sector =
+    scenario.sectors.find((item) => item.name === (params.get("sector") || current.sector)) || scenario.sectors[0];
   const comparisonName = params.get("compare") || current.comparison;
   return {
     dataset: dataset.name,
     project: project.name,
     scenario: scenario.name,
-    comparison: project.scenarios.some((item) => item.name === comparisonName && item.name !== scenario.name) ? comparisonName : "",
+    comparison: project.scenarios.some((item) => item.name === comparisonName && item.name !== scenario.name)
+      ? comparisonName
+      : "",
     sector: sector.name,
     year: sector.years.includes(current.year) ? current.year : sector.years[0] || "",
   };
 }
 
-export function resolveInputSelection(data: InputCatalog, current: InputSelection, params = locationParams()): InputSelection {
-  const dataset = data.datasets.find((item) => item.name === (params.get("dataset") || current.dataset)) || data.datasets[0];
-  const project = dataset.projects.find((item) => item.name === (params.get("project") || current.project)) || dataset.projects[0];
+export function resolveInputSelection(
+  data: InputCatalog,
+  current: InputSelection,
+  params = locationParams(),
+): InputSelection {
+  const dataset =
+    data.datasets.find((item) => item.name === (params.get("dataset") || current.dataset)) || data.datasets[0];
+  const project =
+    dataset.projects.find((item) => item.name === (params.get("project") || current.project)) || dataset.projects[0];
   const requestedScenario = params.get("scenario") || current.scenario;
-  return { dataset: dataset.name, project: project.name, scenario: project.scenarios.includes(requestedScenario) ? requestedScenario : project.scenarios[0] || "" };
+  return {
+    dataset: dataset.name,
+    project: project.name,
+    scenario: project.scenarios.includes(requestedScenario) ? requestedScenario : project.scenarios[0] || "",
+  };
 }
 
 export function workspaceOptions(datasets: { name: string; projects: { name: string }[] }[]): WorkspaceOption[] {
   const duplicateNames = new Set<string>();
   const seen = new Set<string>();
-  datasets.flatMap((dataset) => dataset.projects).forEach((project) => {
-    if (seen.has(project.name)) duplicateNames.add(project.name);
-    seen.add(project.name);
-  });
-  return datasets.flatMap((dataset) => dataset.projects.map((project) => ({
-    value: workspaceValue(dataset.name, project.name),
-    label: duplicateNames.has(project.name) ? `${project.name} · ${dataset.name}` : project.name,
-  })));
+  datasets
+    .flatMap((dataset) => dataset.projects)
+    .forEach((project) => {
+      if (seen.has(project.name)) duplicateNames.add(project.name);
+      seen.add(project.name);
+    });
+  return datasets.flatMap((dataset) =>
+    dataset.projects.map((project) => ({
+      value: workspaceValue(dataset.name, project.name),
+      label: duplicateNames.has(project.name) ? `${project.name} · ${dataset.name}` : project.name,
+    })),
+  );
 }
