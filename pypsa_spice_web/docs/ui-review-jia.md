@@ -1,4 +1,73 @@
 
+### Suggestions batch 2
+
+#### General
+1. Uses a mix of scss and css, probably because it implemented SCSS from the last batch of comments. Mixing is not inherently problematic, but for the sake of cleanliness i'd suggest just using one or the other
+
+2. Bigger issue: mixes global css and modules (e.g. WorkspaceCard.module.scss): non-module css files have global classes, which can lead to conflicts if two component css files have the same selectors defined. Suggest to scope all component and page css (or scss) files as modules
+
+3. Repeated control patterns, e.g., icon-button appears in a ton of components, and they all reuse the same styling concept. This should be its own component and imported throughout. DataDialog and RunModel (and probably some other components) contain the same generic action-button convention, just with different class names like primary/secondary. Warrants a shared button component, probably with variant as a prop. I'd suggest doing a sweep through of the whole codebase and extracting all these repeated control patterns (probably not just limited to buttons) and turning them into shared components
+
+4. JSX throughout is not at all formatted at all, which makes the whole codebase look like an explosion. Please introduce some normal code formatting (suggest prettier package, but even just a line char limit and auto saving should do the trick! :)
+
+5. Testing is minimal and a bit random at the moment. The tests that are there are fairly sensible, but I'm not sure why there are only tests for a couple of components. If tests are desired, I'd suggest to actually have a test file per component (or conceptual 'group of behaviour'), living alongside the component, as is more conventional. However, tests are normally run separately in the development process anyway, and at specific points e.g., after fixing a bug, before pushing/building/deploying etc., and the dev needs to know when to run them. For purposes of this repo (assuming it's going to be run by non-devs), it might not make sense to include tests since they would not be so meaningful for people looking at the codebase and they would not know how to interpret them
+
+#### `Plot.tsx`
+1. Too much responsibility, seems to be handling a lot of chart utility (see exported functions that are reused in `ChartCard` and `DashboardChartCard` components). Suggest moving the chart data processing functions (`aggregate`, `getLegendValues`, `differenceAggregates`, `buildDifferenceRows`) into a `chartData.ts` or `chartUtils.ts`, which this component, `ChartCard`, and `DashboardChartCard` import from as necessary. Move `ChartLegend` out as a separate component which is also imported by these three components
+
+2. Also consider moving logic that acts on processed chart data to derive the Plotly trace objects into a separate file like `plotTraces.ts` (`traces`, `differenceTraces`, `stackedBarTotalTrace`, etc.). They are only used in this Plot component but are conceptually separate from the actual Plot lifecycle and orchestration which the component handles. Minor suggestion to move them out, and expose a single main function from `plotTraces.ts` which internally calls all those functions
+
+3. Typing trace as `Record<string, unknown>` is probably too loose for an object that is supposed to conform to Plotly's trace shape. It would be better to type it as a Plotly trace type to catch invalid property values that may get passed in
+
+#### `DataDialog`
+1. Similar issue of too many responsibilities in one component. Consider turning it into a small module instead. `DataDialog` component itself should only handle deciding whether to render hourly or yearly, then `HourlyDataDialog` and `YearlyDataDialog` as components that it imports. Current `YearlyDataDialog` is a bit of a monster and contains several different concepts - suggest splitting the jsx into smaller components `YearlyTableToolbar`, `YearlyResultsTable`, `YearlyTableFooter` to start. Move table specific functions into some table utils file. Suggested structure:
+```bash
+DataDialog/
+├── DataDialog.tsx
+├── DataDialog.css
+├── HourlyDataDialog.tsx (imported by DataDialog)
+├── YearlyDataDialog.tsx (imported by DataDialog)
+├── YearlyTableToolbar.tsx (imported by YearlyDataDialog)
+├── YearlyResultsTable.tsx (ditto)
+├── YearlyTableFooter.tsx (ditto)
+└── tableUtils.ts
+```
+
+2. component currently queries the DOM to find out the `<details>` state and decide behaviour. This is a) not very react-y / recommended, and b) fragile because its querying the whole document and searching for a CSS selector, rather than just looking in the yearly dialog that it actually wants to query. Simplest fix without a huge rewrite with state management is to `useRef` to reference yearly data dialog, attach it, then query that instead. Alternatively, use state to manage the menus so react owns it and is able to recognise when menus are open/closed, but this would be much more of a rewrite and may be too much hassle for the gain
+
+#### `RunModel`
+1. `useEffect` poll is issuing a request per second without waiting for the previous `getModelRun` request to complete. I'm not sure how long a run would take to complete, but it might lead to overwriting responses if the API is slow. Suggest using recursive `setTimeout` instead of `setInterval` (though note this needs a decision on whether it should continue indefinitely or not if the polling fails)
+```typescript
+useEffect(() => {
+  if (!run || !activeStatuses.has(run.status)) return;
+
+  let cancelled = false;
+  let timeoutId: number;
+
+  const poll = async () => {
+    // try getModelRun
+
+      timeoutId = window.setTimeout(poll, 1000);
+    }
+  };
+
+  timeoutId = window.setTimeout(poll, 1000);
+
+  return () => {
+    cancelled = true;
+    window.clearTimeout(timeoutId);
+  };
+}, [run?.id]);
+// Essentially this does request -> wait for response -> wait 1s -> request again
+```
+
+2. the JSX is giant and the component is doing a lot of different things. Conceptually, i'd suggest separating out `RunSummary`, `RunConfiguration`, and `RunMonitor` as their own components
+
+3. encoded repititons again occur inside the JSX, e.g., `ReviewItem` has already been extracted out, but the same structure essentially appears again in run-dimensions and in repository-review. Suggest using a generic presentation primitive of span and b within a div across all these (essentially what `ReviewItem` is already, just use it more consistently). Check for other repeated patterns -- header within section also seems to happen alot
+
+4. `useMemo` is unnecessary here as `dimensions` and `scenarioSummary` are tiny computations, and memo-ising adds unnecessary overhead
+
+
 ### Changes made:
 
 - Added missing Vite Typescript declaration file (vite-env.d.ts). Without this, Typescript tooling sometimes does not know that side-effect imports like `import "./ScenarioConfigEditor.css"` are valid and you get these `Cannot find module or type declarations for side-effect import of ...` errors.
@@ -100,3 +169,4 @@ $breakpoint-l: 1024px;
 - In general the pages and components are all rather messy and are trying to handle a lot of different concerns at once. Perhaps just additionally run the whole project through AI and ask it to generally refactor the codebase around clear component responsibilities, like extract repeated UI/control patterns, split large components into meaningful feature-level components, move shared styles into appropriate global/shared stylesheets, and remove duplicated markup, styling, and logic.
 
     > Reply: Addressed in the reviewed areas. The homepage, input editor, scenario configuration editor, controls, sidebar, shared types, and global styles now each have a clear owner. Repeated controls and state workflows were extracted only where more than one view benefits from them. Chart rendering and dashboard behaviour stayed outside this refactor, which kept the change set reviewable and avoided mixing structural cleanup with feature changes. TypeScript checks, frontend tests, and the production build pass after the split.
+
