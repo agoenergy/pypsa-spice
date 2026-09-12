@@ -44,6 +44,15 @@ Commit references below distinguish implemented fixes from partial progress and 
     >
     > Partially addressed: [7eac4fc](https://github.com/agoenergy/pypsa-spice/commit/7eac4fc3bee383cdf63b0846d7d00ac2005cc61b) adds CI and run-monitor regression tests; [0c41834](https://github.com/agoenergy/pypsa-spice/commit/0c41834477e09641c837e067b092f15467792126) adds stylesheet regression checks. The grouping recommendation is recorded in [4bd3582](https://github.com/agoenergy/pypsa-spice/commit/4bd3582f551d8c607b296e0e54786af549bb841b), but broader behaviour coverage remains open.
 
+    > Open for discussion, 2026-09-12: the simplify pass extracted four shared modules
+    > (`useDismiss`, `useNearViewport`, `ResultsToc`, `ChartFeedback`) and none of them has a
+    > test, because the suite has no DOM environment and React hooks are not reachable from it.
+    > The [frontend test proposal](test-proposal.md) sets out four test files, what each covers,
+    > the two development dependencies it needs, and four questions for you. The one I would
+    > most like your read on is whether `ResultsToc` counts as a visual wrapper under your
+    > exclusion, or earns a test file because it now serves three pages. Nothing is implemented
+    > pending that discussion.
+
 #### `Plot.tsx`
 1. Too much responsibility, seems to be handling a lot of chart utility (see exported functions that are reused in `ChartCard` and `DashboardChartCard` components). Suggest moving the chart data processing functions (`aggregate`, `getLegendValues`, `differenceAggregates`, `buildDifferenceRows`) into a `chartData.ts` or `chartUtils.ts`, which this component, `ChartCard`, and `DashboardChartCard` import from as necessary. Move `ChartLegend` out as a separate component which is also imported by these three components
 
