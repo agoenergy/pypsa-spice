@@ -51,6 +51,7 @@ INPUT_CONFIG = MAPPING_DIR / "input_settings.yaml"
 RUN_MANAGER = ScenarioRunManager(ROOT)
 SCENARIO_WORKSPACE = ScenarioWorkspace(ROOT, active_run=RUN_MANAGER.active)
 
+
 class ModelRunRequest(BaseModel):
     """Editable base-config path values for a Snakemake model run."""
 
@@ -68,6 +69,7 @@ class ScenarioCloneRequest(BaseModel):
     project: str = Field(min_length=1, max_length=255)
     source_scenario: str = Field(min_length=1, max_length=255)
     new_scenario: str = Field(min_length=1, max_length=255)
+
 
 SECTION_META = {
     "power": {
@@ -274,6 +276,54 @@ def _sample_hourly(
         step = max(1, math.ceil(len(group) / target))
         sampled.extend(group[::step][:target])
     return sampled, True
+
+
+def _chart_axis_extents(
+    rows: list[dict[str, Any]], chart: dict[str, Any]
+) -> dict[str, list[float] | None]:
+    """Calculate exact axis extents before hourly rows are sampled."""
+    x_column = "snapshot" if chart["hourly"] else "year"
+    legend_column = chart["leg_col"]
+    secondary_labels = set(chart.get("secondary_y_lab", []))
+    aggregates: dict[tuple[str, str], float] = {}
+    for row in rows:
+        x_value = row.get(x_column)
+        value = row.get("value")
+        if x_value in (None, "") or not isinstance(value, (int, float)):
+            continue
+        legend = str(row.get(legend_column, "Series"))
+        key = (str(x_value), legend)
+        aggregates[key] = aggregates.get(key, 0.0) + float(value)
+
+    should_stack = (chart["type"] != "grouped_bar" and "bar" in chart["type"]) or chart[
+        "type"
+    ] == "area_share"
+    extents: dict[bool, list[float] | None] = {False: None, True: None}
+
+    if should_stack:
+        totals: dict[tuple[bool, str], list[float]] = {}
+        for (x_value, legend), value in aggregates.items():
+            axis_key = (legend in secondary_labels, x_value)
+            total = totals.setdefault(axis_key, [0.0, 0.0])
+            total[0 if value < 0 else 1] += value
+        for (secondary, _), (negative, positive) in totals.items():
+            current = extents[secondary]
+            extents[secondary] = (
+                [negative, positive]
+                if current is None
+                else [min(current[0], negative), max(current[1], positive)]
+            )
+    else:
+        for (_, legend), value in aggregates.items():
+            secondary = legend in secondary_labels
+            current = extents[secondary]
+            extents[secondary] = (
+                [value, value]
+                if current is None
+                else [min(current[0], value), max(current[1], value)]
+            )
+
+    return {"primary": extents[False], "secondary": extents[True]}
 
 
 def _parse_timestamp(value: str, field_name: str) -> datetime:
@@ -662,13 +712,21 @@ def chart_data(
     if filter_column and filter_value and filter_value != "ALL":
         rows = [row for row in rows if str(row.get(filter_column)) == filter_value]
 
-    available_timestamps = sorted(
-        str(row["snapshot"])
-        for row in rows
-        if hourly and row.get("snapshot") not in (None, "")
-    )
-    available_start = available_timestamps[0] if available_timestamps else None
-    available_end = available_timestamps[-1] if available_timestamps else None
+    available_start: str | None = None
+    available_end: str | None = None
+    if hourly:
+        for row in rows:
+            if row.get("snapshot") in (None, ""):
+                continue
+            timestamp = str(row["snapshot"])
+            available_start = (
+                timestamp
+                if available_start is None
+                else min(available_start, timestamp)
+            )
+            available_end = (
+                timestamp if available_end is None else max(available_end, timestamp)
+            )
 
     start = _parse_timestamp(start_time, "start") if start_time else None
     end = _parse_timestamp(end_time, "end") if end_time else None
@@ -694,6 +752,13 @@ def chart_data(
                 continue
             filtered_rows.append(row)
         rows = filtered_rows
+    configured_chart = next(
+        chart
+        for charts in CHARTS.values()
+        for chart in charts
+        if chart["table_name"] == table
+    )
+    axis_extents = _chart_axis_extents(rows, configured_chart)
     source_count = len(rows)
     rows, truncated = _sample_hourly(rows, legend, limit) if hourly else (rows, False)
     return JSONResponse(
@@ -707,6 +772,7 @@ def chart_data(
                 "files": len(paths),
                 "available_start": available_start,
                 "available_end": available_end,
+                "axis_extents": axis_extents,
             },
         }
     )

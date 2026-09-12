@@ -7,6 +7,7 @@ import { getLegendValues } from "../shared/chartData";
 import { chartFont } from "../shared/chartPresentation";
 import { buildPlotTraces } from "../shared/plotTraces";
 import { loadPlotly } from "../plotly";
+import type { SharedYAxisRanges, TimeAxisRange } from "../shared/types";
 import type { Catalog, ChartDefinition, ChartResponse } from "../types";
 
 interface Props {
@@ -21,6 +22,8 @@ interface Props {
   difference?: boolean;
   legendValues?: string[];
   showLegend?: boolean;
+  xAxisRange?: TimeAxisRange;
+  yAxisRanges?: SharedYAxisRanges;
   hiddenLegendValues: ReadonlySet<string>;
   onLegendToggle: (value: string) => void;
 }
@@ -37,6 +40,8 @@ export default function Plot({
   difference = false,
   legendValues: sharedLegendValues,
   showLegend = true,
+  xAxisRange,
+  yAxisRanges,
   hiddenLegendValues,
   onLegendToggle,
 }: Props) {
@@ -92,6 +97,7 @@ export default function Plot({
           zeroline: false,
           tickfont: { size: chartFont.body },
           unifiedhovertitle: { text: chart.hourly ? "%{x|%d %b · %H:%M}" : "%{x}" },
+          range: xAxisRange,
         },
         yaxis: {
           title: {
@@ -104,8 +110,15 @@ export default function Plot({
           zerolinecolor: darkMode ? "rgba(255,255,255,.18)" : text,
           zerolinewidth: 1,
           rangemode: "tozero",
+          range: yAxisRanges?.primary,
         },
-        yaxis2: { overlaying: "y", side: "right", showgrid: false, title: "State of charge" },
+        yaxis2: {
+          overlaying: "y",
+          side: "right",
+          showgrid: false,
+          title: "State of charge",
+          range: yAxisRanges?.secondary,
+        },
         hoverlabel: {
           bgcolor: darkMode ? "#222b28" : "#fff",
           bordercolor: darkMode ? "#34403c" : grid,
@@ -134,6 +147,8 @@ export default function Plot({
     darkMode,
     difference,
     legendValues,
+    xAxisRange,
+    yAxisRanges,
     hiddenLegendValues,
     plotlyReady,
   ]);

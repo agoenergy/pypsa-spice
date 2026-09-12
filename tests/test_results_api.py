@@ -59,9 +59,7 @@ class ResultsApiTests(unittest.TestCase):
 
     def test_every_result_chart_declares_a_summary_mode(self) -> None:
         summary_modes = {
-            chart.get("summary")
-            for charts in CHARTS.values()
-            for chart in charts
+            chart.get("summary") for charts in CHARTS.values() for chart in charts
         }
 
         self.assertEqual(summary_modes, {"sum", "none"})
@@ -125,6 +123,40 @@ class ResultsApiTests(unittest.TestCase):
         payload = response.json()
         self.assertEqual(payload["dimensions"]["technology"], ["solar", "wind"])
         self.assertEqual([row["value"] for row in payload["rows"]], [1450.0, 2800.0])
+
+    def test_hourly_chart_preserves_exact_extents_when_rows_are_sampled(self) -> None:
+        hourly_path = self.result_dir / "pow_gen_by_type_hourly.csv"
+        hourly_path.write_text(
+            "snapshot,technology,value\n"
+            + "".join(
+                f"2025-01-{index // 24 + 1:02d} {index % 24:02d}:00,solar,{999 if index == 1 else index}\n"
+                for index in range(600)
+            ),
+            encoding="utf-8",
+        )
+        with patch("pypsa_spice_web.app.DATA_DIR", self.data_dir):
+            response = TestClient(app).get(
+                "/api/chart",
+                params={
+                    "dataset": "dataset",
+                    "project": "project",
+                    "scenario": "run",
+                    "sector": "p-i-t",
+                    "table": "pow_gen_by_type_hourly",
+                    "legend": "technology",
+                    "year": "2025",
+                    "country": "ALL",
+                    "hourly": "true",
+                    "limit": 500,
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["meta"]["sampled"])
+        self.assertLess(len(payload["rows"]), payload["meta"]["source_rows"])
+        self.assertEqual(payload["meta"]["axis_extents"]["primary"], [0.0, 999.0])
+        self.assertLess(max(row["value"] for row in payload["rows"]), 999.0)
 
     def test_additional_yearly_charts_read_result_tables(self) -> None:
         cases = (

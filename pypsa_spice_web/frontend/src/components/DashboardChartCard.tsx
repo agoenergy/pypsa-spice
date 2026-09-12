@@ -21,7 +21,7 @@ import useNearViewport from "../useNearViewport";
 import type { DashboardChartConfig } from "../types";
 import Plot from "./Plot";
 import { ChartLegend } from "./ChartLegend";
-import { buildDifferenceRows, getLegendValues } from "../shared/chartData";
+import { buildDifferenceRows, getLegendValues, getSharedXAxisRange, getSharedYAxisRanges } from "../shared/chartData";
 import type { Catalog, ChartDefinition, ChartResponse, Project, ResultRow, Selection } from "../types";
 
 interface Props {
@@ -111,6 +111,30 @@ export default function DashboardChartCard({
   useEffect(() => {
     setHiddenLegendValues(new Set());
   }, [config.chartId, config.scenarios.join("\u0000"), config.sector]);
+
+  const sharedYAxisRanges = useMemo(
+    () =>
+      chart && series.length > 1
+        ? getSharedYAxisRanges(
+            series.map((entry) => entry.response),
+            chart,
+            hiddenLegendValues,
+          )
+        : undefined,
+    [series, chart, hiddenLegendValues],
+  );
+  const sharedXAxisRange = useMemo(
+    () =>
+      chart && series.length > 1
+        ? getSharedXAxisRange(
+            series.map((entry) => entry.response),
+            chart,
+            config.startTime,
+            config.endTime,
+          )
+        : undefined,
+    [series, chart, config.startTime, config.endTime],
+  );
 
   useEffect(() => {
     if (!chart || missingScenarios.length || incompatibleScenarios.length || !config.scenarios.length) {
@@ -488,6 +512,8 @@ export default function DashboardChartCard({
                     expanded={expanded}
                     legendValues={legendValues}
                     showLegend={false}
+                    xAxisRange={sharedXAxisRange}
+                    yAxisRanges={sharedYAxisRanges}
                     hiddenLegendValues={hiddenLegendValues}
                     onLegendToggle={(value) => toggleLegend(value, setHiddenLegendValues)}
                   />

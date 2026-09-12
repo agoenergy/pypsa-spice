@@ -8,7 +8,7 @@ import { Download, Expand, Minimize2, RotateCcw, Table2 } from "lucide-react";
 import { downloadUrl, getChart } from "../api";
 import Plot from "./Plot";
 import { ChartLegend } from "./ChartLegend";
-import { buildDifferenceRows, getLegendValues } from "../shared/chartData";
+import { buildDifferenceRows, getLegendValues, getSharedXAxisRange, getSharedYAxisRanges } from "../shared/chartData";
 import {
   ChartContextHeading,
   ChartErrorState,
@@ -170,6 +170,14 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
   const comparisonLegendValues = useMemo(
     () => getLegendValues(chart, primary, comparison),
     [chart, primary, comparison],
+  );
+  const sharedYAxisRanges = useMemo(
+    () => (primary && comparison ? getSharedYAxisRanges([primary, comparison], chart, hiddenLegendValues) : undefined),
+    [primary, comparison, chart, hiddenLegendValues],
+  );
+  const sharedXAxisRange = useMemo(
+    () => (primary && comparison ? getSharedXAxisRange([primary, comparison], chart, startTime, endTime) : undefined),
+    [primary, comparison, chart, startTime, endTime],
   );
   const toggleLegendValue = (value: string) => {
     setHiddenLegendValues((current) => {
@@ -409,6 +417,8 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
                 expanded={expanded}
                 legendValues={comparisonLegendValues}
                 showLegend={false}
+                xAxisRange={sharedXAxisRange}
+                yAxisRanges={sharedYAxisRanges}
                 hiddenLegendValues={hiddenLegendValues}
                 onLegendToggle={toggleLegendValue}
               />
@@ -426,6 +436,8 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
                 expanded={expanded}
                 legendValues={comparisonLegendValues}
                 showLegend={false}
+                xAxisRange={sharedXAxisRange}
+                yAxisRanges={sharedYAxisRanges}
                 hiddenLegendValues={hiddenLegendValues}
                 onLegendToggle={toggleLegendValue}
               />

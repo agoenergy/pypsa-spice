@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildDifferenceRows } from "./chartData";
+import { buildDifferenceRows, getSharedXAxisRange, getSharedYAxisRanges } from "./chartData";
 import type { ChartDefinition, ChartResponse, ResultRow } from "../types";
 
 const chart: ChartDefinition = {
@@ -13,7 +13,7 @@ const chart: ChartDefinition = {
   hourly: false,
 };
 
-function response(rows: ResultRow[]): ChartResponse {
+function response(rows: ResultRow[], availability: { start?: string; end?: string } = {}): ChartResponse {
   return {
     rows,
     dimensions: {},
@@ -22,8 +22,8 @@ function response(rows: ResultRow[]): ChartResponse {
       returned_rows: rows.length,
       sampled: false,
       files: 1,
-      available_start: null,
-      available_end: null,
+      available_start: availability.start || null,
+      available_end: availability.end || null,
     },
   };
 }
@@ -84,5 +84,90 @@ describe("buildDifferenceRows", () => {
       { scenario: "policy − baseline", technology: "changing", year: 2030, value: 0 },
       { scenario: "policy − baseline", technology: "changing", year: 2040, value: 3 },
     ]);
+  });
+});
+
+describe("getSharedYAxisRanges", () => {
+  it("uses exact source extents when hourly rows were sampled", () => {
+    const hourlyChart: ChartDefinition = { ...chart, type: "hourly_line", hourly: true };
+    const sampled = response([{ technology: "wind", snapshot: "2030-01-01 00:00", value: 4 }]);
+    sampled.meta.sampled = true;
+    sampled.meta.source_rows = 8760;
+    sampled.meta.axis_extents = { primary: [-20, 100], secondary: null };
+
+    expect(getSharedYAxisRanges([sampled], hourlyChart, new Set())).toEqual({
+      primary: [-26, 106],
+      secondary: undefined,
+    });
+  });
+
+  it("uses the largest stacked extent across both scenarios", () => {
+    const primary = response([
+      { technology: "wind", year: 2030, value: 40 },
+      { technology: "solar", year: 2030, value: 20 },
+    ]);
+    const comparison = response([
+      { technology: "wind", year: 2030, value: 80 },
+      { technology: "solar", year: 2030, value: 20 },
+      { technology: "gas", year: 2040, value: -10 },
+    ]);
+
+    expect(getSharedYAxisRanges([primary, comparison], chart, new Set())).toEqual({
+      primary: [-15.5, 105.5],
+      secondary: undefined,
+    });
+  });
+
+  it("excludes hidden series and calculates a shared secondary-axis range", () => {
+    const dualAxisChart: ChartDefinition = {
+      ...chart,
+      type: "hourly_dual",
+      hourly: true,
+      secondary_y_lab: ["stateOfCharge"],
+    };
+    const primary = response([
+      { technology: "power", snapshot: "2030-01-01 00:00", value: 4 },
+      { technology: "hidden", snapshot: "2030-01-01 00:00", value: 400 },
+      { technology: "stateOfCharge", snapshot: "2030-01-01 00:00", value: 40 },
+    ]);
+    const comparison = response([
+      { technology: "power", snapshot: "2030-01-01 00:00", value: 10 },
+      { technology: "stateOfCharge", snapshot: "2030-01-01 00:00", value: 80 },
+    ]);
+
+    expect(getSharedYAxisRanges([primary, comparison], dualAxisChart, new Set(["hidden"]))).toEqual({
+      primary: [0, 10.5],
+      secondary: [38, 82],
+    });
+  });
+});
+
+describe("getSharedXAxisRange", () => {
+  const hourlyChart: ChartDefinition = { ...chart, type: "hourly_line", hourly: true };
+  const primary = response([{ technology: "wind", snapshot: "2030-01-01 00:00:00", value: 2 }], {
+    start: "2030-01-01 00:00:00",
+    end: "2030-12-31 23:00:00",
+  });
+  const comparison = response([{ technology: "wind", snapshot: "2030-02-01 00:00:00", value: 5 }], {
+    start: "2030-02-01 00:00:00",
+    end: "2031-01-31 23:00:00",
+  });
+
+  it("uses the full hourly extent across both scenarios", () => {
+    expect(getSharedXAxisRange([primary, comparison], hourlyChart)).toEqual([
+      "2030-01-01 00:00:00",
+      "2031-01-31 23:00:00",
+    ]);
+  });
+
+  it("clamps the shared extent to the selected time range", () => {
+    expect(getSharedXAxisRange([primary, comparison], hourlyChart, "2030-03-01T00:00", "2030-10-01T00:00")).toEqual([
+      "2030-03-01T00:00",
+      "2030-10-01T00:00",
+    ]);
+  });
+
+  it("leaves yearly charts on their existing automatic x-axis", () => {
+    expect(getSharedXAxisRange([primary, comparison], chart)).toBeUndefined();
   });
 });

@@ -63,6 +63,10 @@ export interface ChartResponse {
     files: number;
     available_start: string | null;
     available_end: string | null;
+    axis_extents?: {
+      primary: [number, number] | null;
+      secondary: [number, number] | null;
+    };
   };
 }
 

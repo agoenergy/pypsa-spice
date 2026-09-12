@@ -12,7 +12,8 @@ to SCSS modules.
 The 2026-09-12 Plot refactor moved calculations, trace construction, and the shared
 legend into separate files. The [chart code guide](overview.md#chart-code) maps their
 current owners, and the [Jia review](ui-review-jia.md#plottsx) links the commits.
-This extraction does not resolve the chart axis, loading, or toolbar findings below.
+The comparison-axis issue in item 2 is now closed. The loading and toolbar findings
+remain open.
 
 ## Closed
 
@@ -44,7 +45,7 @@ Read `locationParams()` once at mount into a ref and resolve from that, or hold 
 URL writer until both catalogs have resolved. Until this is fixed nobody can share
 or bookmark a comparison, which is the workspace's main analytical output.
 
-### 2. Side-by-side comparison plots autoscale independently
+### 2. Side-by-side comparison plots autoscale independently, closed 2026-09-12
 
 Each plot in comparison mode computes its own axis range. Observed on one page:
 
@@ -55,6 +56,15 @@ Each plot in comparison mode computes its own axis range. Observed on one page:
 Two bars of equal pixel height therefore stand for different values, in the one view
 built for visual comparison. Compute a shared `[min, max]` across both responses and
 pass an explicit `yaxis.range` to both plots, plus `xaxis.range` for hourly charts.
+
+The Results and Dashboard comparison layouts now calculate shared ranges from both
+scenario responses and pass them to each Plot. The y-axis calculation includes
+stacked positive and negative totals, excludes hidden legend series, and aligns
+secondary axes in dual-axis charts. Hourly charts use the union of both available
+time spans, clamped to the selected time range. The calculations live in
+`shared/chartData.ts`, while `Plot.tsx` only applies the typed ranges. Regression
+tests cover stacked values, hidden series, the secondary axis, different hourly
+extents, selected time ranges, and unchanged yearly x-axis behaviour.
 
 ## Layout and density
 
