@@ -4,16 +4,22 @@ Findings from a review of the web workspace on 2026-08-20, taken by walking Home
 Inputs, Configure & run, Results, comparison mode and Dashboards at 1680x1050 in
 light and dark mode, then reading the source.
 
-One item is closed. The rest are open and listed here so the next person does not
-have to rediscover them. Line references were accurate on 2026-08-20; selector and
-symbol names are the more durable pointers.
+The type-scale finding and item 26 are closed. Other findings retain their original
+review status and need revalidation before implementation. Line references and old
+CSS filenames describe the source on 2026-08-20; component styles have since moved
+to SCSS modules.
+
+The 2026-09-12 Plot refactor moved calculations, trace construction, and the shared
+legend into separate files. The [chart code guide](overview.md#chart-code) maps their
+current owners, and the [Jia review](ui-review-jia.md#plottsx) links the commits.
+This extraction does not resolve the chart axis, loading, or toolbar findings below.
 
 ## Closed
 
 **Type scale.** 97% of text-bearing elements on the Power results page rendered
 below 12px (328 at 9px, 371 at 10px, 56 at 11px) while the page title sat at 52px.
 `global.scss` now defines seven size tokens with a 12px floor, all 158 size
-declarations across 13 stylesheets map onto them, and `Plot.tsx` carries a matching
+declarations across 13 stylesheets map onto them, and `shared/chartPresentation.ts` carries a matching
 `chartFont` constant because Plotly draws its own SVG text and cannot read CSS.
 Measured after the change: no element renders below 12px on any page, in either
 theme.
@@ -207,11 +213,13 @@ first-time user hovers five icons to find Export.
 
 ## CSS structure
 
-### 26. Page chrome lives in a component stylesheet
+### 26. Page chrome lives in a component stylesheet, closed 2026-09-12
 
-`.main-column`, `main`, `.button`, `.menu`, `.search`, `.notice` and `.page-title`
-are all defined in `components/ChartCard.css` (lines 1 to 74 and 233). Move them to
-`global.scss` or a new `shell.css`.
+The SCSS module migration moved the application shell into `App.module.scss`,
+component styles into their own modules, and shared patterns into explicit shared
+modules. `global.scss` contains only application-wide foundations. The original
+`components/ChartCard.css` no longer exists. See [Jia General 1 and 2](ui-review-jia.md#general)
+and commit [0c41834](https://github.com/agoenergy/pypsa-spice/commit/0c41834477e09641c837e067b092f15467792126).
 
 ### 27. Corrections pile up instead of edits
 
@@ -237,4 +245,4 @@ explicit width and height, so they render nothing. Clean them up here.
 5. Form work: dirty-only save bar, global Inputs save, decimal handling, items 11
    to 13.
 6. Shared `Modal` and Escape on the expanded chart, items 23 and 24.
-7. CSS consolidation, items 26 and 27.
+7. Recheck the remaining CSS cleanup in item 27 after the module migration.

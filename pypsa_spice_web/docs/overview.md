@@ -10,7 +10,7 @@ The [UI and UX backlog](ui-review-backlog.md) records open interface findings wi
 
 ## Do not copy the Streamlit UI
 
-The web interface is an independent React, TypeScript, CSS, and FastAPI application. When developing `pypsa-spice-vis-ui` or the code in `pypsa_spice_web/`, do not use the legacy Streamlit application in `pypsa-spice-vis/` as UI or UX guidance. Its layouts, controls, component choices, styles, and interaction patterns are not a design reference for the web interface.
+The web interface is an independent React, TypeScript, SCSS, and FastAPI application. When developing `pypsa-spice-vis-ui` or the code in `pypsa_spice_web/`, do not use the legacy Streamlit application in `pypsa-spice-vis/` as UI or UX guidance. Its layouts, controls, component choices, styles, and interaction patterns are not a design reference for the web interface.
 
 Base web UI decisions on the current React frontend, this documentation, and explicit product requirements. Consult the Streamlit implementation only when you need to understand data semantics, calculations, or feature behaviour. Reimplement that behaviour for the web instead of copying the Streamlit interface.
 
@@ -79,6 +79,38 @@ runs refresh one second after each successful response. A status request times o
 after 15 seconds; connection failures retain the last known status and retry with
 increasing delays up to 30 seconds. Finishing a run stops polling. Idle workspaces
 check once on startup; reload the app to discover runs started in another session.
+
+## Chart code
+
+Chart responsibilities are split across these files under `frontend/src/`:
+
+| File | Responsibility |
+| --- | --- |
+| `components/ChartCard.tsx` and `components/DashboardChartCard.tsx` | Request result rows and own chart filters, comparison controls, and hidden legend values. |
+| `components/Plot.tsx` | Load Plotly, render typed traces with the chart layout, resize expanded plots, and clean up the plot. |
+| `components/ChartLegend.tsx` | Render legend buttons and report toggles to the owning card. Its styles live in `ChartLegend.module.scss`. |
+| `shared/chartData.ts` | Aggregate rows, derive legend values, align scenario series, and build difference rows for the data view. |
+| `shared/plotTraces.ts` | Build series, comparison, difference, and stacked-bar total traces through `buildPlotTraces`. Return `hasColumnTotals` so Plot can reserve label space. |
+| `shared/chartPresentation.ts` | Provide mapped labels and fallback colours for legends and traces, plus `chartFont` for Plotly. |
+| `shared/types.ts` and `plotly.ts` | Define the Plotly trace contract and load the runtime script from `/vendor/plotly.min.js`. |
+
+Difference calculations align each legend value by model year or hourly snapshot
+and calculate `comparison − primary`, treating a missing value as zero. Column
+totals exclude hidden and secondary-axis series. Legend labels and colours use
+the same helpers in Results and Dashboards.
+
+Trace builders use the development dependency `@types/plotly.js`. The shared
+`ScatterTextTrace` type extends those definitions for per-point text positions,
+which the runtime supports but version 3.0.13 of the definitions omits. FastAPI
+still serves the Plotly runtime from the Python installation.
+
+The calculation tests live in `shared/chartData.test.ts`, and trace behaviour
+is covered by `shared/plotTraces.test.ts`. Run both from the repository root:
+
+```bash
+npm --prefix pypsa_spice_web/frontend test -- src/shared/chartData.test.ts src/shared/plotTraces.test.ts
+npm --prefix pypsa_spice_web/frontend run check
+```
 
 ## Result layout
 
@@ -193,11 +225,19 @@ Each React effect owns the `AbortController` for its input or scenario configura
 
 ## Implementation record
 
+### 2026-09-12: Plot responsibilities and types
+
+Extracted chart data helpers, the shared legend and its styles, and trace
+construction from `Plot.tsx` in separate commits. Added Plotly types and six
+trace regression tests. TypeScript, all 44 frontend tests, formatting, and the
+production build passed. The [Jia review](ui-review-jia.md#plottsx) records the
+three fixes and their commit IDs.
+
 ### 2026-08-20: type scale
 
 - Added seven size tokens to `global.scss` with a 12px floor and mapped all 158 size declarations across 13 stylesheets onto them.
 - Dropped the page title from `clamp(34px, 4vw, 52px)` to 28px and retuned its leading and tracking for the smaller size.
-- Added a `chartFont` constant in `Plot.tsx` mirroring the tokens, because Plotly draws its own SVG text. Axis ticks moved from 9px to 12px and plot margins grew to fit the larger labels.
+- Added a `chartFont` constant mirroring the tokens, because Plotly draws its own SVG text. Originally in `Plot.tsx`, it now lives in `shared/chartPresentation.ts`. Axis ticks moved from 9px to 12px and plot margins grew to fit the larger labels.
 - Widened the chart legend columns, the Home project picker and the count badges, which had started truncating.
 - Aligned the sidebar brand border with the workspace bar border, previously 1px out.
 - Recorded the open findings from the same review in the [UI and UX backlog](ui-review-backlog.md).

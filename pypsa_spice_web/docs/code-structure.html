@@ -138,7 +138,7 @@
 
       <section id="source-map">
         <h2>Source map</h2>
-        <p class="intro">The table lists the files that define the architecture. Component tests sit beside their TypeScript source. Backend tests live in <code>tests/</code>.</p>
+        <p class="intro">The table lists the files that define the architecture. Frontend tests are grouped by behaviour beside the TypeScript code that owns it. Backend tests live in <code>tests/</code>.</p>
         <table class="file-map">
           <thead><tr><th>Path</th><th>Responsibility</th><th>Depends on</th></tr></thead>
           <tbody>
@@ -150,8 +150,15 @@
             <tr><td><code>frontend/src/App.tsx</code></td><td>Top-level view routing, shared project/scenario context, URL synchronisation, navigation, and theme.</td><td>Page components and catalogs</td></tr>
             <tr><td><code>frontend/src/api.ts</code></td><td>The browser's only HTTP access layer and query-string construction.</td><td>FastAPI endpoint contracts</td></tr>
             <tr><td><code>frontend/src/types.ts</code></td><td>Shared browser-side models for catalogs, inputs, results, differences, dashboards, and runs.</td><td>Backend response shapes</td></tr>
-            <tr><td><code>frontend/src/pages/</code></td><td>Top-level workspaces such as Inputs, Configure, Scenario comparison, Home, and Dashboards. Each page keeps its CSS and tests beside its source.</td><td>Components, API, types, and utilities</td></tr>
-            <tr><td><code>frontend/src/components/</code></td><td>Reusable chart, dialog, header, plotting, and model-run UI. Each component keeps its CSS and tests beside its source.</td><td>API, types, and utilities</td></tr>
+            <tr><td><code>frontend/src/pages/</code></td><td>Top-level workspaces such as Inputs, Configure, Scenario comparison, Home, and Dashboards. Page styles use collocated SCSS modules. Behaviour tests sit beside the code they cover.</td><td>Components, API, types, and utilities</td></tr>
+            <tr><td><code>frontend/src/components/</code></td><td>Reusable chart, dialog, header, plotting, and model-run UI. Component styles use collocated SCSS modules. Behaviour tests sit beside the code they cover.</td><td>API, types, and utilities</td></tr>
+            <tr><td><code>frontend/src/components/Plot.tsx</code></td><td>Plotly loading state, layout, rendering, resizing, and cleanup.</td><td>Trace builder, legend, shared presentation, Plotly loader</td></tr>
+            <tr><td><code>frontend/src/components/ChartLegend.tsx</code></td><td>Legend buttons shared by Plot, Results cards, and Dashboard cards; owns <code>ChartLegend.module.scss</code>.</td><td>Shared presentation helpers and card-owned visibility state</td></tr>
+            <tr><td><code>frontend/src/shared/chartData.ts</code></td><td>Row aggregation, legend values, scenario differences, and difference rows for the data view.</td><td>Chart definitions and response types</td></tr>
+            <tr><td><code>frontend/src/shared/plotTraces.ts</code></td><td><code>buildPlotTraces</code> constructs series, comparison, difference, and column-total traces.</td><td>Chart data, presentation helpers, and Plotly types</td></tr>
+            <tr><td><code>frontend/src/shared/chartPresentation.ts</code></td><td>Mapped labels, fallback colours, and the shared Plotly font sizes.</td><td>Catalog mappings</td></tr>
+            <tr><td><code>frontend/src/shared/types.ts</code></td><td>Plotly trace types, including per-point scatter text positions omitted by the installed definitions.</td><td><code>@types/plotly.js</code></td></tr>
+            <tr><td><code>frontend/src/plotly.ts</code></td><td>Loads the runtime script once and exposes a typed trace-data contract.</td><td><code>/vendor/plotly.min.js</code> served by FastAPI</td></tr>
             <tr><td><code>frontend/src/utility.ts</code></td><td>Dashboard schema parsing, migration, import/export, browser storage, and shared dirty-editor guards.</td><td>Catalog types and localStorage</td></tr>
             <tr><td><code>frontend/src/global.scss</code></td><td>Fonts, global tokens, resets, focus treatment, and reduced-motion rules.</td><td>Component classes live in explicit SCSS modules</td></tr>
           </tbody>
@@ -172,7 +179,7 @@
           <div class="step"><b>View renders</b><span><code>renderWorkspace()</code> selects one page and gives it the smallest required context.</span></div>
           <div class="step"><b>Page fetches its data</b><span>Effects own <code>AbortController</code> instances so stale responses cannot overwrite newer selections.</span></div>
         </div>
-        <details><summary>Results and comparison charts</summary><div><p><code>ChartCard.tsx</code> requests the primary run and, when selected, the comparison run. <code>Plot.tsx</code> converts result rows into Plotly traces. Difference mode aligns rows by their analytical identity and calculates <code>comparison − primary</code>.</p><p>Hourly charts request one year and may send a time range. The server samples the displayed response only. Downloads keep the complete source CSV.</p></div></details>
+        <details><summary>Results and comparison charts</summary><div><p><code>ChartCard.tsx</code> and <code>DashboardChartCard.tsx</code> request result rows and own filters, comparison controls, and hidden legend values. They import calculations from <code>shared/chartData.ts</code> and render the shared <code>ChartLegend</code>.</p><p><code>chartData.ts</code> aggregates each legend series by year or hourly snapshot. Difference mode aligns those points and calculates <code>comparison − primary</code>, treating missing values as zero. The same calculations supply the difference data view.</p><p><code>Plot.tsx</code> calls <code>buildPlotTraces</code> in <code>shared/plotTraces.ts</code>, then passes the returned data to Plotly with the layout and configuration. The builder excludes hidden and secondary-axis series from column totals and reports whether total labels need extra top margin. Plot owns rendering, resizing, and cleanup.</p><p><code>shared/chartPresentation.ts</code> keeps legend and trace labels, colours, and font sizes consistent. <code>shared/types.ts</code> uses Plotly definitions with a narrow extension for array-valued scatter text positions. <code>plotly.ts</code> loads the runtime supplied by the backend's Python Plotly installation.</p><p>Hourly charts request one year and may send a time range. The server samples the displayed response only. Downloads keep the complete source CSV.</p></div></details>
         <details><summary>Input editing</summary><div><p>The browser stores changed cells using the original <code>__row_id</code>, not the visible page index. Filters and pagination therefore cannot redirect an edit to another CSV row. A save includes the last observed file revision. If the file changed on disk, the server returns HTTP 409 and the editor reloads it.</p></div></details>
         <details><summary>Dashboard persistence</summary><div><p><code>utility.ts</code> owns the versioned JSON format and <code>DashboardStore</code> abstraction. The local implementation uses <code>localStorage</code>. It converts older definitions when it reads them. New saves and exports use the current schema.</p></div></details>
       </section>
@@ -240,7 +247,10 @@ browser localStorage
         <table class="file-map">
           <thead><tr><th>Desired change</th><th>Start here</th><th>Also check</th></tr></thead>
           <tbody>
-            <tr><td>Add or change a Results chart</td><td><code>graph_settings.yaml</code></td><td>Result CSV columns, <code>ChartDefinition</code>, Plot trace logic</td></tr>
+            <tr><td>Add or change a Results chart</td><td><code>graph_settings.yaml</code></td><td>Result CSV columns, <code>ChartDefinition</code>, <code>shared/plotTraces.ts</code></td></tr>
+            <tr><td>Change chart aggregation or differences</td><td><code>frontend/src/shared/chartData.ts</code></td><td><code>chartData.test.ts</code>, trace construction, and difference data views</td></tr>
+            <tr><td>Change trace rendering or total labels</td><td><code>frontend/src/shared/plotTraces.ts</code></td><td><code>plotTraces.test.ts</code>, <code>shared/types.ts</code>, and Plot layout</td></tr>
+            <tr><td>Change legend appearance or labels</td><td><code>components/ChartLegend.tsx</code> and its SCSS module</td><td><code>shared/chartPresentation.ts</code>, Results and Dashboard cards</td></tr>
             <tr><td>Change chart loading or download parameters</td><td><code>frontend/src/api.ts</code></td><td><code>app.py</code> chart/download routes and API tests</td></tr>
             <tr><td>Add an input table</td><td>Model input settings YAML</td><td><code>input_editor.py</code> special paths, keys, and edit rules</td></tr>
             <tr><td>Add a scenario configuration section</td><td><code>EDITABLE_CONFIG_SECTIONS</code></td><td><code>pages/ScenarioConfigEditor.tsx</code>, frontend types, comparison logic</td></tr>
@@ -256,10 +266,13 @@ browser localStorage
       <section id="verification">
         <h2>Verification</h2>
         <p class="intro">Run checks from the repository root. The Python suite needs the web dependencies available in the selected environment.</p>
-        <pre>npm --prefix pypsa_spice_web/frontend test
+        <pre>npm --prefix pypsa_spice_web/frontend run format:check
+npm --prefix pypsa_spice_web/frontend run check
+npm --prefix pypsa_spice_web/frontend test
 npm --prefix pypsa_spice_web/frontend run build
 conda run -n hotpot python -m unittest discover -s tests -p 'test*.py' -q
 git diff --check -- pypsa_spice_web tests</pre>
+        <p>Chart calculations and traces have dedicated tests in <code>shared/chartData.test.ts</code> and <code>shared/plotTraces.test.ts</code>. The 2026-09-12 refactor passed all 44 frontend tests, TypeScript, formatting, and the production build. See the <a href="ui-review-jia.md#plottsx">Jia review</a> for the three implementation commits.</p>
         <div class="grid two">
           <article class="card"><h3>For frontend changes</h3><p>Exercise the affected view, URL refresh/back navigation, empty/loading/error states, light and dark themes, and unsaved-change prompts.</p></article>
           <article class="card"><h3>For backend changes</h3><p>Test success plus invalid paths, missing files, stale revisions, active-run locks, and files that differ from the common happy-path schema.</p></article>
