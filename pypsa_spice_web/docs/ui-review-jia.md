@@ -52,7 +52,9 @@ Commit references below distinguish implemented fixes from partial progress and 
 
 2. Also consider moving logic that acts on processed chart data to derive the Plotly trace objects into a separate file like `plotTraces.ts` (`traces`, `differenceTraces`, `stackedBarTotalTrace`, etc.). They are only used in this Plot component but are conceptually separate from the actual Plot lifecycle and orchestration which the component handles. Minor suggestion to move them out, and expose a single main function from `plotTraces.ts` which internally calls all those functions
 
-    > Open. No addressing commit yet; trace-building functions still live in `Plot.tsx`.
+    > Reply: Fixed on 2026-09-12. Moved series, difference, and stacked-bar total trace construction into `shared/plotTraces.ts`. Its single `buildPlotTraces` entry point returns the trace data and whether column totals need extra top margin. `Plot` now handles loading, rendering, layout, resizing, and cleanup. Regression tests cover comparisons, differences, hidden legends, secondary axes, hourly lines, stacked areas, and column totals. Validation: TypeScript, formatting, and all 44 frontend tests pass.
+    >
+    > Commit: this issue is addressed by `Extract Plotly trace construction from Plot` including this review update.
 
 3. Typing trace as `Record<string, unknown>` is probably too loose for an object that is supposed to conform to Plotly's trace shape. It would be better to type it as a Plotly trace type to catch invalid property values that may get passed in
 

@@ -22,3 +22,7 @@ export function formatLegendLabel(value: string, mappings: Catalog["mappings"]):
 export function getLegendColour(value: string, index: number, mappings: Catalog["mappings"]): string {
   return mappings[value]?.color || fallbackColors[Math.max(0, index) % fallbackColors.length];
 }
+
+// Plotly draws its own text, so it cannot read the CSS type scale in global.scss.
+// These mirror --text-xs and --text-sm so chart type matches the surrounding interface.
+export const chartFont = { body: 12, hover: 13 };
