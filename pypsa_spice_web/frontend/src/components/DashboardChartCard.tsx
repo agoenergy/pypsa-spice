@@ -10,7 +10,9 @@ import { ArrowLeftRight, Expand, Minimize2, Settings2, Table2 } from "lucide-rea
 
 import { getChart } from "../api";
 import type { DashboardChartConfig } from "../types";
-import Plot, { buildDifferenceRows, ChartLegend, getLegendValues } from "./Plot";
+import Plot from "./Plot";
+import { ChartLegend } from "./ChartLegend";
+import { buildDifferenceRows, getLegendValues } from "../shared/chartData";
 import type { Catalog, ChartDefinition, ChartResponse, Project, ResultRow, Selection } from "../types";
 
 interface Props {

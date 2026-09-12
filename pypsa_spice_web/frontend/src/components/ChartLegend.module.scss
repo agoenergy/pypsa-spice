@@ -1,0 +1,63 @@
+@value comparison-layout from "./ChartSurface.module.scss";
+
+.html-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(215px, 100%), 1fr));
+  gap: 6px 12px;
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.html-legend-item {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  line-height: 1.25;
+}
+.html-legend-item > i {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  margin-top: 1px;
+}
+.html-legend-item > span {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+html[data-theme="dark"] .html-legend {
+  background: transparent;
+}
+.comparison-layout > .html-legend {
+  grid-column: 1/-1;
+}
+.html-legend-item {
+  border: 0;
+  padding: 2px;
+  border-radius: 3px;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--text-xs);
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+}
+.html-legend-item > i {
+  margin-top: 1px;
+}
+.html-legend-item:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.html-legend-item:focus-visible {
+  outline: 2px solid var(--pink);
+  outline-offset: 1px;
+}
+.html-legend-item.is-hidden {
+  opacity: 0.42;
+}
+.html-legend-item.is-hidden > span {
+  text-decoration: line-through;
+}

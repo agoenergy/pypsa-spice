@@ -46,7 +46,9 @@ Commit references below distinguish implemented fixes from partial progress and 
 #### `Plot.tsx`
 1. Too much responsibility, seems to be handling a lot of chart utility (see exported functions that are reused in `ChartCard` and `DashboardChartCard` components). Suggest moving the chart data processing functions (`aggregate`, `getLegendValues`, `differenceAggregates`, `buildDifferenceRows`) into a `chartData.ts` or `chartUtils.ts`, which this component, `ChartCard`, and `DashboardChartCard` import from as necessary. Move `ChartLegend` out as a separate component which is also imported by these three components
 
-    > Open. No addressing commit yet; chart data helpers and `ChartLegend` still live in `Plot.tsx`.
+    > Reply: Fixed on 2026-09-12. Moved aggregation, legend values, and difference calculations into `shared/chartData.ts`. `Plot`, `ChartCard`, and `DashboardChartCard` now import their data helpers directly and share the extracted `ChartLegend` component. The legend owns its SCSS module, and `shared/chartPresentation.ts` keeps its labels and colours consistent with the traces. Moved the difference-row tests alongside the data helpers. Validation: TypeScript, formatting, and all 38 frontend tests pass, including the shared SCSS selector checks.
+    >
+    > Commit: this issue is addressed by `Refactor chart data and legend out of Plot` including this review update.
 
 2. Also consider moving logic that acts on processed chart data to derive the Plotly trace objects into a separate file like `plotTraces.ts` (`traces`, `differenceTraces`, `stackedBarTotalTrace`, etc.). They are only used in this Plot component but are conceptually separate from the actual Plot lifecycle and orchestration which the component handles. Minor suggestion to move them out, and expose a single main function from `plotTraces.ts` which internally calls all those functions
 

@@ -2,23 +2,11 @@ import styles from "./Plot.module.scss";
 import chartSurfaceStyles from "./ChartSurface.module.scss";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { ChartLegend } from "./ChartLegend";
+import { aggregate, differenceAggregates, getLegendValues } from "../shared/chartData";
+import { formatLegendLabel, getLegendColour } from "../shared/chartPresentation";
 import { loadPlotly } from "../plotly";
-import type { Catalog, ChartDefinition, ChartResponse, ResultRow } from "../types";
-
-const fallbackColors = [
-  "#e6007e",
-  "#005ca9",
-  "#60a917",
-  "#ec6608",
-  "#7553a6",
-  "#009e8e",
-  "#c33c54",
-  "#79848d",
-  "#d5a400",
-  "#3f7c85",
-  "#9b4b96",
-  "#86a6c2",
-];
+import type { Catalog, ChartDefinition, ChartResponse } from "../types";
 
 // Plotly draws its own text, so it cannot read the CSS type scale in global.scss.
 // These mirror --text-xs and --text-sm so chart type matches the surrounding interface.
@@ -40,75 +28,6 @@ interface Props {
   onLegendToggle: (value: string) => void;
 }
 
-function pretty(value: string, mappings: Catalog["mappings"]): string {
-  return mappings[value]?.label || value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function aggregate(rows: ResultRow[], chart: ChartDefinition): Map<string, { x: string | number; y: number }[]> {
-  const xKey = chart.hourly ? "snapshot" : "year";
-  const values = new Map<string, number>();
-  for (const row of rows) {
-    const x = row[xKey];
-    const legend = String(row[chart.leg_col] ?? "Series");
-    if (x === null || x === undefined) continue;
-    const key = `${x}\u0000${legend}`;
-    values.set(key, (values.get(key) || 0) + Number(row.value || 0));
-  }
-  const groups = new Map<string, { x: string | number; y: number }[]>();
-  for (const [key, y] of values) {
-    const [rawX, legend] = key.split("\u0000");
-    if (!groups.has(legend)) groups.set(legend, []);
-    groups.get(legend)!.push({ x: chart.hourly ? rawX : Number(rawX), y });
-  }
-  for (const points of groups.values()) points.sort((a, b) => String(a.x).localeCompare(String(b.x)));
-  return groups;
-}
-
-export function getLegendValues(chart: ChartDefinition, ...responses: (ChartResponse | null)[]): string[] {
-  const values = new Set<string>();
-  for (const response of responses) {
-    if (!response) continue;
-    for (const value of aggregate(response.rows, chart).keys()) values.add(value);
-  }
-  return [...values];
-}
-
-function legendColor(value: string, index: number, mappings: Catalog["mappings"]): string {
-  return mappings[value]?.color || fallbackColors[Math.max(0, index) % fallbackColors.length];
-}
-
-export function ChartLegend({
-  values,
-  mappings,
-  hiddenValues,
-  onToggle,
-}: {
-  values: string[];
-  mappings: Catalog["mappings"];
-  hiddenValues: ReadonlySet<string>;
-  onToggle: (value: string) => void;
-}) {
-  return (
-    <div className={styles["html-legend"]} aria-label="Chart legend">
-      {values.map((value, index) => (
-        <button
-          type="button"
-          className={[styles["html-legend-item"], hiddenValues.has(value) ? styles["is-hidden"] : ""]
-            .filter(Boolean)
-            .join(" ")}
-          key={value}
-          aria-pressed={!hiddenValues.has(value)}
-          title={`${hiddenValues.has(value) ? "Show" : "Hide"} ${pretty(value, mappings)}`}
-          onClick={() => onToggle(value)}
-        >
-          <i style={{ backgroundColor: legendColor(value, index, mappings) }} aria-hidden="true" />
-          <span>{pretty(value, mappings)}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function isSecondarySeries(chart: ChartDefinition, legend: string): boolean {
   return Boolean(chart.secondary_y_lab?.includes(legend));
 }
@@ -122,17 +41,17 @@ function traces(
   hiddenLegendValues: ReadonlySet<string>,
 ) {
   return [...aggregate(response.rows, chart).entries()].map(([legend, points]) => {
-    const color = legendColor(legend, legendValues.indexOf(legend), mappings);
+    const color = getLegendColour(legend, legendValues.indexOf(legend), mappings);
     const isArea = chart.type === "area_share";
     const isBar = chart.type.includes("bar");
     const trace: Record<string, unknown> = {
-      name: pretty(legend, mappings),
+      name: formatLegendLabel(legend, mappings),
       x: points.map((point) => point.x),
       y: points.map((point) => point.y),
       marker: { color },
       line: { color, width: comparison ? 1.5 : 2, dash: comparison ? "dot" : "solid" },
       opacity: comparison ? 0.5 : 0.94,
-      hovertemplate: `<b>${pretty(legend, mappings)}</b>: %{y:,.2f} ${chart.units || ""}<extra></extra>`,
+      hovertemplate: `<b>${formatLegendLabel(legend, mappings)}</b>: %{y:,.2f} ${chart.units || ""}<extra></extra>`,
       yaxis: chart.secondary_y_lab?.includes(legend) ? "y2" : "y",
       visible: hiddenLegendValues.has(legend) ? "legendonly" : true,
     };
@@ -149,60 +68,6 @@ function traces(
   });
 }
 
-function differenceAggregates(
-  primary: ChartResponse,
-  comparison: ChartResponse,
-  chart: ChartDefinition,
-): Map<string, { x: string | number; y: number }[]> {
-  const first = aggregate(primary.rows, chart);
-  const second = aggregate(comparison.rows, chart);
-  const legends = [...new Set([...first.keys(), ...second.keys()])];
-  const differences = new Map<string, { x: string | number; y: number }[]>();
-  for (const legend of legends) {
-    const firstPoints = new Map((first.get(legend) || []).map((point) => [String(point.x), point.y]));
-    const secondPoints = new Map((second.get(legend) || []).map((point) => [String(point.x), point.y]));
-    const xValues = [...new Set([...firstPoints.keys(), ...secondPoints.keys()])].sort();
-    differences.set(
-      legend,
-      xValues.map((value) => ({
-        x: chart.hourly ? value : Number(value),
-        y: (secondPoints.get(value) || 0) - (firstPoints.get(value) || 0),
-      })),
-    );
-  }
-  return differences;
-}
-
-export function buildDifferenceRows(
-  primary: ChartResponse,
-  comparison: ChartResponse,
-  chart: ChartDefinition,
-  primaryName: string,
-  comparisonName: string,
-): ResultRow[] {
-  const xKey = chart.hourly ? "snapshot" : "year";
-  const unitValues = new Set(
-    [...primary.rows, ...comparison.rows]
-      .map((row) => row.unit)
-      .filter((unit): unit is string | number => unit !== null && unit !== undefined),
-  );
-  const unit = unitValues.size === 1 ? [...unitValues][0] : undefined;
-  const rows: ResultRow[] = [];
-  for (const [legend, points] of differenceAggregates(primary, comparison, chart)) {
-    if (points.every((point) => point.y === 0)) continue;
-    for (const point of points) {
-      rows.push({
-        scenario: `${comparisonName} − ${primaryName}`,
-        [chart.leg_col]: legend,
-        ...(unit !== undefined ? { unit } : {}),
-        [xKey]: point.x,
-        value: point.y,
-      });
-    }
-  }
-  return rows;
-}
-
 function differenceTraces(
   primary: ChartResponse,
   comparison: ChartResponse,
@@ -212,17 +77,17 @@ function differenceTraces(
   hiddenLegendValues: ReadonlySet<string>,
 ) {
   return [...differenceAggregates(primary, comparison, chart)].map(([legend, points]) => {
-    const color = legendColor(legend, legendValues.indexOf(legend), mappings);
+    const color = getLegendColour(legend, legendValues.indexOf(legend), mappings);
     const isBar = chart.type.includes("bar") || !chart.hourly;
     return {
       type: isBar ? "bar" : "scatter",
       mode: isBar ? undefined : "lines",
-      name: pretty(legend, mappings),
+      name: formatLegendLabel(legend, mappings),
       x: points.map((point) => point.x),
       y: points.map((point) => point.y),
       marker: { color },
       line: { color, width: 2 },
-      hovertemplate: `<b>${pretty(legend, mappings)}</b>: %{y:+,.2f} ${chart.units || ""}<extra></extra>`,
+      hovertemplate: `<b>${formatLegendLabel(legend, mappings)}</b>: %{y:+,.2f} ${chart.units || ""}<extra></extra>`,
       visible: hiddenLegendValues.has(legend) ? "legendonly" : true,
     };
   });

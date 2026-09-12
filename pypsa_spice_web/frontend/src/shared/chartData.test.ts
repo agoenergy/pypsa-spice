@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildDifferenceRows } from "./Plot";
+import { buildDifferenceRows } from "./chartData";
 import type { ChartDefinition, ChartResponse, ResultRow } from "../types";
 
 const chart: ChartDefinition = {

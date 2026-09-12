@@ -1,5 +1,5 @@
 @value chart-head, chart-title, scenario-plot, expanded from "./ChartSurface.module.scss";
-@value html-legend from "./Plot.module.scss";
+@value html-legend from "./ChartLegend.module.scss";
 
 @media (max-width: 768px) {
   .dashboard-scenario-picker.large {
