@@ -63,9 +63,7 @@ export default function InputEditor({ catalog, selection }: { catalog: InputCata
     });
 
   return (
-    <InputSaveActions
-      key={`${selection.dataset}:${selection.project}:${selection.scenario}:${view}:${sector}:${view === "table" ? tableId : technology?.id}`}
-    >
+    <>
       {menuTarget &&
         createPortal(
           <nav className={sidebarStyles["submenu-list"]} aria-label="Input pages">
@@ -121,24 +119,31 @@ export default function InputEditor({ catalog, selection }: { catalog: InputCata
           </>,
           topbarTarget,
         )}
-      {view === "technology"
-        ? technology && <TechnologyTitle technology={technology} />
-        : definition && <TableTitle definition={definition} />}
-      {view === "table" ? (
-        definition ? (
-          <TableView
-            key={`${selection.dataset}:${selection.project}:${selection.scenario}:${sector}:${definition.id}`}
-            definition={definition}
-            selection={selection}
-          />
+      {/* Reset editor state on selection changes while keeping navigation portals mounted. */}
+      <InputSaveActions
+        key={`${selection.dataset}:${selection.project}:${selection.scenario}:${view}:${sector}:${view === "table" ? tableId : technology?.id}`}
+      >
+        {view === "technology"
+          ? technology && <TechnologyTitle technology={technology} />
+          : definition && <TableTitle definition={definition} />}
+        {view === "table" ? (
+          definition ? (
+            <TableView
+              key={`${selection.dataset}:${selection.project}:${selection.scenario}:${sector}:${definition.id}`}
+              definition={definition}
+              selection={selection}
+            />
+          ) : (
+            <div className={editorPanelStyles["editor-empty"]}>
+              No configured table is available for this selection.
+            </div>
+          )
+        ) : technology ? (
+          <TechnologyEditor catalog={catalog} selection={selection} sector={sector} technology={technology} />
         ) : (
-          <div className={editorPanelStyles["editor-empty"]}>No configured table is available for this selection.</div>
-        )
-      ) : technology ? (
-        <TechnologyEditor catalog={catalog} selection={selection} sector={sector} technology={technology} />
-      ) : (
-        <div className={editorPanelStyles["editor-empty"]}>No mapped technology is available for this sector.</div>
-      )}
-    </InputSaveActions>
+          <div className={editorPanelStyles["editor-empty"]}>No mapped technology is available for this sector.</div>
+        )}
+      </InputSaveActions>
+    </>
   );
 }

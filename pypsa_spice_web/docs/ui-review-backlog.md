@@ -128,11 +128,19 @@ pages. The floating controls appear only for unsaved changes or an active save a
 disappear after saving or discarding. Save confirmation remains inline in the page.
 Removed the floating button height override so controls use the shared 44px height.
 
-### 12. Inputs has no global save
+### 12. Inputs has no global save, closed 2026-09-12
 
 Each table panel carries its own Save and Discard pair, three or more on a technology
 page, so editing across tables means saving each one separately with no running total
 of unsaved changes. Add one sticky bar with a count that commits every dirty table.
+
+Implemented in `b880715` with a shared `InputSaveActions` controller. Its selection
+key resets the editor and save state when switching input contexts. The initial
+wrapper also enclosed the sidebar and topbar portals, so changing sector,
+technology, table, or scenario remounted the navigation and replayed the sidebar
+entry animation. Follow-up fix on 2026-09-12 moves both portals outside the keyed
+controller, preserving navigation while retaining the editor reset and shared save
+behaviour.
 
 ### 13. Number fields mix decimal conventions
 
