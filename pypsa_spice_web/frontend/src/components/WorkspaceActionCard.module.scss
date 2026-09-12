@@ -1,13 +1,13 @@
 .action-card {
   min-width: 0;
   display: flex;
-  flex-direction: column;
   background: var(--surface);
 }
 
 .action-button {
   width: 100%;
   min-height: 132px;
+  margin: 0;
   padding: 20px;
   display: grid;
   grid-template-columns: 46px minmax(0, 1fr) 18px;
