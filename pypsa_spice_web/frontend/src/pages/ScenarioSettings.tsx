@@ -1,3 +1,6 @@
+import scenarioConfigLayoutStyles from "./ScenarioConfigLayout.module.scss";
+import editorPanelStyles from "../components/EditorPanel.module.scss";
+import styles from "./ScenarioSettings.module.scss";
 import IconButton from "../components/IconButton";
 import { Field, SelectField, ToggleField } from "../components/FormControls";
 import { useState } from "react";
@@ -30,8 +33,8 @@ export default function ScenarioSettings({
   };
 
   return (
-    <div className="config-form">
-      <div className="form-grid">
+    <div className={scenarioConfigLayoutStyles["config-form"]}>
+      <div className={scenarioConfigLayoutStyles["form-grid"]}>
         <Field>
           <span>Model year</span>
           <input
@@ -63,7 +66,7 @@ export default function ScenarioSettings({
       </div>
       <ToggleField label="Edit snapshot range manually" checked={manual} onChange={toggleManual} />
       {manual ? (
-        <div className="form-grid three">
+        <div className={[scenarioConfigLayoutStyles["form-grid"], scenarioConfigLayoutStyles["three"]].join(" ")}>
           <Field>
             <span>Snapshot start</span>
             <input
@@ -88,13 +91,13 @@ export default function ScenarioSettings({
           />
         </div>
       ) : (
-        <p className="field-help">
+        <p className={editorPanelStyles["field-help"]}>
           Full-year hourly range: {modelYear}-01-01 to {modelYear + 1}-01-01, inclusive left.
         </p>
       )}
-      <div className="form-section">
+      <div className={scenarioConfigLayoutStyles["form-section"]}>
         <h3>Temporal resolution</h3>
-        <div className="form-grid">
+        <div className={scenarioConfigLayoutStyles["form-grid"]}>
           <SelectField
             label="Method"
             value={String(resolution.method || "nth_hour")}
@@ -127,9 +130,9 @@ export default function ScenarioSettings({
           )}
         </div>
       </div>
-      <div className="form-section">
+      <div className={scenarioConfigLayoutStyles["form-section"]}>
         <h3>Interest rates</h3>
-        <p className="field-help">Country-specific decimal rates; 0.05 means 5%.</p>
+        <p className={editorPanelStyles["field-help"]}>Country-specific decimal rates; 0.05 means 5%.</p>
         <CountryValueEditor
           value={interest}
           country={country}
@@ -151,7 +154,7 @@ function CountryValueEditor({
 }) {
   if (country === "ALL") return <KeyValueEditor value={value} onChange={onChange} />;
   return (
-    <div className="key-value-grid">
+    <div className={scenarioConfigLayoutStyles["key-value-grid"]}>
       <Field>
         <span>{country}</span>
         <input
@@ -178,10 +181,10 @@ function KeyValueEditor({
     onChange(next);
   };
   return (
-    <div className="mapping-editor">
-      <div className="key-value-grid">
+    <div>
+      <div className={scenarioConfigLayoutStyles["key-value-grid"]}>
         {Object.entries(value).map(([key, raw]) => (
-          <div className="mapping-field" key={key}>
+          <div className={styles["mapping-field"]} key={key}>
             <Field>
               <span>{key}</span>
               <input

@@ -1,3 +1,8 @@
+import styles from "./DashboardPage.module.scss";
+import workspaceFeedbackStyles from "../components/WorkspaceFeedback.module.scss";
+import workspaceUtilitiesStyles from "../components/WorkspaceUtilities.module.scss";
+import dashboardChartCardStyles from "../components/DashboardChartCard.module.scss";
+import dialogSurfaceStyles from "../components/DialogSurface.module.scss";
 import Button from "../components/Button";
 import IconButton from "../components/IconButton";
 import { Field } from "../components/FormControls";
@@ -15,7 +20,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import "./DashboardPage.css";
+
 import DashboardChartCard from "../components/DashboardChartCard";
 import PageHeader from "../components/PageHeader";
 import {
@@ -139,8 +144,8 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
 
   if (!dashboard) {
     return (
-      <div className="dashboard-boot">
-        <span className="spinner" />
+      <div className={styles["dashboard-boot"]}>
+        <span className={workspaceFeedbackStyles["spinner"]} />
         {storageError || "Opening local dashboards…"}
       </div>
     );
@@ -302,8 +307,8 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
     <>
       {topbarTarget &&
         createPortal(
-          <div className="dashboard-topbar-content" aria-label="Dashboard controls">
-            <Field variant="context" className="dashboard-selector">
+          <div className={styles["dashboard-topbar-content"]} aria-label="Dashboard controls">
+            <Field variant="context" className={styles["dashboard-selector"]}>
               <span>Dashboard</span>
               <select value={dashboard.id} onChange={(event) => void chooseDashboard(event.target.value)}>
                 {summaries.map((summary) => (
@@ -313,7 +318,7 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
                 ))}
               </select>
             </Field>
-            <Field variant="context" className="dashboard-project">
+            <Field variant="context" className={styles["dashboard-project"]}>
               <span>Result project</span>
               <select
                 value={workspaceKey(dashboard.dataset, dashboard.project)}
@@ -326,7 +331,7 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
                 ))}
               </select>
             </Field>
-            <div className="dashboard-topbar-actions">
+            <div className={styles["dashboard-topbar-actions"]}>
               <IconButton
                 variant="surface"
                 onClick={() => void newDashboard()}
@@ -352,7 +357,7 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
                 <FileUp aria-hidden="true" />
               </IconButton>
               <input
-                className="sr-only"
+                className={workspaceUtilitiesStyles["sr-only"]}
                 ref={fileInput}
                 type="file"
                 accept=".json,application/json"
@@ -381,27 +386,35 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
         )}
 
       <PageHeader title="Custom dashboards">
-        <div className="dashboard-save-state" role="status" data-status={saveStatus}>
+        <div className={styles["dashboard-save-state"]} role="status" data-status={saveStatus}>
           <i aria-hidden="true" />
           {saveStatus === "saving" ? "Saving…" : saveStatus === "error" ? "Save failed" : "Saved locally"}
         </div>
       </PageHeader>
 
-      {storageError && <div className="notice error">{storageError}</div>}
-      {importError && <div className="notice error">{importError}</div>}
+      {storageError && (
+        <div className={[workspaceFeedbackStyles["notice"], workspaceFeedbackStyles["error"]].join(" ")}>
+          {storageError}
+        </div>
+      )}
+      {importError && (
+        <div className={[workspaceFeedbackStyles["notice"], workspaceFeedbackStyles["error"]].join(" ")}>
+          {importError}
+        </div>
+      )}
 
-      <section className="dashboard-heading">
+      <section className={styles["dashboard-heading"]}>
         <label>
-          <span className="sr-only">Dashboard title</span>
+          <span className={workspaceUtilitiesStyles["sr-only"]}>Dashboard title</span>
           <input
-            className="dashboard-title-input"
+            className={styles["dashboard-title-input"]}
             value={dashboard.title}
             maxLength={120}
             onChange={(event) => updateDashboard({ title: event.target.value || "Untitled dashboard" })}
           />
         </label>
         <label>
-          <span className="sr-only">Dashboard description</span>
+          <span className={workspaceUtilitiesStyles["sr-only"]}>Dashboard description</span>
           <textarea
             value={dashboard.description}
             maxLength={600}
@@ -413,7 +426,7 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
       </section>
 
       {!project && (
-        <div className="dashboard-project-missing">
+        <div className={dashboardChartCardStyles["dashboard-project-missing"]}>
           <LayoutDashboard aria-hidden="true" />
           <b>Result project unavailable</b>
           <span>
@@ -424,11 +437,11 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
       )}
 
       {project && dashboard.rows.length === 0 && (
-        <div className="dashboard-empty">
+        <div className={dashboardChartCardStyles["dashboard-empty"]}>
           <LayoutDashboard aria-hidden="true" />
           <b>Build the first row</b>
           <span>Add a full-width chart or start with a heading row.</span>
-          <div className="dashboard-empty-actions">
+          <div className={styles["dashboard-empty-actions"]}>
             <Button variant="primary" onClick={addChartRow}>
               <Plus aria-hidden="true" />
               Add chart
@@ -444,9 +457,12 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
       {project &&
         dashboard.rows.map((row, index) =>
           row.type === "heading" ? (
-            <section className="dashboard-builder-row dashboard-heading-row" key={row.id}>
-              <label className="dashboard-heading-row-field">
-                <span className="sr-only">Section heading</span>
+            <section
+              className={[styles["dashboard-builder-row"], styles["dashboard-heading-row"]].join(" ")}
+              key={row.id}
+            >
+              <label className={styles["dashboard-heading-row-field"]}>
+                <span className={workspaceUtilitiesStyles["sr-only"]}>Section heading</span>
                 <textarea
                   value={row.title}
                   maxLength={120}
@@ -473,17 +489,17 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
             </section>
           ) : (
             <section
-              className="dashboard-builder-row dashboard-chart-row"
+              className={[styles["dashboard-builder-row"], styles["dashboard-chart-row"]].join(" ")}
               aria-label={`Chart row ${index + 1}`}
               key={row.id}
             >
-              <div className="dashboard-row-content">{renderChartRow(row, index, project)}</div>
+              <div className={styles["dashboard-row-content"]}>{renderChartRow(row, index, project)}</div>
             </section>
           ),
         )}
 
       {project && dashboard.rows.length > 0 && (
-        <div className="dashboard-builder-footer">
+        <div className={styles["dashboard-builder-footer"]}>
           <span>Add the next row</span>
           <Button variant="primary" onClick={addChartRow}>
             <Plus aria-hidden="true" />
@@ -537,7 +553,7 @@ function RowActions({
   onRemove: () => void;
 }) {
   return (
-    <div className="dashboard-row-actions">
+    <div className={styles["dashboard-row-actions"]}>
       <IconButton
         variant={compact ? "toolbar" : "surface"}
         disabled={index === 0}
@@ -637,14 +653,14 @@ function AddChartDialog({
 
   return (
     <div
-      className="dialog-backdrop"
+      className={dialogSurfaceStyles["dialog-backdrop"]}
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
     >
       <section
-        className="dialog dashboard-dialog"
+        className={[dialogSurfaceStyles["dialog"], styles["dashboard-dialog"]].join(" ")}
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-dashboard-chart-title"
@@ -655,8 +671,8 @@ function AddChartDialog({
             <X aria-hidden="true" />
           </IconButton>
         </header>
-        <div className="dashboard-dialog-body">
-          <div className="dashboard-dialog-grid">
+        <div className={styles["dashboard-dialog-body"]}>
+          <div className={styles["dashboard-dialog-grid"]}>
             <Field>
               <span>Results section</span>
               <select value={sectionId} onChange={(event) => setSectionId(event.target.value)}>
@@ -695,7 +711,11 @@ function AddChartDialog({
               </select>
             </Field>
           </div>
-          <fieldset className="dashboard-scenario-picker large">
+          <fieldset
+            className={[dashboardChartCardStyles["dashboard-scenario-picker"], dashboardChartCardStyles["large"]].join(
+              " ",
+            )}
+          >
             <legend>
               {mode === "difference" ? "Choose reference, then comparison" : "Choose one or two scenarios"}
             </legend>
@@ -718,7 +738,7 @@ function AddChartDialog({
             })}
           </fieldset>
           {mode === "difference" && scenarios.length === 2 && (
-            <div className="dashboard-difference-preview">
+            <div className={styles["dashboard-difference-preview"]}>
               <span>Difference calculation</span>
               <b>
                 {scenarios[1]} − {scenarios[0]}
@@ -767,28 +787,28 @@ function ImportDashboardDialog({
   );
   return (
     <div
-      className="dialog-backdrop"
+      className={dialogSurfaceStyles["dialog-backdrop"]}
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
     >
       <section
-        className="dialog dashboard-import-dialog"
+        className={[dialogSurfaceStyles["dialog"], styles["dashboard-import-dialog"]].join(" ")}
         role="dialog"
         aria-modal="true"
         aria-labelledby="import-dashboard-title"
       >
         <header>
           <div>
-            <p className="eyebrow">Configuration import</p>
+            <p className={workspaceUtilitiesStyles["eyebrow"]}>Configuration import</p>
             <h2 id="import-dashboard-title">{dashboard.title}</h2>
           </div>
           <IconButton alignEnd onClick={onClose} aria-label="Close">
             <X aria-hidden="true" />
           </IconButton>
         </header>
-        <div className="dashboard-import-summary">
+        <div className={styles["dashboard-import-summary"]}>
           <dl>
             <div>
               <dt>Project</dt>
@@ -806,12 +826,12 @@ function ImportDashboardDialog({
             </div>
           </dl>
           {!project && (
-            <div className="notice">
+            <div className={workspaceFeedbackStyles["notice"]}>
               This result project is not available locally. The configuration can still be imported and repaired later.
             </div>
           )}
           {project && (missingScenarios.length > 0 || missingCharts.length > 0) && (
-            <div className="notice">
+            <div className={workspaceFeedbackStyles["notice"]}>
               {missingScenarios.length} scenario references and {missingCharts.length} chart references are unavailable.
               They will remain in the imported configuration.
             </div>

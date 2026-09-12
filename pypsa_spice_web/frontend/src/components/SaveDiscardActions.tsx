@@ -1,6 +1,6 @@
+import styles from "./SaveDiscardActions.module.scss";
 import Button from "./Button";
 import { Check, RotateCcw, Save } from "lucide-react";
-import "./SaveDiscardActions.css";
 
 interface SaveDiscardActionsProps {
   hasChanges: boolean;
@@ -26,9 +26,9 @@ export default function SaveDiscardActions({
   avoidSideControl = false,
 }: SaveDiscardActionsProps) {
   const className = [
-    "save-discard-actions",
-    floating ? "floating-save-discard-actions" : "",
-    avoidSideControl ? "avoid-side-control" : "",
+    styles["save-discard-actions"],
+    floating ? styles["floating-save-discard-actions"] : "",
+    avoidSideControl ? styles["avoid-side-control"] : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -44,7 +44,7 @@ export default function SaveDiscardActions({
         {saving ? "Saving…" : saveLabel}
       </Button>
       {status && (
-        <span className="save-discard-status" role="status">
+        <span className={styles["save-discard-status"]} role="status">
           <Check aria-hidden="true" />
           {status}
         </span>

@@ -1,4 +1,5 @@
-/* Input and scenario configuration workspace. */
+@value editor-panel-head from "../components/EditorPanel.module.scss";
+
 .table-tools {
   min-height: 72px;
   padding: 13px 20px;
@@ -139,58 +140,6 @@
 .table-pagination > div {
   display: flex;
 }
-.technology-view {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-.selection-title {
-  align-items: flex-end;
-}
-.selection-title dl {
-  min-width: 230px;
-  margin: 0 0 5px;
-  display: grid;
-  gap: 7px;
-}
-.selection-title dl div {
-  display: grid;
-  grid-template-columns: auto minmax(90px, auto);
-  align-items: baseline;
-  justify-content: end;
-  gap: 14px;
-  white-space: nowrap;
-}
-.selection-title dt {
-  color: var(--muted);
-  font-size: var(--text-xs);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-align: right;
-  text-transform: uppercase;
-}
-.selection-title dd {
-  margin: 0;
-  font-size: var(--text-sm);
-  text-align: right;
-}
-.technology-group > header {
-  margin-bottom: 12px;
-}
-.technology-group > header h2 {
-  margin: 0 0 4px;
-  font-size: var(--text-xl);
-  font-weight: 500;
-}
-.technology-group > header span {
-  color: var(--muted);
-  font-size: var(--text-base);
-}
-.technology-panels {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
 .technology-panel .editor-panel-head {
   min-height: 80px;
 }
@@ -198,21 +147,16 @@
   max-height: 46vh;
 }
 @media (max-width: 768px) {
-  .selection-title {
-    align-items: flex-start;
+  .table-tools {
+    align-items: stretch;
     flex-direction: column;
   }
-  .selection-title dl {
+  .table-tools [data-control="search"],
+  .table-tools [data-control="field"][data-compact] {
     width: 100%;
-    min-width: 0;
-    margin: 0;
   }
-  .selection-title dl div {
-    grid-template-columns: auto auto;
-    justify-content: space-between;
-  }
-  .selection-title dt,
-  .selection-title dd {
-    text-align: left;
+  .row-count {
+    margin-left: 0;
+    padding: 0;
   }
 }

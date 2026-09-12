@@ -1,3 +1,10 @@
+import pageHeaderStyles from "./components/PageHeader.module.scss";
+import styles from "./App.module.scss";
+import workspaceFeedbackStyles from "./components/WorkspaceFeedback.module.scss";
+import scenarioComparisonStyles from "./pages/ScenarioComparison.module.scss";
+import workspaceBarStyles from "./components/WorkspaceBar.module.scss";
+import dashboardPageStyles from "./pages/DashboardPage.module.scss";
+import resultsTocStyles from "./components/ResultsToc.module.scss";
 import IconButton from "./components/IconButton";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeftRight, GitCompareArrows, List, Menu, Plus, RefreshCw, X } from "lucide-react";
@@ -318,7 +325,7 @@ export default function App() {
         <>
           <PageHeader title={section!.title}>
             {scenario!.sectors.length > 1 && (
-              <div className="page-controls">
+              <div className={pageHeaderStyles["page-controls"]}>
                 <ContextControl
                   label="Sector run"
                   value={selection.sector}
@@ -328,9 +335,13 @@ export default function App() {
               </div>
             )}
           </PageHeader>
-          <section className="analysis">
-            {error && <div className="notice">{error}</div>}
-            <div className={`chart-grid ${selection.comparison ? "comparison-active" : ""}`}>
+          <section className={styles["analysis"]}>
+            {error && <div className={workspaceFeedbackStyles["notice"]}>{error}</div>}
+            <div
+              className={[styles["chart-grid"], selection.comparison ? styles["comparison-active"] : ""]
+                .filter(Boolean)
+                .join(" ")}
+            >
               {charts.map((chart) => (
                 <ChartCard
                   key={chart.id}
@@ -346,7 +357,9 @@ export default function App() {
               ))}
             </div>
             {charts.length === 0 && (
-              <div className="no-results">No visualisations are configured for this section.</div>
+              <div className={workspaceFeedbackStyles["no-results"]}>
+                No visualisations are configured for this section.
+              </div>
             )}
           </section>
           <ResultsToc key={section!.id} charts={charts} />
@@ -365,7 +378,7 @@ export default function App() {
       }
       if (inputReady) {
         return (
-          <div className="comparison-empty">
+          <div className={scenarioComparisonStyles["comparison-empty"]}>
             <GitCompareArrows aria-hidden="true" />
             <b>Two scenarios are required</b>
             <span>Create another scenario before opening the comparison workspace.</span>
@@ -400,8 +413,8 @@ export default function App() {
   };
 
   return (
-    <div className="app-shell">
-      <a className="skip-link" href="#workspace">
+    <div className={styles["app-shell"]}>
+      <a className={styles["skip-link"]} href="#workspace">
         Skip to workspace
       </a>
       <Sidebar
@@ -415,26 +428,29 @@ export default function App() {
         onSelectSection={chooseSection}
         onToggleDarkMode={() => setDark((current) => !current)}
       />
-      <div className="scrim" onClick={() => setSidebarOpen(false)} />
-      <div className="main-column">
-        <header className="workspace-bar">
+      <div
+        className={[styles["scrim"], sidebarOpen ? styles["scrim-open"] : ""].join(" ")}
+        onClick={() => setSidebarOpen(false)}
+      />
+      <div className={styles["main-column"]}>
+        <header className={workspaceBarStyles["workspace-bar"]}>
           <IconButton
-            className="menu"
+            className={workspaceBarStyles["menu"]}
             onClick={() => setSidebarOpen(!sidebarOpen)}
             aria-label="Open workspace navigation"
           >
             <Menu aria-hidden="true" />
           </IconButton>
           {view === "home" && (
-            <div className="home-bar-copy">
+            <div className={workspaceBarStyles["home-bar-copy"]}>
               <b>Workspace overview</b>
               <span>Open a local project, select a scenario, or continue with a saved dashboard.</span>
             </div>
           )}
           {contextReady && (
-            <div className="workspace-context">
+            <div className={workspaceBarStyles["workspace-context"]}>
               <ContextControl
-                className="project-control"
+                className={workspaceBarStyles["project-control"]}
                 label="Project"
                 value={activeWorkspace}
                 onChange={chooseWorkspace}
@@ -443,14 +459,19 @@ export default function App() {
               {view === "outputs" ? (
                 <>
                   <ContextControl
-                    className="scenario-control"
+                    className={workspaceBarStyles["scenario-control"]}
                     label="Result run"
                     value={selection.scenario}
                     onChange={chooseScenario}
                     options={project!.scenarios.map((item) => ({ value: item.name, label: item.name }))}
                   />
                   <ContextControl
-                    className={`compare-control ${selection.comparison ? "is-active" : ""}`}
+                    className={[
+                      workspaceBarStyles["compare-control"],
+                      selection.comparison ? workspaceBarStyles["is-active"] : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
                     label="Compare with"
                     value={selection.comparison}
                     onChange={(comparison) => setSelection((current) => ({ ...current, comparison }))}
@@ -465,7 +486,7 @@ export default function App() {
               ) : view === "compare" ? (
                 <>
                   <ContextControl
-                    className="scenario-control"
+                    className={workspaceBarStyles["scenario-control"]}
                     label="Reference scenario"
                     value={inputSelection.scenario}
                     onChange={chooseInputScenario}
@@ -473,7 +494,7 @@ export default function App() {
                   />
                   <IconButton
                     variant="surface"
-                    className="comparison-swap"
+                    className={workspaceBarStyles["comparison-swap"]}
                     onClick={() => {
                       const previous = inputSelection.scenario;
                       setInputSelection((current) => ({ ...current, scenario: inputComparison }));
@@ -486,7 +507,7 @@ export default function App() {
                     <ArrowLeftRight aria-hidden="true" />
                   </IconButton>
                   <ContextControl
-                    className="compare-control is-active"
+                    className={[workspaceBarStyles["compare-control"], workspaceBarStyles["is-active"]].join(" ")}
                     label="Comparison scenario"
                     value={inputComparison}
                     onChange={setInputComparison}
@@ -497,9 +518,9 @@ export default function App() {
                 </>
               ) : (
                 <>
-                  <div className="scenario-context-group">
+                  <div className={workspaceBarStyles["scenario-context-group"]}>
                     <ContextControl
-                      className="scenario-control"
+                      className={workspaceBarStyles["scenario-control"]}
                       label="Scenario"
                       value={inputSelection.scenario}
                       onChange={chooseInputScenario}
@@ -508,7 +529,7 @@ export default function App() {
                     {view === "configure" && (
                       <IconButton
                         variant="surface"
-                        className="context-add"
+                        className={workspaceBarStyles["context-add"]}
                         onClick={() => setNewScenarioOpen(true)}
                         aria-label="Create new scenario"
                         title="Create new scenario"
@@ -517,10 +538,12 @@ export default function App() {
                       </IconButton>
                     )}
                   </div>
-                  {view === "inputs" && <div className="input-topbar-controls" id="input-topbar-controls" />}
+                  {view === "inputs" && (
+                    <div className={workspaceBarStyles["input-topbar-controls"]} id="input-topbar-controls" />
+                  )}
                   {view === "configure" && (
                     <ContextControl
-                      className="country-control"
+                      className={workspaceBarStyles["country-control"]}
                       label="Country"
                       value={country}
                       onChange={chooseCountry}
@@ -535,23 +558,25 @@ export default function App() {
             </div>
           )}
           {view === "dashboard" && (
-            <div className="workspace-context">
-              <div id="dashboard-topbar-controls" className="dashboard-topbar-controls" />
+            <div className={workspaceBarStyles["workspace-context"]}>
+              <div id="dashboard-topbar-controls" className={dashboardPageStyles["dashboard-topbar-controls"]} />
             </div>
           )}
           {view === "home" && modelRunLabel && (
-            <span className="home-run-status" role="status" aria-live="polite">
+            <span className={workspaceBarStyles["home-run-status"]} role="status" aria-live="polite">
               <i />
               {modelRunLabel}
             </span>
           )}
-          <div className="top-actions">
+          <div className={workspaceBarStyles["top-actions"]}>
             <IconButton variant="surface" onClick={refreshCurrent} aria-label="Refresh data" title="Refresh data">
               <RefreshCw aria-hidden="true" />
             </IconButton>
           </div>
         </header>
-        <main id="workspace">{renderWorkspace()}</main>
+        <main className={styles["main-content"]} id="workspace">
+          {renderWorkspace()}
+        </main>
       </div>
       {inspector && <DataDialog {...inspector} onClose={() => setInspector(null)} />}
       {newScenarioOpen && inputProject && (
@@ -615,9 +640,16 @@ function ResultsToc({ charts }: { charts: ChartDefinition[] }) {
   }, [open]);
   if (!charts.length) return null;
   return (
-    <div className={`results-toc ${open ? "open" : ""}`} ref={root}>
+    <div
+      className={[resultsTocStyles["results-toc"], open ? resultsTocStyles["open"] : ""].filter(Boolean).join(" ")}
+      ref={root}
+    >
       {open && (
-        <nav className="results-toc-panel" id="results-figure-list" aria-label="Figures on this page">
+        <nav
+          className={resultsTocStyles["results-toc-panel"]}
+          id="results-figure-list"
+          aria-label="Figures on this page"
+        >
           <header>
             <h2>Figures</h2>
             <IconButton alignEnd onClick={() => setOpen(false)} aria-label="Close figure list">
@@ -637,7 +669,7 @@ function ResultsToc({ charts }: { charts: ChartDefinition[] }) {
         </nav>
       )}
       <IconButton
-        className="results-toc-trigger"
+        className={resultsTocStyles["results-toc-trigger"]}
         onClick={() => setOpen((current) => !current)}
         aria-label="Open figure list"
         aria-expanded={open}
@@ -650,9 +682,9 @@ function ResultsToc({ charts }: { charts: ChartDefinition[] }) {
 }
 function Boot({ message }: { message: string }) {
   return (
-    <div className="boot inline">
+    <div className={[styles["boot"], styles["inline"]].join(" ")}>
       <img src="/ui/pypsa-logo.svg" alt="PyPSA" />
-      <span className="spinner" />
+      <span className={workspaceFeedbackStyles["spinner"]} />
       {message}
     </div>
   );

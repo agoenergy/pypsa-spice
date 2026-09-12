@@ -1,0 +1,111 @@
+@value chart-card from "./components/ChartSurface.module.scss";
+@value notice from "./components/WorkspaceFeedback.module.scss";
+
+.main-column {
+  min-width: 0;
+}
+.main-content {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 56px) clamp(20px, 3vw, 48px) 64px;
+}
+.analysis {
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 0 28px 28px;
+  grid-template-columns: minmax(0, 1fr);
+}
+.chart-grid.comparison-active .chart-card {
+  grid-column: 1/-1;
+}
+@media (max-width: 1280px) {
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .main-column > footer {
+    display: block;
+  }
+  .main-column > footer span {
+    display: block;
+    margin: 4px 0;
+  }
+}
+.skip-link {
+  position: fixed;
+  z-index: 1000;
+  left: 12px;
+  top: -60px;
+  background: var(--ink);
+  color: var(--surface);
+  padding: 12px 16px;
+}
+.skip-link:focus {
+  top: 12px;
+}
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar) minmax(0, 1fr);
+  min-height: 100vh;
+}
+.main-column > footer {
+  padding: 20px clamp(20px, 3vw, 48px);
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  display: flex;
+  justify-content: space-between;
+}
+.boot {
+  height: 100vh;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 24px;
+  color: var(--muted);
+}
+.boot img {
+  width: 130px;
+  margin: auto;
+}
+.scrim {
+  display: none;
+}
+@media (max-width: 1024px) {
+  .app-shell {
+    display: block;
+  }
+  .chart-grid {
+    padding: 0 14px 14px;
+  }
+}
+.analysis {
+  min-width: 0;
+  background: transparent;
+  border: 0;
+}
+.analysis .chart-grid {
+  padding: 0;
+}
+.analysis .notice {
+  margin: 0 0 18px;
+}
+.boot.inline {
+  height: min(620px, 70vh);
+}
+
+@media (max-width: 1024px) {
+  .scrim-open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgb(0 0 0 / 0.45);
+  }
+}

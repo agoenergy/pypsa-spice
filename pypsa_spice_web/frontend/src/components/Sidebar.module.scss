@@ -271,12 +271,4 @@
   .sidebar.open {
     transform: none;
   }
-
-  .sidebar.open ~ :global(.scrim) {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    background: rgb(0 0 0 / 0.45);
-  }
 }

@@ -1,9 +1,13 @@
+import styles from "./DashboardChartCard.module.scss";
+import chartSurfaceStyles from "./ChartSurface.module.scss";
+import dashboardPageStyles from "../pages/DashboardPage.module.scss";
+import workspaceFeedbackStyles from "./WorkspaceFeedback.module.scss";
 import Button from "./Button";
 import IconButton from "./IconButton";
 import { Field } from "./FormControls";
 import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { ArrowLeftRight, Expand, Minimize2, Settings2, Table2 } from "lucide-react";
-import "./DashboardChartCard.css";
+
 import { getChart } from "../api";
 import type { DashboardChartConfig } from "../types";
 import Plot, { buildDifferenceRows, ChartLegend, getLegendValues } from "./Plot";
@@ -162,20 +166,20 @@ export default function DashboardChartCard({
 
   if (!chart) {
     return (
-      <article className="dashboard-chart-card chart-card">
-        <header className="chart-head">
-          <div className="chart-title">
+      <article className={[styles["dashboard-chart-card"], chartSurfaceStyles["chart-card"]].join(" ")}>
+        <header className={chartSurfaceStyles["chart-head"]}>
+          <div className={chartSurfaceStyles["chart-title"]}>
             <h3>{config.customTitle || config.chartId}</h3>
           </div>
-          <div className="dashboard-chart-toolbar">{rowActions}</div>
+          <div className={styles["dashboard-chart-toolbar"]}>{rowActions}</div>
         </header>
-        <div className="dashboard-source-missing">
+        <div className={styles["dashboard-source-missing"]}>
           <b>Chart unavailable</b>
           <span>
             The chart definition “{config.chartId}” is no longer in the Results catalog. Choose a replacement below.
           </span>
         </div>
-        <div className="dashboard-card-config dashboard-source-repair">
+        <div className={[styles["dashboard-card-config"], dashboardPageStyles["dashboard-source-repair"]].join(" ")}>
           <ChartSourceSelect config={config} sections={sections} onChange={onChange} />
         </div>
       </article>
@@ -220,10 +224,16 @@ export default function DashboardChartCard({
 
   return (
     <article
-      className={`dashboard-chart-card chart-card ${expanded ? "expanded" : ""} ${series.length > 1 ? "comparing" : ""}`}
+      className={[
+        [styles["dashboard-chart-card"], chartSurfaceStyles["chart-card"]].join(" "),
+        expanded ? chartSurfaceStyles["expanded"] : "",
+        series.length > 1 ? chartSurfaceStyles["comparing"] : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
-      <header className="chart-head">
-        <div className="chart-title">
+      <header className={chartSurfaceStyles["chart-head"]}>
+        <div className={chartSurfaceStyles["chart-title"]}>
           <small>
             {config.mode === "difference" && config.scenarios.length === 2
               ? `${config.scenarios[1]} − ${config.scenarios[0]}`
@@ -231,8 +241,8 @@ export default function DashboardChartCard({
           </small>
           <h3>{title}</h3>
         </div>
-        <div className="dashboard-chart-toolbar">
-          <div className="dashboard-card-actions">
+        <div className={styles["dashboard-chart-toolbar"]}>
+          <div className={styles["dashboard-card-actions"]}>
             <IconButton
               variant="toolbar"
               aria-pressed={editing}
@@ -265,7 +275,7 @@ export default function DashboardChartCard({
       </header>
 
       {editing && (
-        <div className="dashboard-card-config">
+        <div className={styles["dashboard-card-config"]}>
           <Field>
             <span>Chart title</span>
             <input
@@ -313,7 +323,7 @@ export default function DashboardChartCard({
               ))}
             </select>
           </Field>
-          <fieldset className="dashboard-scenario-picker">
+          <fieldset className={styles["dashboard-scenario-picker"]}>
             <legend>{config.mode === "difference" ? "Reference and comparison" : "Scenarios (maximum two)"}</legend>
             {scenarioOptions.map((scenario) => {
               const checked = config.scenarios.includes(scenario.name);
@@ -334,7 +344,7 @@ export default function DashboardChartCard({
           </fieldset>
           {config.mode === "difference" && config.scenarios.length === 2 && (
             <Button
-              className="dashboard-swap"
+              className={styles["dashboard-swap"]}
               onClick={() => update({ scenarios: [config.scenarios[1], config.scenarios[0]] })}
             >
               <ArrowLeftRight aria-hidden="true" />
@@ -401,7 +411,7 @@ export default function DashboardChartCard({
       )}
 
       {missingScenarios.length > 0 && (
-        <div className="dashboard-source-missing">
+        <div className={styles["dashboard-source-missing"]}>
           <b>Scenario unavailable</b>
           <span>
             {missingScenarios.join(", ")} could not be found in this project. Open chart settings to choose a
@@ -410,7 +420,7 @@ export default function DashboardChartCard({
         </div>
       )}
       {!missingScenarios.length && incompatibleScenarios.length > 0 && (
-        <div className="dashboard-source-missing">
+        <div className={styles["dashboard-source-missing"]}>
           <b>Sector unavailable</b>
           <span>
             {incompatibleScenarios.join(", ")} does not contain the selected sector “{config.sector}”.
@@ -419,23 +429,29 @@ export default function DashboardChartCard({
       )}
       {!missingScenarios.length && !incompatibleScenarios.length && (
         <div
-          className={`chart-body dashboard-chart-body ${hasRows ? "with-plot" : ""} ${config.mode === "scenario" && series.length > 1 ? "dashboard-multi-layout" : ""}`}
+          className={[
+            [chartSurfaceStyles["chart-body"], styles["dashboard-chart-body"]].join(" "),
+            hasRows ? chartSurfaceStyles["with-plot"] : "",
+            config.mode === "scenario" && series.length > 1 ? styles["dashboard-multi-layout"] : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
           aria-busy={loading}
         >
           {showLoadingIndicator && !series.length && (
-            <div className="state">
-              <span className="spinner" />
+            <div className={workspaceFeedbackStyles["state"]}>
+              <span className={workspaceFeedbackStyles["spinner"]} />
               Reading result tables…
             </div>
           )}
           {!loading && error && (
-            <div className="state empty">
+            <div className={[workspaceFeedbackStyles["state"], workspaceFeedbackStyles["empty"]].join(" ")}>
               <b>No chart data</b>
               <span>{error}</span>
             </div>
           )}
           {!loading && !error && series.length > 0 && !hasRows && (
-            <div className="state empty">
+            <div className={[workspaceFeedbackStyles["state"], workspaceFeedbackStyles["empty"]].join(" ")}>
               <b>No values in this result table</b>
               <span>The selected scenarios contain no values for this chart.</span>
             </div>
@@ -457,7 +473,7 @@ export default function DashboardChartCard({
           {!error && hasRows && config.mode === "scenario" && series.length > 1 && (
             <>
               {series.map((entry) => (
-                <div className="scenario-plot" key={entry.scenario}>
+                <div className={chartSurfaceStyles["scenario-plot"]} key={entry.scenario}>
                   <ScenarioHeading title={entry.scenario} />
                   <Plot
                     chart={chart}
@@ -484,7 +500,7 @@ export default function DashboardChartCard({
             </>
           )}
           {!error && hasRows && config.mode === "difference" && series.length === 2 && (
-            <div className="difference-plot">
+            <div className={chartSurfaceStyles["difference-plot"]}>
               <ScenarioHeading label="Difference" title={`${series[1].scenario} − ${series[0].scenario}`} />
               <Plot
                 chart={chart}
@@ -502,8 +518,8 @@ export default function DashboardChartCard({
             </div>
           )}
           {chart.hourly && showLoadingIndicator && series.length > 0 && (
-            <div className="hourly-loading-overlay" role="status" aria-live="polite">
-              <span className="spinner" aria-hidden="true" />
+            <div className={chartSurfaceStyles["hourly-loading-overlay"]} role="status" aria-live="polite">
+              <span className={workspaceFeedbackStyles["spinner"]} aria-hidden="true" />
               <span>Updating chart…</span>
             </div>
           )}
@@ -524,7 +540,7 @@ function toggleLegend(value: string, setter: Dispatch<SetStateAction<Set<string>
 
 function ScenarioHeading({ label = "Scenario", title }: { label?: string; title: string }) {
   return (
-    <div className="scenario-label">
+    <div className={chartSurfaceStyles["scenario-label"]}>
       <small>{label}</small>
       <h4>{title}</h4>
     </div>

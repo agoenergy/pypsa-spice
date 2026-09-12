@@ -1,3 +1,9 @@
+import technologyEditorStyles from "./TechnologyEditor.module.scss";
+import editorPanelStyles from "../components/EditorPanel.module.scss";
+import styles from "./TableEditor.module.scss";
+import workspaceUtilitiesStyles from "../components/WorkspaceUtilities.module.scss";
+import workspaceFeedbackStyles from "../components/WorkspaceFeedback.module.scss";
+import dataTableStyles from "../components/DataTable.module.scss";
 import IconButton from "../components/IconButton";
 import { useDeferredValue, useEffect, useId, useRef, useState } from "react";
 import { AlertTriangle, Check, ChevronLeft, ChevronRight } from "lucide-react";
@@ -19,7 +25,7 @@ const PAGE_SIZE = 100;
 
 export function TableTitle({ definition }: { definition: InputTableDefinition }) {
   return (
-    <PageHeader title={definition.label} className="selection-title">
+    <PageHeader title={definition.label} className={technologyEditorStyles["selection-title"]}>
       <dl>
         <div>
           <dt>Scope</dt>
@@ -37,8 +43,8 @@ export function TableTitle({ definition }: { definition: InputTableDefinition })
 export function TableView({ definition, selection }: { definition: InputTableDefinition; selection: InputSelection }) {
   const global = definition.scope === "global";
   return (
-    <div className="table-view">
-      <section className="technology-group">
+    <div>
+      <section className={technologyEditorStyles["technology-group"]}>
         <header>
           <h2>{global ? "Global input" : "Scenario input"}</h2>
           <span>
@@ -211,10 +217,14 @@ export default function TableEditor({
 
   if (hideWhenEmpty && (loading || (!error && table?.total_filtered_rows === 0))) return null;
   return (
-    <section className={`editor-panel${technology ? " technology-panel" : ""}`}>
-      <header className="editor-panel-head">
+    <section
+      className={[editorPanelStyles["editor-panel"], technology ? styles["technology-panel"] : ""]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <header className={editorPanelStyles["editor-panel-head"]}>
         <div>
-          <p className="eyebrow">
+          <p className={workspaceUtilitiesStyles["eyebrow"]}>
             {definition.scope === "global" ? "Global source" : `${definition.sector} · ${selection.scenario}`}
           </p>
           <h2>{definition.label}</h2>
@@ -230,7 +240,7 @@ export default function TableEditor({
         />
       </header>
       {definition.timeseries && (
-        <div className="editor-warning">
+        <div className={editorPanelStyles["editor-warning"]}>
           <AlertTriangle aria-hidden="true" />
           <span>
             <b>Read-only timeseries.</b> Large hourly inputs are shown for inspection and edited locally outside the
@@ -239,27 +249,27 @@ export default function TableEditor({
         </div>
       )}
       {error && (
-        <div className="notice error">
+        <div className={[workspaceFeedbackStyles["notice"], workspaceFeedbackStyles["error"]].join(" ")}>
           {error}
           <button onClick={() => void load()}>Reload</button>
         </div>
       )}
       {success && (
-        <div className="notice success">
+        <div className={[workspaceFeedbackStyles["notice"], workspaceFeedbackStyles["success"]].join(" ")}>
           <Check aria-hidden="true" />
           {success}
         </div>
       )}
       {loading ? (
-        <div className="editor-loading">
-          <span className="spinner" />
+        <div className={editorPanelStyles["editor-loading"]}>
+          <span className={workspaceFeedbackStyles["spinner"]} />
           Reading CSV…
         </div>
       ) : (
         table && (
           <>
             {(!technology || showCountryFilter) && (
-              <div className="table-tools">
+              <div className={styles["table-tools"]}>
                 {!technology && <SearchField value={query} onChange={setQuery} placeholder="Find a row or value" />}
                 {showCountryFilter && (
                   <SelectField
@@ -286,14 +296,14 @@ export default function TableEditor({
                   />
                 )}
                 {!technology && (
-                  <span className="row-count">
+                  <span className={styles["row-count"]}>
                     {table.total_filtered_rows.toLocaleString()} of {table.total_rows.toLocaleString()} rows
                   </span>
                 )}
               </div>
             )}
-            <div className="editable-table-wrap">
-              <table className="editable-table">
+            <div className={styles["editable-table-wrap"]}>
+              <table className={[dataTableStyles["table"], styles["editable-table"]].join(" ")}>
                 <thead>
                   <tr>
                     {table.columns.map((column) => (
@@ -308,7 +318,10 @@ export default function TableEditor({
                   {rows.map((row) => (
                     <tr key={row.__row_id}>
                       {table.columns.map((column) => (
-                        <td key={column.name} className={column.editable ? "editable-cell" : "locked-cell"}>
+                        <td
+                          key={column.name}
+                          className={column.editable ? styles["editable-cell"] : styles["locked-cell"]}
+                        >
                           {column.editable ? (
                             <CellEditor
                               value={row[column.name]}
@@ -325,7 +338,7 @@ export default function TableEditor({
                 </tbody>
               </table>
             </div>
-            <footer className="table-pagination">
+            <footer className={styles["table-pagination"]}>
               <span>
                 Page {Math.min(page + 1, pageCount)} of {pageCount} · {table.total_filtered_rows.toLocaleString()}{" "}
                 matching rows
@@ -365,7 +378,7 @@ function CellEditor({
 }) {
   if (kind === "boolean") {
     return (
-      <label className="cell-check">
+      <label className={styles["cell-check"]}>
         <input type="checkbox" checked={Boolean(value)} onChange={(event) => onChange(event.target.checked)} />
         <span aria-hidden="true" />
       </label>
@@ -373,7 +386,7 @@ function CellEditor({
   }
   return (
     <input
-      className="cell-input"
+      className={styles["cell-input"]}
       value={String(value ?? "")}
       inputMode={kind === "number" ? "decimal" : undefined}
       onChange={(event) => onChange(event.target.value)}

@@ -1,0 +1,88 @@
+@value notice from "./WorkspaceFeedback.module.scss";
+
+.field-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.editor-panel {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.editor-panel-head {
+  min-height: 92px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.editor-panel-head h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 500;
+}
+.editor-panel-head code {
+  display: block;
+  max-width: min(720px, 62vw);
+  margin-top: 5px;
+  color: var(--muted);
+  font:
+    var(--text-xs)/1.4 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.editor-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 20px 0;
+  padding: 13px 15px;
+  border-left: 3px solid var(--orange);
+  background: color-mix(in srgb, var(--orange) 7%, var(--surface));
+  font-size: var(--text-base);
+}
+.editor-warning svg {
+  width: 18px;
+  flex: 0 0 18px;
+  color: var(--orange);
+}
+.editor-panel > .notice {
+  margin: 16px 20px 0;
+}
+.editor-loading,
+.editor-empty {
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--muted);
+}
+.editor-empty {
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+@media (max-width: 1280px) {
+  .editor-panel-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .editor-panel-head code {
+    max-width: 80vw;
+  }
+}
+.editor-warning {
+  border-left: 0;
+}
+.editor-empty.compact {
+  min-height: 100px;
+  border: 0;
+  background: var(--surface-2);
+}

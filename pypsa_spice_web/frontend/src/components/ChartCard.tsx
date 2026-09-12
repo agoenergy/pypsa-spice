@@ -1,8 +1,10 @@
+import chartSurfaceStyles from "./ChartSurface.module.scss";
+import workspaceFeedbackStyles from "./WorkspaceFeedback.module.scss";
 import IconButton from "./IconButton";
 import { IconLink } from "./IconButton";
 import { useEffect, useMemo, useState } from "react";
 import { Download, Expand, Minimize2, RotateCcw, Table2 } from "lucide-react";
-import "./ChartCard.css";
+
 import { downloadUrl, getChart } from "../api";
 import Plot, { buildDifferenceRows, ChartLegend, getLegendValues } from "./Plot";
 import type { Catalog, ChartDefinition, ChartResponse, ResultRow, Selection } from "../types";
@@ -201,14 +203,21 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
   return (
     <article
       id={`figure-${chart.id}`}
-      className={`chart-card ${expanded ? "expanded" : ""} ${comparing ? "comparing" : ""} ${showDifference ? "showing-difference" : ""}`}
+      className={[
+        chartSurfaceStyles["chart-card"],
+        expanded ? chartSurfaceStyles["expanded"] : "",
+        comparing ? chartSurfaceStyles["comparing"] : "",
+        showDifference ? "" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
-      <header className="chart-head">
-        <div className="chart-title">
+      <header className={chartSurfaceStyles["chart-head"]}>
+        <div className={chartSurfaceStyles["chart-title"]}>
           <h3>{chart.name}</h3>
         </div>
-        <div className="chart-toolbar">
-          <div className="chart-controls">
+        <div className={chartSurfaceStyles["chart-toolbar"]}>
+          <div className={chartSurfaceStyles["chart-controls"]}>
             <select
               aria-label={`Country for ${chart.name}`}
               value={country}
@@ -243,7 +252,10 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
               </select>
             )}
             {selection.comparison && (
-              <label className="chart-difference-toggle" title={`${selection.comparison} − ${selection.scenario}`}>
+              <label
+                className={chartSurfaceStyles["chart-difference-toggle"]}
+                title={`${selection.comparison} − ${selection.scenario}`}
+              >
                 <input
                   type="checkbox"
                   checked={showDifference}
@@ -254,7 +266,7 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
               </label>
             )}
           </div>
-          <div className="chart-actions">
+          <div className={chartSurfaceStyles["chart-actions"]}>
             <IconButton
               variant="toolbar"
               title={showDifference ? "View difference data" : "View source data"}
@@ -294,8 +306,8 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
         availableEnd !== null &&
         selectedStart !== null &&
         selectedEnd !== null && (
-          <div className="time-range-controls" aria-label={`Time range for ${chart.name}`}>
-            <div className="time-range-head">
+          <div className={chartSurfaceStyles["time-range-controls"]} aria-label={`Time range for ${chart.name}`}>
+            <div className={chartSurfaceStyles["time-range-head"]}>
               <span>Time range</span>
               {hasTimeRange && (
                 <button
@@ -310,12 +322,12 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
                 </button>
               )}
             </div>
-            <div className="time-range-values" aria-live="polite">
+            <div className={chartSurfaceStyles["time-range-values"]} aria-live="polite">
               <output>{readableTimestamp(selectedStart)}</output>
               <output>{readableTimestamp(selectedEnd)}</output>
             </div>
-            <div className="dual-range">
-              <div className="range-track" aria-hidden="true">
+            <div className={chartSurfaceStyles["dual-range"]}>
+              <div className={chartSurfaceStyles["range-track"]} aria-hidden="true">
                 <i style={{ left: `${startPercent}%`, right: `${100 - endPercent}%` }} />
               </div>
               <input
@@ -341,23 +353,29 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
           </div>
         )}
       <div
-        className={`chart-body ${primary && primary.rows.length > 0 ? "with-plot" : ""} ${comparing && !showDifference ? "comparison-layout" : ""}`}
+        className={[
+          chartSurfaceStyles["chart-body"],
+          primary && primary.rows.length > 0 ? chartSurfaceStyles["with-plot"] : "",
+          comparing && !showDifference ? chartSurfaceStyles["comparison-layout"] : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         aria-busy={loading}
       >
         {showLoadingIndicator && !primary && (
-          <div className="state">
-            <span className="spinner" />
+          <div className={workspaceFeedbackStyles["state"]}>
+            <span className={workspaceFeedbackStyles["spinner"]} />
             Reading result table…
           </div>
         )}
         {!loading && error && (
-          <div className="state empty">
+          <div className={[workspaceFeedbackStyles["state"], workspaceFeedbackStyles["empty"]].join(" ")}>
             <b>No chart data</b>
             <span>{error}</span>
           </div>
         )}
         {!loading && !error && primary && primary.rows.length === 0 && (
-          <div className="state empty">
+          <div className={[workspaceFeedbackStyles["state"], workspaceFeedbackStyles["empty"]].join(" ")}>
             <b>No values in this result table</b>
             <span>The chart will appear when the selected run contains data.</span>
           </div>
@@ -378,7 +396,7 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
         )}
         {!error && primary && primary.rows.length > 0 && comparing && !showDifference && (
           <>
-            <div className="scenario-plot">
+            <div className={chartSurfaceStyles["scenario-plot"]}>
               <ChartContextHeading label="Primary scenario" title={selection.scenario} />
               <Plot
                 chart={chart}
@@ -395,7 +413,7 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
                 onLegendToggle={toggleLegendValue}
               />
             </div>
-            <div className="scenario-plot">
+            <div className={chartSurfaceStyles["scenario-plot"]}>
               <ChartContextHeading label="Comparison scenario" title={selection.comparison} />
               <Plot
                 chart={chart}
@@ -421,7 +439,7 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
           </>
         )}
         {!error && primary && primary.rows.length > 0 && comparing && showDifference && (
-          <div className="difference-plot">
+          <div className={chartSurfaceStyles["difference-plot"]}>
             <ChartContextHeading label="Difference" title={`${selection.comparison} − ${selection.scenario}`} />
             <Plot
               chart={chart}
@@ -439,8 +457,8 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
           </div>
         )}
         {chart.hourly && showLoadingIndicator && primary && (
-          <div className="hourly-loading-overlay" role="status" aria-live="polite">
-            <span className="spinner" aria-hidden="true" />
+          <div className={chartSurfaceStyles["hourly-loading-overlay"]} role="status" aria-live="polite">
+            <span className={workspaceFeedbackStyles["spinner"]} aria-hidden="true" />
             <span>Updating chart…</span>
           </div>
         )}
@@ -451,7 +469,7 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
 
 function ChartContextHeading({ label, title }: { label: string; title: string }) {
   return (
-    <div className="scenario-label">
+    <div className={chartSurfaceStyles["scenario-label"]}>
       <small>{label}</small>
       <h4>{title}</h4>
     </div>

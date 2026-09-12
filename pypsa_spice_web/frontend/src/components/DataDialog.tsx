@@ -1,6 +1,10 @@
+import dialogSurfaceStyles from "./DialogSurface.module.scss";
+import dataTableStyles from "./DataTable.module.scss";
+import styles from "./DataDialog.module.scss";
+import workspaceUtilitiesStyles from "./WorkspaceUtilities.module.scss";
 import Button from "./Button";
 import IconButton from "./IconButton";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -16,7 +20,7 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { ChevronLeft, ChevronRight, Columns, Download, ListFilter, RotateCcw, Search, X } from "lucide-react";
-import "./DataDialog.css";
+
 import type { ChartDefinition, ResultRow } from "../types";
 
 interface Props {
@@ -147,21 +151,21 @@ function HourlyDataDialog({ title, rows, sourceCount, onClose }: Omit<Props, "ch
   const visibleRows = limitHourlyRows(table.rows);
   return (
     <div
-      className="dialog-backdrop"
+      className={dialogSurfaceStyles["dialog-backdrop"]}
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <section className="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+      <section className={dialogSurfaceStyles["dialog"]} role="dialog" aria-modal="true" aria-labelledby="dialog-title">
         <header>
           <h2 id="dialog-title">{title}</h2>
           <IconButton alignEnd onClick={onClose} aria-label="Close data table">
             <X aria-hidden="true" />
           </IconButton>
         </header>
-        <div className="table-wrap">
-          <table>
+        <div className={dataTableStyles["table-wrap"]}>
+          <table className={dataTableStyles["table"]}>
             <thead>
               <tr>
                 {table.columns.map((column) => (
@@ -173,7 +177,7 @@ function HourlyDataDialog({ title, rows, sourceCount, onClose }: Omit<Props, "ch
               {visibleRows.map((row, index) => (
                 <tr key={index}>
                   {table.columns.map((column) => (
-                    <td className={typeof row[column] === "number" ? "number" : ""} key={column}>
+                    <td className={typeof row[column] === "number" ? dataTableStyles["number"] : ""} key={column}>
                       {formatCell(row[column])}
                     </td>
                   ))}
@@ -202,6 +206,7 @@ export default function DataDialog({ chart, rows, sourceCount, onClose }: Props)
 }
 
 function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
+  const dialogRef = useRef<HTMLElement>(null);
   const canPivot = rows.length > 0 && rows.every((row) => row.year !== null && row.year !== undefined);
   const isDifferenceView = rows.some((row) => typeof row.scenario === "string" && row.scenario.includes(" − "));
   const [view, setView] = useState<"pivot" | "raw">(canPivot ? "pivot" : "raw");
@@ -286,9 +291,7 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
     setPagination((current) => ({ ...current, pageIndex: 0 }));
   }, [view]);
   useEffect(() => {
-    const openTableMenus = () => [
-      ...document.querySelectorAll<HTMLDetailsElement>(".yearly-table-dialog details[open]"),
-    ];
+    const openTableMenus = () => [...(dialogRef.current?.querySelectorAll<HTMLDetailsElement>("details[open]") ?? [])];
     const closeMenusOutside = (event: PointerEvent) => {
       if (!(event.target instanceof Node)) return;
       for (const menu of openTableMenus()) {
@@ -361,16 +364,22 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
 
   return (
     <div
-      className="dialog-backdrop yearly-table-backdrop"
+      className={[dialogSurfaceStyles["dialog-backdrop"], styles["yearly-table-backdrop"]].join(" ")}
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <section className="dialog yearly-table-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
-        <header className="yearly-table-header">
+      <section
+        ref={dialogRef}
+        className={[dialogSurfaceStyles["dialog"], styles["yearly-table-dialog"]].join(" ")}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dialog-title"
+      >
+        <header className={styles["yearly-table-header"]}>
           <div>
-            <p className="eyebrow">Results table · {chart.units || "Values"}</p>
+            <p className={workspaceUtilitiesStyles["eyebrow"]}>Results table · {chart.units || "Values"}</p>
             <h2 id="dialog-title">{chart.name}</h2>
           </div>
           <IconButton alignEnd onClick={onClose} aria-label="Close data table">
@@ -378,10 +387,10 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
           </IconButton>
         </header>
 
-        <div className="yearly-table-toolbar">
-          <label className="yearly-table-search">
+        <div className={styles["yearly-table-toolbar"]}>
+          <label className={styles["yearly-table-search"]}>
             <Search aria-hidden="true" />
-            <span className="sr-only">Search table</span>
+            <span className={workspaceUtilitiesStyles["sr-only"]}>Search table</span>
             <input
               value={globalFilter}
               onChange={(event) => setGlobalFilter(event.target.value)}
@@ -393,20 +402,20 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
               </IconButton>
             )}
           </label>
-          <div className="yearly-view-toggle" aria-label="Table view">
+          <div className={styles["yearly-view-toggle"]} aria-label="Table view">
             <button
-              className={view === "pivot" ? "active" : ""}
+              className={view === "pivot" ? styles["active"] : ""}
               type="button"
               onClick={() => setView("pivot")}
               disabled={!pivotedTable.pivoted}
             >
               Pivoted
             </button>
-            <button className={view === "raw" ? "active" : ""} type="button" onClick={() => setView("raw")}>
+            <button className={view === "raw" ? styles["active"] : ""} type="button" onClick={() => setView("raw")}>
               Raw
             </button>
           </div>
-          <details className="yearly-columns-menu">
+          <details className={styles["yearly-columns-menu"]}>
             <summary>
               <Columns aria-hidden="true" />
               Columns
@@ -426,12 +435,12 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
               ))}
             </div>
           </details>
-          <Button className="yearly-export" type="button" onClick={exportFiltered}>
+          <Button className={styles["yearly-export"]} type="button" onClick={exportFiltered}>
             <Download aria-hidden="true" />
             Export filtered view
           </Button>
           {activeFilterCount > 0 && (
-            <button className="yearly-reset" type="button" onClick={clearAllFilters}>
+            <button className={styles["yearly-reset"]} type="button" onClick={clearAllFilters}>
               <RotateCcw aria-hidden="true" />
               Clear filters
             </button>
@@ -439,7 +448,7 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
         </div>
 
         {activeFilterCount > 0 && (
-          <div className="yearly-filter-chips" aria-label="Active filters">
+          <div className={styles["yearly-filter-chips"]} aria-label="Active filters">
             {globalFilter.trim() && (
               <button type="button" onClick={() => setGlobalFilter("")}>
                 Search: “{globalFilter.trim()}” <X aria-hidden="true" />
@@ -464,9 +473,14 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
           </div>
         )}
 
-        <div className="table-wrap yearly-table-wrap">
+        <div className={[dataTableStyles["table-wrap"], styles["yearly-table-wrap"]].join(" ")}>
           <table
-            className={`yearly-results-table ${displayTable.pivoted ? "pivot-table" : ""}`}
+            className={[
+              dataTableStyles["table"],
+              [styles["yearly-results-table"], displayTable.pivoted ? dataTableStyles["pivot-table"] : ""]
+                .filter(Boolean)
+                .join(" "),
+            ].join(" ")}
             style={{ width: table.getTotalSize() }}
           >
             <thead>
@@ -485,7 +499,9 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
                     const sorted = column.getIsSorted();
                     return (
                       <th
-                        className={`${numeric ? "number" : ""} ${pinned ? "pinned-column" : ""}`}
+                        className={[numeric ? dataTableStyles["number"] : "", pinned ? styles["pinned-column"] : ""]
+                          .filter(Boolean)
+                          .join(" ")}
                         key={header.id}
                         style={{
                           width: header.getSize(),
@@ -494,9 +510,9 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
                           left: pinned === "left" ? column.getStart("left") : undefined,
                         }}
                       >
-                        <div className="yearly-column-heading">
+                        <div className={styles["yearly-column-heading"]}>
                           <button
-                            className="yearly-sort"
+                            className={styles["yearly-sort"]}
                             type="button"
                             onClick={column.getToggleSortingHandler()}
                             aria-label={`Sort by ${displayLabel(column.id)}`}
@@ -509,7 +525,11 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
                             </span>
                             <i aria-hidden="true">{sorted === "asc" ? "↑" : sorted === "desc" ? "↓" : "↕"}</i>
                           </button>
-                          <details className={`yearly-column-filter ${filtered ? "active" : ""}`}>
+                          <details
+                            className={[styles["yearly-column-filter"], filtered ? styles["active"] : ""]
+                              .filter(Boolean)
+                              .join(" ")}
+                          >
                             <summary
                               aria-label={`Filter ${displayLabel(column.id)}`}
                               title={`Filter ${displayLabel(column.id)}`}
@@ -526,7 +546,7 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
                                 )}
                               </header>
                               {numeric ? (
-                                <div className="yearly-number-filter">
+                                <div className={styles["yearly-number-filter"]}>
                                   <label>
                                     <span>Minimum</span>
                                     <input
@@ -545,7 +565,7 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
                                   </label>
                                 </div>
                               ) : (
-                                <div className="yearly-value-filter">
+                                <div className={styles["yearly-value-filter"]}>
                                   {categoricalOptions(column.id).map((value) => (
                                     <label key={value}>
                                       <input
@@ -564,7 +584,12 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
                           </details>
                         </div>
                         <span
-                          className={`yearly-column-resizer ${column.getIsResizing() ? "is-resizing" : ""}`}
+                          className={[
+                            styles["yearly-column-resizer"],
+                            column.getIsResizing() ? styles["is-resizing"] : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
                           role="separator"
                           aria-orientation="vertical"
                           onMouseDown={header.getResizeHandler()}
@@ -584,7 +609,12 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
                     const value = cell.getValue<ResultRow[string]>();
                     return (
                       <td
-                        className={`${typeof value === "number" ? "number" : ""} ${pinned ? "pinned-column" : ""}`}
+                        className={[
+                          typeof value === "number" ? dataTableStyles["number"] : "",
+                          pinned ? styles["pinned-column"] : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
                         key={cell.id}
                         style={{
                           width: cell.column.getSize(),
@@ -608,7 +638,12 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
                     const pinned = column.getIsPinned();
                     return (
                       <td
-                        className={`${summaryColumns.includes(column.id) ? "number" : ""} ${pinned ? "pinned-column" : ""}`}
+                        className={[
+                          summaryColumns.includes(column.id) ? dataTableStyles["number"] : "",
+                          pinned ? styles["pinned-column"] : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
                         key={column.id}
                         style={{
                           width: column.getSize(),
@@ -630,14 +665,14 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
             )}
           </table>
           {pageRows.length === 0 && (
-            <div className="yearly-table-empty">
+            <div className={styles["yearly-table-empty"]}>
               <b>No matching rows</b>
               <span>Change or clear the active filters.</span>
             </div>
           )}
         </div>
 
-        <footer className="yearly-table-footer">
+        <footer className={styles["yearly-table-footer"]}>
           <span>
             Showing {pageRows.length.toLocaleString()} of {filteredRows.length.toLocaleString()} filtered rows ·{" "}
             {displayTable.rows.length.toLocaleString()} total
@@ -654,7 +689,7 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
               ))}
             </select>
           </label>
-          <div className="yearly-pagination">
+          <div className={styles["yearly-pagination"]}>
             <IconButton
               type="button"
               onClick={() => table.previousPage()}

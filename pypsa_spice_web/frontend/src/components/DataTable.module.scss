@@ -1,0 +1,36 @@
+.table-wrap {
+  overflow: auto;
+  max-height: 65vh;
+}
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--text-sm);
+}
+.table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+  text-transform: capitalize;
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.table th.number,
+.table td.number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.pivot-table {
+  width: max-content;
+  min-width: 100%;
+}
+.pivot-table th.number {
+  min-width: 92px;
+}

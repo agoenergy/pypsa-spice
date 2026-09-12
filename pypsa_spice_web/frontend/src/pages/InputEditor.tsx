@@ -1,7 +1,9 @@
+import workspaceBarStyles from "../components/WorkspaceBar.module.scss";
+import editorPanelStyles from "../components/EditorPanel.module.scss";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Cpu, Table2 } from "lucide-react";
-import "./InputEditor.css";
+
 import { SelectField } from "../components/FormControls";
 import sidebarStyles from "../components/Sidebar.module.scss";
 import type { InputCatalog, InputSelection } from "../types";
@@ -97,7 +99,7 @@ export default function InputEditor({
           <>
             <SelectField
               variant="context"
-              className="input-sector-control"
+              className={workspaceBarStyles["input-sector-control"]}
               label="Sector"
               value={sector}
               onChange={(value) => guarded(() => setSector(value))}
@@ -106,7 +108,7 @@ export default function InputEditor({
             {view === "technology" ? (
               <SelectField
                 variant="context"
-                className="input-technology-control"
+                className={workspaceBarStyles["input-technology-control"]}
                 label="Technology"
                 value={technologyId}
                 onChange={(value) => guarded(() => setTechnologyId(value))}
@@ -115,7 +117,7 @@ export default function InputEditor({
             ) : (
               <SelectField
                 variant="context"
-                className="input-table-control"
+                className={workspaceBarStyles["input-table-control"]}
                 label="Table"
                 value={tableId}
                 onChange={(value) => guarded(() => setTableId(value))}
@@ -136,12 +138,12 @@ export default function InputEditor({
             selection={selection}
           />
         ) : (
-          <div className="editor-empty">No configured table is available for this selection.</div>
+          <div className={editorPanelStyles["editor-empty"]}>No configured table is available for this selection.</div>
         )
       ) : technology ? (
         <TechnologyEditor catalog={catalog} selection={selection} sector={sector} technology={technology} />
       ) : (
-        <div className="editor-empty">No mapped technology is available for this sector.</div>
+        <div className={editorPanelStyles["editor-empty"]}>No mapped technology is available for this sector.</div>
       )}
     </>
   );

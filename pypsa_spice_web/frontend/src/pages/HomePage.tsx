@@ -1,3 +1,6 @@
+import styles from "./HomePage.module.scss";
+import workspaceUtilitiesStyles from "../components/WorkspaceUtilities.module.scss";
+import workspaceFeedbackStyles from "../components/WorkspaceFeedback.module.scss";
 import { useEffect, useMemo, useState } from "react";
 import {
   BarChart3,
@@ -8,7 +11,7 @@ import {
   LayoutDashboard,
   Settings2,
 } from "lucide-react";
-import "./HomePage.css";
+
 import { LocalDashboardStore } from "../utility";
 import PageHeader from "../components/PageHeader";
 import WorkspaceActionCard from "../components/WorkspaceActionCard";
@@ -113,16 +116,16 @@ export default function HomePage({
   };
 
   return (
-    <div className="home-page">
+    <div className={styles["home-page"]}>
       <PageHeader title="Workspace overview" />
-      <section className="home-guide-panel">
-        <header className="home-panel-heading">
+      <section className={styles["home-guide-panel"]}>
+        <header className={styles["home-panel-heading"]}>
           <div>
-            <span className="eyebrow">Workflow</span>
+            <span className={workspaceUtilitiesStyles["eyebrow"]}>Workflow</span>
             <h2>How to use the workspace</h2>
           </div>
         </header>
-        <ul className="home-workflow">
+        <ul className={styles["home-workflow"]}>
           <WorkspaceActionCard
             icon={<FilePlus2 />}
             title="Build input data skeleton"
@@ -162,15 +165,15 @@ export default function HomePage({
         </ul>
       </section>
 
-      <div className="home-primary">
-        <section className="home-workspaces">
-          <header className="home-panel-heading">
+      <div className={styles["home-primary"]}>
+        <section className={styles["home-workspaces"]}>
+          <header className={styles["home-panel-heading"]}>
             <div>
-              <span className="eyebrow">Local data</span>
+              <span className={workspaceUtilitiesStyles["eyebrow"]}>Local data</span>
               <h2>Available projects</h2>
             </div>
             {inventory.length > 0 && (
-              <label className="home-project-picker">
+              <label className={styles["home-project-picker"]}>
                 <span>Project · {inventory.length} available</span>
                 <select
                   value={selectedWorkspace?.key ?? ""}
@@ -187,13 +190,13 @@ export default function HomePage({
           </header>
 
           {loading && (
-            <div className="home-loading">
-              <span className="spinner" />
+            <div className={styles["home-loading"]}>
+              <span className={workspaceFeedbackStyles["spinner"]} />
               Discovering projects and scenarios…
             </div>
           )}
           {!loading && inventory.length === 0 && (
-            <div className="home-empty">
+            <div className={styles["home-empty"]}>
               <FolderOpen aria-hidden="true" />
               <b>No projects found</b>
               <span>
@@ -215,7 +218,7 @@ export default function HomePage({
           )}
         </section>
 
-        <p className="home-source-note">
+        <p className={styles["home-source-note"]}>
           <b>Local files are the source of truth.</b> Input changes are written only when saved. Result files remain
           read-only.
         </p>

@@ -1,17 +1,5 @@
-/* Unified configure-and-run workflow. */
-.scenario-context-group {
-  display: flex;
-  align-items: flex-end;
-  gap: 5px;
-}
-.scenario-context-group [data-control="context"] {
-  flex: 1;
-}
-.context-add {
-  --icon-control-glyph-width: 17px;
-  --icon-control-glyph-height: 17px;
-  flex: 0 0 44px;
-}
+@value notice from "./WorkspaceFeedback.module.scss";
+
 .scenario-dialog {
   width: min(620px, 100%);
 }

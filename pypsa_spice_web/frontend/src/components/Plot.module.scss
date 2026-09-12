@@ -1,13 +1,5 @@
-.chart-body.with-plot,
-.chart-card.comparing .chart-body.with-plot {
-  height: auto;
-  overflow: visible;
-}
-.scenario-plot,
-.difference-plot {
-  height: auto;
-  overflow: visible;
-}
+@value scenario-plot, difference-plot, plot, comparison-layout from "./ChartSurface.module.scss";
+
 .plot-with-legend {
   width: 100%;
   min-width: 0;
@@ -69,22 +61,13 @@
   white-space: normal;
   overflow-wrap: anywhere;
 }
-.chart-card.expanded .chart-body.with-plot {
-  height: calc(100vh - 150px);
-  overflow: auto;
-}
 html[data-theme="dark"] .plot-with-legend,
-html[data-theme="dark"] .scenario-plot,
-html[data-theme="dark"] .difference-plot {
-  background: transparent;
-}
 html[data-theme="dark"] .html-legend {
   background: transparent;
 }
 .comparison-layout > .html-legend {
   grid-column: 1/-1;
 }
-/* Interactive chart legends retain the shared legend layout while making each series keyboard accessible. */
 .html-legend-item {
   border: 0;
   padding: 2px;

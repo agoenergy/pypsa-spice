@@ -1,3 +1,6 @@
+import styles from "./ScenarioConfigControls.module.scss";
+import dataTableStyles from "../components/DataTable.module.scss";
+import workspaceUtilitiesStyles from "../components/WorkspaceUtilities.module.scss";
 import IconButton from "../components/IconButton";
 import { Field } from "../components/FormControls";
 import { useState } from "react";
@@ -34,15 +37,15 @@ export function MappingTable({
     setNewKey("");
   };
   return (
-    <div className="config-entry-block">
-      <div className="config-table-wrap">
-        <table className="config-entry-table">
+    <div className={styles["config-entry-block"]}>
+      <div className={styles["config-table-wrap"]}>
+        <table className={[dataTableStyles["table"], styles["config-entry-table"]].join(" ")}>
           <thead>
             <tr>
               <th>{label}</th>
               <th>Value</th>
               <th>
-                <span className="sr-only">Actions</span>
+                <span className={workspaceUtilitiesStyles["sr-only"]}>Actions</span>
               </th>
             </tr>
           </thead>
@@ -75,7 +78,7 @@ export function MappingTable({
         </table>
       </div>
       {allowAdd && (
-        <div className="config-table-add">
+        <div className={styles["config-table-add"]}>
           <Field>
             <span>New {label.toLowerCase()}</span>
             <input

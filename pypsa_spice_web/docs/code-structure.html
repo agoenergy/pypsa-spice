@@ -153,7 +153,7 @@
             <tr><td><code>frontend/src/pages/</code></td><td>Top-level workspaces such as Inputs, Configure, Scenario comparison, Home, and Dashboards. Each page keeps its CSS and tests beside its source.</td><td>Components, API, types, and utilities</td></tr>
             <tr><td><code>frontend/src/components/</code></td><td>Reusable chart, dialog, header, plotting, and model-run UI. Each component keeps its CSS and tests beside its source.</td><td>API, types, and utilities</td></tr>
             <tr><td><code>frontend/src/utility.ts</code></td><td>Dashboard schema parsing, migration, import/export, browser storage, and shared dirty-editor guards.</td><td>Catalog types and localStorage</td></tr>
-            <tr><td><code>frontend/src/global.scss</code></td><td>Global tokens, resets, application shell, and shared control styles.</td><td>Class names emitted by the application shell</td></tr>
+            <tr><td><code>frontend/src/global.scss</code></td><td>Fonts, global tokens, resets, focus treatment, and reduced-motion rules.</td><td>Component classes live in explicit SCSS modules</td></tr>
           </tbody>
         </table>
       </section>
@@ -248,7 +248,7 @@ browser localStorage
             <tr><td>Change scenario cloning</td><td><code>scenario_workspace.py</code></td><td>Mutation lock and workspace tests</td></tr>
             <tr><td>Change model execution</td><td><code>scenario_runner.py</code></td><td>Run API, <code>components/RunModel.tsx</code>, manifests, runner tests</td></tr>
             <tr><td>Change dashboard format</td><td><code>frontend/src/utility.ts</code></td><td>Schema migration tests, import/export, browser storage</td></tr>
-            <tr><td>Change visual styling</td><td>The page or component's adjacent <code>.css</code> file</td><td><code>global.scss</code> for global tokens and shell rules</td></tr>
+            <tr><td>Change visual styling</td><td>The page or component's <code>.module.scss</code> file</td><td><code>global.scss</code> for global foundations; <code>App.module.scss</code> for the shell</td></tr>
           </tbody>
         </table>
       </section>

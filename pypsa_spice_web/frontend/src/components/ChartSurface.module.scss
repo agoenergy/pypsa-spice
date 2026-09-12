@@ -1,41 +1,5 @@
-.main-column {
-  min-width: 0;
-}
-.menu {
-  display: none;
-  width: 44px;
-  height: 44px;
-  border: 0;
-  background: transparent;
-  font-size: 20px;
-}
-.top-actions {
-  margin-left: 16px;
-  display: flex;
-  gap: 8px;
-  flex: 0 0 auto;
-}
-main {
-  max-width: 1480px;
-  margin: 0 auto;
-  padding: clamp(28px, 4vw, 56px) clamp(20px, 3vw, 48px) 64px;
-}
-.analysis {
-  background: var(--surface);
-  border: 1px solid var(--line);
-}
-.notice {
-  margin: 0 28px 18px;
-  border-left: 3px solid var(--orange);
-  padding: 12px 15px;
-  background: color-mix(in srgb, var(--orange) 7%, var(--surface));
-}
-.chart-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  padding: 0 28px 28px;
-}
+@value spinner from "./WorkspaceFeedback.module.scss";
+
 .chart-card {
   border: 1px solid var(--line);
   background: var(--surface);
@@ -128,52 +92,6 @@ main {
   width: 100%;
   height: 100%;
 }
-.state {
-  height: 100%;
-  display: grid;
-  place-content: center;
-  text-align: center;
-  color: var(--muted);
-  font-size: var(--text-base);
-  gap: 8px;
-}
-.state.empty b {
-  color: var(--ink);
-  font-size: var(--text-md);
-}
-.spinner {
-  width: 22px;
-  height: 22px;
-  border: 2px solid var(--line);
-  border-top-color: var(--pink);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  display: inline-block;
-  margin: auto;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.no-results {
-  padding: 50px;
-  text-align: center;
-  color: var(--muted);
-}
-.chart-grid {
-  grid-template-columns: minmax(0, 1fr);
-}
-.page-title {
-  margin: 0 0 24px;
-}
-.page-title h1 {
-  margin: 0;
-  font-size: var(--text-2xl);
-  line-height: 1.2;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-}
 .chart-difference-toggle {
   position: relative;
   min-height: 44px;
@@ -221,9 +139,6 @@ main {
 }
 .chart-difference-toggle:focus-within {
   box-shadow: inset 0 0 0 2px var(--pink);
-}
-.chart-grid.comparison-active .chart-card {
-  grid-column: 1/-1;
 }
 .chart-card.comparing .chart-body {
   height: 390px;
@@ -402,11 +317,6 @@ main {
   pointer-events: auto;
   cursor: grab;
 }
-@media (max-width: 1280px) {
-  .chart-grid {
-    grid-template-columns: 1fr;
-  }
-}
 @media (max-width: 1024px) {
   .chart-card.comparing .comparison-layout {
     grid-template-columns: 1fr;
@@ -463,13 +373,6 @@ main {
   .chart-body {
     height: 300px;
   }
-  .main-column > footer {
-    display: block;
-  }
-  .main-column > footer span {
-    display: block;
-    margin: 4px 0;
-  }
 }
 .chart-title h3 {
   margin: 0;
@@ -485,7 +388,6 @@ main {
   width: 13px;
   height: 13px;
 }
-/* One shared subheading treatment for primary, comparison, and difference plots. */
 .chart-card.comparing .chart-body.with-plot {
   padding: 0;
 }
@@ -498,7 +400,6 @@ main {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* Keep the last hourly plot visible while a slider change fetches its replacement. */
 .hourly-loading-overlay {
   position: absolute;
   inset: 4px;
@@ -523,4 +424,30 @@ main {
   .hourly-loading-overlay .spinner {
     animation: none;
   }
+}
+.chart-body.with-plot,
+.chart-card.comparing .chart-body.with-plot,
+.scenario-plot,
+.difference-plot {
+  height: auto;
+  overflow: visible;
+}
+.chart-card.expanded .chart-body.with-plot {
+  height: calc(100vh - 150px);
+  overflow: auto;
+}
+html[data-theme="dark"] .scenario-plot,
+html[data-theme="dark"] .difference-plot {
+  background: transparent;
+}
+.time-range-head button svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
+}
+.chart-card {
+  scroll-margin-top: 96px;
+}
+.scenario-label.difference {
+  border-left: 0;
 }

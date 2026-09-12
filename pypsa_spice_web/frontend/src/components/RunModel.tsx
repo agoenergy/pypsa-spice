@@ -1,3 +1,7 @@
+import editorPanelStyles from "./EditorPanel.module.scss";
+import workspaceFeedbackStyles from "./WorkspaceFeedback.module.scss";
+import styles from "./RunModel.module.scss";
+import workspaceUtilitiesStyles from "./WorkspaceUtilities.module.scss";
 import Button from "./Button";
 import { Field } from "./FormControls";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -14,7 +18,7 @@ import {
   RotateCcw,
   SquareTerminal,
 } from "lucide-react";
-import "./RunModel.css";
+
 import {
   cancelModelRun,
   getModelRunOptions,
@@ -171,37 +175,41 @@ export default function RunModel({
 
   if (loading || runMonitor.loading)
     return (
-      <div className="editor-loading">
-        <span className="spinner" />
+      <div className={editorPanelStyles["editor-loading"]}>
+        <span className={workspaceFeedbackStyles["spinner"]} />
         Reading base_config.yaml…
       </div>
     );
 
   return (
     <>
-      <PageHeader title={`Review & run ${selection.scenario}`} className="run-page-title" />
+      <PageHeader title={`Review & run ${selection.scenario}`} className={styles["run-page-title"]} />
 
       {runMonitor.error && (
-        <div className="notice run-notice" role="status">
+        <div className={[workspaceFeedbackStyles["notice"], styles["run-notice"]].join(" ")} role="status">
           {runMonitor.error}
         </div>
       )}
       {error && (
-        <div className="notice error run-notice">
+        <div
+          className={[workspaceFeedbackStyles["notice"], workspaceFeedbackStyles["error"], styles["run-notice"]].join(
+            " ",
+          )}
+        >
           <AlertTriangle aria-hidden="true" />
           {error}
         </div>
       )}
 
-      <section className="run-review editor-panel">
-        <header className="editor-panel-head">
+      <section className={[styles["run-review"], editorPanelStyles["editor-panel"]].join(" ")}>
+        <header className={editorPanelStyles["editor-panel-head"]}>
           <div>
             <h2>Run summary</h2>
             <code>{scenarioConfig?.path || "scenario_config.yaml"}</code>
           </div>
           <CheckCircle2 aria-hidden="true" />
         </header>
-        <div className="run-review-grid">
+        <div className={styles["run-review-grid"]}>
           <ReviewItem label="Data folder" value={selection.dataset} />
           <ReviewItem label="Project" value={selection.project} />
           <ReviewItem label="Input scenario" value={selection.scenario} />
@@ -211,7 +219,7 @@ export default function RunModel({
           <ReviewItem label="Sectors" value={options?.sectors.join(", ") || "Not configured"} />
           <ReviewItem label="Currency" value={options?.currency || "Not configured"} />
         </div>
-        <div className="repository-review">
+        <div className={styles["repository-review"]}>
           <GitBranch aria-hidden="true" />
           {workspace?.repository.available ? (
             <>
@@ -222,7 +230,7 @@ export default function RunModel({
                 </b>
                 <small>{workspace.repository.remote || workspace.repository.root}</small>
               </div>
-              <strong className={workspace.repository.dirty ? "dirty" : "clean"}>
+              <strong className={workspace.repository.dirty ? styles["dirty"] : styles["clean"]}>
                 {workspace.repository.dirty
                   ? `${workspace.repository.changes.length} local change${workspace.repository.changes.length === 1 ? "" : "s"}`
                   : "Clean worktree"}
@@ -239,7 +247,7 @@ export default function RunModel({
             </>
           )}
         </div>
-        <div className="run-requirements">
+        <div className={styles["run-requirements"]}>
           <span>
             <CheckCircle2 aria-hidden="true" />
             <b>{options?.environment || "hotpot"}</b> Conda environment required
@@ -255,21 +263,21 @@ export default function RunModel({
         </div>
       </section>
 
-      <section className="run-layout">
-        <form className="run-setup editor-panel" onSubmit={start}>
-          <header className="editor-panel-head">
+      <section className={styles["run-layout"]}>
+        <form className={editorPanelStyles["editor-panel"]} onSubmit={start}>
+          <header className={editorPanelStyles["editor-panel-head"]}>
             <div>
               <h2>Run configuration</h2>
               <code>{options?.config_file || "base_config.yaml"}</code>
             </div>
             <FileCode2 aria-hidden="true" />
           </header>
-          <div className="run-form">
-            <p className="field-help">
+          <div className={styles["run-form"]}>
+            <p className={editorPanelStyles["field-help"]}>
               The values below replace the four <code>path_configs</code> entries in a run-local copy of{" "}
               <code>base_config.yaml</code>. The repository file remains the source template.
             </p>
-            <div className="run-path-grid">
+            <div className={styles["run-path-grid"]}>
               <ReadOnlyField label="Data folder" value={selection.dataset} />
               <ReadOnlyField label="Project" value={selection.project} />
               <ReadOnlyField label="Input scenario" value={selection.scenario} />
@@ -284,7 +292,7 @@ export default function RunModel({
                 />
               </Field>
             </div>
-            <div className="run-dimensions">
+            <div className={styles["run-dimensions"]}>
               {dimensions.map((item) => (
                 <div key={item.label}>
                   <span>{item.label}</span>
@@ -292,7 +300,7 @@ export default function RunModel({
                 </div>
               ))}
             </div>
-            <div className="run-advanced">
+            <div className={styles["run-advanced"]}>
               <Field>
                 <span>CPU cores</span>
                 <input
@@ -310,7 +318,7 @@ export default function RunModel({
               </div>
             </div>
           </div>
-          <footer className="run-actions">
+          <footer className={styles["run-actions"]}>
             <div>
               <b>Snakemake writes results into</b>
               <code>
@@ -324,10 +332,10 @@ export default function RunModel({
           </footer>
         </form>
 
-        <section className="run-monitor editor-panel" aria-live="polite">
-          <header className="editor-panel-head">
+        <section className={[styles["run-monitor"], editorPanelStyles["editor-panel"]].join(" ")} aria-live="polite">
+          <header className={editorPanelStyles["editor-panel-head"]}>
             <div>
-              <p className="eyebrow">Workflow monitor</p>
+              <p className={workspaceUtilitiesStyles["eyebrow"]}>Workflow monitor</p>
               <h2>{run ? statusLabel(run.status) : "Ready to run"}</h2>
               {run && <code>{run.id}</code>}
             </div>
@@ -335,19 +343,19 @@ export default function RunModel({
           </header>
           {run ? (
             <>
-              <div className="run-progress-block">
+              <div className={styles["run-progress-block"]}>
                 {!runMatchesSelection && (
-                  <div className="run-selection-warning">
+                  <div className={styles["run-selection-warning"]}>
                     <AlertTriangle aria-hidden="true" />
                     This status belongs to {run.project} / {run.input_scenario}.
                   </div>
                 )}
-                <div className="run-progress-label">
+                <div className={styles["run-progress-label"]}>
                   <span>{run.message}</span>
                   <b>{Math.round(run.progress)}%</b>
                 </div>
                 <ChilliProgress value={run.progress} />
-                <dl className="run-meta">
+                <dl className={styles["run-meta"]}>
                   <div>
                     <dt>Current rule</dt>
                     <dd>{run.current_rule || "Waiting for Snakemake"}</dd>
@@ -376,7 +384,7 @@ export default function RunModel({
                   </div>
                 </dl>
               </div>
-              <div className="run-log-head">
+              <div className={styles["run-log-head"]}>
                 <span>
                   <SquareTerminal aria-hidden="true" />
                   Snakemake log
@@ -388,11 +396,11 @@ export default function RunModel({
                   </Button>
                 )}
               </div>
-              <pre className="run-log" ref={logRef}>
+              <pre className={styles["run-log"]} ref={logRef}>
                 {run.log || "Waiting for Snakemake output…"}
               </pre>
               {!active && (
-                <div className="run-complete-actions">
+                <div className={styles["run-complete-actions"]}>
                   <Button type="button" onClick={onEditConfiguration}>
                     <Pencil aria-hidden="true" />
                     Edit configuration
@@ -415,7 +423,7 @@ export default function RunModel({
               )}
             </>
           ) : (
-            <div className="run-empty">
+            <div className={styles["run-empty"]}>
               <SquareTerminal aria-hidden="true" />
               <b>No web run yet</b>
               <span>Confirm the output scenario and start the model to see progress and logs here.</span>
@@ -449,7 +457,7 @@ function ChilliProgress({ value }: { value: number }) {
   const progress = Math.max(0, Math.min(100, value));
   return (
     <div
-      className="chilli-progress"
+      className={styles["chilli-progress"]}
       role="progressbar"
       aria-label="Model run progress"
       aria-valuemin={0}
@@ -460,9 +468,9 @@ function ChilliProgress({ value }: { value: number }) {
       {Array.from({ length: CHILLI_COUNT }, (_, index) => {
         const fill = Math.max(0, Math.min(1, (progress / 100) * CHILLI_COUNT - index));
         return (
-          <span className="chilli-step" aria-hidden="true" key={index}>
-            <img className="chilli-outline" src="/ui/favicon.svg" alt="" />
-            <span className="chilli-fill" style={{ clipPath: `inset(0 ${100 - fill * 100}% 0 0)` }}>
+          <span className={styles["chilli-step"]} aria-hidden="true" key={index}>
+            <img className={styles["chilli-outline"]} src="/ui/favicon.svg" alt="" />
+            <span className={styles["chilli-fill"]} style={{ clipPath: `inset(0 ${100 - fill * 100}% 0 0)` }}>
               <img src="/ui/favicon.svg" alt="" />
             </span>
           </span>
@@ -474,7 +482,13 @@ function ChilliProgress({ value }: { value: number }) {
 
 function StatusIcon({ run }: { run: ModelRun | null }) {
   if (!run || run.status === "queued" || run.status === "running" || run.status === "canceling")
-    return <Clock3 className={run ? "run-status-icon running" : "run-status-icon"} aria-hidden="true" />;
-  if (run.status === "succeeded") return <CheckCircle2 className="run-status-icon succeeded" aria-hidden="true" />;
-  return <AlertTriangle className="run-status-icon failed" aria-hidden="true" />;
+    return (
+      <Clock3
+        className={run ? [styles["run-status-icon"], styles["running"]].join(" ") : styles["run-status-icon"]}
+        aria-hidden="true"
+      />
+    );
+  if (run.status === "succeeded")
+    return <CheckCircle2 className={[styles["run-status-icon"], styles["succeeded"]].join(" ")} aria-hidden="true" />;
+  return <AlertTriangle className={[styles["run-status-icon"], styles["failed"]].join(" ")} aria-hidden="true" />;
 }

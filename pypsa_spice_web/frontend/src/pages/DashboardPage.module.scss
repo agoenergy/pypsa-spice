@@ -1,4 +1,7 @@
-/* Browser-local custom dashboard builder. */
+@value eyebrow from "../components/WorkspaceUtilities.module.scss";
+@value notice from "../components/WorkspaceFeedback.module.scss";
+@value dashboard-chart-toolbar from "../components/DashboardChartCard.module.scss";
+
 .dashboard-boot {
   min-height: 420px;
   display: flex;
@@ -319,12 +322,7 @@
     --icon-control-disabled-opacity: 0.3;
     justify-content: flex-end;
   }
-  .dashboard-dialog-grid {
-    grid-template-columns: 1fr;
-  }
-  .dashboard-scenario-picker.large {
-    grid-template-columns: 1fr;
-  }
+  .dashboard-dialog-grid,
   .dashboard-difference-preview {
     grid-template-columns: 1fr;
   }
@@ -343,19 +341,14 @@
   }
 }
 @media (max-width: 640px) {
-  .dashboard-chart-card .chart-head {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .dashboard-chart-toolbar {
-    width: 100%;
-    margin-left: 0;
-  }
   .dashboard-chart-toolbar .dashboard-row-actions {
     --icon-control-disabled-opacity: 0.3;
     margin-left: auto;
   }
-  .dashboard-chart-body.dashboard-multi-layout {
-    grid-template-columns: 1fr;
-  }
+}
+.dashboard-chart-toolbar .dashboard-row-actions {
+  --icon-control-disabled-opacity: 0.28;
+  width: auto;
+  padding-left: 5px;
+  border-left: 1px solid var(--line);
 }

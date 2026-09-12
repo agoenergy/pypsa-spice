@@ -1,3 +1,5 @@
+import scenarioConfigLayoutStyles from "./ScenarioConfigLayout.module.scss";
+import editorPanelStyles from "../components/EditorPanel.module.scss";
 import { SelectField } from "../components/FormControls";
 import { MappingTable } from "./ScenarioConfigControls";
 
@@ -15,11 +17,11 @@ export default function Co2Editor({
   };
   const entries = Object.entries(value).filter(([name]) => country === "ALL" || name === country);
   return (
-    <div className="config-form">
+    <div className={scenarioConfigLayoutStyles["config-form"]}>
       {entries.map(([name, raw]) => {
         const config = (raw || {}) as Record<string, unknown>;
         return (
-          <article className="country-config" key={name}>
+          <article className={scenarioConfigLayoutStyles["country-config"]} key={name}>
             <header>
               <h3>{name}</h3>
               <SelectField
@@ -44,7 +46,9 @@ export default function Co2Editor({
         );
       })}
       {entries.length === 0 && (
-        <div className="editor-empty compact">No CO₂ configuration is defined for {country}.</div>
+        <div className={[editorPanelStyles["editor-empty"], editorPanelStyles["compact"]].join(" ")}>
+          No CO₂ configuration is defined for {country}.
+        </div>
       )}
     </div>
   );

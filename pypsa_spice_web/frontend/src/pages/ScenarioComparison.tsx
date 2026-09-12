@@ -1,9 +1,15 @@
+import styles from "./ScenarioComparison.module.scss";
+import workspaceFeedbackStyles from "../components/WorkspaceFeedback.module.scss";
+import editorPanelStyles from "../components/EditorPanel.module.scss";
+import workspaceUtilitiesStyles from "../components/WorkspaceUtilities.module.scss";
+import resultsTocStyles from "../components/ResultsToc.module.scss";
+import dataTableStyles from "../components/DataTable.module.scss";
 import IconButton from "../components/IconButton";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Info, List, Search, X } from "lucide-react";
 import { getScenarioComparison } from "../api";
 import PageHeader from "../components/PageHeader";
-import "./ScenarioComparison.css";
+
 import type {
   InputSelection,
   ScenarioComparisonResponse,
@@ -119,8 +125,11 @@ export default function ScenarioComparison({
 
   return (
     <>
-      <PageHeader title="Scenario differences" className="comparison-page-title">
-        <div className="comparison-direction" aria-label={`${selection.scenario} compared with ${comparison}`}>
+      <PageHeader title="Scenario differences" className={styles["comparison-page-title"]}>
+        <div
+          className={styles["comparison-direction"]}
+          aria-label={`${selection.scenario} compared with ${comparison}`}
+        >
           <span>
             <small>Reference</small>
             <b>{selection.scenario}</b>
@@ -134,28 +143,34 @@ export default function ScenarioComparison({
       </PageHeader>
 
       {error && (
-        <div className="notice error comparison-notice">
+        <div
+          className={[
+            workspaceFeedbackStyles["notice"],
+            workspaceFeedbackStyles["error"],
+            styles["comparison-notice"],
+          ].join(" ")}
+        >
           {error}
           <button onClick={() => void load()}>Reload</button>
         </div>
       )}
       {loading ? (
-        <div className="editor-loading comparison-loading">
-          <span className="spinner" />
+        <div className={[editorPanelStyles["editor-loading"], styles["comparison-loading"]].join(" ")}>
+          <span className={workspaceFeedbackStyles["spinner"]} />
           Comparing scenario inputs…
         </div>
       ) : (
         data && (
           <>
-            <p className="comparison-scope-note">
+            <p className={styles["comparison-scope-note"]}>
               <Info aria-hidden="true" />
               Only scenario-specific differences are shown. Global inputs are shared by both scenarios and excluded.
             </p>
 
             {data.summary.changes > 0 && (
-              <section className="comparison-tools" aria-label="Filter scenario differences">
-                <label className="comparison-search">
-                  <span className="sr-only">Search differences</span>
+              <section className={styles["comparison-tools"]} aria-label="Filter scenario differences">
+                <label className={styles["comparison-search"]}>
+                  <span className={workspaceUtilitiesStyles["sr-only"]}>Search differences</span>
                   <Search aria-hidden="true" />
                   <input
                     type="search"
@@ -164,32 +179,32 @@ export default function ScenarioComparison({
                     onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))}
                   />
                 </label>
-                <span className="comparison-filter-count">
+                <span className={styles["comparison-filter-count"]}>
                   Showing {filteredChanges.toLocaleString()} of {data.summary.changes.toLocaleString()}
                 </span>
               </section>
             )}
 
             {data.summary.changes === 0 ? (
-              <div className="comparison-empty">
+              <div className={styles["comparison-empty"]}>
                 <CheckCircle2 aria-hidden="true" />
                 <b>No differences found</b>
                 <span>The scenario configuration and scenario-scoped input tables are equivalent.</span>
               </div>
             ) : groupedSections.length === 0 ? (
-              <div className="comparison-empty">
+              <div className={styles["comparison-empty"]}>
                 <Search aria-hidden="true" />
                 <b>No matching differences</b>
                 <span>Try clearing or changing the filters.</span>
               </div>
             ) : (
-              <div className="comparison-results">
+              <div className={styles["comparison-results"]}>
                 {groupedSections.map(({ category, sections }) => (
-                  <section className="comparison-category" key={category}>
+                  <section className={styles["comparison-category"]} key={category}>
                     <header>
                       <h2>{categoryLabels[category]}</h2>
                     </header>
-                    <div className="comparison-section-list">
+                    <div className={styles["comparison-section-list"]}>
                       {sections.map((section) => (
                         <DifferenceTable
                           key={section.id}
@@ -231,9 +246,16 @@ function ComparisonToc({ sections }: { sections: ScenarioDifferenceSection[] }) 
   }, [open]);
 
   return (
-    <div className={`results-toc ${open ? "open" : ""}`} ref={root}>
+    <div
+      className={[resultsTocStyles["results-toc"], open ? resultsTocStyles["open"] : ""].filter(Boolean).join(" ")}
+      ref={root}
+    >
       {open && (
-        <nav className="results-toc-panel" id="comparison-section-list" aria-label="Changed groups on this page">
+        <nav
+          className={resultsTocStyles["results-toc-panel"]}
+          id="comparison-section-list"
+          aria-label="Changed groups on this page"
+        >
           <header>
             <h2>Changed groups</h2>
             <IconButton alignEnd onClick={() => setOpen(false)} aria-label="Close changed-group list">
@@ -253,7 +275,7 @@ function ComparisonToc({ sections }: { sections: ScenarioDifferenceSection[] }) 
         </nav>
       )}
       <IconButton
-        className="results-toc-trigger"
+        className={resultsTocStyles["results-toc-trigger"]}
         onClick={() => setOpen((current) => !current)}
         aria-label="Open changed-group list"
         aria-expanded={open}
@@ -275,10 +297,13 @@ function DifferenceTable({
   comparison: string;
 }) {
   return (
-    <section className="editor-panel comparison-panel" id={section.id.replaceAll(":", "-")}>
-      <header className="editor-panel-head">
+    <section
+      className={[editorPanelStyles["editor-panel"], styles["comparison-panel"]].join(" ")}
+      id={section.id.replaceAll(":", "-")}
+    >
+      <header className={editorPanelStyles["editor-panel-head"]}>
         <div>
-          <p className="eyebrow">
+          <p className={workspaceUtilitiesStyles["eyebrow"]}>
             {section.kind === "input"
               ? "Scenario input"
               : section.kind === "constraint"
@@ -288,8 +313,8 @@ function DifferenceTable({
           <h3>{section.label}</h3>
         </div>
       </header>
-      <div className="comparison-table-wrap">
-        <table className="comparison-table">
+      <div className={styles["comparison-table-wrap"]}>
+        <table className={[dataTableStyles["table"], styles["comparison-table"]].join(" ")}>
           <thead>
             <tr>
               <th>Change</th>
@@ -310,20 +335,32 @@ function DifferenceTable({
             {section.changes.map((change, index) => (
               <tr key={`${change.item}:${change.parameter}:${index}`}>
                 <td>
-                  <span className={`difference-status ${change.status}`}>{statusLabel(change.status)}</span>
+                  <span
+                    className={[styles["difference-status"], styles[change.status] || ""].filter(Boolean).join(" ")}
+                  >
+                    {statusLabel(change.status)}
+                  </span>
                 </td>
                 <th scope="row">
                   <span>{change.item}</span>
                   {change.country && change.country !== change.item && <small>{change.country}</small>}
                 </th>
                 <td>{change.parameter}</td>
-                <td className={change.status === "removed" ? "difference-emphasis removed" : ""}>
+                <td
+                  className={
+                    change.status === "removed" ? [styles["difference-emphasis"], styles["removed"]].join(" ") : ""
+                  }
+                >
                   {formatValue(change.reference)}
                 </td>
-                <td className={change.status === "added" ? "difference-emphasis added" : ""}>
+                <td
+                  className={
+                    change.status === "added" ? [styles["difference-emphasis"], styles["added"]].join(" ") : ""
+                  }
+                >
                   {formatValue(change.comparison)}
                 </td>
-                <td className="difference-delta">{formatDelta(change)}</td>
+                <td className={styles["difference-delta"]}>{formatDelta(change)}</td>
               </tr>
             ))}
           </tbody>

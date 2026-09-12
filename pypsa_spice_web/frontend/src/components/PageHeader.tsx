@@ -1,5 +1,5 @@
+import styles from "./PageHeader.module.scss";
 import type { ReactNode } from "react";
-import "./PageHeader.css";
 
 export default function PageHeader({
   title,
@@ -11,7 +11,7 @@ export default function PageHeader({
   className?: string;
 }) {
   return (
-    <section className={`page-title ${className}`.trim()}>
+    <section className={[styles["page-title"], className].filter(Boolean).join(" ")}>
       <h1>{title}</h1>
       {children}
     </section>

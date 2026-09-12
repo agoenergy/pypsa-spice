@@ -65,6 +65,15 @@ submit buttons specify `type="submit"`. Existing page styles use scoped
 `data-control` selectors for layout and `--icon-control-*` variables for compact
 icon sizes, without depending on generated module class names.
 
+All frontend styles use SCSS. Component and page classes belong in `.module.scss`
+files; `global.scss` contains only fonts, design tokens, resets, focus treatment,
+and reduced-motion rules. `App.module.scss` owns the shell. Shared modules such
+as `ChartSurface`, `DataTable`, `DialogSurface`, and `EditorPanel` own patterns
+used by multiple views. Import their classes in JSX, or use explicit `@value`
+imports when a module needs a shared class in a selector. Vite's scoped-name
+configuration keeps those imports consistent. `styles.test.ts` checks module
+boundaries, JSX class references, and shared class resolution.
+
 The app shares one run-status monitor between its navigation and run page. Active
 runs refresh one second after each successful response. A status request times out
 after 15 seconds; connection failures retain the last known status and retry with

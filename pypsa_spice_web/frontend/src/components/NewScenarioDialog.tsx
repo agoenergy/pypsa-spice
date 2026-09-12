@@ -1,9 +1,12 @@
+import dialogSurfaceStyles from "./DialogSurface.module.scss";
+import styles from "./NewScenarioDialog.module.scss";
+import workspaceFeedbackStyles from "./WorkspaceFeedback.module.scss";
 import Button from "./Button";
 import IconButton from "./IconButton";
 import { Field } from "./FormControls";
 import { useEffect, useState } from "react";
 import { Copy, X } from "lucide-react";
-import "./NewScenarioDialog.css";
+
 import { createScenario } from "../api";
 import type { CreatedScenario, InputSelection } from "../types";
 
@@ -58,13 +61,18 @@ export default function NewScenarioDialog({
 
   return (
     <div
-      className="dialog-backdrop"
+      className={dialogSurfaceStyles["dialog-backdrop"]}
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !submitting) onClose();
       }}
     >
-      <section className="dialog scenario-dialog" role="dialog" aria-modal="true" aria-labelledby="new-scenario-title">
+      <section
+        className={[dialogSurfaceStyles["dialog"], styles["scenario-dialog"]].join(" ")}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-scenario-title"
+      >
         <header>
           <h2 id="new-scenario-title">Create new scenario</h2>
           <IconButton alignEnd onClick={onClose} disabled={submitting} aria-label="Close">
@@ -72,12 +80,16 @@ export default function NewScenarioDialog({
           </IconButton>
         </header>
         <form onSubmit={submit}>
-          <div className="scenario-dialog-body">
+          <div className={styles["scenario-dialog-body"]}>
             <p>
               Duplicate a complete scenario as a new local starting point. Shared <code>global_input</code> files stay
               shared.
             </p>
-            {error && <div className="notice error">{error}</div>}
+            {error && (
+              <div className={[workspaceFeedbackStyles["notice"], workspaceFeedbackStyles["error"]].join(" ")}>
+                {error}
+              </div>
+            )}
             <Field>
               <span>New scenario name</span>
               <input
@@ -97,7 +109,7 @@ export default function NewScenarioDialog({
                 ))}
               </select>
             </Field>
-            <div className="scenario-path-preview">
+            <div className={styles["scenario-path-preview"]}>
               <span>Local destination</span>
               <code>
                 data/{selection.dataset}/{selection.project}/input/{trimmedName || "new_scenario"}

@@ -1,0 +1,8 @@
+.mapping-field {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: end;
+  gap: 4px;
+  --icon-control-glyph-width: 17px;
+}

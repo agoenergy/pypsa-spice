@@ -1,5 +1,7 @@
+import styles from "./Plot.module.scss";
+import chartSurfaceStyles from "./ChartSurface.module.scss";
 import { useEffect, useMemo, useRef, useState } from "react";
-import "./Plot.css";
+
 import { loadPlotly } from "../plotly";
 import type { Catalog, ChartDefinition, ChartResponse, ResultRow } from "../types";
 
@@ -87,11 +89,13 @@ export function ChartLegend({
   onToggle: (value: string) => void;
 }) {
   return (
-    <div className="html-legend" aria-label="Chart legend">
+    <div className={styles["html-legend"]} aria-label="Chart legend">
       {values.map((value, index) => (
         <button
           type="button"
-          className={`html-legend-item ${hiddenValues.has(value) ? "is-hidden" : ""}`}
+          className={[styles["html-legend-item"], hiddenValues.has(value) ? styles["is-hidden"] : ""]
+            .filter(Boolean)
+            .join(" ")}
           key={value}
           aria-pressed={!hiddenValues.has(value)}
           title={`${hiddenValues.has(value) ? "Show" : "Hide"} ${pretty(value, mappings)}`}
@@ -383,10 +387,10 @@ export default function Plot({
     if (ref.current && window.Plotly) window.Plotly.Plots.resize(ref.current);
   }, [expanded]);
   return (
-    <div className="plot-with-legend">
-      <div ref={ref} className="plot">
-        {!plotlyReady && !plotlyError && <span className="plot-message">Loading chart…</span>}
-        {plotlyError && <span className="plot-message error">{plotlyError}</span>}
+    <div className={styles["plot-with-legend"]}>
+      <div ref={ref} className={chartSurfaceStyles["plot"]}>
+        {!plotlyReady && !plotlyError && <span className={styles["plot-message"]}>Loading chart…</span>}
+        {plotlyError && <span className={[styles["plot-message"], styles["error"]].join(" ")}>{plotlyError}</span>}
       </div>
       {showLegend && (
         <ChartLegend

@@ -1,10 +1,5 @@
-.comparison-swap {
-  --icon-control-glyph-width: 17px;
-  --icon-control-glyph-height: 17px;
-  --icon-control-disabled-opacity: 0.4;
-  flex: 0 0 44px;
-  align-self: flex-end;
-}
+@value editor-panel-head from "../components/EditorPanel.module.scss";
+
 .comparison-page-title {
   align-items: flex-end;
 }
@@ -194,9 +189,7 @@
 .comparison-table thead th:nth-child(1) {
   width: 92px;
 }
-.comparison-table thead th:nth-child(2) {
-  width: 24%;
-}
+.comparison-table thead th:nth-child(2),
 .comparison-table thead th:nth-child(3) {
   width: 24%;
 }

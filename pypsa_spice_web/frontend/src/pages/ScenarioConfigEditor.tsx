@@ -1,10 +1,18 @@
+import styles from "./ScenarioConfigEditor.module.scss";
+import editorPanelStyles from "../components/EditorPanel.module.scss";
+import workspaceFeedbackStyles from "../components/WorkspaceFeedback.module.scss";
+import scenarioConfigLayoutStyles from "./ScenarioConfigLayout.module.scss";
+import resultsTocStyles from "../components/ResultsToc.module.scss";
+import scenarioConfigControlsStyles from "./ScenarioConfigControls.module.scss";
+import dataTableStyles from "../components/DataTable.module.scss";
+import workspaceUtilitiesStyles from "../components/WorkspaceUtilities.module.scss";
 import Button from "../components/Button";
 import IconButton from "../components/IconButton";
 import { Field, ToggleField } from "../components/FormControls";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ClipboardCheck, Code2, List, Plus, Settings2, Trash2, X } from "lucide-react";
-import "./ScenarioConfigEditor.css";
+
 import Co2Editor from "./Co2Editor";
 import PageHeader from "../components/PageHeader";
 import RunModel from "../components/RunModel";
@@ -106,24 +114,35 @@ export default function ScenarioConfigEditor({
     <>
       {navigation}
       <PageHeader title={`Configure ${selection.scenario}`} />
-      <div className="config-layout">
-        <section className={`editor-panel config-panel ${section === COMBINED_SECTION ? "combined-config-panel" : ""}`}>
-          <header className="editor-panel-head">
+      <div className={styles["config-layout"]}>
+        <section
+          className={[
+            [editorPanelStyles["editor-panel"], styles["config-panel"]].join(" "),
+            section === COMBINED_SECTION ? "" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          <header className={editorPanelStyles["editor-panel-head"]}>
             <div>
               <h2>{SECTION_LABELS[section]}</h2>
               {editor.config && <code>{editor.config.path}</code>}
             </div>
           </header>
           {editor.error && (
-            <div className="notice error">
+            <div className={[workspaceFeedbackStyles["notice"], workspaceFeedbackStyles["error"]].join(" ")}>
               {editor.error}
               <button onClick={() => void editor.reload()}>Reload</button>
             </div>
           )}
-          {!editor.loading && editor.validationError && <div className="notice error">{editor.validationError}</div>}
+          {!editor.loading && editor.validationError && (
+            <div className={[workspaceFeedbackStyles["notice"], workspaceFeedbackStyles["error"]].join(" ")}>
+              {editor.validationError}
+            </div>
+          )}
           {editor.loading ? (
-            <div className="editor-loading">
-              <span className="spinner" />
+            <div className={editorPanelStyles["editor-loading"]}>
+              <span className={workspaceFeedbackStyles["spinner"]} />
               Reading configuration…
             </div>
           ) : section === "scenario_configs" ? (
@@ -184,9 +203,9 @@ function CombinedConstraintsEditor({
   ];
   return (
     <>
-      <div className="combined-config">
+      <div className={styles["combined-config"]}>
         <section
-          className="combined-config-section"
+          className={styles["combined-config-section"]}
           id="config-co2-management"
           aria-labelledby="co2-management-heading"
         >
@@ -196,7 +215,7 @@ function CombinedConstraintsEditor({
           </header>
           <Co2Editor value={co2} country={country} onChange={(next) => onChange({ ...value, co2_management: next })} />
         </section>
-        <section className="combined-config-section" aria-labelledby="custom-constraints-heading">
+        <section className={styles["combined-config-section"]} aria-labelledby="custom-constraints-heading">
           <header>
             <h3 id="custom-constraints-heading">Custom constraints</h3>
             <p>Activate constraints and edit their parameters directly.</p>
@@ -246,20 +265,20 @@ function CustomConstraintsEditor({
     onChange({ ...value, [countryName]: { ...countryConstraints, [constraintName]: next } });
   };
   return (
-    <div className="config-form constraints-form">
+    <div className={[scenarioConfigLayoutStyles["config-form"], styles["constraints-form"]].join(" ")}>
       {constraintNames.map((constraintName) => {
         const activeCountries = countryNames.filter(
           (countryName) => objectValue(objectValue(value[countryName])[constraintName]).activate === true,
         ).length;
         return (
-          <section className="constraint-group" id={constraintAnchor(constraintName)} key={constraintName}>
+          <section className={styles["constraint-group"]} id={constraintAnchor(constraintName)} key={constraintName}>
             <header>
               <h4>{prettyConfigLabel(constraintName)}</h4>
               <span>
                 {activeCountries} of {countryNames.length} active
               </span>
             </header>
-            <div className="constraint-country-list">
+            <div className={styles["constraint-country-list"]}>
               {countryNames.map((countryName) => (
                 <ConstraintCard
                   key={countryName}
@@ -277,7 +296,9 @@ function CustomConstraintsEditor({
         );
       })}
       {countryNames.length === 0 && (
-        <div className="editor-empty compact">No countries are available for custom constraints.</div>
+        <div className={[editorPanelStyles["editor-empty"], editorPanelStyles["compact"]].join(" ")}>
+          No countries are available for custom constraints.
+        </div>
       )}
     </div>
   );
@@ -302,9 +323,16 @@ function ConfigToc({ items }: { items: { id: string; label: string }[] }) {
     };
   }, [open]);
   return (
-    <div className={`results-toc ${open ? "open" : ""}`} ref={root}>
+    <div
+      className={[resultsTocStyles["results-toc"], open ? resultsTocStyles["open"] : ""].filter(Boolean).join(" ")}
+      ref={root}
+    >
       {open && (
-        <nav className="results-toc-panel" id="config-section-list" aria-label="Configuration sections on this page">
+        <nav
+          className={resultsTocStyles["results-toc-panel"]}
+          id="config-section-list"
+          aria-label="Configuration sections on this page"
+        >
           <header>
             <h2>Sections</h2>
             <IconButton alignEnd onClick={() => setOpen(false)} aria-label="Close section list">
@@ -324,7 +352,7 @@ function ConfigToc({ items }: { items: { id: string; label: string }[] }) {
         </nav>
       )}
       <IconButton
-        className="results-toc-trigger"
+        className={resultsTocStyles["results-toc-trigger"]}
         onClick={() => setOpen((current) => !current)}
         aria-label="Open section list"
         aria-expanded={open}
@@ -357,10 +385,10 @@ function ConstraintCard({
   const active = editableValue.activate === true;
   const fields = Object.keys(editableValue).filter((key) => key !== "activate");
   return (
-    <section className={`constraint-card ${active ? "active" : ""}`}>
+    <section className={[styles["constraint-card"], active ? styles["active"] : ""].filter(Boolean).join(" ")}>
       <header>
         <h5>{country}</h5>
-        <label className="constraint-toggle">
+        <label className={styles["constraint-toggle"]}>
           <input
             type="checkbox"
             aria-label={`Activate ${prettyConfigLabel(name)} for ${country}`}
@@ -384,7 +412,7 @@ function ConstraintCard({
         ) : fields.length ? (
           <ConstraintFields constraintName={name} value={editableValue} onChange={onChange} />
         ) : (
-          <p className="constraint-empty">No parameters required.</p>
+          <p className={styles["constraint-empty"]}>No parameters required.</p>
         ))}
     </section>
   );
@@ -420,19 +448,39 @@ function FuelProductionLimitsEditor({
   };
   const updateCell = (rowId: number, raw: string) =>
     onRowsChange(rows.map((row) => (row.__row_id === rowId ? { ...row, max_supply__mwh_year: raw } : row)));
-  if (error) return <div className="notice error fuel-limit-notice">{error}</div>;
+  if (error)
+    return (
+      <div
+        className={[
+          workspaceFeedbackStyles["notice"],
+          workspaceFeedbackStyles["error"],
+          styles["fuel-limit-notice"],
+        ].join(" ")}
+      >
+        {error}
+      </div>
+    );
   if (!countryRows.length && !selected.size)
-    return <p className="constraint-empty">No fuel supply rows are available for {country}.</p>;
+    return <p className={styles["constraint-empty"]}>No fuel supply rows are available for {country}.</p>;
   return (
-    <div className="constraint-fields fuel-limit-fields">
-      <div className="config-entry-block constraint-wide">
-        <p className="field-label">Maximum annual fuel supply (MWh/year)</p>
-        <p className="field-help">
+    <div className={[styles["constraint-fields"], styles["fuel-limit-fields"]].join(" ")}>
+      <div className={[scenarioConfigControlsStyles["config-entry-block"], styles["constraint-wide"]].join(" ")}>
+        <p className={scenarioConfigControlsStyles["field-label"]}>Maximum annual fuel supply (MWh/year)</p>
+        <p className={editorPanelStyles["field-help"]}>
           Select the carriers to constrain, then enter their maximum supply for each year. Use <code>inf</code> for no
           numerical limit. Values are saved to <code>power/fuel_supplies.csv</code>.
         </p>
-        <div className="config-table-wrap">
-          <table className="config-entry-table matrix-table fuel-limit-table">
+        <div className={scenarioConfigControlsStyles["config-table-wrap"]}>
+          <table
+            className={[
+              dataTableStyles["table"],
+              [
+                scenarioConfigControlsStyles["config-entry-table"],
+                styles["matrix-table"],
+                styles["fuel-limit-table"],
+              ].join(" "),
+            ].join(" ")}
+          >
             <thead>
               <tr>
                 <th>Apply</th>
@@ -447,7 +495,7 @@ function FuelProductionLimitsEditor({
                 <tr key={carrier}>
                   <td>
                     <input
-                      className="fuel-limit-check"
+                      className={styles["fuel-limit-check"]}
                       type="checkbox"
                       aria-label={`Apply fuel production limit to ${carrier} in ${country}`}
                       checked={selected.has(carrier)}
@@ -468,7 +516,7 @@ function FuelProductionLimitsEditor({
                             onChange={(event) => updateCell(row.__row_id, event.target.value)}
                           />
                         ) : (
-                          <span className="fuel-limit-missing" title="No fuel supply row for this year">
+                          <span className={styles["fuel-limit-missing"]} title="No fuel supply row for this year">
                             —
                           </span>
                         )}
@@ -495,7 +543,7 @@ function ConstraintFields({
   onChange: (value: Record<string, unknown>) => void;
 }) {
   return (
-    <div className="constraint-fields">
+    <div className={styles["constraint-fields"]}>
       {Object.entries(value)
         .filter(([key]) => key !== "activate")
         .map(([key, raw]) => (
@@ -524,7 +572,7 @@ function ConstraintField({
 }) {
   if (Array.isArray(value)) {
     return (
-      <Field className="constraint-wide">
+      <Field className={styles["constraint-wide"]}>
         <span>{prettyConfigLabel(name)}</span>
         <input
           value={value.join(", ")}
@@ -556,7 +604,7 @@ function ConstraintField({
     if (years || Object.values(mapping).every(isScalar))
       return <MappingTable label={years ? "Year" : label} value={mapping} yearKeys={years} onChange={onChange} />;
     return (
-      <section className="constraint-object">
+      <section className={styles["constraint-object"]}>
         <h6>{prettyConfigLabel(name)}</h6>
         <ConstraintFields constraintName={constraintName} value={mapping} onChange={onChange} />
       </section>
@@ -564,7 +612,12 @@ function ConstraintField({
   }
   if (typeof value === "boolean") {
     return (
-      <ToggleField className="constraint-boolean" checked={value} onChange={onChange} label={prettyConfigLabel(name)} />
+      <ToggleField
+        className={styles["constraint-boolean"]}
+        checked={value}
+        onChange={onChange}
+        label={prettyConfigLabel(name)}
+      />
     );
   }
   if (name === "method") {
@@ -654,11 +707,16 @@ function YearMatrixEditor({
     setNewYear("");
   };
   return (
-    <div className="config-entry-block matrix-entry-block">
-      <p className="field-label">{label}</p>
+    <div className={[scenarioConfigControlsStyles["config-entry-block"], styles["matrix-entry-block"]].join(" ")}>
+      <p className={scenarioConfigControlsStyles["field-label"]}>{label}</p>
       {technologies.length ? (
-        <div className="config-table-wrap">
-          <table className="config-entry-table matrix-table">
+        <div className={scenarioConfigControlsStyles["config-table-wrap"]}>
+          <table
+            className={[
+              dataTableStyles["table"],
+              [scenarioConfigControlsStyles["config-entry-table"], styles["matrix-table"]].join(" "),
+            ].join(" ")}
+          >
             <thead>
               <tr>
                 <th>Technology</th>
@@ -666,7 +724,7 @@ function YearMatrixEditor({
                   <th key={year}>{year}</th>
                 ))}
                 <th>
-                  <span className="sr-only">Actions</span>
+                  <span className={workspaceUtilitiesStyles["sr-only"]}>Actions</span>
                 </th>
               </tr>
             </thead>
@@ -703,10 +761,10 @@ function YearMatrixEditor({
           </table>
         </div>
       ) : (
-        <p className="constraint-empty">Add a technology to start this table.</p>
+        <p className={styles["constraint-empty"]}>Add a technology to start this table.</p>
       )}
-      <div className="matrix-add-row">
-        <div className="config-table-add">
+      <div className={styles["matrix-add-row"]}>
+        <div className={scenarioConfigControlsStyles["config-table-add"]}>
           <Field>
             <span>New technology</span>
             <input
@@ -723,7 +781,7 @@ function YearMatrixEditor({
             Add
           </Button>
         </div>
-        <div className="config-table-add">
+        <div className={scenarioConfigControlsStyles["config-table-add"]}>
           <Field>
             <span>New year</span>
             <input

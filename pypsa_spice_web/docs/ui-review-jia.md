@@ -4,20 +4,21 @@
 Implementation update, 2026-09-11: addressed automatic formatting under General 4
 and reliable polling under RunModel 1.
 
-Implementation update, 2026-09-12: addressed shared controls under General 3 and
-scoped their base styles as part of General 1 and 2. The remaining page and
-component styles have not all been migrated to SCSS modules; that work and the
-other batch-2 suggestions remain open.
+Implementation update, 2026-09-12: General 1, 2, and 3 are fully addressed.
+All frontend styles now use SCSS, and all component, page, and shared-pattern
+classes live in SCSS modules. Global styles contain only fonts, design tokens,
+resets, focus treatment, and reduced-motion rules. DataDialog 2 is also fixed.
+The other batch-2 suggestions without a reply remain open.
 
 #### General
 
 1. Uses a mix of scss and css, probably because it implemented SCSS from the last batch of comments. Mixing is not inherently problematic, but for the sake of cleanliness i'd suggest just using one or the other
 
-    > Reply: Partly addressed on 2026-09-12. Shared buttons, icon controls, fields, selects, search fields, and toggles now use SCSS modules. Existing page and chart styles still include plain CSS. Converting the remaining stylesheets is separate work and remains open.
+    > Reply: Fully addressed on 2026-09-12. Converted all 13 remaining plain CSS files to SCSS modules, including charts, dialogs, dashboards, input editors, scenario configuration, comparison, and run controls. There are no plain CSS files left in frontend/src. The only non-module stylesheet is global.scss, which contains application-wide foundations only.
 
 2. Bigger issue: mixes global css and modules (e.g. WorkspaceCard.module.scss): non-module css files have global classes, which can lead to conflicts if two component css files have the same selectors defined. Suggest to scope all component and page css (or scss) files as modules
 
-    > Reply: Partly addressed on 2026-09-12. Removed shared control base rules from ChartCard.css, global.scss, and ScenarioConfigEditor.css. They now belong to Button.module.scss, IconButton.module.scss, and FormControls.module.scss. Existing page styles retain contextual layout overrides through data-control attributes and sizing variables. Global tokens, fonts, resets, and focus treatment remain intentional; scoping the remaining component and page styles is still open.
+    > Reply: Fully addressed on 2026-09-12. Every component and page class is now scoped through .module.scss imports. App.module.scss owns the application shell; shared chart frames, tables, dialogs, editor panels, navigation bars, notices, and configuration layouts have explicit shared modules. JSX uses module exports, and cross-module selectors import their shared classes with @value. Vite generates stable scoped names so direct and shared imports resolve identically. Removed the sidebar's global overlay selector, and scoped result-table menu queries to a dialog ref. global.scss contains no component classes or unscoped table rules. Regression checks enforce stylesheet boundaries and verify that JSX references and shared selector imports resolve to real, matching exports. Validation: all 38 frontend tests, formatting, TypeScript, and the production build pass. Browser checks covered home, inputs, configuration, constraints, run review, comparison, results, and the dashboard chart picker in light/dark themes. Measured input and scenario-settings layouts match their pre-migration baselines, and table menus close correctly with Escape and outside clicks.
 
 3. Repeated control patterns, e.g., icon-button appears in a ton of components, and they all reuse the same styling concept. This should be its own component and imported throughout. DataDialog and RunModel (and probably some other components) contain the same generic action-button convention, just with different class names like primary/secondary. Warrants a shared button component, probably with variant as a prop. I'd suggest doing a sweep through of the whole codebase and extracting all these repeated control patterns (probably not just limited to buttons) and turning them into shared components
 
@@ -51,6 +52,8 @@ DataDialog/
 ```
 
 2. component currently queries the DOM to find out the `<details>` state and decide behaviour. This is a) not very react-y / recommended, and b) fragile because its querying the whole document and searching for a CSS selector, rather than just looking in the yearly dialog that it actually wants to query. Simplest fix without a huge rewrite with state management is to `useRef` to reference yearly data dialog, attach it, then query that instead. Alternatively, use state to manage the menus so react owns it and is able to recognise when menus are open/closed, but this would be much more of a rewrite and may be too much hassle for the gain
+
+    > Reply to DataDialog 2: Fixed on 2026-09-12. YearlyDataDialog now attaches a useRef to its dialog section and queries only that section for open details menus. Escape closes open menus before closing the dialog, and outside clicks dismiss menus. These behaviours were verified in the browser after the style migration.
 
 #### `RunModel`
 1. `useEffect` poll is issuing a request per second without waiting for the previous `getModelRun` request to complete. I'm not sure how long a run would take to complete, but it might lead to overwriting responses if the API is slow. Suggest using recursive `setTimeout` instead of `setInterval` (though note this needs a decision on whether it should continue indefinitely or not if the polling fails)
@@ -168,11 +171,11 @@ npm install --prefix pypsa_spice_web/frontend --save-dev @types/node
     1. Besides sidebar classes, this file contains some other classes that are not used in `App.tsx` at all, and used across other components, e.g., dialog-backdrop, country-config, amongst others. Move these classes to the relevant component's css file, or if they are used across more than one component (e.g., dialog-backdrop), I suggest creating a `global.css` file and storing shared classes there
     2. The first 78 lines of App.css are also application global and conceptually belongs in a global style file instead. 
 
-    > Reply: Fixed. Replaced `App.css` with `global.scss` and import it once from `main.tsx`. The global file now has the font declaration, design tokens, reset, application shell, focus treatment, and genuinely shared patterns such as dialog backdrops. Sidebar rules moved to its SCSS module, and scenario-editor layout rules moved to `ScenarioConfigEditor.css`. This leaves global styles shared and component styles close to their owners.
+    > Reply: Fixed, with the full module migration completed on 2026-09-12. main.tsx imports global.scss once for fonts, tokens, resets, focus treatment, and reduced-motion rules. App.module.scss owns the application shell. DialogSurface.module.scss owns shared dialog defaults, and scenario layouts use explicit shared and page modules. All component classes are scoped; global.scss contains none.
 
 - Currently media query breakpoints are variable across components. I'd suggest a standardised breakpoint scale (typical breakpoints are something like 640px, 768px, 1024px, and 1280px). You *could* additionally consider moving to scss, which allows you to define breakpoint variables like this:
 
-    > Reply: Fixed. Replaced the one-off 700, 900, 1100, and similar breakpoints with 640, 768, 1024, and 1280 pixels according to the nearest intended layout change. New extracted components use SCSS modules. The existing plain CSS files use the same numeric scale, so breakpoints are consistent even where SCSS variables are not available.
+    > Reply: Fixed. Replaced the one-off 700, 900, 1100, and similar breakpoints with 640, 768, 1024, and 1280 pixels according to the nearest intended layout change. All frontend styles now use SCSS, with component and page rules in modules. They retain the same numeric breakpoint scale.
 
 ```scss
 $breakpoint-s: 640px;
