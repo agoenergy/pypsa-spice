@@ -3,25 +3,27 @@
 .results-toc {
   position: fixed;
   right: 24px;
-  bottom: 24px;
+  bottom: 29px;
   z-index: 19;
 }
-.results-toc-trigger {
-  width: 44px;
-  height: 44px;
+// Keep the floating control's appearance above the shared IconButton defaults.
+.results-toc .results-toc-trigger,
+.results-toc.open .results-toc-trigger {
+  width: var(--icon-control-size, 44px);
+  height: var(--icon-control-size, 44px);
   padding: 0;
   display: grid;
   place-items: center;
-  border: 1px solid var(--line);
+  border: 1px solid var(--pink);
   border-radius: 4px;
-  background: var(--ink);
-  color: var(--surface);
+  background: var(--pink);
+  color: #fff;
   box-shadow: var(--shadow);
   cursor: pointer;
 }
-.results-toc-trigger:hover {
-  background: var(--pink);
-  color: #fff;
+.results-toc .results-toc-trigger:hover:not(:disabled) {
+  background: var(--pink-dark);
+  border-color: var(--pink-dark);
 }
 .results-toc-trigger svg {
   width: 17px;
@@ -84,10 +86,6 @@
 .results-toc-panel li a b {
   font-weight: 600;
 }
-.results-toc.open .results-toc-trigger {
-  background: var(--pink);
-  color: #fff;
-}
 @keyframes results-toc-enter {
   from {
     opacity: 0;
@@ -106,7 +104,7 @@
 @media (max-width: 640px) {
   .results-toc {
     right: 14px;
-    bottom: 14px;
+    bottom: 19px;
   }
   .results-toc-panel {
     width: min(320px, calc(100vw - 28px));

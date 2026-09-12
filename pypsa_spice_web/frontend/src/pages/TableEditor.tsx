@@ -5,12 +5,12 @@ import workspaceUtilitiesStyles from "../components/WorkspaceUtilities.module.sc
 import workspaceFeedbackStyles from "../components/WorkspaceFeedback.module.scss";
 import dataTableStyles from "../components/DataTable.module.scss";
 import IconButton from "../components/IconButton";
-import { useDeferredValue, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useId, useRef, useState } from "react";
 import { AlertTriangle, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { getInputTable, saveInputTable } from "../api";
 import { SearchField, SelectField } from "../components/FormControls";
 import PageHeader from "../components/PageHeader";
-import SaveDiscardActions from "../components/SaveDiscardActions";
+import { useInputSaveActions } from "../components/InputSaveActions";
 import type {
   InputCell,
   InputRow,
@@ -71,6 +71,7 @@ export default function TableEditor({
   hideWhenEmpty?: boolean;
 }) {
   const editorId = useId();
+  const registerActions = useInputSaveActions();
   const [table, setTable] = useState<InputTableResponse | null>(null);
   const [rows, setRows] = useState<InputRow[]>([]);
   const [changes, setChanges] = useState<Map<string, InputCell>>(new Map());
@@ -177,15 +178,15 @@ export default function TableEditor({
     });
     setSuccess("");
   };
-  const discard = () => {
+  const discard = useCallback(() => {
     if (table) setRows(table.rows);
     const next = new Map<string, InputCell>();
     changesRef.current = next;
     setChanges(next);
     setSuccess("");
-  };
-  const save = async () => {
-    if (!table || !changes.size) return;
+  }, [table]);
+  const save = useCallback(async () => {
+    if (!table || !changes.size || definition.timeseries) return false;
     setSaving(true);
     setError("");
     setSuccess("");
@@ -208,12 +209,19 @@ export default function TableEditor({
       setRows(data.rows);
       setChanges(next);
       setSuccess(`Saved ${payload.length} ${payload.length === 1 ? "cell" : "cells"} directly to the CSV.`);
+      return true;
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not save changes.");
+      return false;
     } finally {
       setSaving(false);
     }
-  };
+  }, [table, changes, selection, definition, technology, country, filter, deferredQuery, page]);
+
+  useEffect(
+    () => registerActions(editorId, { changeCount: changes.size, save, discard }),
+    [registerActions, editorId, changes.size, save, discard],
+  );
 
   if (hideWhenEmpty && (loading || (!error && table?.total_filtered_rows === 0))) return null;
   return (
@@ -230,14 +238,6 @@ export default function TableEditor({
           <h2>{definition.label}</h2>
           {table && <code>{table.path}</code>}
         </div>
-        <SaveDiscardActions
-          hasChanges={changes.size > 0}
-          saving={saving}
-          saveDisabled={definition.timeseries}
-          saveLabel={`Save changes${changes.size ? ` (${changes.size})` : ""}`}
-          onDiscard={discard}
-          onSave={() => void save()}
-        />
       </header>
       {definition.timeseries && (
         <div className={editorPanelStyles["editor-warning"]}>
@@ -326,6 +326,7 @@ export default function TableEditor({
                             <CellEditor
                               value={row[column.name]}
                               kind={column.kind}
+                              disabled={saving}
                               onChange={(value) => edit(row.__row_id, column.name, value)}
                             />
                           ) : (
@@ -370,16 +371,23 @@ export default function TableEditor({
 function CellEditor({
   value,
   kind,
+  disabled,
   onChange,
 }: {
   value: InputCell;
   kind: string;
+  disabled: boolean;
   onChange: (value: InputCell) => void;
 }) {
   if (kind === "boolean") {
     return (
       <label className={styles["cell-check"]}>
-        <input type="checkbox" checked={Boolean(value)} onChange={(event) => onChange(event.target.checked)} />
+        <input
+          type="checkbox"
+          checked={Boolean(value)}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.checked)}
+        />
         <span aria-hidden="true" />
       </label>
     );
@@ -388,6 +396,7 @@ function CellEditor({
     <input
       className={styles["cell-input"]}
       value={String(value ?? "")}
+      disabled={disabled}
       inputMode={kind === "number" ? "decimal" : undefined}
       onChange={(event) => onChange(event.target.value)}
       aria-label="Editable cell"

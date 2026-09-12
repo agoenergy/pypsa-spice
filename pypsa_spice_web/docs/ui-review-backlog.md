@@ -116,12 +116,17 @@ grid columns and is usually empty.
 
 ## Forms
 
-### 11. Configure & run keeps a disabled save bar on screen
+### 11. Configure & run keeps a disabled save bar on screen, closed 2026-09-12
 
 The floating Save and Discard pair is always mounted with both buttons disabled, and
 the pink Save at 42% opacity reads as an enabled primary action at a glance. Show the
 bar only when the form is dirty. It is also 36px tall against the 44px control height
 used everywhere else.
+
+Fixed in the shared `SaveDiscardActions` component used by configuration and input
+pages. The floating controls appear only for unsaved changes or an active save and
+disappear after saving or discarding. Save confirmation remains inline in the page.
+Removed the floating button height override so controls use the shared 44px height.
 
 ### 12. Inputs has no global save
 

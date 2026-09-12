@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Cpu, Table2 } from "lucide-react";
 
 import { SelectField } from "../components/FormControls";
+import InputSaveActions from "../components/InputSaveActions";
 import sidebarStyles from "../components/Sidebar.module.scss";
 import type { InputCatalog, InputSelection } from "../types";
 import { confirmDiscardChanges } from "../utility";
@@ -71,7 +72,9 @@ export default function InputEditor({
     });
 
   return (
-    <>
+    <InputSaveActions
+      key={`${selection.dataset}:${selection.project}:${selection.scenario}:${view}:${sector}:${view === "table" ? tableId : technology?.id}`}
+    >
       {menuTarget &&
         createPortal(
           <nav className={sidebarStyles["submenu-list"]} aria-label="Input pages">
@@ -145,6 +148,6 @@ export default function InputEditor({
       ) : (
         <div className={editorPanelStyles["editor-empty"]}>No mapped technology is available for this sector.</div>
       )}
-    </>
+    </InputSaveActions>
   );
 }

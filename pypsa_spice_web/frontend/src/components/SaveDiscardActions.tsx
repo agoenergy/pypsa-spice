@@ -25,6 +25,15 @@ export default function SaveDiscardActions({
   floating = false,
   avoidSideControl = false,
 }: SaveDiscardActionsProps) {
+  const feedback = status ? (
+    <span className={styles["save-discard-status"]} role="status">
+      <Check aria-hidden="true" />
+      {status}
+    </span>
+  ) : null;
+
+  if (floating && !hasChanges && !saving) return feedback;
+
   const className = [
     styles["save-discard-actions"],
     floating ? styles["floating-save-discard-actions"] : "",
@@ -43,12 +52,7 @@ export default function SaveDiscardActions({
         <Save aria-hidden="true" />
         {saving ? "Saving…" : saveLabel}
       </Button>
-      {status && (
-        <span className={styles["save-discard-status"]} role="status">
-          <Check aria-hidden="true" />
-          {status}
-        </span>
-      )}
+      {feedback}
     </div>
   );
 }
