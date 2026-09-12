@@ -50,22 +50,3 @@
   flex-direction: column;
   gap: 14px;
 }
-@media (max-width: 768px) {
-  .selection-title {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .selection-title dl {
-    width: 100%;
-    min-width: 0;
-    margin: 0;
-  }
-  .selection-title dl div {
-    grid-template-columns: auto auto;
-    justify-content: space-between;
-  }
-  .selection-title dt,
-  .selection-title dd {
-    text-align: left;
-  }
-}

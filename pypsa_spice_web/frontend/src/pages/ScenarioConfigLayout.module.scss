@@ -52,21 +52,3 @@
 .key-value-grid {
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
-@media (max-width: 768px) {
-  .country-config > header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .country-config [data-control="field"][data-compact] {
-    width: 100%;
-    margin-left: 0;
-  }
-  .form-grid,
-  .form-grid.three {
-    grid-template-columns: 1fr;
-  }
-  .config-form {
-    padding: 18px;
-  }
-}

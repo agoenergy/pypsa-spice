@@ -2,19 +2,19 @@ import styles from "./ScenarioConfigEditor.module.scss";
 import editorPanelStyles from "../components/EditorPanel.module.scss";
 import workspaceFeedbackStyles from "../components/WorkspaceFeedback.module.scss";
 import scenarioConfigLayoutStyles from "./ScenarioConfigLayout.module.scss";
-import resultsTocStyles from "../components/ResultsToc.module.scss";
 import scenarioConfigControlsStyles from "./ScenarioConfigControls.module.scss";
 import dataTableStyles from "../components/DataTable.module.scss";
 import workspaceUtilitiesStyles from "../components/WorkspaceUtilities.module.scss";
 import Button from "../components/Button";
 import IconButton from "../components/IconButton";
 import { Field, ToggleField } from "../components/FormControls";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { ClipboardCheck, Code2, List, Plus, Settings2, Trash2, X } from "lucide-react";
+import { ClipboardCheck, Code2, Plus, Settings2, Trash2 } from "lucide-react";
 
 import Co2Editor from "./Co2Editor";
 import PageHeader from "../components/PageHeader";
+import ResultsToc from "../components/ResultsToc";
 import RunModel from "../components/RunModel";
 import SaveDiscardActions from "../components/SaveDiscardActions";
 import sidebarStyles from "../components/Sidebar.module.scss";
@@ -43,13 +43,11 @@ const icons = { scenario_configs: Settings2, [COMBINED_SECTION]: Code2, review_r
 export default function ScenarioConfigEditor({
   selection,
   country,
-  onNavigate,
   runMonitor,
   onOpenResults,
 }: {
   selection: InputSelection;
   country: string;
-  onNavigate: () => void;
   runMonitor: ModelRunMonitor;
   onOpenResults: (runName: string, dataset: string, project: string) => void;
 }) {
@@ -66,7 +64,6 @@ export default function ScenarioConfigEditor({
   const chooseSection = (name: string) => {
     if (!confirmDiscardChanges()) return;
     setSection(name);
-    onNavigate();
     const params = new URLSearchParams(window.location.search);
     params.set("view", "configure");
     params.set("step", name);
@@ -231,7 +228,13 @@ function CombinedConstraintsEditor({
           />
         </section>
       </div>
-      <ConfigToc items={tocItems} />
+      <ResultsToc
+        id="config-section-list"
+        heading="Sections"
+        panelLabel="Configuration sections on this page"
+        listName="section list"
+        entries={tocItems.map((item) => ({ key: item.id, href: `#${item.id}`, label: item.label }))}
+      />
     </>
   );
 }
@@ -303,67 +306,6 @@ function CustomConstraintsEditor({
     </div>
   );
 }
-
-function ConfigToc({ items }: { items: { id: string; label: string }[] }) {
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const closeOutside = (event: PointerEvent) => {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const closeWithEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("pointerdown", closeOutside);
-    document.addEventListener("keydown", closeWithEscape);
-    return () => {
-      document.removeEventListener("pointerdown", closeOutside);
-      document.removeEventListener("keydown", closeWithEscape);
-    };
-  }, [open]);
-  return (
-    <div
-      className={[resultsTocStyles["results-toc"], open ? resultsTocStyles["open"] : ""].filter(Boolean).join(" ")}
-      ref={root}
-    >
-      {open && (
-        <nav
-          className={resultsTocStyles["results-toc-panel"]}
-          id="config-section-list"
-          aria-label="Configuration sections on this page"
-        >
-          <header>
-            <h2>Sections</h2>
-            <IconButton alignEnd onClick={() => setOpen(false)} aria-label="Close section list">
-              <X aria-hidden="true" />
-            </IconButton>
-          </header>
-          <ol>
-            {items.map((item, index) => (
-              <li key={item.id}>
-                <a href={`#${item.id}`} onClick={() => setOpen(false)}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <b>{item.label}</b>
-                </a>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      )}
-      <IconButton
-        className={resultsTocStyles["results-toc-trigger"]}
-        onClick={() => setOpen((current) => !current)}
-        aria-label="Open section list"
-        aria-expanded={open}
-        aria-controls="config-section-list"
-      >
-        <List aria-hidden="true" />
-      </IconButton>
-    </div>
-  );
-}
-
 function ConstraintCard({
   name,
   country,

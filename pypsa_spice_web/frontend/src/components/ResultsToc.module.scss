@@ -101,12 +101,3 @@
     animation: results-toc-enter 0.16s ease-out both;
   }
 }
-@media (max-width: 640px) {
-  .results-toc {
-    right: 14px;
-    bottom: 19px;
-  }
-  .results-toc-panel {
-    width: min(320px, calc(100vw - 28px));
-  }
-}

@@ -19,7 +19,6 @@ import type { Catalog, ViewMode } from "../types";
 import styles from "./Sidebar.module.scss";
 
 interface SidebarProps {
-  open: boolean;
   view: ViewMode;
   sections: Catalog["sections"];
   activeSectionId?: string;
@@ -48,7 +47,6 @@ const sectionIcons = {
 };
 
 export default function Sidebar({
-  open,
   view,
   sections,
   activeSectionId,
@@ -76,7 +74,7 @@ export default function Sidebar({
   ];
 
   return (
-    <aside className={`${styles["sidebar"]} ${open ? styles["open"] : ""}`}>
+    <aside className={styles["sidebar"]}>
       <div className={styles["brand"]}>
         <a
           href="?view=home"

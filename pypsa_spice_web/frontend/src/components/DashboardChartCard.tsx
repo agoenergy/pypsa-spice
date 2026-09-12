@@ -5,10 +5,19 @@ import workspaceFeedbackStyles from "./WorkspaceFeedback.module.scss";
 import Button from "./Button";
 import IconButton from "./IconButton";
 import { Field } from "./FormControls";
-import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { ArrowLeftRight, Expand, Minimize2, Settings2, Table2 } from "lucide-react";
 
 import { getChart } from "../api";
+import {
+  ChartContextHeading,
+  ChartErrorState,
+  ChartLoadingState,
+  ChartRefreshOverlay,
+  useDelayedFlag,
+} from "./ChartFeedback";
+import { useDismissOnEscape } from "../useDismiss";
+import useNearViewport from "../useNearViewport";
 import type { DashboardChartConfig } from "../types";
 import Plot from "./Plot";
 import { ChartLegend } from "./ChartLegend";
@@ -30,7 +39,6 @@ interface Props {
 }
 
 type LoadedSeries = { scenario: string; response: ChartResponse };
-const LOADING_INDICATOR_DELAY_MS = 500;
 
 function selectionFor(
   config: DashboardChartConfig,
@@ -74,8 +82,9 @@ export default function DashboardChartCard({
   const [series, setSeries] = useState<LoadedSeries[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const card = useRef<HTMLElement>(null);
+  const nearViewport = useNearViewport(card);
   const [editing, setEditing] = useState(false);
   const [hiddenLegendValues, setHiddenLegendValues] = useState<Set<string>>(() => new Set());
   const years = useMemo(
@@ -108,6 +117,7 @@ export default function DashboardChartCard({
       setSeries([]);
       return;
     }
+    if (!nearViewport) return;
     if (chart.hourly && !selectedYear) {
       setSeries([]);
       setError("No model year is available for this hourly chart.");
@@ -141,6 +151,7 @@ export default function DashboardChartCard({
       });
     return () => controller.abort();
   }, [
+    nearViewport,
     chart,
     project,
     datasetName,
@@ -157,14 +168,7 @@ export default function DashboardChartCard({
     incompatibleScenarios.join("\u0000"),
   ]);
 
-  useEffect(() => {
-    if (!loading) {
-      setShowLoadingIndicator(false);
-      return;
-    }
-    const timer = window.setTimeout(() => setShowLoadingIndicator(true), LOADING_INDICATOR_DELAY_MS);
-    return () => window.clearTimeout(timer);
-  }, [loading]);
+  const showLoadingIndicator = useDelayedFlag(loading);
 
   if (!chart) {
     return (
@@ -224,8 +228,11 @@ export default function DashboardChartCard({
     update({ mode, scenarios: scenarios.slice(0, 2) });
   };
 
+  useDismissOnEscape(expanded, () => setExpanded(false));
+
   return (
     <article
+      ref={card}
       className={[
         [styles["dashboard-chart-card"], chartSurfaceStyles["chart-card"]].join(" "),
         expanded ? chartSurfaceStyles["expanded"] : "",
@@ -233,6 +240,9 @@ export default function DashboardChartCard({
       ]
         .filter(Boolean)
         .join(" ")}
+      role={expanded ? "dialog" : undefined}
+      aria-modal={expanded || undefined}
+      aria-label={expanded ? title : undefined}
     >
       <header className={chartSurfaceStyles["chart-head"]}>
         <div className={chartSurfaceStyles["chart-title"]}>
@@ -440,18 +450,8 @@ export default function DashboardChartCard({
             .join(" ")}
           aria-busy={loading}
         >
-          {showLoadingIndicator && !series.length && (
-            <div className={workspaceFeedbackStyles["state"]}>
-              <span className={workspaceFeedbackStyles["spinner"]} />
-              Reading result tables…
-            </div>
-          )}
-          {!loading && error && (
-            <div className={[workspaceFeedbackStyles["state"], workspaceFeedbackStyles["empty"]].join(" ")}>
-              <b>No chart data</b>
-              <span>{error}</span>
-            </div>
-          )}
+          {showLoadingIndicator && !series.length && <ChartLoadingState message="Reading result tables…" />}
+          {!loading && error && <ChartErrorState message={error} />}
           {!loading && !error && series.length > 0 && !hasRows && (
             <div className={[workspaceFeedbackStyles["state"], workspaceFeedbackStyles["empty"]].join(" ")}>
               <b>No values in this result table</b>
@@ -476,7 +476,7 @@ export default function DashboardChartCard({
             <>
               {series.map((entry) => (
                 <div className={chartSurfaceStyles["scenario-plot"]} key={entry.scenario}>
-                  <ScenarioHeading title={entry.scenario} />
+                  <ChartContextHeading label="Scenario" title={entry.scenario} />
                   <Plot
                     chart={chart}
                     primary={entry.response}
@@ -503,7 +503,7 @@ export default function DashboardChartCard({
           )}
           {!error && hasRows && config.mode === "difference" && series.length === 2 && (
             <div className={chartSurfaceStyles["difference-plot"]}>
-              <ScenarioHeading label="Difference" title={`${series[1].scenario} − ${series[0].scenario}`} />
+              <ChartContextHeading label="Difference" title={`${series[1].scenario} − ${series[0].scenario}`} />
               <Plot
                 chart={chart}
                 primary={series[0].response}
@@ -519,12 +519,7 @@ export default function DashboardChartCard({
               />
             </div>
           )}
-          {chart.hourly && showLoadingIndicator && series.length > 0 && (
-            <div className={chartSurfaceStyles["hourly-loading-overlay"]} role="status" aria-live="polite">
-              <span className={workspaceFeedbackStyles["spinner"]} aria-hidden="true" />
-              <span>Updating chart…</span>
-            </div>
-          )}
+          {chart.hourly && showLoadingIndicator && series.length > 0 && <ChartRefreshOverlay />}
         </div>
       )}
     </article>
@@ -538,15 +533,6 @@ function toggleLegend(value: string, setter: Dispatch<SetStateAction<Set<string>
     else next.add(value);
     return next;
   });
-}
-
-function ScenarioHeading({ label = "Scenario", title }: { label?: string; title: string }) {
-  return (
-    <div className={chartSurfaceStyles["scenario-label"]}>
-      <small>{label}</small>
-      <h4>{title}</h4>
-    </div>
-  );
 }
 
 function ChartSourceSelect({

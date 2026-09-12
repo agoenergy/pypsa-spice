@@ -1,24 +1,6 @@
 @value chart-head, chart-title, scenario-plot, expanded from "./ChartSurface.module.scss";
 @value html-legend from "./ChartLegend.module.scss";
 
-@media (max-width: 768px) {
-  .dashboard-scenario-picker.large {
-    grid-template-columns: 1fr;
-  }
-}
-@media (max-width: 640px) {
-  .dashboard-chart-card .chart-head {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .dashboard-chart-toolbar {
-    width: 100%;
-    margin-left: 0;
-  }
-  .dashboard-chart-body.dashboard-multi-layout {
-    grid-template-columns: 1fr;
-  }
-}
 .dashboard-chart-card {
   width: 100%;
   min-width: 0;

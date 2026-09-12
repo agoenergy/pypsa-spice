@@ -2,13 +2,22 @@ import chartSurfaceStyles from "./ChartSurface.module.scss";
 import workspaceFeedbackStyles from "./WorkspaceFeedback.module.scss";
 import IconButton from "./IconButton";
 import { IconLink } from "./IconButton";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, Expand, Minimize2, RotateCcw, Table2 } from "lucide-react";
 
 import { downloadUrl, getChart } from "../api";
 import Plot from "./Plot";
 import { ChartLegend } from "./ChartLegend";
 import { buildDifferenceRows, getLegendValues } from "../shared/chartData";
+import {
+  ChartContextHeading,
+  ChartErrorState,
+  ChartLoadingState,
+  ChartRefreshOverlay,
+  useDelayedFlag,
+} from "./ChartFeedback";
+import { useDismissOnEscape } from "../useDismiss";
+import useNearViewport from "../useNearViewport";
 import type { Catalog, ChartDefinition, ChartResponse, ResultRow, Selection } from "../types";
 
 interface Props {
@@ -21,8 +30,6 @@ interface Props {
 }
 
 const HOUR_MS = 60 * 60 * 1000;
-const LOADING_INDICATOR_DELAY_MS = 500;
-
 function timestampToMs(value: string | null | undefined): number | null {
   if (!value) return null;
   const timestamp = new Date(value.replace(" ", "T")).getTime();
@@ -50,8 +57,9 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
   const [filterValue, setFilterValue] = useState("ALL");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const card = useRef<HTMLElement>(null);
+  const nearViewport = useNearViewport(card);
   const [showDifference, setShowDifference] = useState(false);
   const [hiddenLegendValues, setHiddenLegendValues] = useState<Set<string>>(() => new Set());
   const [startTime, setStartTime] = useState("");
@@ -84,6 +92,7 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
   }, [selection.comparison]);
 
   useEffect(() => {
+    if (!nearViewport) return;
     const controller = new AbortController();
     setLoading(true);
     setError("");
@@ -123,6 +132,7 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
       });
     return () => controller.abort();
   }, [
+    nearViewport,
     chart,
     selection.dataset,
     selection.project,
@@ -136,14 +146,7 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
     endTime,
   ]);
 
-  useEffect(() => {
-    if (!loading) {
-      setShowLoadingIndicator(false);
-      return;
-    }
-    const timer = window.setTimeout(() => setShowLoadingIndicator(true), LOADING_INDICATOR_DELAY_MS);
-    return () => window.clearTimeout(timer);
-  }, [loading]);
+  const showLoadingIndicator = useDelayedFlag(loading);
 
   const rows = useMemo(
     () => [
@@ -202,17 +205,22 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
     setYear(year);
   };
 
+  useDismissOnEscape(expanded, () => setExpanded(false));
+
   return (
     <article
+      ref={card}
       id={`figure-${chart.id}`}
       className={[
         chartSurfaceStyles["chart-card"],
         expanded ? chartSurfaceStyles["expanded"] : "",
         comparing ? chartSurfaceStyles["comparing"] : "",
-        showDifference ? "" : "",
       ]
         .filter(Boolean)
         .join(" ")}
+      role={expanded ? "dialog" : undefined}
+      aria-modal={expanded || undefined}
+      aria-label={expanded ? chart.name : undefined}
     >
       <header className={chartSurfaceStyles["chart-head"]}>
         <div className={chartSurfaceStyles["chart-title"]}>
@@ -364,18 +372,8 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
           .join(" ")}
         aria-busy={loading}
       >
-        {showLoadingIndicator && !primary && (
-          <div className={workspaceFeedbackStyles["state"]}>
-            <span className={workspaceFeedbackStyles["spinner"]} />
-            Reading result table…
-          </div>
-        )}
-        {!loading && error && (
-          <div className={[workspaceFeedbackStyles["state"], workspaceFeedbackStyles["empty"]].join(" ")}>
-            <b>No chart data</b>
-            <span>{error}</span>
-          </div>
-        )}
+        {showLoadingIndicator && !primary && <ChartLoadingState message="Reading result table…" />}
+        {!loading && error && <ChartErrorState message={error} />}
         {!loading && !error && primary && primary.rows.length === 0 && (
           <div className={[workspaceFeedbackStyles["state"], workspaceFeedbackStyles["empty"]].join(" ")}>
             <b>No values in this result table</b>
@@ -458,22 +456,8 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
             />
           </div>
         )}
-        {chart.hourly && showLoadingIndicator && primary && (
-          <div className={chartSurfaceStyles["hourly-loading-overlay"]} role="status" aria-live="polite">
-            <span className={workspaceFeedbackStyles["spinner"]} aria-hidden="true" />
-            <span>Updating chart…</span>
-          </div>
-        )}
+        {chart.hourly && showLoadingIndicator && primary && <ChartRefreshOverlay />}
       </div>
     </article>
-  );
-}
-
-function ChartContextHeading({ label, title }: { label: string; title: string }) {
-  return (
-    <div className={chartSurfaceStyles["scenario-label"]}>
-      <small>{label}</small>
-      <h4>{title}</h4>
-    </div>
   );
 }

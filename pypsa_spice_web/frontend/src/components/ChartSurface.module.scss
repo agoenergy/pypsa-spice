@@ -20,6 +20,10 @@
 .chart-card.expanded .chart-body {
   height: calc(100vh - 150px);
 }
+.chart-card.expanded .chart-body.with-plot {
+  height: calc(100vh - 150px);
+  overflow: auto;
+}
 .chart-head {
   min-height: 76px;
   padding: 12px 14px 12px 18px;
@@ -40,8 +44,10 @@
   letter-spacing: 0.08em;
 }
 .chart-title h3 {
+  margin: 0;
   font-weight: 500;
-  margin: 4px 0 0;
+  font-size: var(--text-lg);
+  line-height: 1.2;
 }
 .chart-toolbar {
   margin-left: auto;
@@ -87,6 +93,12 @@
   height: 340px;
   padding: 4px;
   position: relative;
+}
+/* A card holding a plot grows to its content; the fixed heights above only
+   size the empty and loading states. */
+.chart-body.with-plot {
+  height: auto;
+  overflow: visible;
 }
 .plot {
   width: 100%;
@@ -144,6 +156,11 @@
   height: 390px;
   overflow: hidden;
 }
+.chart-card.comparing .chart-body.with-plot {
+  height: auto;
+  padding: 0;
+  overflow: visible;
+}
 .chart-card.comparing .comparison-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -154,10 +171,10 @@
 .scenario-plot,
 .difference-plot {
   width: 100%;
-  height: 100%;
+  height: auto;
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   background: var(--surface);
   display: flex;
   flex-direction: column;
@@ -186,15 +203,6 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   white-space: nowrap;
-}
-.scenario-label b {
-  font-size: var(--text-sm);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.scenario-label.difference {
-  border-left: 3px solid var(--pink);
 }
 .chart-card.expanded.comparing .chart-body {
   height: calc(100vh - 150px);
@@ -227,6 +235,9 @@
   font-size: var(--text-sm);
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 .time-range-head button:hover {
   background: var(--surface);
@@ -317,80 +328,6 @@
   pointer-events: auto;
   cursor: grab;
 }
-@media (max-width: 1024px) {
-  .chart-card.comparing .comparison-layout {
-    grid-template-columns: 1fr;
-  }
-  .chart-card.comparing .chart-body {
-    height: 760px;
-  }
-  .chart-card.comparing .chart-body.with-plot {
-    height: auto;
-  }
-  .chart-card.expanded.comparing .chart-body {
-    height: calc(100vh - 150px);
-    overflow: auto;
-  }
-  .scenario-plot {
-    min-height: 370px;
-  }
-}
-@media (max-width: 768px) {
-  .chart-head {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-  .chart-title {
-    padding-top: 4px;
-  }
-  .chart-toolbar {
-    width: 100%;
-    margin-left: 0;
-  }
-  .chart-controls {
-    min-width: 0;
-    flex: 1;
-  }
-  .chart-controls select {
-    min-width: 0;
-    max-width: none;
-    flex: 1;
-  }
-  .chart-actions {
-    margin-left: auto;
-  }
-}
-@media (max-width: 640px) {
-  .chart-toolbar {
-    overflow-x: auto;
-  }
-  .chart-difference-toggle span {
-    display: none;
-  }
-  .time-range-values output {
-    font-size: var(--text-xs);
-  }
-  .chart-body {
-    height: 300px;
-  }
-}
-.chart-title h3 {
-  margin: 0;
-  font-size: var(--text-lg);
-  line-height: 1.2;
-}
-.time-range-head button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.time-range-head button svg {
-  width: 13px;
-  height: 13px;
-}
-.chart-card.comparing .chart-body.with-plot {
-  padding: 0;
-}
 .scenario-label h4 {
   margin: 0;
   font-size: var(--text-sm);
@@ -425,17 +362,6 @@
     animation: none;
   }
 }
-.chart-body.with-plot,
-.chart-card.comparing .chart-body.with-plot,
-.scenario-plot,
-.difference-plot {
-  height: auto;
-  overflow: visible;
-}
-.chart-card.expanded .chart-body.with-plot {
-  height: calc(100vh - 150px);
-  overflow: auto;
-}
 html[data-theme="dark"] .scenario-plot,
 html[data-theme="dark"] .difference-plot {
   background: transparent;
@@ -447,7 +373,4 @@ html[data-theme="dark"] .difference-plot {
 }
 .chart-card {
   scroll-margin-top: 96px;
-}
-.scenario-label.difference {
-  border-left: 0;
 }

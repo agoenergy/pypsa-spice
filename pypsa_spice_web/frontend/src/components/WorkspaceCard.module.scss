@@ -163,32 +163,3 @@
     cursor: pointer;
   }
 }
-
-@media (max-width: 640px) {
-  .project-card > header {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .project-columns {
-    grid-template-columns: 1fr;
-  }
-
-  .inputs {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .results {
-    grid-column: auto;
-
-    > div {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .scenario-list > div {
-    grid-template-columns: 1fr;
-  }
-}

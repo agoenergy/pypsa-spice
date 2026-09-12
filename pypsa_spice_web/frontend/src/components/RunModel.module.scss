@@ -274,50 +274,6 @@
   max-width: 340px;
   font-size: var(--text-sm);
 }
-@media (max-width: 1280px) {
-  .run-layout {
-    grid-template-columns: 1fr;
-  }
-  .run-monitor {
-    min-height: 520px;
-  }
-  .run-empty {
-    min-height: 360px;
-  }
-}
-@media (max-width: 640px) {
-  .run-path-grid,
-  .run-dimensions,
-  .run-meta {
-    grid-template-columns: 1fr;
-  }
-  .run-dimensions > div,
-  .run-dimensions > div:nth-child(odd),
-  .run-dimensions > div:nth-last-child(-n + 2) {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-  .run-dimensions > div:last-child {
-    border-bottom: 0;
-  }
-  .run-advanced {
-    grid-template-columns: 1fr;
-  }
-  .run-actions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .run-actions [data-control="button"] {
-    width: 100%;
-  }
-  .run-log-head {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .run-log-head [data-control="button"] {
-    width: 100%;
-  }
-}
 .chilli-progress {
   min-height: 48px;
   padding: 7px 10px;
@@ -353,17 +309,6 @@
   place-items: center;
   filter: saturate(1.12);
   transition: clip-path 0.3s ease-out;
-}
-@media (max-width: 640px) {
-  .chilli-progress {
-    padding-inline: 6px;
-    grid-template-columns: repeat(12, minmax(17px, 1fr));
-    gap: 1px;
-  }
-  .chilli-step img {
-    width: 19px;
-    height: 25px;
-  }
 }
 .run-review {
   margin-bottom: 16px;
@@ -484,47 +429,4 @@
 .run-complete-actions svg {
   width: 16px;
   height: 16px;
-}
-@media (max-width: 1024px) {
-  .run-review-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .run-review-grid > div,
-  .run-review-grid > div:nth-child(4n) {
-    border-right: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-  }
-  .run-review-grid > div:nth-child(2n) {
-    border-right: 0;
-  }
-  .run-review-grid > div:nth-last-child(-n + 2) {
-    border-bottom: 0;
-  }
-}
-@media (max-width: 640px) {
-  .run-review-grid {
-    grid-template-columns: 1fr;
-  }
-  .run-review-grid > div,
-  .run-review-grid > div:nth-child(2n),
-  .run-review-grid > div:nth-last-child(-n + 2) {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-  .run-review-grid > div:last-child {
-    border-bottom: 0;
-  }
-  .repository-review {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-  .repository-review strong {
-    margin-left: 38px;
-  }
-  .run-complete-actions {
-    flex-direction: column;
-  }
-  .run-complete-actions [data-control="button"] {
-    width: 100%;
-  }
 }

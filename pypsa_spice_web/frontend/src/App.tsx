@@ -4,10 +4,9 @@ import workspaceFeedbackStyles from "./components/WorkspaceFeedback.module.scss"
 import scenarioComparisonStyles from "./pages/ScenarioComparison.module.scss";
 import workspaceBarStyles from "./components/WorkspaceBar.module.scss";
 import dashboardPageStyles from "./pages/DashboardPage.module.scss";
-import resultsTocStyles from "./components/ResultsToc.module.scss";
 import IconButton from "./components/IconButton";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeftRight, GitCompareArrows, List, Menu, Plus, RefreshCw, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeftRight, GitCompareArrows, Plus, RefreshCw } from "lucide-react";
 import { getCatalog, getInputCatalog } from "./api";
 import useModelRun from "./useModelRun";
 import { isActiveModelRun } from "./modelRunMonitor";
@@ -16,6 +15,7 @@ import DataDialog from "./components/DataDialog";
 import { SelectField } from "./components/FormControls";
 import NewScenarioDialog from "./components/NewScenarioDialog";
 import PageHeader from "./components/PageHeader";
+import ResultsToc from "./components/ResultsToc";
 import Sidebar from "./components/Sidebar";
 import DashboardPage from "./pages/DashboardPage";
 import HomePage from "./pages/HomePage";
@@ -63,7 +63,6 @@ export default function App() {
   const [view, setView] = useState<ViewMode>(viewFromLocation);
   const [sectionId, setSectionId] = useState(sectionFromLocation);
   const [country, setCountry] = useState(countryFromLocation);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [error, setError] = useState("");
   const [inputError, setInputError] = useState("");
   const [inputRefresh, setInputRefresh] = useState(0);
@@ -251,7 +250,6 @@ export default function App() {
     if (!confirmDiscardChanges()) return;
     setView("outputs");
     setSectionId(name);
-    setSidebarOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const chooseView = (next: ViewMode) => {
@@ -268,7 +266,6 @@ export default function App() {
     if (next !== "outputs" && next !== "compare") params.delete("compare");
     window.history.pushState(null, "", `?${params.toString()}`);
     setView(next);
-    setSidebarOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const refreshCurrent = () => {
@@ -362,7 +359,14 @@ export default function App() {
               </div>
             )}
           </section>
-          <ResultsToc key={section!.id} charts={charts} />
+          <ResultsToc
+            key={section!.id}
+            id="results-figure-list"
+            heading="Figures"
+            panelLabel="Figures on this page"
+            listName="figure list"
+            entries={charts.map((chart) => ({ key: chart.id, href: `#figure-${chart.id}`, label: chart.name }))}
+          />
         </>
       );
     }
@@ -389,21 +393,13 @@ export default function App() {
     }
     if (!inputReady) return <Boot message={inputError || "Discovering model inputs…"} />;
     if (view === "inputs") {
-      return (
-        <InputEditor
-          key={inputRefresh}
-          catalog={inputCatalog!}
-          selection={inputSelection}
-          onNavigate={() => setSidebarOpen(false)}
-        />
-      );
+      return <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} />;
     }
     return (
       <ScenarioConfigEditor
         key={inputRefresh}
         selection={inputSelection}
         country={country}
-        onNavigate={() => setSidebarOpen(false)}
         runMonitor={runMonitor}
         onOpenResults={(runName, datasetName, projectName) => {
           window.location.href = `/?section=power&dataset=${encodeURIComponent(datasetName)}&project=${encodeURIComponent(projectName)}&run=${encodeURIComponent(runName)}`;
@@ -418,7 +414,6 @@ export default function App() {
         Skip to workspace
       </a>
       <Sidebar
-        open={sidebarOpen}
         view={view}
         sections={sections}
         activeSectionId={section?.id}
@@ -428,19 +423,8 @@ export default function App() {
         onSelectSection={chooseSection}
         onToggleDarkMode={() => setDark((current) => !current)}
       />
-      <div
-        className={[styles["scrim"], sidebarOpen ? styles["scrim-open"] : ""].join(" ")}
-        onClick={() => setSidebarOpen(false)}
-      />
       <div className={styles["main-column"]}>
         <header className={workspaceBarStyles["workspace-bar"]}>
-          <IconButton
-            className={workspaceBarStyles["menu"]}
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            aria-label="Open workspace navigation"
-          >
-            <Menu aria-hidden="true" />
-          </IconButton>
           {view === "home" && (
             <div className={workspaceBarStyles["home-bar-copy"]}>
               <b>Workspace overview</b>
@@ -618,66 +602,6 @@ function ContextControl({
       onChange={onChange}
       options={options}
     />
-  );
-}
-function ResultsToc({ charts }: { charts: ChartDefinition[] }) {
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const closeOutside = (event: PointerEvent) => {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const closeWithEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("pointerdown", closeOutside);
-    document.addEventListener("keydown", closeWithEscape);
-    return () => {
-      document.removeEventListener("pointerdown", closeOutside);
-      document.removeEventListener("keydown", closeWithEscape);
-    };
-  }, [open]);
-  if (!charts.length) return null;
-  return (
-    <div
-      className={[resultsTocStyles["results-toc"], open ? resultsTocStyles["open"] : ""].filter(Boolean).join(" ")}
-      ref={root}
-    >
-      {open && (
-        <nav
-          className={resultsTocStyles["results-toc-panel"]}
-          id="results-figure-list"
-          aria-label="Figures on this page"
-        >
-          <header>
-            <h2>Figures</h2>
-            <IconButton alignEnd onClick={() => setOpen(false)} aria-label="Close figure list">
-              <X aria-hidden="true" />
-            </IconButton>
-          </header>
-          <ol>
-            {charts.map((chart, index) => (
-              <li key={chart.id}>
-                <a href={`#figure-${chart.id}`} onClick={() => setOpen(false)}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <b>{chart.name}</b>
-                </a>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      )}
-      <IconButton
-        className={resultsTocStyles["results-toc-trigger"]}
-        onClick={() => setOpen((current) => !current)}
-        aria-label="Open figure list"
-        aria-expanded={open}
-        aria-controls="results-figure-list"
-      >
-        <List aria-hidden="true" />
-      </IconButton>
-    </div>
   );
 }
 function Boot({ message }: { message: string }) {

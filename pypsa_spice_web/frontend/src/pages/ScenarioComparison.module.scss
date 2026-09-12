@@ -289,28 +289,3 @@
 html[data-theme="dark"] .comparison-table tbody tr:hover > * {
   background: color-mix(in srgb, var(--pink) 6%, var(--surface));
 }
-@media (max-width: 1280px) {
-  .comparison-table {
-    min-width: 850px;
-  }
-}
-@media (max-width: 768px) {
-  .comparison-page-title {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .comparison-direction {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .comparison-tools {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .comparison-search {
-    width: 100%;
-  }
-  .comparison-filter-count {
-    margin-left: 0;
-  }
-}

@@ -14,15 +14,7 @@ import TechnologyEditor, { TechnologyTitle } from "./TechnologyEditor";
 
 type InputEditorView = "table" | "technology";
 
-export default function InputEditor({
-  catalog,
-  selection,
-  onNavigate,
-}: {
-  catalog: InputCatalog;
-  selection: InputSelection;
-  onNavigate: () => void;
-}) {
+export default function InputEditor({ catalog, selection }: { catalog: InputCatalog; selection: InputSelection }) {
   const [view, setView] = useState<InputEditorView>("technology");
   const [sector, setSector] = useState("power");
   const project = catalog.datasets
@@ -68,7 +60,6 @@ export default function InputEditor({
   const chooseView = (nextView: InputEditorView) =>
     guarded(() => {
       setView(nextView);
-      onNavigate();
     });
 
   return (

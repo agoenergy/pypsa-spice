@@ -69,15 +69,6 @@
   background: var(--surface);
   border: 1px solid var(--line);
 }
-@media (max-width: 1280px) {
-  .editor-panel-head {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-  .editor-panel-head code {
-    max-width: 80vw;
-  }
-}
 .editor-warning {
   border-left: 0;
 }

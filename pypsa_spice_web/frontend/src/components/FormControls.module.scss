@@ -96,14 +96,3 @@
   height: 22px;
   accent-color: var(--pink);
 }
-
-@media (max-width: 1024px) {
-  .search {
-    width: 100%;
-  }
-}
-@media (max-width: 1280px) {
-  .context-control {
-    max-width: 220px;
-  }
-}

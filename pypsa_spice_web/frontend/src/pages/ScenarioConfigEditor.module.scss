@@ -286,9 +286,3 @@
 .fuel-limit-notice {
   margin: 12px 14px;
 }
-@media (max-width: 768px) {
-  .constraint-fields,
-  .matrix-add-row {
-    grid-template-columns: 1fr;
-  }
-}

@@ -113,23 +113,3 @@
 .home-source-note b {
   color: var(--ink);
 }
-@media (max-width: 1280px) {
-  .home-workflow {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (max-width: 640px) {
-  .home-workflow {
-    grid-template-columns: 1fr;
-  }
-  .home-workspaces > .home-panel-heading {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .home-project-picker {
-    width: 100%;
-  }
-  .home-panel-heading {
-    min-height: 62px;
-  }
-}

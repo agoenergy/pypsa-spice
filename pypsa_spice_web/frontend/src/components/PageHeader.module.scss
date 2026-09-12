@@ -17,17 +17,6 @@
 .page-title [data-control="search"] {
   flex: 0 1 300px;
 }
-@media (max-width: 1024px) {
-  .page-title {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .page-title [data-control="search"] {
-    width: 100%;
-    flex-basis: auto;
-  }
-}
 .page-title > h1 {
   min-width: 0;
 }
@@ -46,30 +35,4 @@
 }
 .page-controls [data-control="search"] input {
   min-width: 190px;
-}
-@media (max-width: 1280px) {
-  .page-title {
-    align-items: flex-start;
-  }
-  .page-controls {
-    max-width: 620px;
-  }
-}
-@media (max-width: 1024px) {
-  .page-controls {
-    width: 100%;
-    max-width: none;
-    justify-content: flex-start;
-  }
-  .page-controls [data-control="context"] {
-    flex: 1 1 180px;
-    max-width: none;
-  }
-  .page-controls [data-control="search"] {
-    flex: 1 1 100%;
-    max-width: none;
-  }
-  .page-controls [data-control="search"] input {
-    min-width: 0;
-  }
 }

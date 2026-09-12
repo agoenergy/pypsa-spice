@@ -2,13 +2,12 @@ import styles from "./ScenarioComparison.module.scss";
 import workspaceFeedbackStyles from "../components/WorkspaceFeedback.module.scss";
 import editorPanelStyles from "../components/EditorPanel.module.scss";
 import workspaceUtilitiesStyles from "../components/WorkspaceUtilities.module.scss";
-import resultsTocStyles from "../components/ResultsToc.module.scss";
 import dataTableStyles from "../components/DataTable.module.scss";
-import IconButton from "../components/IconButton";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, CheckCircle2, Info, List, Search, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, CheckCircle2, Info, Search } from "lucide-react";
 import { getScenarioComparison } from "../api";
 import PageHeader from "../components/PageHeader";
+import ResultsToc from "../components/ResultsToc";
 
 import type {
   InputSelection,
@@ -218,75 +217,25 @@ export default function ScenarioComparison({
                 ))}
               </div>
             )}
-            {groupedSections.length > 0 && <ComparisonToc sections={filteredSections} />}
+            {groupedSections.length > 0 && (
+              <ResultsToc
+                id="comparison-section-list"
+                heading="Changed groups"
+                panelLabel="Changed groups on this page"
+                listName="changed-group list"
+                entries={filteredSections.map((section) => ({
+                  key: section.id,
+                  href: `#${section.id.replaceAll(":", "-")}`,
+                  label: section.label,
+                }))}
+              />
+            )}
           </>
         )
       )}
     </>
   );
 }
-
-function ComparisonToc({ sections }: { sections: ScenarioDifferenceSection[] }) {
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const closeOutside = (event: PointerEvent) => {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const closeWithEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("pointerdown", closeOutside);
-    document.addEventListener("keydown", closeWithEscape);
-    return () => {
-      document.removeEventListener("pointerdown", closeOutside);
-      document.removeEventListener("keydown", closeWithEscape);
-    };
-  }, [open]);
-
-  return (
-    <div
-      className={[resultsTocStyles["results-toc"], open ? resultsTocStyles["open"] : ""].filter(Boolean).join(" ")}
-      ref={root}
-    >
-      {open && (
-        <nav
-          className={resultsTocStyles["results-toc-panel"]}
-          id="comparison-section-list"
-          aria-label="Changed groups on this page"
-        >
-          <header>
-            <h2>Changed groups</h2>
-            <IconButton alignEnd onClick={() => setOpen(false)} aria-label="Close changed-group list">
-              <X aria-hidden="true" />
-            </IconButton>
-          </header>
-          <ol>
-            {sections.map((section, index) => (
-              <li key={section.id}>
-                <a href={`#${section.id.replaceAll(":", "-")}`} onClick={() => setOpen(false)}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <b>{section.label}</b>
-                </a>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      )}
-      <IconButton
-        className={resultsTocStyles["results-toc-trigger"]}
-        onClick={() => setOpen((current) => !current)}
-        aria-label="Open changed-group list"
-        aria-expanded={open}
-        aria-controls="comparison-section-list"
-      >
-        <List aria-hidden="true" />
-      </IconButton>
-    </div>
-  );
-}
-
 function DifferenceTable({
   section,
   reference,

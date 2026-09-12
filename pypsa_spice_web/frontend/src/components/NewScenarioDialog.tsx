@@ -4,10 +4,11 @@ import workspaceFeedbackStyles from "./WorkspaceFeedback.module.scss";
 import Button from "./Button";
 import IconButton from "./IconButton";
 import { Field } from "./FormControls";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Copy, X } from "lucide-react";
 
 import { createScenario } from "../api";
+import { useDismissOnEscape } from "../useDismiss";
 import type { CreatedScenario, InputSelection } from "../types";
 
 export default function NewScenarioDialog({
@@ -30,13 +31,7 @@ export default function NewScenarioDialog({
     trimmedName && !trimmedName.startsWith(".") && !/[\\/\0]/.test(trimmedName) && trimmedName !== "global_input",
   );
 
-  useEffect(() => {
-    const close = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !submitting) onClose();
-    };
-    window.addEventListener("keydown", close);
-    return () => window.removeEventListener("keydown", close);
-  }, [onClose, submitting]);
+  useDismissOnEscape(!submitting, onClose);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();

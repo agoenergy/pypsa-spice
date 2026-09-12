@@ -146,17 +146,3 @@
 .technology-panel .editable-table-wrap {
   max-height: 46vh;
 }
-@media (max-width: 768px) {
-  .table-tools {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .table-tools [data-control="search"],
-  .table-tools [data-control="field"][data-compact] {
-    width: 100%;
-  }
-  .row-count {
-    margin-left: 0;
-    padding: 0;
-  }
-}

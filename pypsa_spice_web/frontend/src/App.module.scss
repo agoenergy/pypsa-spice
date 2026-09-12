@@ -23,20 +23,6 @@
 .chart-grid.comparison-active .chart-card {
   grid-column: 1/-1;
 }
-@media (max-width: 1280px) {
-  .chart-grid {
-    grid-template-columns: 1fr;
-  }
-}
-@media (max-width: 640px) {
-  .main-column > footer {
-    display: block;
-  }
-  .main-column > footer span {
-    display: block;
-    margin: 4px 0;
-  }
-}
 .skip-link {
   position: fixed;
   z-index: 1000;
@@ -74,17 +60,6 @@
   width: 130px;
   margin: auto;
 }
-.scrim {
-  display: none;
-}
-@media (max-width: 1024px) {
-  .app-shell {
-    display: block;
-  }
-  .chart-grid {
-    padding: 0 14px 14px;
-  }
-}
 .analysis {
   min-width: 0;
   background: transparent;
@@ -98,14 +73,4 @@
 }
 .boot.inline {
   height: min(620px, 70vh);
-}
-
-@media (max-width: 1024px) {
-  .scrim-open {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    background: rgb(0 0 0 / 0.45);
-  }
 }

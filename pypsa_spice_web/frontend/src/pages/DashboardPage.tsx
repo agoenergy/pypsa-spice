@@ -23,6 +23,7 @@ import {
 
 import DashboardChartCard from "../components/DashboardChartCard";
 import PageHeader from "../components/PageHeader";
+import { useDismissOnEscape } from "../useDismiss";
 import {
   LocalDashboardStore,
   createDashboard,
@@ -636,6 +637,7 @@ function AddChartDialog({
       setScenarios(selected.slice(0, 2));
     }
   };
+  useDismissOnEscape(true, onClose);
   const valid = Boolean(chart && sector && scenarios.length > 0 && (mode !== "difference" || scenarios.length === 2));
   const add = () => {
     if (!chart || !valid) return;
@@ -773,6 +775,7 @@ function ImportDashboardDialog({
   onClose: () => void;
   onImport: () => void;
 }) {
+  useDismissOnEscape(true, onClose);
   const project = projectFor(catalog, dashboard);
   const charts = dashboard.rows.filter((row): row is DashboardChartRow => row.type === "chart");
   const availableScenarios = new Set(project?.scenarios.map((scenario) => scenario.name) || []);
