@@ -8,6 +8,7 @@ Implementation update, 2026-09-12: General 1, 2, and 3 are fully addressed.
 All frontend styles now use SCSS, and all component, page, and shared-pattern
 classes live in SCSS modules. Global styles contain only fonts, design tokens,
 resets, focus treatment, and reduced-motion rules. DataDialog 2 is also fixed.
+Plot.tsx issues 1, 2, and 3 are also fully addressed in separate commits.
 Commit references below distinguish implemented fixes from partial progress and open suggestions.
 
 #### General
@@ -48,17 +49,19 @@ Commit references below distinguish implemented fixes from partial progress and 
 
     > Reply: Fixed on 2026-09-12. Moved aggregation, legend values, and difference calculations into `shared/chartData.ts`. `Plot`, `ChartCard`, and `DashboardChartCard` now import their data helpers directly and share the extracted `ChartLegend` component. The legend owns its SCSS module, and `shared/chartPresentation.ts` keeps its labels and colours consistent with the traces. Moved the difference-row tests alongside the data helpers. Validation: TypeScript, formatting, and all 38 frontend tests pass, including the shared SCSS selector checks.
     >
-    > Commit: this issue is addressed by `Refactor chart data and legend out of Plot` including this review update.
+    > Commit: [a09f99c](https://github.com/agoenergy/pypsa-spice/commit/a09f99c), `Refactor chart data and legend out of Plot`, includes this issue's review update.
 
 2. Also consider moving logic that acts on processed chart data to derive the Plotly trace objects into a separate file like `plotTraces.ts` (`traces`, `differenceTraces`, `stackedBarTotalTrace`, etc.). They are only used in this Plot component but are conceptually separate from the actual Plot lifecycle and orchestration which the component handles. Minor suggestion to move them out, and expose a single main function from `plotTraces.ts` which internally calls all those functions
 
     > Reply: Fixed on 2026-09-12. Moved series, difference, and stacked-bar total trace construction into `shared/plotTraces.ts`. Its single `buildPlotTraces` entry point returns the trace data and whether column totals need extra top margin. `Plot` now handles loading, rendering, layout, resizing, and cleanup. Regression tests cover comparisons, differences, hidden legends, secondary axes, hourly lines, stacked areas, and column totals. Validation: TypeScript, formatting, and all 44 frontend tests pass.
     >
-    > Commit: this issue is addressed by `Extract Plotly trace construction from Plot` including this review update.
+    > Commit: [5665664](https://github.com/agoenergy/pypsa-spice/commit/5665664), `Extract Plotly trace construction from Plot`, includes this issue's review update.
 
 3. Typing trace as `Record<string, unknown>` is probably too loose for an object that is supposed to conform to Plotly's trace shape. It would be better to type it as a Plotly trace type to catch invalid property values that may get passed in
 
-    > Open. No addressing commit yet; the trace still uses `Record<string, unknown>`.
+    > Reply: Fixed on 2026-09-12. Added `@types/plotly.js` as a development dependency. Series and difference traces now use `Partial<PlotData>`, and the trace builder and Plotly loader share a typed data contract. Replaced unchecked `Object.assign` calls with typed property assignments. A narrow `ScatterTextTrace` extension preserves the existing per-point total-label positions, which [Plotly supports](https://plotly.com/javascript/reference/scatter/#scatter-textposition) but the installed definitions omit. No broad records or type casts are needed. Validation: TypeScript, all 44 frontend tests, formatting, and the production build pass.
+    >
+    > Commit: `Type Plotly traces with Plotly definitions` includes this fix and its review update.
 
 #### `DataDialog`
 1. Similar issue of too many responsibilities in one component. Consider turning it into a small module instead. `DataDialog` component itself should only handle deciding whether to render hourly or yearly, then `HourlyDataDialog` and `YearlyDataDialog` as components that it imports. Current `YearlyDataDialog` is a bit of a monster and contains several different concepts - suggest splitting the jsx into smaller components `YearlyTableToolbar`, `YearlyResultsTable`, `YearlyTableFooter` to start. Move table specific functions into some table utils file. Suggested structure:

@@ -1,3 +1,5 @@
+import type { PlotData } from "plotly.js";
+import type { PlotTrace, ScatterTextTrace } from "./types";
 import type { Catalog, ChartDefinition, ChartResponse } from "../types";
 import { aggregate, differenceAggregates } from "./chartData";
 import { chartFont, formatLegendLabel, getLegendColour } from "./chartPresentation";
@@ -20,7 +22,7 @@ export function buildPlotTraces({
   legendValues,
   hiddenLegendValues,
   difference,
-}: PlotTraceOptions) {
+}: PlotTraceOptions): { data: PlotTrace[]; hasColumnTotals: boolean } {
   const chartTraces =
     difference && comparison
       ? differenceTraces(primary, comparison, chart, mappings, legendValues, hiddenLegendValues)
@@ -46,12 +48,12 @@ function traces(
   comparison: boolean,
   legendValues: string[],
   hiddenLegendValues: ReadonlySet<string>,
-) {
-  return [...aggregate(response.rows, chart).entries()].map(([legend, points]) => {
+): Partial<PlotData>[] {
+  return [...aggregate(response.rows, chart).entries()].map(([legend, points]): Partial<PlotData> => {
     const color = getLegendColour(legend, legendValues.indexOf(legend), mappings);
     const isArea = chart.type === "area_share";
     const isBar = chart.type.includes("bar");
-    const trace: Record<string, unknown> = {
+    const trace: Partial<PlotData> = {
       name: formatLegendLabel(legend, mappings),
       x: points.map((point) => point.x),
       y: points.map((point) => point.y),
@@ -62,15 +64,15 @@ function traces(
       yaxis: chart.secondary_y_lab?.includes(legend) ? "y2" : "y",
       visible: hiddenLegendValues.has(legend) ? "legendonly" : true,
     };
-    if (isArea)
-      Object.assign(trace, {
-        type: "scatter",
-        mode: "lines",
-        fill: comparison ? "none" : "tonexty",
-        stackgroup: comparison ? undefined : "one",
-      });
-    else if (chart.hourly && !isBar) Object.assign(trace, { type: "scatter", mode: "lines" });
-    else trace.type = "bar";
+    if (isArea) {
+      trace.type = "scatter";
+      trace.mode = "lines";
+      trace.fill = comparison ? "none" : "tonexty";
+      trace.stackgroup = comparison ? undefined : "one";
+    } else if (chart.hourly && !isBar) {
+      trace.type = "scatter";
+      trace.mode = "lines";
+    } else trace.type = "bar";
     return trace;
   });
 }
@@ -82,8 +84,8 @@ function differenceTraces(
   mappings: Catalog["mappings"],
   legendValues: string[],
   hiddenLegendValues: ReadonlySet<string>,
-) {
-  return [...differenceAggregates(primary, comparison, chart)].map(([legend, points]) => {
+): Partial<PlotData>[] {
+  return [...differenceAggregates(primary, comparison, chart)].map(([legend, points]): Partial<PlotData> => {
     const color = getLegendColour(legend, legendValues.indexOf(legend), mappings);
     const isBar = chart.type.includes("bar") || !chart.hourly;
     return {
@@ -111,7 +113,7 @@ function stackedBarTotalTrace(
   response: ChartResponse,
   chart: ChartDefinition,
   hiddenLegendValues: ReadonlySet<string>,
-) {
+): ScatterTextTrace | null {
   if (chart.hourly || chart.type === "grouped_bar" || !chart.type.includes("bar")) return null;
   const totals = new Map<string, { x: string | number; total: number; positive: number; negative: number }>();
   for (const [legend, points] of aggregate(response.rows, chart)) {

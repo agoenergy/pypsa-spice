@@ -1,5 +1,7 @@
+import type { PlotTrace } from "./shared/types";
+
 interface PlotlyApi {
-  react: (element: HTMLElement, data: unknown[], layout: object, config: object) => void;
+  react: (element: HTMLElement, data: PlotTrace[], layout: object, config: object) => void;
   purge: (element: HTMLElement) => void;
   Plots: { resize: (element: HTMLElement) => void };
 }
