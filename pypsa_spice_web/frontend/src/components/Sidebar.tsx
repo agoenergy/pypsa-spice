@@ -1,3 +1,4 @@
+import IconButton from "./IconButton";
 import type { ReactNode } from "react";
 import {
   BarChart3,
@@ -231,9 +232,9 @@ function SidebarFooter({
       <a href="/docs" target="_blank">
         API
       </a>
-      <button onClick={onToggleDarkMode} aria-label="Toggle dark mode">
+      <IconButton onClick={onToggleDarkMode} aria-label="Toggle dark mode">
         {darkMode ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-      </button>
+      </IconButton>
     </div>
   );
 }

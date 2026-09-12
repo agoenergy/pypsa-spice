@@ -1,3 +1,5 @@
+import Button from "./Button";
+import { Field } from "./FormControls";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -271,7 +273,7 @@ export default function RunModel({
               <ReadOnlyField label="Data folder" value={selection.dataset} />
               <ReadOnlyField label="Project" value={selection.project} />
               <ReadOnlyField label="Input scenario" value={selection.scenario} />
-              <label className="field">
+              <Field>
                 <span>Output scenario</span>
                 <input
                   value={outputScenario}
@@ -280,7 +282,7 @@ export default function RunModel({
                   maxLength={255}
                   disabled={active}
                 />
-              </label>
+              </Field>
             </div>
             <div className="run-dimensions">
               {dimensions.map((item) => (
@@ -291,7 +293,7 @@ export default function RunModel({
               ))}
             </div>
             <div className="run-advanced">
-              <label className="field">
+              <Field>
                 <span>CPU cores</span>
                 <input
                   type="number"
@@ -301,7 +303,7 @@ export default function RunModel({
                   onChange={(event) => setCores(Number(event.target.value))}
                   disabled={active}
                 />
-              </label>
+              </Field>
               <div>
                 <span>Workflow target</span>
                 <code>{options?.target || "solve_all_networks"}</code>
@@ -315,10 +317,10 @@ export default function RunModel({
                 data/{selection.dataset}/{selection.project}/results/{outputScenario || "…"}
               </code>
             </div>
-            <button className="button primary" type="submit" disabled={active || submitting || !outputScenario.trim()}>
+            <Button variant="primary" type="submit" disabled={active || submitting || !outputScenario.trim()}>
               <Play aria-hidden="true" />
               {submitting ? "Starting…" : active ? "Run in progress" : "Run model"}
-            </button>
+            </Button>
           </footer>
         </form>
 
@@ -380,15 +382,10 @@ export default function RunModel({
                   Snakemake log
                 </span>
                 {active && (
-                  <button
-                    className="button secondary"
-                    type="button"
-                    onClick={cancel}
-                    disabled={run.status === "canceling"}
-                  >
+                  <Button type="button" onClick={cancel} disabled={run.status === "canceling"}>
                     <CircleStop aria-hidden="true" />
                     {run.status === "canceling" ? "Stopping…" : "Stop run"}
-                  </button>
+                  </Button>
                 )}
               </div>
               <pre className="run-log" ref={logRef}>
@@ -396,23 +393,23 @@ export default function RunModel({
               </pre>
               {!active && (
                 <div className="run-complete-actions">
-                  <button className="button secondary" type="button" onClick={onEditConfiguration}>
+                  <Button type="button" onClick={onEditConfiguration}>
                     <Pencil aria-hidden="true" />
                     Edit configuration
-                  </button>
-                  <button className="button secondary" type="button" onClick={() => updateRun(null)}>
+                  </Button>
+                  <Button type="button" onClick={() => updateRun(null)}>
                     <RotateCcw aria-hidden="true" />
                     Run again
-                  </button>
+                  </Button>
                   {run.status === "succeeded" && (
-                    <button
-                      className="button primary"
+                    <Button
+                      variant="primary"
                       type="button"
                       onClick={() => onOpenResults(run.output_scenario, run.dataset, run.project)}
                     >
                       <ExternalLink aria-hidden="true" />
                       Open results
-                    </button>
+                    </Button>
                   )}
                 </div>
               )}
@@ -441,10 +438,10 @@ function ReviewItem({ label, value }: { label: string; value: string }) {
 
 function ReadOnlyField({ label, value }: { label: string; value: string }) {
   return (
-    <label className="field">
+    <Field>
       <span>{label}</span>
       <input value={value} readOnly aria-readonly="true" />
-    </label>
+    </Field>
   );
 }
 

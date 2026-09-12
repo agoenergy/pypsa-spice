@@ -1,27 +1,9 @@
 .comparison-swap {
-  width: 44px;
-  height: 44px;
+  --icon-control-glyph-width: 17px;
+  --icon-control-glyph-height: 17px;
+  --icon-control-disabled-opacity: 0.4;
   flex: 0 0 44px;
   align-self: flex-end;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--surface);
-  color: var(--muted);
-  cursor: pointer;
-}
-.comparison-swap:hover:not(:disabled) {
-  border-color: var(--pink);
-  color: var(--pink);
-}
-.comparison-swap:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
-}
-.comparison-swap svg {
-  width: 17px;
-  height: 17px;
 }
 .comparison-page-title {
   align-items: flex-end;

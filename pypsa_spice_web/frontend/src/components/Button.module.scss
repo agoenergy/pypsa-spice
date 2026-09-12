@@ -1,0 +1,51 @@
+.button {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 600;
+
+  > svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 1.8;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
+  }
+}
+
+.primary {
+  background: var(--pink);
+  color: #fff;
+  &:hover:not(:disabled) {
+    background: var(--pink-dark);
+  }
+}
+
+.secondary,
+.danger {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.secondary:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+
+.danger {
+  color: var(--danger);
+  &:hover:not(:disabled) {
+    border-color: var(--danger-hover);
+    background: color-mix(in srgb, var(--danger-hover) 5%, var(--surface));
+  }
+}

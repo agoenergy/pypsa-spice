@@ -129,7 +129,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.run-actions .button {
+.run-actions [data-control="button"] {
   flex: 0 0 auto;
 }
 .run-actions svg,
@@ -307,14 +307,14 @@
     align-items: stretch;
     flex-direction: column;
   }
-  .run-actions .button {
+  .run-actions [data-control="button"] {
     width: 100%;
   }
   .run-log-head {
     align-items: stretch;
     flex-direction: column;
   }
-  .run-log-head .button {
+  .run-log-head [data-control="button"] {
     width: 100%;
   }
 }
@@ -529,7 +529,7 @@
   .run-complete-actions {
     flex-direction: column;
   }
-  .run-complete-actions .button {
+  .run-complete-actions [data-control="button"] {
     width: 100%;
   }
 }

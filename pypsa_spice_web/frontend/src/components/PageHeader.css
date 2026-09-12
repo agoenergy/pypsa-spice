@@ -4,7 +4,7 @@
   justify-content: space-between;
   gap: 24px;
 }
-.page-title .search {
+.page-title [data-control="search"] {
   flex: 0 1 300px;
 }
 @media (max-width: 1024px) {
@@ -13,7 +13,7 @@
     flex-direction: column;
     gap: 16px;
   }
-  .page-title .search {
+  .page-title [data-control="search"] {
     width: 100%;
     flex-basis: auto;
   }

@@ -4,27 +4,13 @@
   align-items: flex-end;
   gap: 5px;
 }
-.scenario-context-group .context-control {
+.scenario-context-group [data-control="context"] {
   flex: 1;
 }
 .context-add {
-  width: 44px;
-  height: 44px;
+  --icon-control-glyph-width: 17px;
+  --icon-control-glyph-height: 17px;
   flex: 0 0 44px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--surface);
-  cursor: pointer;
-}
-.context-add:hover {
-  border-color: var(--pink);
-  color: var(--pink);
-}
-.context-add svg {
-  width: 17px;
-  height: 17px;
 }
 .scenario-dialog {
   width: min(620px, 100%);

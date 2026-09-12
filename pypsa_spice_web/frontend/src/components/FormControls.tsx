@@ -1,5 +1,6 @@
-import type { ButtonHTMLAttributes, ChangeEvent, ReactNode } from "react";
+import type { ChangeEvent, LabelHTMLAttributes } from "react";
 import { Search } from "lucide-react";
+import styles from "./FormControls.module.scss";
 
 export interface SelectOption {
   value: string;
@@ -16,6 +17,28 @@ interface SelectFieldProps {
   variant?: "context" | "field";
 }
 
+interface FieldProps extends LabelHTMLAttributes<HTMLLabelElement> {
+  compact?: boolean;
+  variant?: "context" | "field";
+}
+
+export function Field({ compact = false, variant = "field", className = "", ...props }: FieldProps) {
+  return (
+    <label
+      {...props}
+      data-control={variant === "context" ? "context" : "field"}
+      data-compact={compact || undefined}
+      className={[
+        styles[variant === "context" ? "context-control" : "field"],
+        compact ? styles["compact"] : "",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    />
+  );
+}
+
 export function SelectField({
   label,
   value,
@@ -25,9 +48,8 @@ export function SelectField({
   compact = false,
   variant = "field",
 }: SelectFieldProps) {
-  const baseClass = variant === "context" ? "context-control" : `field${compact ? " compact" : ""}`;
   return (
-    <label className={`${baseClass} ${className}`.trim()}>
+    <Field variant={variant} compact={compact} className={className}>
       <span>{label}</span>
       <select value={value} onChange={(event) => onChange(event.target.value)}>
         {options.map((option) => (
@@ -36,7 +58,7 @@ export function SelectField({
           </option>
         ))}
       </select>
-    </label>
+    </Field>
   );
 }
 
@@ -44,33 +66,22 @@ interface SearchFieldProps {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
+  label?: string;
   className?: string;
 }
 
-export function SearchField({ value, onChange, placeholder, className = "" }: SearchFieldProps) {
+export function SearchField({ value, onChange, placeholder, label = placeholder, className = "" }: SearchFieldProps) {
   return (
-    <label className={`search ${className}`.trim()}>
+    <label data-control="search" className={`${styles["search"]} ${className}`.trim()}>
       <Search aria-hidden="true" />
       <input
         value={value}
         onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
+        aria-label={label}
         type="search"
         placeholder={placeholder}
       />
     </label>
-  );
-}
-
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary";
-  children: ReactNode;
-}
-
-export function Button({ variant = "secondary", className = "", children, type = "button", ...props }: ButtonProps) {
-  return (
-    <button type={type} className={`button ${variant} ${className}`.trim()} {...props}>
-      {children}
-    </button>
   );
 }
 
@@ -83,7 +94,7 @@ interface ToggleFieldProps {
 
 export function ToggleField({ label, checked, onChange, className = "" }: ToggleFieldProps) {
   return (
-    <label className={`toggle-row ${className}`.trim()}>
+    <label className={`${styles["toggle-row"]} ${className}`.trim()}>
       <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
       <span>{label}</span>
     </label>

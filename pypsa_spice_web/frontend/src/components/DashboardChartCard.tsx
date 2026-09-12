@@ -1,3 +1,6 @@
+import Button from "./Button";
+import IconButton from "./IconButton";
+import { Field } from "./FormControls";
 import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { ArrowLeftRight, Expand, Minimize2, Settings2, Table2 } from "lucide-react";
 import "./DashboardChartCard.css";
@@ -230,29 +233,32 @@ export default function DashboardChartCard({
         </div>
         <div className="dashboard-chart-toolbar">
           <div className="dashboard-card-actions">
-            <button
-              className={editing ? "active" : ""}
+            <IconButton
+              variant="toolbar"
+              aria-pressed={editing}
               onClick={() => setEditing((current) => !current)}
               title="Configure chart"
               aria-label={`Configure ${title}`}
             >
               <Settings2 aria-hidden="true" />
-            </button>
-            <button
+            </IconButton>
+            <IconButton
+              variant="toolbar"
               onClick={() => onInspect({ ...chart, name: title }, displayedRows, sourceCount)}
               disabled={!displayedRows.length}
               title="View source data"
               aria-label={`View ${title} source data`}
             >
               <Table2 aria-hidden="true" />
-            </button>
-            <button
+            </IconButton>
+            <IconButton
+              variant="toolbar"
               onClick={() => setExpanded((current) => !current)}
               title={expanded ? "Close expanded chart" : "Expand chart"}
               aria-label={`${expanded ? "Close" : "Expand"} ${title}`}
             >
               {expanded ? <Minimize2 aria-hidden="true" /> : <Expand aria-hidden="true" />}
-            </button>
+            </IconButton>
           </div>
           {rowActions}
         </div>
@@ -260,15 +266,15 @@ export default function DashboardChartCard({
 
       {editing && (
         <div className="dashboard-card-config">
-          <label className="field">
+          <Field>
             <span>Chart title</span>
             <input
               value={config.customTitle || ""}
               placeholder={chart.name}
               onChange={(event) => update({ customTitle: event.target.value })}
             />
-          </label>
-          <label className="field">
+          </Field>
+          <Field>
             <span>Display</span>
             <select
               value={config.mode}
@@ -279,9 +285,9 @@ export default function DashboardChartCard({
                 Difference
               </option>
             </select>
-          </label>
+          </Field>
           <ChartSourceSelect config={config} sections={sections} onChange={onChange} />
-          <label className="field">
+          <Field>
             <span>Sector run</span>
             <select
               value={config.sector}
@@ -306,7 +312,7 @@ export default function DashboardChartCard({
                 <option key={sector}>{sector}</option>
               ))}
             </select>
-          </label>
+          </Field>
           <fieldset className="dashboard-scenario-picker">
             <legend>{config.mode === "difference" ? "Reference and comparison" : "Scenarios (maximum two)"}</legend>
             {scenarioOptions.map((scenario) => {
@@ -327,15 +333,15 @@ export default function DashboardChartCard({
             })}
           </fieldset>
           {config.mode === "difference" && config.scenarios.length === 2 && (
-            <button
-              className="button secondary dashboard-swap"
+            <Button
+              className="dashboard-swap"
               onClick={() => update({ scenarios: [config.scenarios[1], config.scenarios[0]] })}
             >
               <ArrowLeftRight aria-hidden="true" />
               Swap direction
-            </button>
+            </Button>
           )}
-          <label className="field">
+          <Field>
             <span>Country</span>
             <select value={config.country} onChange={(event) => update({ country: event.target.value })}>
               <option value="ALL">All countries</option>
@@ -343,9 +349,9 @@ export default function DashboardChartCard({
                 <option key={country}>{country}</option>
               ))}
             </select>
-          </label>
+          </Field>
           {chart.fil_col && (
-            <label className="field">
+            <Field>
               <span>{chart.fil_col}</span>
               <select
                 value={config.filterValue || "ALL"}
@@ -356,10 +362,10 @@ export default function DashboardChartCard({
                   <option key={filter}>{filter}</option>
                 ))}
               </select>
-            </label>
+            </Field>
           )}
           {chart.hourly && (
-            <label className="field">
+            <Field>
               <span>Year</span>
               <select
                 value={selectedYear}
@@ -369,26 +375,26 @@ export default function DashboardChartCard({
                   <option key={year}>{year}</option>
                 ))}
               </select>
-            </label>
+            </Field>
           )}
           {chart.hourly && (
             <>
-              <label className="field">
+              <Field>
                 <span>Start time</span>
                 <input
                   type="datetime-local"
                   value={config.startTime || ""}
                   onChange={(event) => update({ startTime: event.target.value })}
                 />
-              </label>
-              <label className="field">
+              </Field>
+              <Field>
                 <span>End time</span>
                 <input
                   type="datetime-local"
                   value={config.endTime || ""}
                   onChange={(event) => update({ endTime: event.target.value })}
                 />
-              </label>
+              </Field>
             </>
           )}
         </div>
@@ -536,7 +542,7 @@ function ChartSourceSelect({
 }) {
   const value = `${config.sectionId}\u0000${config.chartId}`;
   return (
-    <label className="field">
+    <Field>
       <span>Results chart</span>
       <select
         value={value}
@@ -564,6 +570,6 @@ function ChartSourceSelect({
           </optgroup>
         ))}
       </select>
-    </label>
+    </Field>
   );
 }

@@ -1,6 +1,7 @@
+import IconButton from "../components/IconButton";
+import { Field, SelectField, ToggleField } from "../components/FormControls";
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
-import { SelectField, ToggleField } from "../components/FormControls";
 
 export default function ScenarioSettings({
   value,
@@ -31,7 +32,7 @@ export default function ScenarioSettings({
   return (
     <div className="config-form">
       <div className="form-grid">
-        <label className="field">
+        <Field>
           <span>Model year</span>
           <input
             type="number"
@@ -48,8 +49,8 @@ export default function ScenarioSettings({
               });
             }}
           />
-        </label>
-        <label className="field">
+        </Field>
+        <Field>
           <span>Remove assets below (MW)</span>
           <input
             type="number"
@@ -58,27 +59,27 @@ export default function ScenarioSettings({
             value={String(value.remove_threshold ?? 0)}
             onChange={(event) => onChange({ ...value, remove_threshold: Number(event.target.value) })}
           />
-        </label>
+        </Field>
       </div>
       <ToggleField label="Edit snapshot range manually" checked={manual} onChange={toggleManual} />
       {manual ? (
         <div className="form-grid three">
-          <label className="field">
+          <Field>
             <span>Snapshot start</span>
             <input
               type="date"
               value={start}
               onChange={(event) => patch("snapshots", { ...snapshots, start: event.target.value })}
             />
-          </label>
-          <label className="field">
+          </Field>
+          <Field>
             <span>Snapshot end</span>
             <input
               type="date"
               value={end}
               onChange={(event) => patch("snapshots", { ...snapshots, end: event.target.value })}
             />
-          </label>
+          </Field>
           <SelectField
             label="Inclusive"
             value={String(snapshots.inclusive || "left")}
@@ -104,7 +105,7 @@ export default function ScenarioSettings({
             ]}
           />
           {resolution.method === "clustered" ? (
-            <label className="field">
+            <Field>
               <span>Number of days</span>
               <input
                 type="number"
@@ -112,9 +113,9 @@ export default function ScenarioSettings({
                 value={String(resolution.number_of_days ?? 3)}
                 onChange={(event) => patch("resolution", { ...resolution, number_of_days: Number(event.target.value) })}
               />
-            </label>
+            </Field>
           ) : (
-            <label className="field">
+            <Field>
               <span>Step size</span>
               <input
                 type="number"
@@ -122,7 +123,7 @@ export default function ScenarioSettings({
                 value={String(resolution.stepsize ?? 25)}
                 onChange={(event) => patch("resolution", { ...resolution, stepsize: Number(event.target.value) })}
               />
-            </label>
+            </Field>
           )}
         </div>
       </div>
@@ -151,7 +152,7 @@ function CountryValueEditor({
   if (country === "ALL") return <KeyValueEditor value={value} onChange={onChange} />;
   return (
     <div className="key-value-grid">
-      <label className="field">
+      <Field>
         <span>{country}</span>
         <input
           type="number"
@@ -159,7 +160,7 @@ function CountryValueEditor({
           value={String(value[country] ?? "")}
           onChange={(event) => onChange({ ...value, [country]: Number(event.target.value) })}
         />
-      </label>
+      </Field>
     </div>
   );
 }
@@ -181,7 +182,7 @@ function KeyValueEditor({
       <div className="key-value-grid">
         {Object.entries(value).map(([key, raw]) => (
           <div className="mapping-field" key={key}>
-            <label className="field">
+            <Field>
               <span>{key}</span>
               <input
                 type="number"
@@ -189,10 +190,10 @@ function KeyValueEditor({
                 value={String(raw ?? "")}
                 onChange={(event) => onChange({ ...value, [key]: Number(event.target.value) })}
               />
-            </label>
-            <button className="icon-button" aria-label={`Remove ${key}`} onClick={() => remove(key)}>
+            </Field>
+            <IconButton tone="danger" aria-label={`Remove ${key}`} onClick={() => remove(key)}>
               <Trash2 aria-hidden="true" />
-            </button>
+            </IconButton>
           </div>
         ))}
       </div>

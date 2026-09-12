@@ -15,34 +15,6 @@
   gap: 8px;
   flex: 0 0 auto;
 }
-.button {
-  min-height: 44px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  padding: 0 15px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  text-decoration: none;
-  cursor: pointer;
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
-.button.primary {
-  background: var(--pink);
-  color: #fff;
-}
-.button.primary:hover {
-  background: var(--pink-dark);
-}
-.button.secondary {
-  background: var(--surface);
-  border-color: var(--line);
-}
-.button.secondary:hover {
-  border-color: var(--ink);
-}
 main {
   max-width: 1480px;
   margin: 0 auto;
@@ -51,25 +23,6 @@ main {
 .analysis {
   background: var(--surface);
   border: 1px solid var(--line);
-}
-.search {
-  height: 44px;
-  width: min(300px, 100%);
-  border: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 12px;
-}
-.search span {
-  font-size: 20px;
-  color: var(--muted);
-}
-.search input {
-  border: 0;
-  background: transparent;
-  width: 100%;
-  height: 100%;
 }
 .notice {
   margin: 0 28px 18px;
@@ -165,25 +118,6 @@ main {
   bottom: 10px;
   width: 1px;
   background: var(--strong);
-}
-.chart-actions button,
-.chart-actions a {
-  width: 44px;
-  height: 44px;
-  border: 0;
-  border-radius: 3px;
-  background: transparent;
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-  text-decoration: none;
-  font-size: 17px;
-  cursor: pointer;
-}
-.chart-actions button:hover,
-.chart-actions a:hover {
-  background: var(--surface);
-  color: var(--ink);
 }
 .chart-body {
   height: 340px;
@@ -536,10 +470,6 @@ main {
     display: block;
     margin: 4px 0;
   }
-}
-.search > svg {
-  flex: 0 0 18px;
-  color: var(--muted);
 }
 .chart-title h3 {
   margin: 0;

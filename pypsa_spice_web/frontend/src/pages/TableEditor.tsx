@@ -1,3 +1,4 @@
+import IconButton from "../components/IconButton";
 import { useDeferredValue, useEffect, useId, useRef, useState } from "react";
 import { AlertTriangle, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { getInputTable, saveInputTable } from "../api";
@@ -330,22 +331,20 @@ export default function TableEditor({
                 matching rows
               </span>
               <div>
-                <button
-                  className="icon-button"
+                <IconButton
                   aria-label="Previous page"
                   disabled={page === 0}
                   onClick={() => setPage((current) => Math.max(0, current - 1))}
                 >
                   <ChevronLeft />
-                </button>
-                <button
-                  className="icon-button"
+                </IconButton>
+                <IconButton
                   aria-label="Next page"
                   disabled={page >= pageCount - 1}
                   onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}
                 >
                   <ChevronRight />
-                </button>
+                </IconButton>
               </div>
             </footer>
           </>

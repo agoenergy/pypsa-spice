@@ -529,39 +529,23 @@
   font-size: var(--text-sm);
 }
 .yearly-pagination {
+  --icon-control-width: 40px;
+  --icon-control-size: 38px;
+  --icon-control-glyph-width: 16px;
+  --icon-control-glyph-height: 16px;
+  --icon-control-disabled-opacity: 0.35;
   height: 40px;
   display: flex;
   align-items: center;
   border: 1px solid var(--line);
   border-radius: 3px;
 }
-.yearly-pagination button {
-  width: 40px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-.yearly-pagination button:hover:not(:disabled) {
-  background: var(--surface-2);
-  color: var(--pink);
-}
-.yearly-pagination button:disabled {
-  cursor: not-allowed;
-  opacity: 0.35;
-}
-.yearly-pagination button svg {
-  width: 16px;
-  height: 16px;
-}
 .yearly-pagination span {
   min-width: 90px;
   text-align: center;
   font-size: var(--text-xs);
 }
-.yearly-table-footer > .button {
+.yearly-table-footer > [data-control="button"] {
   margin-left: 0;
 }
 html[data-theme="dark"] .yearly-results-table tbody tr:hover td {
@@ -586,7 +570,7 @@ html[data-theme="dark"] .yearly-results-table tbody tr:hover td {
     flex-basis: 100%;
     white-space: normal;
   }
-  .yearly-table-footer > .button {
+  .yearly-table-footer > [data-control="button"] {
     margin-left: auto;
   }
 }
@@ -647,9 +631,14 @@ html[data-theme="dark"] .yearly-results-table tbody tr:hover td {
     flex: 1;
   }
   .yearly-pagination {
+    --icon-control-width: 40px;
+    --icon-control-size: 38px;
+    --icon-control-glyph-width: 16px;
+    --icon-control-glyph-height: 16px;
+    --icon-control-disabled-opacity: 0.35;
     margin-left: auto;
   }
-  .yearly-table-footer > .button {
+  .yearly-table-footer > [data-control="button"] {
     display: none;
   }
 }

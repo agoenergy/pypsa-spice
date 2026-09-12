@@ -1,3 +1,5 @@
+import IconButton from "./IconButton";
+import { IconLink } from "./IconButton";
 import { useEffect, useMemo, useState } from "react";
 import { Download, Expand, Minimize2, RotateCcw, Table2 } from "lucide-react";
 import "./ChartCard.css";
@@ -253,7 +255,8 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
             )}
           </div>
           <div className="chart-actions">
-            <button
+            <IconButton
+              variant="toolbar"
               title={showDifference ? "View difference data" : "View source data"}
               aria-label={`View ${chart.name} ${showDifference ? "difference" : "source"} data`}
               onClick={() =>
@@ -265,22 +268,24 @@ export default function ChartCard({ chart, selection, years, mappings, darkMode,
               }
             >
               <Table2 aria-hidden="true" />
-            </button>
-            <a
+            </IconButton>
+            <IconLink
+              variant="toolbar"
               title="Download complete CSV"
               aria-label={`Download ${chart.name} CSV`}
               href={downloadUrl(chart, { ...selection, year })}
               download
             >
               <Download aria-hidden="true" />
-            </a>
-            <button
+            </IconLink>
+            <IconButton
+              variant="toolbar"
               title={expanded ? "Close expanded chart" : "Expand chart"}
               aria-label={`${expanded ? "Close" : "Expand"} ${chart.name}`}
               onClick={() => setExpanded(!expanded)}
             >
               {expanded ? <Minimize2 aria-hidden="true" /> : <Expand aria-hidden="true" />}
-            </button>
+            </IconButton>
           </div>
         </div>
       </header>

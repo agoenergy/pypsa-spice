@@ -1,3 +1,4 @@
+import IconButton from "../components/IconButton";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Info, List, Search, X } from "lucide-react";
 import { getScenarioComparison } from "../api";
@@ -235,9 +236,9 @@ function ComparisonToc({ sections }: { sections: ScenarioDifferenceSection[] }) 
         <nav className="results-toc-panel" id="comparison-section-list" aria-label="Changed groups on this page">
           <header>
             <h2>Changed groups</h2>
-            <button className="icon-button" onClick={() => setOpen(false)} aria-label="Close changed-group list">
+            <IconButton alignEnd onClick={() => setOpen(false)} aria-label="Close changed-group list">
               <X aria-hidden="true" />
-            </button>
+            </IconButton>
           </header>
           <ol>
             {sections.map((section, index) => (
@@ -251,7 +252,7 @@ function ComparisonToc({ sections }: { sections: ScenarioDifferenceSection[] }) 
           </ol>
         </nav>
       )}
-      <button
+      <IconButton
         className="results-toc-trigger"
         onClick={() => setOpen((current) => !current)}
         aria-label="Open changed-group list"
@@ -259,7 +260,7 @@ function ComparisonToc({ sections }: { sections: ScenarioDifferenceSection[] }) 
         aria-controls="comparison-section-list"
       >
         <List aria-hidden="true" />
-      </button>
+      </IconButton>
     </div>
   );
 }

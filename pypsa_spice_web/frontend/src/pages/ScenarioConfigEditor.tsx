@@ -1,3 +1,6 @@
+import Button from "../components/Button";
+import IconButton from "../components/IconButton";
+import { Field, ToggleField } from "../components/FormControls";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ClipboardCheck, Code2, List, Plus, Settings2, Trash2, X } from "lucide-react";
@@ -304,9 +307,9 @@ function ConfigToc({ items }: { items: { id: string; label: string }[] }) {
         <nav className="results-toc-panel" id="config-section-list" aria-label="Configuration sections on this page">
           <header>
             <h2>Sections</h2>
-            <button className="icon-button" onClick={() => setOpen(false)} aria-label="Close section list">
+            <IconButton alignEnd onClick={() => setOpen(false)} aria-label="Close section list">
               <X aria-hidden="true" />
-            </button>
+            </IconButton>
           </header>
           <ol>
             {items.map((item, index) => (
@@ -320,7 +323,7 @@ function ConfigToc({ items }: { items: { id: string; label: string }[] }) {
           </ol>
         </nav>
       )}
-      <button
+      <IconButton
         className="results-toc-trigger"
         onClick={() => setOpen((current) => !current)}
         aria-label="Open section list"
@@ -328,7 +331,7 @@ function ConfigToc({ items }: { items: { id: string; label: string }[] }) {
         aria-controls="config-section-list"
       >
         <List aria-hidden="true" />
-      </button>
+      </IconButton>
     </div>
   );
 }
@@ -521,7 +524,7 @@ function ConstraintField({
 }) {
   if (Array.isArray(value)) {
     return (
-      <label className="field constraint-wide">
+      <Field className="constraint-wide">
         <span>{prettyConfigLabel(name)}</span>
         <input
           value={value.join(", ")}
@@ -535,7 +538,7 @@ function ConstraintField({
             )
           }
         />
-      </label>
+      </Field>
     );
   }
   if (value && typeof value === "object") {
@@ -561,45 +564,42 @@ function ConstraintField({
   }
   if (typeof value === "boolean") {
     return (
-      <label className="toggle-row constraint-boolean">
-        <input type="checkbox" checked={value} onChange={(event) => onChange(event.target.checked)} />
-        <span>{prettyConfigLabel(name)}</span>
-      </label>
+      <ToggleField className="constraint-boolean" checked={value} onChange={onChange} label={prettyConfigLabel(name)} />
     );
   }
   if (name === "method") {
     return (
-      <label className="field">
+      <Field>
         <span>Method</span>
         <select value={String(value || "static")} onChange={(event) => onChange(event.target.value)}>
           <option value="static">Static</option>
           <option value="dynamic">Dynamic</option>
         </select>
-      </label>
+      </Field>
     );
   }
   if (name === "math_symbol") {
     return (
-      <label className="field">
+      <Field>
         <span>Comparison</span>
         <select value={String(value || "<=")} onChange={(event) => onChange(event.target.value)}>
           <option value="<=">At most (≤)</option>
           <option value=">=">At least (≥)</option>
           <option value="==">Exactly (=)</option>
         </select>
-      </label>
+      </Field>
     );
   }
   if (typeof value === "string") {
     return (
-      <label className="field">
+      <Field>
         <span>{prettyConfigLabel(name)}</span>
         <input value={value} onChange={(event) => onChange(event.target.value)} />
-      </label>
+      </Field>
     );
   }
   return (
-    <label className="field">
+    <Field>
       <span>{prettyConfigLabel(name)}</span>
       <input
         type="number"
@@ -607,7 +607,7 @@ function ConstraintField({
         value={String(value ?? "")}
         onChange={(event) => onChange(inputNumber(event.target.value))}
       />
-    </label>
+    </Field>
   );
 }
 
@@ -688,13 +688,13 @@ function YearMatrixEditor({
                       </td>
                     ))}
                     <td>
-                      <button
-                        className="icon-button"
+                      <IconButton
+                        tone="danger"
                         aria-label={`Remove ${technology}`}
                         onClick={() => removeTechnology(technology)}
                       >
                         <Trash2 aria-hidden="true" />
-                      </button>
+                      </IconButton>
                     </td>
                   </tr>
                 );
@@ -707,25 +707,24 @@ function YearMatrixEditor({
       )}
       <div className="matrix-add-row">
         <div className="config-table-add">
-          <label className="field">
+          <Field>
             <span>New technology</span>
             <input
               value={newTechnology}
               placeholder="Technology"
               onChange={(event) => setNewTechnology(event.target.value)}
             />
-          </label>
-          <button
-            className="button secondary"
+          </Field>
+          <Button
             disabled={!newTechnology.trim() || Object.hasOwn(value, newTechnology.trim())}
             onClick={addTechnology}
           >
             <Plus aria-hidden="true" />
             Add
-          </button>
+          </Button>
         </div>
         <div className="config-table-add">
-          <label className="field">
+          <Field>
             <span>New year</span>
             <input
               type="number"
@@ -733,15 +732,14 @@ function YearMatrixEditor({
               placeholder="2035"
               onChange={(event) => setNewYear(event.target.value)}
             />
-          </label>
-          <button
-            className="button secondary"
+          </Field>
+          <Button
             disabled={!technologies.length || !isYearKey(newYear.trim()) || years.includes(newYear.trim())}
             onClick={addYear}
           >
             <Plus aria-hidden="true" />
             Add
-          </button>
+          </Button>
         </div>
       </div>
     </div>

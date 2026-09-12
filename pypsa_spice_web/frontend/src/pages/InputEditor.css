@@ -7,10 +7,10 @@
   gap: 12px;
   border-bottom: 1px solid var(--line);
 }
-.table-tools .search {
+.table-tools [data-control="search"] {
   width: min(360px, 100%);
 }
-.table-tools .field.compact {
+.table-tools [data-control="field"][data-compact] {
   margin-left: 0;
   min-width: 200px;
 }
@@ -138,9 +138,6 @@
 }
 .table-pagination > div {
   display: flex;
-}
-.table-pagination .icon-button {
-  margin: 0;
 }
 .technology-view {
   display: flex;

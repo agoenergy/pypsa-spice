@@ -1,3 +1,5 @@
+import Button from "./Button";
+import IconButton from "./IconButton";
 import { useEffect, useMemo, useState } from "react";
 import {
   getCoreRowModel,
@@ -154,9 +156,9 @@ function HourlyDataDialog({ title, rows, sourceCount, onClose }: Omit<Props, "ch
       <section className="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
         <header>
           <h2 id="dialog-title">{title}</h2>
-          <button className="icon-button" onClick={onClose} aria-label="Close data table">
+          <IconButton alignEnd onClick={onClose} aria-label="Close data table">
             <X aria-hidden="true" />
-          </button>
+          </IconButton>
         </header>
         <div className="table-wrap">
           <table>
@@ -185,9 +187,7 @@ function HourlyDataDialog({ title, rows, sourceCount, onClose }: Omit<Props, "ch
             Showing {visibleRows.length.toLocaleString()} of {table.rows.length.toLocaleString()} displayed rows (
             {sourceCount.toLocaleString()} source rows).
           </span>
-          <button className="button secondary" onClick={onClose}>
-            Close
-          </button>
+          <Button onClick={onClose}>Close</Button>
         </footer>
       </section>
     </div>
@@ -373,9 +373,9 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
             <p className="eyebrow">Results table · {chart.units || "Values"}</p>
             <h2 id="dialog-title">{chart.name}</h2>
           </div>
-          <button className="icon-button" onClick={onClose} aria-label="Close data table">
+          <IconButton alignEnd onClick={onClose} aria-label="Close data table">
             <X aria-hidden="true" />
-          </button>
+          </IconButton>
         </header>
 
         <div className="yearly-table-toolbar">
@@ -388,9 +388,9 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
               placeholder="Search all columns…"
             />
             {globalFilter && (
-              <button type="button" onClick={() => setGlobalFilter("")} aria-label="Clear search">
+              <IconButton type="button" onClick={() => setGlobalFilter("")} aria-label="Clear search">
                 <X aria-hidden="true" />
-              </button>
+              </IconButton>
             )}
           </label>
           <div className="yearly-view-toggle" aria-label="Table view">
@@ -426,10 +426,10 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
               ))}
             </div>
           </details>
-          <button className="button secondary yearly-export" type="button" onClick={exportFiltered}>
+          <Button className="yearly-export" type="button" onClick={exportFiltered}>
             <Download aria-hidden="true" />
             Export filtered view
-          </button>
+          </Button>
           {activeFilterCount > 0 && (
             <button className="yearly-reset" type="button" onClick={clearAllFilters}>
               <RotateCcw aria-hidden="true" />
@@ -655,29 +655,27 @@ function YearlyDataDialog({ chart, rows, sourceCount, onClose }: Props) {
             </select>
           </label>
           <div className="yearly-pagination">
-            <button
+            <IconButton
               type="button"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
               aria-label="Previous page"
             >
               <ChevronLeft aria-hidden="true" />
-            </button>
+            </IconButton>
             <span>
               Page {pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())}
             </span>
-            <button
+            <IconButton
               type="button"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
               aria-label="Next page"
             >
               <ChevronRight aria-hidden="true" />
-            </button>
+            </IconButton>
           </div>
-          <button className="button secondary" onClick={onClose}>
-            Close
-          </button>
+          <Button onClick={onClose}>Close</Button>
         </footer>
       </section>
     </div>

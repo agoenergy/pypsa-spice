@@ -1,3 +1,6 @@
+import Button from "./Button";
+import IconButton from "./IconButton";
+import { Field } from "./FormControls";
 import { useEffect, useState } from "react";
 import { Copy, X } from "lucide-react";
 import "./NewScenarioDialog.css";
@@ -64,9 +67,9 @@ export default function NewScenarioDialog({
       <section className="dialog scenario-dialog" role="dialog" aria-modal="true" aria-labelledby="new-scenario-title">
         <header>
           <h2 id="new-scenario-title">Create new scenario</h2>
-          <button className="icon-button" onClick={onClose} disabled={submitting} aria-label="Close">
+          <IconButton alignEnd onClick={onClose} disabled={submitting} aria-label="Close">
             <X aria-hidden="true" />
-          </button>
+          </IconButton>
         </header>
         <form onSubmit={submit}>
           <div className="scenario-dialog-body">
@@ -75,7 +78,7 @@ export default function NewScenarioDialog({
               shared.
             </p>
             {error && <div className="notice error">{error}</div>}
-            <label className="field">
+            <Field>
               <span>New scenario name</span>
               <input
                 autoFocus
@@ -85,15 +88,15 @@ export default function NewScenarioDialog({
                 placeholder="for example: policy_high"
                 aria-invalid={Boolean(name && !valid)}
               />
-            </label>
-            <label className="field">
+            </Field>
+            <Field>
               <span>Source scenario</span>
               <select value={source} onChange={(event) => setSource(event.target.value)}>
                 {scenarios.map((scenario) => (
                   <option key={scenario}>{scenario}</option>
                 ))}
               </select>
-            </label>
+            </Field>
             <div className="scenario-path-preview">
               <span>Local destination</span>
               <code>
@@ -102,13 +105,13 @@ export default function NewScenarioDialog({
             </div>
           </div>
           <footer>
-            <button className="button secondary" type="button" onClick={onClose} disabled={submitting}>
+            <Button type="button" onClick={onClose} disabled={submitting}>
               Cancel
-            </button>
-            <button className="button primary" type="submit" disabled={!valid || submitting}>
+            </Button>
+            <Button variant="primary" type="submit" disabled={!valid || submitting}>
               <Copy aria-hidden="true" />
               {submitting ? "Creating…" : "Create scenario"}
-            </button>
+            </Button>
           </footer>
         </form>
       </section>

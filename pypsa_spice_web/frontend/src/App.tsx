@@ -1,3 +1,4 @@
+import IconButton from "./components/IconButton";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeftRight, GitCompareArrows, List, Menu, Plus, RefreshCw, X } from "lucide-react";
 import { getCatalog, getInputCatalog } from "./api";
@@ -417,9 +418,13 @@ export default function App() {
       <div className="scrim" onClick={() => setSidebarOpen(false)} />
       <div className="main-column">
         <header className="workspace-bar">
-          <button className="menu" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Open workspace navigation">
+          <IconButton
+            className="menu"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label="Open workspace navigation"
+          >
             <Menu aria-hidden="true" />
-          </button>
+          </IconButton>
           {view === "home" && (
             <div className="home-bar-copy">
               <b>Workspace overview</b>
@@ -466,7 +471,8 @@ export default function App() {
                     onChange={chooseInputScenario}
                     options={inputProject!.scenarios.map((item) => ({ value: item, label: item }))}
                   />
-                  <button
+                  <IconButton
+                    variant="surface"
                     className="comparison-swap"
                     onClick={() => {
                       const previous = inputSelection.scenario;
@@ -478,7 +484,7 @@ export default function App() {
                     disabled={!inputComparison}
                   >
                     <ArrowLeftRight aria-hidden="true" />
-                  </button>
+                  </IconButton>
                   <ContextControl
                     className="compare-control is-active"
                     label="Comparison scenario"
@@ -500,14 +506,15 @@ export default function App() {
                       options={inputProject!.scenarios.map((item) => ({ value: item, label: item }))}
                     />
                     {view === "configure" && (
-                      <button
+                      <IconButton
+                        variant="surface"
                         className="context-add"
                         onClick={() => setNewScenarioOpen(true)}
                         aria-label="Create new scenario"
                         title="Create new scenario"
                       >
                         <Plus aria-hidden="true" />
-                      </button>
+                      </IconButton>
                     )}
                   </div>
                   {view === "inputs" && <div className="input-topbar-controls" id="input-topbar-controls" />}
@@ -539,14 +546,9 @@ export default function App() {
             </span>
           )}
           <div className="top-actions">
-            <button
-              className="button secondary"
-              onClick={refreshCurrent}
-              aria-label="Refresh data"
-              title="Refresh data"
-            >
+            <IconButton variant="surface" onClick={refreshCurrent} aria-label="Refresh data" title="Refresh data">
               <RefreshCw aria-hidden="true" />
-            </button>
+            </IconButton>
           </div>
         </header>
         <main id="workspace">{renderWorkspace()}</main>
@@ -618,9 +620,9 @@ function ResultsToc({ charts }: { charts: ChartDefinition[] }) {
         <nav className="results-toc-panel" id="results-figure-list" aria-label="Figures on this page">
           <header>
             <h2>Figures</h2>
-            <button className="icon-button" onClick={() => setOpen(false)} aria-label="Close figure list">
+            <IconButton alignEnd onClick={() => setOpen(false)} aria-label="Close figure list">
               <X aria-hidden="true" />
-            </button>
+            </IconButton>
           </header>
           <ol>
             {charts.map((chart, index) => (
@@ -634,7 +636,7 @@ function ResultsToc({ charts }: { charts: ChartDefinition[] }) {
           </ol>
         </nav>
       )}
-      <button
+      <IconButton
         className="results-toc-trigger"
         onClick={() => setOpen((current) => !current)}
         aria-label="Open figure list"
@@ -642,7 +644,7 @@ function ResultsToc({ charts }: { charts: ChartDefinition[] }) {
         aria-controls="results-figure-list"
       >
         <List aria-hidden="true" />
-      </button>
+      </IconButton>
     </div>
   );
 }

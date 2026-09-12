@@ -1,6 +1,8 @@
+import IconButton from "../components/IconButton";
+import { Field } from "../components/FormControls";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { Button } from "../components/FormControls";
+import Button from "../components/Button";
 import { inputNumber } from "./ScenarioConfigEditorUtils";
 
 export function MappingTable({
@@ -63,9 +65,9 @@ export function MappingTable({
                   />
                 </td>
                 <td>
-                  <button className="icon-button" aria-label={`Remove ${key}`} onClick={() => remove(key)}>
+                  <IconButton tone="danger" aria-label={`Remove ${key}`} onClick={() => remove(key)}>
                     <Trash2 aria-hidden="true" />
-                  </button>
+                  </IconButton>
                 </td>
               </tr>
             ))}
@@ -74,7 +76,7 @@ export function MappingTable({
       </div>
       {allowAdd && (
         <div className="config-table-add">
-          <label className="field">
+          <Field>
             <span>New {label.toLowerCase()}</span>
             <input
               type={yearKeys ? "number" : "text"}
@@ -88,7 +90,7 @@ export function MappingTable({
                 }
               }}
             />
-          </label>
+          </Field>
           <Button disabled={!newKey.trim() || Object.hasOwn(value, newKey.trim())} onClick={add}>
             <Plus aria-hidden="true" />
             Add

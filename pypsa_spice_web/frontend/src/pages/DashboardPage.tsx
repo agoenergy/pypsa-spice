@@ -1,3 +1,6 @@
+import Button from "../components/Button";
+import IconButton from "../components/IconButton";
+import { Field } from "../components/FormControls";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -283,6 +286,7 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
         onInspect={onInspect}
         rowActions={
           <RowActions
+            compact
             index={rowIndex}
             rowCount={dashboard.rows.length}
             label={`chart row ${rowIndex + 1}`}
@@ -299,7 +303,7 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
       {topbarTarget &&
         createPortal(
           <div className="dashboard-topbar-content" aria-label="Dashboard controls">
-            <label className="context-control dashboard-selector">
+            <Field variant="context" className="dashboard-selector">
               <span>Dashboard</span>
               <select value={dashboard.id} onChange={(event) => void chooseDashboard(event.target.value)}>
                 {summaries.map((summary) => (
@@ -308,8 +312,8 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="context-control dashboard-project">
+            </Field>
+            <Field variant="context" className="dashboard-project">
               <span>Result project</span>
               <select
                 value={workspaceKey(dashboard.dataset, dashboard.project)}
@@ -321,32 +325,32 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
                   </option>
                 ))}
               </select>
-            </label>
+            </Field>
             <div className="dashboard-topbar-actions">
-              <button
-                className="button secondary"
+              <IconButton
+                variant="surface"
                 onClick={() => void newDashboard()}
                 aria-label="New dashboard"
                 title="New dashboard"
               >
                 <Plus aria-hidden="true" />
-              </button>
-              <button
-                className="button secondary"
+              </IconButton>
+              <IconButton
+                variant="surface"
                 onClick={() => void copyDashboard()}
                 aria-label="Duplicate dashboard"
                 title="Duplicate dashboard"
               >
                 <Copy aria-hidden="true" />
-              </button>
-              <button
-                className="button secondary"
+              </IconButton>
+              <IconButton
+                variant="surface"
                 onClick={() => fileInput.current?.click()}
                 aria-label="Import dashboard"
                 title="Import dashboard"
               >
                 <FileUp aria-hidden="true" />
-              </button>
+              </IconButton>
               <input
                 className="sr-only"
                 ref={fileInput}
@@ -354,22 +358,23 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
                 accept=".json,application/json"
                 onChange={(event) => void readImport(event.target.files?.[0])}
               />
-              <button
-                className="button secondary"
+              <IconButton
+                variant="surface"
                 onClick={exportConfiguration}
                 aria-label="Export dashboard"
                 title="Export dashboard"
               >
                 <Download aria-hidden="true" />
-              </button>
-              <button
-                className="button secondary danger"
+              </IconButton>
+              <IconButton
+                variant="surface"
+                tone="danger"
                 onClick={() => void removeDashboard()}
                 aria-label="Delete dashboard"
                 title="Delete dashboard"
               >
                 <Trash2 aria-hidden="true" />
-              </button>
+              </IconButton>
             </div>
           </div>,
           topbarTarget,
@@ -424,14 +429,14 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
           <b>Build the first row</b>
           <span>Add a full-width chart or start with a heading row.</span>
           <div className="dashboard-empty-actions">
-            <button className="button primary" onClick={addChartRow}>
+            <Button variant="primary" onClick={addChartRow}>
               <Plus aria-hidden="true" />
               Add chart
-            </button>
-            <button className="button secondary" onClick={addHeadingRow}>
+            </Button>
+            <Button onClick={addHeadingRow}>
               <Heading2 aria-hidden="true" />
               Add heading row
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -480,14 +485,14 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
       {project && dashboard.rows.length > 0 && (
         <div className="dashboard-builder-footer">
           <span>Add the next row</span>
-          <button className="button primary" onClick={addChartRow}>
+          <Button variant="primary" onClick={addChartRow}>
             <Plus aria-hidden="true" />
             Chart
-          </button>
-          <button className="button secondary" onClick={addHeadingRow}>
+          </Button>
+          <Button onClick={addHeadingRow}>
             <Heading2 aria-hidden="true" />
             Heading row
-          </button>
+          </Button>
         </div>
       )}
 
@@ -517,12 +522,14 @@ export default function DashboardPage({ catalog, darkMode, onInspect }: Props) {
 }
 
 function RowActions({
+  compact = false,
   index,
   rowCount,
   label,
   onMove,
   onRemove,
 }: {
+  compact?: boolean;
   index: number;
   rowCount: number;
   label: string;
@@ -531,27 +538,33 @@ function RowActions({
 }) {
   return (
     <div className="dashboard-row-actions">
-      <button
-        className="icon-button"
+      <IconButton
+        variant={compact ? "toolbar" : "surface"}
         disabled={index === 0}
         onClick={() => onMove(-1)}
         title="Move row up"
         aria-label={`Move ${label} up`}
       >
         <ChevronUp aria-hidden="true" />
-      </button>
-      <button
-        className="icon-button"
+      </IconButton>
+      <IconButton
+        variant={compact ? "toolbar" : "surface"}
         disabled={index === rowCount - 1}
         onClick={() => onMove(1)}
         title="Move row down"
         aria-label={`Move ${label} down`}
       >
         <ChevronDown aria-hidden="true" />
-      </button>
-      <button className="icon-button danger" onClick={onRemove} title="Remove row" aria-label={`Remove ${label}`}>
+      </IconButton>
+      <IconButton
+        variant={compact ? "toolbar" : "surface"}
+        tone="danger"
+        onClick={onRemove}
+        title="Remove row"
+        aria-label={`Remove ${label}`}
+      >
         <Trash2 aria-hidden="true" />
-      </button>
+      </IconButton>
     </div>
   );
 }
@@ -638,13 +651,13 @@ function AddChartDialog({
       >
         <header>
           <h2 id="add-dashboard-chart-title">Choose a Results chart</h2>
-          <button className="icon-button" onClick={onClose} aria-label="Close">
+          <IconButton alignEnd onClick={onClose} aria-label="Close">
             <X aria-hidden="true" />
-          </button>
+          </IconButton>
         </header>
         <div className="dashboard-dialog-body">
           <div className="dashboard-dialog-grid">
-            <label className="field">
+            <Field>
               <span>Results section</span>
               <select value={sectionId} onChange={(event) => setSectionId(event.target.value)}>
                 {catalog.sections.map((candidate) => (
@@ -653,8 +666,8 @@ function AddChartDialog({
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="field">
+            </Field>
+            <Field>
               <span>Chart</span>
               <select value={chart?.id || ""} onChange={(event) => setChartId(event.target.value)}>
                 {section?.charts.map((candidate) => (
@@ -663,16 +676,16 @@ function AddChartDialog({
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="field">
+            </Field>
+            <Field>
               <span>Sector run</span>
               <select value={sector} onChange={(event) => setSector(event.target.value)}>
                 {sectors.map((candidate) => (
                   <option key={candidate}>{candidate}</option>
                 ))}
               </select>
-            </label>
-            <label className="field">
+            </Field>
+            <Field>
               <span>Display</span>
               <select value={mode} onChange={(event) => changeMode(event.target.value as DashboardChartConfig["mode"])}>
                 <option value="scenario">Selected scenarios</option>
@@ -680,7 +693,7 @@ function AddChartDialog({
                   Difference
                 </option>
               </select>
-            </label>
+            </Field>
           </div>
           <fieldset className="dashboard-scenario-picker large">
             <legend>
@@ -710,9 +723,7 @@ function AddChartDialog({
               <b>
                 {scenarios[1]} − {scenarios[0]}
               </b>
-              <button className="button secondary" onClick={() => setScenarios([scenarios[1], scenarios[0]])}>
-                Swap
-              </button>
+              <Button onClick={() => setScenarios([scenarios[1], scenarios[0]])}>Swap</Button>
             </div>
           )}
         </div>
@@ -720,13 +731,11 @@ function AddChartDialog({
           <span>
             {chart?.hourly ? "Hourly chart" : "Yearly chart"} · {project.name}
           </span>
-          <button className="button secondary" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="button primary" onClick={add} disabled={!valid}>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button variant="primary" onClick={add} disabled={!valid}>
             <Plus aria-hidden="true" />
             Use chart
-          </button>
+          </Button>
         </footer>
       </section>
     </div>
@@ -775,9 +784,9 @@ function ImportDashboardDialog({
             <p className="eyebrow">Configuration import</p>
             <h2 id="import-dashboard-title">{dashboard.title}</h2>
           </div>
-          <button className="icon-button" onClick={onClose} aria-label="Close">
+          <IconButton alignEnd onClick={onClose} aria-label="Close">
             <X aria-hidden="true" />
-          </button>
+          </IconButton>
         </header>
         <div className="dashboard-import-summary">
           <dl>
@@ -810,13 +819,11 @@ function ImportDashboardDialog({
           <p>Importing creates a new local dashboard and does not overwrite an existing dashboard.</p>
         </div>
         <footer>
-          <button className="button secondary" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="button primary" onClick={onImport}>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button variant="primary" onClick={onImport}>
             <FileUp aria-hidden="true" />
             Import dashboard
-          </button>
+          </Button>
         </footer>
       </section>
     </div>

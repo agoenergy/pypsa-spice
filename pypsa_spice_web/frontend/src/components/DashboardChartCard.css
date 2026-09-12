@@ -18,6 +18,9 @@
   gap: 10px;
 }
 .dashboard-chart-toolbar {
+  --icon-control-size: 32px;
+  --icon-control-glyph-width: 14px;
+  --icon-control-glyph-height: 14px;
   min-width: 0;
   margin-left: auto;
   display: flex;
@@ -25,6 +28,7 @@
   gap: 5px;
 }
 .dashboard-card-actions {
+  --icon-control-disabled-opacity: 0.28;
   min-width: 0;
   padding: 2px;
   display: flex;
@@ -34,39 +38,8 @@
   background: var(--surface-2);
   overflow-x: auto;
 }
-.dashboard-card-actions button,
-.dashboard-chart-toolbar .dashboard-row-actions .icon-button {
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 3px;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-}
-.dashboard-card-actions button:hover:not(:disabled),
-.dashboard-card-actions button.active,
-.dashboard-chart-toolbar .dashboard-row-actions .icon-button:hover:not(:disabled) {
-  background: var(--surface);
-  color: var(--ink);
-}
-.dashboard-card-actions button.active {
-  color: var(--pink);
-}
-.dashboard-card-actions button:disabled,
-.dashboard-chart-toolbar .dashboard-row-actions .icon-button:disabled {
-  opacity: 0.28;
-  cursor: not-allowed;
-}
-.dashboard-card-actions svg,
-.dashboard-chart-toolbar .dashboard-row-actions svg {
-  width: 14px;
-  height: 14px;
-}
 .dashboard-chart-toolbar .dashboard-row-actions {
+  --icon-control-disabled-opacity: 0.28;
   width: auto;
   padding-left: 5px;
   border-left: 1px solid var(--line);
@@ -80,8 +53,8 @@
   border-bottom: 1px solid var(--line);
   background: var(--surface-2);
 }
-.dashboard-card-config .field input,
-.dashboard-card-config .field select {
+.dashboard-card-config [data-control="field"] input,
+.dashboard-card-config [data-control="field"] select {
   background: var(--surface);
 }
 .dashboard-card-config .dashboard-scenario-picker {
@@ -161,7 +134,7 @@
   margin-bottom: 8px;
   stroke-width: 1.4;
 }
-.dashboard-empty .button {
+.dashboard-empty [data-control="button"] {
   margin-top: 15px;
 }
 .dashboard-scenario-picker {

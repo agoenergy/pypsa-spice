@@ -151,20 +151,8 @@
   }
 
   > button {
-    width: 44px;
-    height: 44px;
-    display: grid;
-    place-items: center;
-    border: 0;
-    background: transparent;
+    --icon-control-hover-background: rgb(255 255 255 / 0.08);
     color: #fff;
-    cursor: pointer;
-
-    svg {
-      width: 18px;
-      height: 18px;
-      stroke-width: 1.8;
-    }
   }
 }
 

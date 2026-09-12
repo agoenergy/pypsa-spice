@@ -55,29 +55,12 @@
   max-width: 220px;
 }
 .dashboard-topbar-actions {
+  --icon-control-width: 40px;
   margin-left: auto;
   display: flex;
   align-items: center;
   gap: 4px;
   flex: 0 0 auto;
-}
-.dashboard-topbar-actions .button {
-  width: 40px;
-  min-height: 44px;
-  padding: 0;
-  background: var(--surface-2);
-}
-.dashboard-topbar-actions .button:hover {
-  border-color: var(--pink);
-  color: var(--pink);
-  background: var(--surface);
-}
-.button.danger {
-  color: #b6202e;
-}
-.button.danger:hover {
-  border-color: #c92b38;
-  background: color-mix(in srgb, #c92b38 5%, var(--surface));
 }
 .dashboard-heading {
   margin-bottom: 10px;
@@ -192,21 +175,10 @@
   font-weight: 400;
 }
 .dashboard-row-actions {
+  --icon-control-disabled-opacity: 0.3;
   display: flex;
   align-items: center;
   gap: 3px;
-}
-.dashboard-row-actions .icon-button {
-  margin-left: 0;
-  border: 1px solid var(--line);
-  background: var(--surface-2);
-}
-.dashboard-row-actions .icon-button:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-.dashboard-row-actions .icon-button.danger {
-  color: #b6202e;
 }
 .dashboard-dialog {
   width: min(780px, 100%);
@@ -249,7 +221,7 @@
 .dashboard-difference-preview b {
   font-size: var(--text-sm);
 }
-.dashboard-difference-preview .button {
+.dashboard-difference-preview [data-control="button"] {
   min-height: 38px;
 }
 .dashboard-dialog > footer {
@@ -327,7 +299,7 @@
     align-items: stretch;
     flex-direction: column;
   }
-  .dashboard-empty-actions .button {
+  .dashboard-empty-actions [data-control="button"] {
     width: 100%;
   }
   .dashboard-heading-row {
@@ -340,10 +312,11 @@
   .dashboard-builder-footer > span {
     margin: 0 0 4px;
   }
-  .dashboard-builder-footer .button {
+  .dashboard-builder-footer [data-control="button"] {
     width: 100%;
   }
   .dashboard-row-actions {
+    --icon-control-disabled-opacity: 0.3;
     justify-content: flex-end;
   }
   .dashboard-dialog-grid {
@@ -355,7 +328,7 @@
   .dashboard-difference-preview {
     grid-template-columns: 1fr;
   }
-  .dashboard-difference-preview .button {
+  .dashboard-difference-preview [data-control="button"] {
     width: 100%;
   }
   .dashboard-import-summary dl {
@@ -379,6 +352,7 @@
     margin-left: 0;
   }
   .dashboard-chart-toolbar .dashboard-row-actions {
+    --icon-control-disabled-opacity: 0.3;
     margin-left: auto;
   }
   .dashboard-chart-body.dashboard-multi-layout {

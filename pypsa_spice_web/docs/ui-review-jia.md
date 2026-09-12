@@ -2,14 +2,26 @@
 ### Suggestions batch 2
 
 Implementation update, 2026-09-11: addressed automatic formatting under General 4
-and reliable polling under RunModel 1. Other batch-2 suggestions remain open.
+and reliable polling under RunModel 1.
+
+Implementation update, 2026-09-12: addressed shared controls under General 3 and
+scoped their base styles as part of General 1 and 2. The remaining page and
+component styles have not all been migrated to SCSS modules; that work and the
+other batch-2 suggestions remain open.
 
 #### General
+
 1. Uses a mix of scss and css, probably because it implemented SCSS from the last batch of comments. Mixing is not inherently problematic, but for the sake of cleanliness i'd suggest just using one or the other
+
+    > Reply: Partly addressed on 2026-09-12. Shared buttons, icon controls, fields, selects, search fields, and toggles now use SCSS modules. Existing page and chart styles still include plain CSS. Converting the remaining stylesheets is separate work and remains open.
 
 2. Bigger issue: mixes global css and modules (e.g. WorkspaceCard.module.scss): non-module css files have global classes, which can lead to conflicts if two component css files have the same selectors defined. Suggest to scope all component and page css (or scss) files as modules
 
+    > Reply: Partly addressed on 2026-09-12. Removed shared control base rules from ChartCard.css, global.scss, and ScenarioConfigEditor.css. They now belong to Button.module.scss, IconButton.module.scss, and FormControls.module.scss. Existing page styles retain contextual layout overrides through data-control attributes and sizing variables. Global tokens, fonts, resets, and focus treatment remain intentional; scoping the remaining component and page styles is still open.
+
 3. Repeated control patterns, e.g., icon-button appears in a ton of components, and they all reuse the same styling concept. This should be its own component and imported throughout. DataDialog and RunModel (and probably some other components) contain the same generic action-button convention, just with different class names like primary/secondary. Warrants a shared button component, probably with variant as a prop. I'd suggest doing a sweep through of the whole codebase and extracting all these repeated control patterns (probably not just limited to buttons) and turning them into shared components
+
+    > Reply: Fixed. Extended the existing Button into its own component with primary, secondary, and danger variants, and reused it for form, run, table-dialog, and dashboard actions. Added IconButton with a required accessible label, native disabled behaviour, and plain, surface, and toolbar variants; IconLink shares its appearance while keeping CSV downloads as native links. Dashboard chart settings now expose their pressed state. Buttons default to type="button", while form submissions explicitly retain type="submit". Button and icon styles live in collocated SCSS modules. Field, SelectField, SearchField, and ToggleField now share FormControls.module.scss, so they no longer depend on chart or scenario-page styles; repeated field wrappers use Field, and SearchField has an accessible name. Page styles retain contextual layout and size overrides through data-control attributes and icon size variables. Specialised navigation, table sorting, and chart legend controls keep their own behaviour. Validation: formatting, TypeScript, all 36 frontend tests, and the production build pass. Browser checks covered light/dark rendering, edit/discard, new-scenario and dashboard dialogs, result-table controls, disabled buttons, and download-link semantics, with no console warnings or errors.
 
 4. JSX throughout is not at all formatted at all, which makes the whole codebase look like an explosion. Please introduce some normal code formatting (suggest prettier package, but even just a line char limit and auto saving should do the trick! :)
 

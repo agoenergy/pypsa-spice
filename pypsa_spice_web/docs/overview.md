@@ -57,6 +57,14 @@ files. It excludes generated files, public assets, dependencies, and the lockfil
 The Web frontend GitHub Actions workflow runs the formatting check, tests, and
 production build for frontend changes on pull requests and pushes to main/develop.
 
+Shared controls live in `frontend/src/components/`: `Button.tsx` owns text actions,
+`IconButton.tsx` owns icon buttons and native icon links, and `FormControls.tsx`
+owns field wrappers, labelled selects, search fields, and toggles. Their base
+styles live in collocated SCSS modules. Icon controls require an `aria-label`;
+submit buttons specify `type="submit"`. Existing page styles use scoped
+`data-control` selectors for layout and `--icon-control-*` variables for compact
+icon sizes, without depending on generated module class names.
+
 The app shares one run-status monitor between its navigation and run page. Active
 runs refresh one second after each successful response. A status request times out
 after 15 seconds; connection failures retain the last known status and retry with
