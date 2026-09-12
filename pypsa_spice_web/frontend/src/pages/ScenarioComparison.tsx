@@ -252,13 +252,6 @@ function DifferenceTable({
     >
       <header className={editorPanelStyles["editor-panel-head"]}>
         <div>
-          <p className={workspaceUtilitiesStyles["eyebrow"]}>
-            {section.kind === "input"
-              ? "Scenario input"
-              : section.kind === "constraint"
-                ? "Constraint"
-                : "Configuration"}
-          </p>
           <h3>{section.label}</h3>
         </div>
       </header>

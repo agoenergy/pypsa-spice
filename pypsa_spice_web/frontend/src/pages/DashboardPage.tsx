@@ -804,7 +804,6 @@ function ImportDashboardDialog({
       >
         <header>
           <div>
-            <p className={workspaceUtilitiesStyles["eyebrow"]}>Configuration import</p>
             <h2 id="import-dashboard-title">{dashboard.title}</h2>
           </div>
           <IconButton alignEnd onClick={onClose} aria-label="Close">

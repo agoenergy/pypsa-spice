@@ -1,7 +1,6 @@
 import editorPanelStyles from "./EditorPanel.module.scss";
 import workspaceFeedbackStyles from "./WorkspaceFeedback.module.scss";
 import styles from "./RunModel.module.scss";
-import workspaceUtilitiesStyles from "./WorkspaceUtilities.module.scss";
 import Button from "./Button";
 import { Field } from "./FormControls";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -335,7 +334,6 @@ export default function RunModel({
         <section className={[styles["run-monitor"], editorPanelStyles["editor-panel"]].join(" ")} aria-live="polite">
           <header className={editorPanelStyles["editor-panel-head"]}>
             <div>
-              <p className={workspaceUtilitiesStyles["eyebrow"]}>Workflow monitor</p>
               <h2>{run ? statusLabel(run.status) : "Ready to run"}</h2>
               {run && <code>{run.id}</code>}
             </div>

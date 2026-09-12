@@ -1,5 +1,4 @@
 import styles from "./HomePage.module.scss";
-import workspaceUtilitiesStyles from "../components/WorkspaceUtilities.module.scss";
 import workspaceFeedbackStyles from "../components/WorkspaceFeedback.module.scss";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -121,7 +120,6 @@ export default function HomePage({
       <section className={styles["home-guide-panel"]}>
         <header className={styles["home-panel-heading"]}>
           <div>
-            <span className={workspaceUtilitiesStyles["eyebrow"]}>Workflow</span>
             <h2>How to use the workspace</h2>
           </div>
         </header>
@@ -169,7 +167,6 @@ export default function HomePage({
         <section className={styles["home-workspaces"]}>
           <header className={styles["home-panel-heading"]}>
             <div>
-              <span className={workspaceUtilitiesStyles["eyebrow"]}>Local data</span>
               <h2>Available projects</h2>
             </div>
             {inventory.length > 0 && (
