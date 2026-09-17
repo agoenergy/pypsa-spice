@@ -943,6 +943,30 @@ class AddFutureAssets:
                     emit_links, "marginal_cost"
                 ] += self.network.links.loc[emit_links, "efficiency2"].mul(co2price)
 
+    def add_contracted_hydro_imports(self):
+        """Add contracted hydro imports based on scenario configuration."""
+        for country in self.country:
+            if self.scenario_configs.get("contracted_hydro_imports"):
+                hydro_imports = self.scenario_configs["contracted_hydro_imports"]
+
+                if hydro_imports["activate"]:
+                    for region in hydro_imports["value"]:
+                        self.network.generators.loc[
+                            (
+                                self.network.generators.index
+                                == f"{region}_HVELEC_HDAM-IMP"
+                            ),
+                            "p_nom",
+                        ] = hydro_imports["value"][region][self.year]
+
+                        self.network.generators.loc[
+                            (
+                                self.network.generators.index
+                                == f"{region}_HVELEC_HDAM-IMP"
+                            ),
+                            "capital_cost",
+                        ] = 0
+
     # ========================== A̶D̶D̶I̶N̶G̶ ̶S̶P̶I̶C̶E̶ =========================
 
 
@@ -1036,22 +1060,5 @@ if __name__ == "__main__":
         sm_c.add_ev_storage()
         print(f"Finish adding {sm_year} assets for EV sector")
     sm_c.add_co2_option()
-
-    # Adjust p_nom of hydro imports here due to decrease in future years
-    # Capex is assigned to zero to address the import capacity issue in the future years
-    hydro_imports_cap = {
-        2030: 3713,
-        2035: 4772,
-        2040: 3742,
-        2045: 3742,
-        2050: 1385,
-    }
-
-    sm_c.network.generators.loc[
-        (sm_c.network.generators.index == "TH_NE_HVELEC_HDAM-IMP"), "p_nom"
-    ] = hydro_imports_cap[sm_year]
-    sm_c.network.generators.loc[
-        (sm_c.network.generators.index == "TH_NE_HVELEC_HDAM-IMP"), "capital_cost"
-    ] = 0
-
+    sm_c.add_contracted_hydro_imports()
     sm_c.network.export_to_netcdf(path=snakemake.output.brownfield_network)
