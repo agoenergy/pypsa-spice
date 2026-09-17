@@ -1,15 +1,20 @@
-import sh
 import os
 import pathlib
+
+import sh
 import yaml
 
 SCENARIOS = [
-    "pdp_high_LOLE10", 
-    "pdp_high_LOLE10_free_emi", 
-    "pdp_high_LOLE10_shock_gas",
-    "res_pdp_high_LOLE10",
-    "res_pdp_high_LOLE10_shock_gas",
-    "res_pdp_high_LOLE10_high_IPS",
+    "pdp_case1",
+    "pdp_case1_free_emi",
+    "pdp_case1_shock_gas",
+    "res_case1_free_gas_cap",
+    "res_case3_free_gas_cap",
+    "res_case3_hIPS_free_gas_cap",
+    "res_case4_free_gas_cap",
+    "res_case4_hIPS_free_gas_cap",
+    "pdp_case3_free_emi",
+    "pdp_case4_free_emi",
 ]
 
 
@@ -17,10 +22,10 @@ def print_output(line: str) -> None:
     """Print subprocess output immediately."""
     print(line, end="")
 
+
 def base_config() -> dict:
     with open(
         os.path.join(pathlib.Path(__file__).parent, "base_config.yaml"),
-        "r",
         encoding="utf-8",
     ) as file:
         data = yaml.safe_load(file)
@@ -33,7 +38,6 @@ if __name__ == "__main__":
     data_folder = base_data["path_configs"]["data_folder_name"]
     project_folder = base_data["path_configs"]["project_name"]
 
-
     for s in SCENARIOS:
         base_data["path_configs"]["input_scenario_name"] = s
         base_data["path_configs"]["output_scenario_name"] = s
@@ -42,11 +46,11 @@ if __name__ == "__main__":
 
         # Save the modified YAML back to the file
         with open(
-                os.path.join(pathlib.Path(__file__).parent, "base_config.yaml"),
-                "w",
-                encoding="utf-8",
-            ) as file:
-                yaml.dump(base_data, file)
+            os.path.join(pathlib.Path(__file__).parent, "base_config.yaml"),
+            "w",
+            encoding="utf-8",
+        ) as file:
+            yaml.dump(base_data, file)
 
         try:
             print(f"Run scenario {s}")
