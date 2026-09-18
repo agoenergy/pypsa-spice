@@ -5,16 +5,30 @@ import sh
 import yaml
 
 SCENARIOS = [
-    "pdp_case1",
+    # "pdp_case1_infeasible",
     "pdp_case1_free_emi",
-    "pdp_case1_shock_gas",
-    "res_case1_free_gas_cap",
-    "res_case3_free_gas_cap",
-    "res_case3_hIPS_free_gas_cap",
-    "res_case4_free_gas_cap",
-    "res_case4_hIPS_free_gas_cap",
+    "pdp_case1_free_emi_res",
+    "pdp_case1_free_emi_res_bat",
+    # "pdp_case3_infeasible",
     "pdp_case3_free_emi",
+    "pdp_case3_free_emi_res",
+    "pdp_case3_free_emi_res_bat",
+    # "pdp_case4_infeasible",
     "pdp_case4_free_emi",
+    "pdp_case4_free_emi_res",
+    "pdp_case4_free_emi_res_bat",
+    "res_case3_free_emi",
+    "res_case3_free_gas_cap",
+    "res_case3_free_emi_gas_cap",
+    "res_case3_hIPS_free_emi",
+    "res_case3_hIPS_free_gas_cap",
+    "res_case3_hIPS_free_emi_gas_cap",
+    "res_case4_free_emi",
+    "res_case4_free_gas_cap",
+    "res_case4_free_emi_gas_cap",
+    "res_case4_hIPS_free_emi",
+    "res_case4_hIPS_free_gas_cap",
+    "res_case4_hIPS_free_emi_gas_cap",
 ]
 
 
