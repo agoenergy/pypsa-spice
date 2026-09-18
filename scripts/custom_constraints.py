@@ -603,6 +603,81 @@ def add_maximum_power_generation_constraint(
             )
 
 
+def add_minimum_power_generation_constraint(
+    n: pypsa.Network,
+    country: str,
+    year: int,
+    gen_dict: dict,
+    tech_list: list = ["CCGT", "CCGT-CCS", "OILT", "SubC"],
+):
+    """Add constraint on minimum generation for a group of technologies, per country and year.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object to which the constraint will be applied.
+    country : str
+        Country for which the constraint is applied.
+    year : int
+        The year of optimization for which the constraint is applied.
+    gen_dict : dictionary
+        Dictionary containing the minimum total generation (TWh) required from the combined technology
+        group in this modelling year, keyed by technology type.
+    tech_list : list
+        List of technologies to be aggregated together for the minimum
+        generation constraint (e.g. ["CCGT", "CCGT-CCS", "OILT", "SubC"]).
+    """
+    weight_da = xr.DataArray(
+        n.snapshot_weightings["objective"],
+        dims="snapshot",
+        coords={"snapshot": n.snapshots},
+    )
+
+    lhs = 0
+    for c in ["Generator", "StorageUnit", "Link"]:
+        df = n.df(c)
+        p_gen = "p" if c != "StorageUnit" else "p_dispatch"
+        bus_name = "bus1" if c == "Link" else "bus"
+
+        if not df.empty:
+            gen_index = df[
+                (df.country == country)
+                & (df.type.isin(tech_list))
+                & (df[bus_name].str.contains("HVELEC"))
+            ].index
+
+            if gen_index.empty:
+                continue
+            else:
+                # Get var and weights
+                gen_var = n.model[f"{c}-{p_gen}"].loc[:, gen_index]
+
+                if c == "Link":
+                    eff = xr.DataArray(
+                        df.loc[gen_index, "efficiency"],
+                        dims="name",
+                        coords={"name": gen_index},
+                    )
+                    lhs += (gen_var * eff * weight_da).sum("snapshot").sum("name")
+                else:
+                    lhs += (gen_var * weight_da).sum("snapshot").sum("name")
+
+    # rhs = minimum generation converted from TWh to MWh
+    rhs = gen_dict[year] * 1e6
+
+    tech_label = "_".join(tech_list)
+
+    print(
+        "....adding minimum power generation constraint: "
+        f"{tech_list} - {gen_dict[year]} TWh "
+        f"in {country} in {year}"
+    )
+
+    n.model.add_constraints(
+        lhs, ">=", rhs, name=f"min_generation_{tech_label}_{country}_{year}"
+    )
+
+
 def add_reserve_margin(
     n: pypsa.Network,
     EP_LOAD: float,
