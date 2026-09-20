@@ -71,7 +71,7 @@ if __name__ == "__main__":
             result = sh.conda(
                 "run",
                 "-n",
-                "pypsa-spice",
+                "hotpot",
                 "snakemake",
                 "-j1",
                 "-c4",
