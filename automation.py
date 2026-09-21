@@ -29,6 +29,14 @@ SCENARIOS = [
     "res_case4_hIPS_free_emi",
     "res_case4_hIPS_free_gas_cap",
     "res_case4_hIPS_free_emi_gas_cap",
+
+
+    "pdp_case3_free_emi_shock_gas",
+    "pdp_case3_free_emi_res_bat_shock_gas",
+    "pdp_case4_free_emi_shock_gas",
+    "pdp_case4_free_emi_res_bat_shock_gas",
+    "res_case3_hIPS_free_emi_gas_cap_shock_gas",
+    "res_case4_hIPS_free_emi_gas_cap_shock_gas"
 ]
 
 
