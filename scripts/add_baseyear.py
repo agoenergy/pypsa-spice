@@ -476,6 +476,11 @@ class AddBaseNetwork:
         # if "TH_NUCLN" in links_df["bus0"].values:
         #     links_df.loc[links_df["bus0"] == "TH_NUCLN", "committable"] = True
 
+        if any(x in links_df["bus0"].values for x in ["TH_GASN", "TH_BITN", "TH_LIGN"]):
+            links_df.loc[
+                links_df["bus0"].isin(["TH_GASN", "TH_BITN", "TH_LIGN"]), "p_min_pu"
+            ] = 0.4
+
         self.network.add(
             class_name="Link",
             name=links_df.index,
