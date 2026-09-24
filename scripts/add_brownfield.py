@@ -190,13 +190,23 @@ def update_decommission_base_assets(
             continue
         attr = "e" if c.name == "Store" else "p"
         for plant in decap.index:
+            # allow endogenous decommission by setting p_nom_max = current p_nom
+            # p_nom_min = p_nom - expected decommission capacity
+            # p_nom_extendable = True
             if plant in c.static.index:
+                c.static.loc[plant, f"{attr}_nom_extendable"] = True
                 if c.name == "Link":
-                    c.static.loc[plant, f"{attr}_nom"] = c.static.loc[
+                    c.static.loc[plant, f"{attr}_nom_max"] = c.static.loc[
+                        plant, f"{attr}_nom"
+                    ]
+                    c.static.loc[plant, f"{attr}_nom_min"] = c.static.loc[
                         plant, f"{attr}_nom"
                     ] - (decap.loc[plant] / c.static.loc[plant, "efficiency"])
                 else:
-                    c.static.loc[plant, f"{attr}_nom"] = (
+                    c.static.loc[plant, f"{attr}_max"] = c.static.loc[
+                        plant, f"{attr}_nom"
+                    ]
+                    c.static.loc[plant, f"{attr}_nom_min"] = (
                         c.static.loc[plant, f"{attr}_nom"] - decap.loc[plant]
                     )
         # Ensure nominal 'p' or 'e' never goes below 0.
