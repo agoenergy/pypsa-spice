@@ -677,6 +677,38 @@ def add_minimum_power_generation_constraint(
         lhs, ">=", rhs, name=f"min_generation_{tech_label}_{country}_{year}"
     )
 
+    # in the base year, the coal gen shall be 33TWh
+    if year == 2026:  # base year
+        coal_lhs = 0
+        for c in ["Link"]:
+            df = n.df(c)
+            p_gen = "p"
+            bus_name = "bus1"
+
+            if not df.empty:
+                gen_index = df[
+                    (df.country == country)
+                    & (df.type.isin(["SubC"]))
+                    & (df[bus_name].str.contains("HVELEC"))
+                ].index
+
+                if gen_index.empty:
+                    continue
+                else:
+                    # Get var and weights
+                    gen_var = n.model[f"{c}-{p_gen}"].loc[:, gen_index]
+
+                    eff = xr.DataArray(
+                        df.loc[gen_index, "efficiency"],
+                        dims="name",
+                        coords={"name": gen_index},
+                    )
+                    coal_lhs += (gen_var * eff * weight_da).sum("snapshot").sum("name")
+
+        n.model.add_constraints(
+            coal_lhs, ">=", 33 * 1e6, name=f"min_generation_SubC_{country}_base_year"
+        )
+
 
 def add_reserve_margin(
     n: pypsa.Network,
