@@ -16,9 +16,9 @@ logging:
 path_configs:
   data_folder_name: mod-data-th-pdp
   project_name: TH_PDP_release
-  input_scenario_name: pdp_case1
-  output_scenario_name: pdp_case1
-  
+  input_scenario_name: pdp_case4_free_emi_res_bat
+  output_scenario_name: pdp_case4_free_emi_res_bat
+
 base_configs:
   regions:
     TH: ["BKK", "BKKNR", "EA", "NE", "NR", "SO", "WE"]
