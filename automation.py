@@ -1,3 +1,7 @@
+# run `nohup python automation.py &` in the terminal so all the scenarios are executed in the background one by one.
+# Before running the script, make sure that you edit SCENARIOS below to ensure it
+# includes the desired scenarios.
+
 import os
 import pathlib
 
@@ -29,8 +33,6 @@ SCENARIOS = [
     # "res_case4_hIPS_free_emi",
     "res_case4_hIPS_free_gas_cap",
     # "res_case4_hIPS_free_emi_gas_cap",
-
-
     # "pdp_case3_free_emi_shock_gas",
     "pdp_case3_free_emi_res_bat_shock_gas",
     # "pdp_case4_free_emi_shock_gas",
@@ -94,4 +96,4 @@ if __name__ == "__main__":
             print(f"Error: {e}")
 
 
-# run nohup python automation.py &
+# run `nohup python automation.py &` in the terminal so all the scenarios are executed in the background one by one.
