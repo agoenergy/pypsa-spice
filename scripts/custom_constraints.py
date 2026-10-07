@@ -26,6 +26,8 @@ import xarray as xr
 from _helpers import FilePath
 from pypsa.descriptors import get_switchable_as_dense as get_as_dense
 
+RAMP_COST_COLUMNS = ["ramp_up_cost", "ramp_down_cost"]
+
 
 def renewable_potential_constraint(
     n: pypsa.Network, technical_potential: FilePath, year: int
@@ -591,19 +593,15 @@ def add_maximum_power_generation_constraint(
             )
 
 
-def add_ramp_costs(
-    n: pypsa.Network,
-    country: str,
-    technologies: list,
-    technology_params: FilePath,
-):
+def add_ramp_costs(n: pypsa.Network, country: str, technologies: list):
     """Add ramp-up and ramp-down costs of selected technologies to the objective.
 
     Ramping of each asset is split into non-negative ramp-up and ramp-down
     variables: ramp_up(t) - ramp_down(t) = P(t) - P(t-1), for t = 1, ..., T-1.
     P is the power output, i.e. p for Generators and p * efficiency (output at bus1)
-    for Links. Ramp costs (currency/MW) are taken from technologies.csv per
-    technology and carrier, and weighted by the objective snapshot weightings.
+    for Links. Ramp costs (currency/MW) are the ramp_up_cost and ramp_down_cost
+    attributes of the assets (from technologies.csv), weighted by the objective
+    snapshot weightings.
 
     Parameters
     ----------
@@ -613,14 +611,7 @@ def add_ramp_costs(
         Country for which the ramp costs are applied.
     technologies : list
         Technology types (e.g. ["SubC", "SupC", "CCGT"]) to which ramp costs apply.
-    technology_params : FilePath
-        Path to technologies.csv containing ramp_up_cost and ramp_down_cost columns.
     """
-    ramp_cost_df = __get_ramp_costs(technology_params, country, technologies)
-    if ramp_cost_df.empty:
-        print(f"....no ramp costs found in technologies.csv for {country}")
-        return
-
     # ramping snapshots: t = 1, ..., T-1
     snapshots = n.snapshots[1:]
     weightings = xr.DataArray(
@@ -631,24 +622,18 @@ def add_ramp_costs(
 
     for c in ["Generator", "Link"]:
         df = n.df(c)
+        missing_cols = set(RAMP_COST_COLUMNS).difference(df.columns)
+        if missing_cols:
+            raise KeyError(
+                f"{c}s have no {sorted(missing_cols)} attributes. Please add them to "
+                "technologies.csv and rebuild the network to use ramp costs."
+            )
         df = df[
             (df.country == country)
             & (df.type.isin(technologies))
             & ((df.p_nom > 0) | df.p_nom_extendable)
         ]
-        if df.empty:
-            continue
-
-        # Match ramp costs to each asset by technology type and carrier
-        costs = ramp_cost_df.reindex(pd.MultiIndex.from_arrays([df.type, df.carrier]))
-        costs.index = df.index
-        unmatched = costs.index[costs.isna().any(axis=1)]
-        if not unmatched.empty:
-            print(
-                f"....no ramp costs found in technologies.csv for {c}s "
-                f"{list(unmatched)}, ramp costs are set to 0"
-            )
-        costs = costs.fillna(0)
+        costs = df[RAMP_COST_COLUMNS].fillna(0)
         costs = costs[(costs > 0).any(axis=1)].rename_axis("name")
         if costs.empty:
             continue
@@ -1072,40 +1057,6 @@ def _update_storage_reserve_constraint(n: pypsa.Network, country: str):
         n.model.add_constraints(
             lhs, "<=", 0, name=f"updated_soc_constraint_storage_links_{country}"
         )
-
-
-def __get_ramp_costs(
-    technology_params: FilePath, country: str, technologies: list
-) -> pd.DataFrame:
-    """Get ramp costs per technology and carrier from technologies.csv.
-
-    Parameters
-    ----------
-    technology_params : FilePath
-        Path to technologies.csv containing ramp_up_cost and ramp_down_cost columns.
-    country : str
-        Country for which the ramp costs are retrieved.
-    technologies : list
-        Technology types for which the ramp costs are retrieved.
-
-    Returns
-    -------
-    pd.DataFrame
-        ramp_up_cost and ramp_down_cost indexed by technology and carrier.
-    """
-    tech_df = pd.read_csv(technology_params)
-    missing_cols = {"ramp_up_cost", "ramp_down_cost"}.difference(tech_df.columns)
-    if missing_cols:
-        raise KeyError(
-            f"Columns {sorted(missing_cols)} are missing in technologies.csv. "
-            "Please add them to use the ramp_costs custom constraint."
-        )
-    return (
-        tech_df[(tech_df.country == country) & (tech_df.technology.isin(technologies))]
-        .set_index(["technology", "carrier"])[["ramp_up_cost", "ramp_down_cost"]]
-        .astype(float)
-        .fillna(0)
-    )
 
 
 def __get_reserve_asset_indices(df: pd.DataFrame, country: str) -> pd.Index:

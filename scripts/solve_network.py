@@ -193,7 +193,6 @@ def extra_functionality_linopt(
                 network,
                 country=country,
                 technologies=country_constraints["ramp_costs"]["technologies"],
-                technology_params=snakemake.input.technologies,
             )
             constraint_added = True
 

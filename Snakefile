@@ -157,7 +157,6 @@ rule solve_network:
     input:
         re_technical_potential=RE_TECH_CAP,
         fuel_limits= SDIR + "/power/fuel_supplies.csv",
-        technologies=TECHNOLOGIES,
         network=RDIR + "/pre-solve-brownfield/network_{sector}_{years}.nc",
     output:
         final_network=RDIR + "/post-solve/network_{sector}_{years}.nc",

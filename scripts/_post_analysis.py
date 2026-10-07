@@ -25,6 +25,88 @@ from pypsa.descriptors import get_switchable_as_dense as get_as_dense
 # geo               --> [tot, nat, zone]
 # time_resolution   --> [y, m, d, h]
 #
+# ====================================== FUNCTIONS =====================================
+
+
+def get_ramp_cost_technologies(scenario_configs: dict) -> dict:
+    """Get technologies with activated ramp costs per country from scenario configs.
+
+    Parameters
+    ----------
+    scenario_configs : dict
+        Dictionary containing scenario related settings.
+
+    Returns
+    -------
+    dict
+        Countries as keys and lists of technology types with ramp costs as values.
+    """
+    custom_constraints = scenario_configs.get("custom_constraints") or {}
+    return {
+        country: constraints["ramp_costs"].get("technologies") or []
+        for country, constraints in custom_constraints.items()
+        if (constraints or {}).get("ramp_costs", {}).get("activate", False)
+    }
+
+
+def get_ramp_costs(
+    n: pypsa.Network, c: str, groupby: list, ramp_technologies: dict
+) -> pd.Series:
+    """Calculate annual ramp costs of a component grouped by its static attributes.
+
+    Ramp costs are recalculated from the dispatch using the ramp_up_cost and
+    ramp_down_cost attributes of the assets, for the countries and technologies with
+    activated ramp costs. For Links, ramping is based on the output at bus1
+    (p0 * efficiency).
+
+    << Unit: CURRENCY >>
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Solved PyPSA network.
+    c : str
+        Component name, "Generator" or "Link".
+    groupby : list
+        Static attributes of the component to group the ramp costs by.
+    ramp_technologies : dict
+        Countries as keys and lists of technology types with ramp costs as values.
+
+    Returns
+    -------
+    pd.Series
+        Annual ramp costs indexed by the groupby attributes.
+    """
+    df = n.df(c)
+    ramp_cols = ["ramp_up_cost", "ramp_down_cost"]
+    if c not in ["Generator", "Link"] or not set(ramp_cols).issubset(df.columns):
+        return pd.Series(dtype=float)
+    active = pd.Series(False, index=df.index)
+    for country, technologies in ramp_technologies.items():
+        active |= (df.country == country) & df.type.isin(technologies)
+    costs = df.loc[active, ramp_cols].fillna(0)
+    costs = costs[(costs > 0).any(axis=1)]
+    if costs.empty:
+        return pd.Series(dtype=float)
+
+    if c == "Link":
+        output = n.links_t.p0[costs.index].mul(df.loc[costs.index, "efficiency"])
+    else:
+        output = n.generators_t.p[costs.index]
+    # ramping between consecutive snapshots: t = 1, ..., T-1
+    ramp = output.diff().iloc[1:]
+    asset_costs = (
+        (
+            ramp.clip(lower=0).mul(costs["ramp_up_cost"])
+            + (-ramp).clip(lower=0).mul(costs["ramp_down_cost"])
+        )
+        .mul(n.snapshot_weightings.objective.iloc[1:], axis=0)
+        .sum()
+    )
+
+    return asset_costs.groupby([df.loc[costs.index, col] for col in groupby]).sum()
+
+
 # ======================================= CLASSES ======================================
 
 
@@ -243,6 +325,7 @@ class OutputTables(Plots):
         self.config = config
         self.scenario_configs = scenario_configs
         self.countries = list(self.config["base_configs"]["regions"].keys())
+        self.ramp_technologies = get_ramp_cost_technologies(scenario_configs)
 
     def get_network_dict(self) -> dict:
         """Get a dictionary of networks from a list of file paths.
@@ -402,6 +485,8 @@ class OutputTables(Plots):
     def ene_opex_by_type_by_carrier_yearly(self) -> pd.DataFrame:
         """Calculate annual OPEX by type, carrier, and country.
 
+        OPEX includes variable costs, fixed O&M costs and ramp costs (if activated).
+
         << Unit: Million CURRENCY >>
 
         Returns
@@ -415,18 +500,29 @@ class OutputTables(Plots):
             n = self.network_dict[year]
             # Filter out the rows where the index contains specific substrings
             excluded_substrings = ["LSLO", "_STORE"]
+            groupby = ["type", "carrier", "country"]
+            # OPEX includes variable costs, fixed O&M costs and ramp costs
+            ramp_costs = [
+                ramp_cost
+                for ramp_cost in (
+                    get_ramp_costs(n, c, groupby, self.ramp_technologies)
+                    for c in ["Generator", "Link"]
+                )
+                if not ramp_cost.empty
+            ]
             opex_val = (
-                n.statistics.opex(groupby=["type", "carrier", "country"])
+                n.statistics.opex(groupby=groupby)
                 .add(
-                    n.statistics.capex(
-                        cost_attribute="fom_cost",
-                        groupby=["type", "carrier", "country"],
-                    ),
+                    n.statistics.capex(cost_attribute="fom_cost", groupby=groupby),
                     fill_value=0,
                 )
                 .reset_index(drop=True, level=0)
-                .to_frame(name="value")
             )
+            if ramp_costs:
+                opex_val = opex_val.add(
+                    pd.concat(ramp_costs).groupby(level=groupby).sum(), fill_value=0
+                )
+            opex_val = opex_val.to_frame(name="value")
             keep_types = [
                 x
                 for x in opex_val.index.levels[0]
@@ -1140,6 +1236,9 @@ class OutputTables(Plots):
     def pow_opex_by_type_yearly(self) -> pd.DataFrame:
         """Calculate annual OPEX in the power sector by country and type.
 
+        OPEX includes variable costs, fixed O&M costs, fuel costs of Links and ramp
+        costs (if activated).
+
         << Unit: Million CURRENCY >>
 
         Returns
@@ -1196,6 +1295,12 @@ class OutputTables(Plots):
                     fuel_cost.loc[targeted_type] = 0
                     # add fuel cost to opex
                     pow_cost = pow_cost.add(fuel_cost)
+                # add ramp cost to opex
+                ramp_cost = get_ramp_costs(
+                    n, c, [bus_name, "country", "type"], self.ramp_technologies
+                )
+                if not ramp_cost.empty:
+                    pow_cost = pow_cost.add(ramp_cost, fill_value=0)
                 if not pow_cost.empty:
                     list_of_bus = (
                         pow_cost.index.get_level_values(bus_name).unique().tolist()
@@ -1229,6 +1334,54 @@ class OutputTables(Plots):
             scaling_number=1e6,
             decimals=2,
         )
+        final_df = final_df.loc[final_df.value != 0]
+        final_df = final_df.groupby(["country", "technology", "year"]).sum()
+
+        return final_df
+
+    def pow_ramp_cost_by_type_yearly(self) -> pd.DataFrame:
+        """Calculate annual ramp costs in the power sector by country and type.
+
+        Ramp costs are only available if the ramp_costs custom constraint is
+        activated. They are also included in pow_opex_by_type_yearly.
+
+        << Unit: Million CURRENCY >>
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame with multi-index (country, technology) and columns (value, year)
+        """
+        final_df = pd.DataFrame()
+        for year in self.network_dict:
+            n = self.network_dict[year]
+            for c in ["Generator", "Link"]:
+                bus_name = "bus1" if c == "Link" else "bus"
+                ramp_cost = get_ramp_costs(
+                    n, c, [bus_name, "country", "type"], self.ramp_technologies
+                )
+                if ramp_cost.empty:
+                    continue
+                elec_bus = ramp_cost.index.get_level_values(bus_name).str.contains(
+                    "HVELEC|LVELEC"
+                )
+                ramp_cost = (
+                    ramp_cost.loc[elec_bus]
+                    .groupby(["country", "type"])
+                    .sum()
+                    .to_frame(name="value")
+                )
+                ramp_cost["year"] = year
+                final_df = pd.concat([final_df, ramp_cost], axis=0)
+        if final_df.empty:
+            return pd.DataFrame(
+                columns=["value"],
+                index=pd.MultiIndex.from_tuples(
+                    [], names=["country", "technology", "year"]
+                ),
+            )
+        final_df.index.names = ["country", "technology"]
+        final_df = scaling_conversion(input_df=final_df, scaling_number=1e6, decimals=2)
         final_df = final_df.loc[final_df.value != 0]
         final_df = final_df.groupby(["country", "technology", "year"]).sum()
 
