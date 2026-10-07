@@ -15,6 +15,7 @@ These constraints include:
 - fuel supply,
 - energy independence,
 - reserve margins,
+- ramp costs,
 - etc.
 """
 import colorama
@@ -264,7 +265,7 @@ def capacity_factor_constraint(n: pypsa.Network, country: str, cf_dict: dict):
 
 
 def thermal_must_run_constraint(
-    n: pypsa.Network, min_must_run_ratio: float, country: str, sense: str = ">="
+    n: pypsa.Network, min_must_run_ratio: float, country: str
 ):
     """Add constraint on minimum thermal generation as a fraction of total load.
 
@@ -276,8 +277,6 @@ def thermal_must_run_constraint(
         Share of thermal generation / total load per snapshot
     country : str
         Country for which the constraint is applied.
-    sense : str, optional
-        , by default ">=" TODO: REMOVE THIS?
     """
     # RHS (Right Hand Side):
     # min_must_run_ratio * total load per snapshot
@@ -563,21 +562,19 @@ def add_maximum_power_generation_constraint(
 
                     if gen_index.empty:
                         continue
-                    else:
-                        # Get var and weights
-                        gen_var = n.model[f"{c}-{p_gen}"].loc[:, gen_index]
 
-                        if c == "Link":
-                            eff = xr.DataArray(
-                                df.loc[gen_index, "efficiency"],
-                                dims="name",
-                                coords={"name": gen_index},
-                            )
-                            lhs += (
-                                (gen_var * eff * weight_da).sum("snapshot").sum("name")
-                            )
-                        else:
-                            lhs += (gen_var * weight_da).sum("snapshot").sum("name")
+                    # Get var and weights
+                    gen_var = n.model[f"{c}-{p_gen}"].loc[:, gen_index]
+
+                    if c == "Link":
+                        eff = xr.DataArray(
+                            df.loc[gen_index, "efficiency"],
+                            dims="name",
+                            coords={"name": gen_index},
+                        )
+                        lhs += (gen_var * eff * weight_da).sum("snapshot").sum("name")
+                    else:
+                        lhs += (gen_var * weight_da).sum("snapshot").sum("name")
 
             # rhs = maximum generation from gen_dict in converted from TWh to MWh
             total_gen = gen_dict[gen_type][year]
@@ -592,6 +589,99 @@ def add_maximum_power_generation_constraint(
             n.model.add_constraints(
                 lhs, "<=", rhs, name=f"max_generation_{gen_type}_{country}_{year}"
             )
+
+
+def add_ramp_costs(
+    n: pypsa.Network,
+    country: str,
+    technologies: list,
+    technology_params: FilePath,
+):
+    """Add ramp-up and ramp-down costs of selected technologies to the objective.
+
+    Ramping of each asset is split into non-negative ramp-up and ramp-down
+    variables: ramp_up(t) - ramp_down(t) = P(t) - P(t-1), for t = 1, ..., T-1.
+    P is the power output, i.e. p for Generators and p * efficiency (output at bus1)
+    for Links. Ramp costs (currency/MW) are taken from technologies.csv per
+    technology and carrier, and weighted by the objective snapshot weightings.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object to which the ramp costs will be applied.
+    country : str
+        Country for which the ramp costs are applied.
+    technologies : list
+        Technology types (e.g. ["SubC", "SupC", "CCGT"]) to which ramp costs apply.
+    technology_params : FilePath
+        Path to technologies.csv containing ramp_up_cost and ramp_down_cost columns.
+    """
+    ramp_cost_df = __get_ramp_costs(technology_params, country, technologies)
+    if ramp_cost_df.empty:
+        print(f"....no ramp costs found in technologies.csv for {country}")
+        return
+
+    # ramping snapshots: t = 1, ..., T-1
+    snapshots = n.snapshots[1:]
+    weightings = xr.DataArray(
+        n.snapshot_weightings["objective"].loc[snapshots],
+        dims="snapshot",
+        coords={"snapshot": snapshots},
+    )
+
+    for c in ["Generator", "Link"]:
+        df = n.df(c)
+        df = df[
+            (df.country == country)
+            & (df.type.isin(technologies))
+            & ((df.p_nom > 0) | df.p_nom_extendable)
+        ]
+        if df.empty:
+            continue
+
+        # Match ramp costs to each asset by technology type and carrier
+        costs = ramp_cost_df.reindex(pd.MultiIndex.from_arrays([df.type, df.carrier]))
+        costs.index = df.index
+        unmatched = costs.index[costs.isna().any(axis=1)]
+        if not unmatched.empty:
+            print(
+                f"....no ramp costs found in technologies.csv for {c}s "
+                f"{list(unmatched)}, ramp costs are set to 0"
+            )
+        costs = costs.fillna(0)
+        costs = costs[(costs > 0).any(axis=1)].rename_axis("name")
+        if costs.empty:
+            continue
+        assets = costs.index
+
+        # Power output: p for Generators and p * efficiency for Links
+        p = n.model[f"{c}-p"].sel(name=assets)
+        if c == "Link":
+            p = p * xr.DataArray(df.loc[assets, "efficiency"])
+
+        ramp_up = n.model.add_variables(
+            lower=0,
+            coords=[snapshots, assets],
+            name=f"{c}-ramp_up-{country}",
+        )
+        ramp_down = n.model.add_variables(
+            lower=0,
+            coords=[snapshots, assets],
+            name=f"{c}-ramp_down-{country}",
+        )
+        # diff keeps the first snapshot, so restrict it to t = 1, ..., T-1
+        n.model.add_constraints(
+            ramp_up - ramp_down == p.diff("snapshot").sel(snapshot=snapshots),
+            name=f"{c}-ramp_definition-{country}",
+        )
+
+        n.model.objective += (
+            ramp_up * xr.DataArray(costs["ramp_up_cost"]) * weightings
+        ).sum() + (ramp_down * xr.DataArray(costs["ramp_down_cost"]) * weightings).sum()
+        print(
+            f"....adding ramp costs for {len(assets)} {c}s "
+            f"of types {sorted(df.loc[assets, 'type'].unique())} in {country}"
+        )
 
 
 def add_reserve_margin(
@@ -804,8 +894,8 @@ def _add_reserve_margin_dynamic(
         store_eff = xr.DataArray(n.links.loc[store_links, "efficiency"])
         lhs += (-storage_load.mul(store_eff)).sum("name")
     if not storageunits_id.empty:
-        SU_store = n.model["StorageUnit-p_store"].loc[:, storageunits_id]
-        lhs += (-SU_store).sum("name")
+        su_store = n.model["StorageUnit-p_store"].loc[:, storageunits_id]
+        lhs += (-su_store).sum("name")
 
     # ------------- RHS -------------------------------------------------
     # ------------- Generators
@@ -982,6 +1072,40 @@ def _update_storage_reserve_constraint(n: pypsa.Network, country: str):
         n.model.add_constraints(
             lhs, "<=", 0, name=f"updated_soc_constraint_storage_links_{country}"
         )
+
+
+def __get_ramp_costs(
+    technology_params: FilePath, country: str, technologies: list
+) -> pd.DataFrame:
+    """Get ramp costs per technology and carrier from technologies.csv.
+
+    Parameters
+    ----------
+    technology_params : FilePath
+        Path to technologies.csv containing ramp_up_cost and ramp_down_cost columns.
+    country : str
+        Country for which the ramp costs are retrieved.
+    technologies : list
+        Technology types for which the ramp costs are retrieved.
+
+    Returns
+    -------
+    pd.DataFrame
+        ramp_up_cost and ramp_down_cost indexed by technology and carrier.
+    """
+    tech_df = pd.read_csv(technology_params)
+    missing_cols = {"ramp_up_cost", "ramp_down_cost"}.difference(tech_df.columns)
+    if missing_cols:
+        raise KeyError(
+            f"Columns {sorted(missing_cols)} are missing in technologies.csv. "
+            "Please add them to use the ramp_costs custom constraint."
+        )
+    return (
+        tech_df[(tech_df.country == country) & (tech_df.technology.isin(technologies))]
+        .set_index(["technology", "carrier"])[["ramp_up_cost", "ramp_down_cost"]]
+        .astype(float)
+        .fillna(0)
+    )
 
 
 def __get_reserve_asset_indices(df: pd.DataFrame, country: str) -> pd.Index:
