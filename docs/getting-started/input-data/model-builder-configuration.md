@@ -176,6 +176,9 @@ custom_constraints:
           2030: 18
         "SubC":
           2025: 40
+    ramp_costs: # (17)!
+      activate: true
+      technologies: ["SubC", "SupC"] # (18)!
   YZ:
     energy_independence:
       activate: false
@@ -203,6 +206,8 @@ custom_constraints:
         "HDAM": 0.4
     maximum_power_generation_constraint:
       activate: false
+    ramp_costs:
+      activate: false
 ```
 
 1. The model adds constraints to ensure energy independence. This indicates how much of energy needs are met without relying on imports (by producing enough energy domestically). You can refer to Constraint - Energy Independence for more information. This constraint does not apply to the base year.
@@ -221,8 +226,10 @@ custom_constraints:
 14. Fraction of thermal generation to the total electricity demand per snapshot providing the baseload.
 15. Maximum allowable total power generation (unit in TWh) of certain technologies in specific years. This is used to as a forced constraint to align generation into a desired value.
 16. Maximum capacity factor of certain technologies can be defined here. This constraint does not apply to the base year.
+17. The model adds ramp-up and ramp-down costs of the selected technologies to the objective function. This applies to technologies modelled as both `Generators` and `Links`. The cost values are defined per technology and carrier in the `ramp_up_cost` and `ramp_down_cost` columns of `technologies.csv`. See Ramp costs below for more information.
+18. Technology types (as in the `technology` column of `technologies.csv`) to which ramp costs apply.
 
-In the following two sub-sections, we provide more information about the definition of energy independence and reserve margin.
+In the following three sub-sections, we provide more information about the definition of energy independence, reserve margin and ramp costs.
 
 ### Energy independence: mathematical formulation
 
@@ -263,6 +270,32 @@ Where
 | $`contingency`$        | Fixed contingency                                                            |
 
 See [Linopy example](https://github.com/PyPSA/pypsa-eur/blob/7ac983e5b31bcaf3ae667ceec4fc9d5d91c18046/scripts/solve_network.py#L387-L454){:target="_blank"} of the reserve constraint implementation for more details.
+
+### Ramp costs: mathematical formulation
+
+Changes in power output between two consecutive snapshots are split into non-negative ramp-up and ramp-down variables, which are penalised in the objective function:
+
+```math
+r^{up}_{g,t} - r^{down}_{g,t} = P_{g,t} - P_{g,t-1}, \qquad r^{up}_{g,t}, r^{down}_{g,t} \ge 0 \qquad \forall g, \; t = 1, \dots, T-1
+```
+
+```math
+\min \; \dots + \sum_{g} \sum_{t=1}^{T-1} w_t \cdot \left( c^{up}_g \cdot r^{up}_{g,t} + c^{down}_g \cdot r^{down}_{g,t} \right)
+```
+
+Where
+
+| parameter          | description                                                                                                       |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| $`P_{g,t}`$        | Power output of asset `g` at snapshot `t`. For `Links`, this is the output at `bus1` (input power x `efficiency`) |
+| $`r^{up}_{g,t}`$   | Ramp-up of asset `g` at snapshot `t` (MW)                                                                         |
+| $`r^{down}_{g,t}`$ | Ramp-down of asset `g` at snapshot `t` (MW)                                                                       |
+| $`c^{up}_g`$       | Ramp-up cost of asset `g` (currency/MW), `ramp_up_cost` in `technologies.csv`                                     |
+| $`c^{down}_g`$     | Ramp-down cost of asset `g` (currency/MW), `ramp_down_cost` in `technologies.csv`                                 |
+| $`w_t`$            | Objective snapshot weighting of snapshot `t`                                                                      |
+
+!!! Note
+    Ramping is calculated between consecutive modelled snapshots. With a reduced temporal resolution (`nth_hour` or `clustered`), ramps therefore reflect changes between the modelled snapshots rather than hourly ramps.
 
 ## scenario_config.yaml - solver settings
 
