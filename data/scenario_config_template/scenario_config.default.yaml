@@ -102,6 +102,9 @@ custom_constraints:
           2030: 18 # unit in TWh
         "SubC":
           2025: 40 # unit in TWh
+    ramp_costs: # ramp up/down costs (currency/MW) are defined in technologies.csv
+      activate: true
+      technologies: ["SubC", "SupC"] # technology types to which ramp costs apply
   YZ:
     energy_independence:
       activate: false
@@ -128,6 +131,8 @@ custom_constraints:
         "SupC": 0.6
         "HDAM": 0.4
     maximum_power_generation_constraint: # maximum power generation per techology, country and year (TWh)
+      activate: false
+    ramp_costs:
       activate: false
         
 #####Solver settings#####
