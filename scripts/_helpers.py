@@ -948,6 +948,11 @@ def update_tech_fact_table(
         Cleaned plant/link DataFrame with fact columns added
     """
     technology_df = pd.read_csv(technologies_dir)
+    # ramp costs are optional in technologies.csv (default: no ramp costs)
+    ramp_cost_columns = ["ramp_up_cost", "ramp_down_cost"]
+    technology_df[ramp_cost_columns] = (
+        technology_df.reindex(columns=ramp_cost_columns).astype(float).fillna(0)
+    )
     tech_costs = pd.read_csv(tech_costs_dir, index_col=["powerplant_type", "country"])
     # filter tech cost table to only corresponding model year
     tech_costs = tech_costs[tech_costs.year == year]

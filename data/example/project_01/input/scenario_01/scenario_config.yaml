@@ -100,6 +100,9 @@ custom_constraints:
           2030: 18 # unit in TWh
         "SubC":
           2025: 40 # unit in TWh
+    ramp_costs: # ramp up/down costs (currency/MW) are defined in technologies.csv
+      activate: true
+      technologies: ["SubC", "SupC"] # technology types to which ramp costs apply
   YZ:
     production_constraint_fuels: 
       activate: true

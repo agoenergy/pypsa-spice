@@ -107,5 +107,7 @@ Description of all technical parameters:
 | `p_min_pu`                | The minimum availability per snapshot per unit of `p_nom`                                                                                                                          |
 | `ramp_limit_down`         | Maximum active power decrease from one snapshot to the next (per unit)                                                                                                             |
 | `ramp_limit_up`           | Maximum active power increase from one snapshot to the next (per unit)                                                                                                             |
+| `ramp_up_cost`            | Cost of increasing power output by 1 MW from one snapshot to the next (currency/MW). Used only if `ramp_costs` is activated in the scenario config                                 |
+| `ramp_down_cost`          | Cost of decreasing power output by 1 MW from one snapshot to the next (currency/MW). Used only if `ramp_costs` is activated in the scenario config                                 |
 | `standing_loss`           | Hourly energy loss from storage                                                                                                                                                    |
 | `r_rating`                | Contribution of reserve rating (if used)                                                                                                                                           |

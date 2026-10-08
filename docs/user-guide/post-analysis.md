@@ -30,7 +30,7 @@ The following CSV files are created automatically. Each file represents a key in
 | `ene_emi_by_carrier_by_sector_yearly` | Energy    | MtCO~2~                                              | Total emissions by carrier and sector by modelling year                                  |
 | `ene_fom_by_type_yearly`              | Energy    | million currency                                   | Total fixed operation and maintenance cost by technology (e.g., `CCGT`) by modelling year    |
 | `ene_gen_by_carrier_yearly`           | Energy    | TWh                                                | Total generation by carrier (e.g., `Electricity`) by modelling year                              |
-| `ene_opex_by_type_yearly`             | Energy    | million currency   | OPEX in energy sectors by technology (e.g., `CCGT`) by modelling year                         |
+| `ene_opex_by_type_yearly`             | Energy    | million currency   | OPEX in energy sectors by technology (e.g., `CCGT`) by modelling year, including ramp costs (if activated) |
 | `ind_cap_by_carrier_by_region_yearly` | Industry  | GW                                                 | Installed capacity in the industry sector by carrier and region/node, and by modelling year |
 | `ind_cap_by_type_by_carrier_yearly`   | Industry  | GW                                                 | Installed capacity in the industry sector by technology and carrier, and by modelling year  |
 | `ind_emi_by_carrier_yearly`           | Industry  | MtCO~2~                                              | Emissions in the industry sector by carrier by modelling year                              |
@@ -60,8 +60,9 @@ The following CSV files are created automatically. Each file represents a key in
 | `pow_intercap_by_region_yearly`       | Power     | GW                                                 | Installed capacity of the interconnectors by region/node by modelling year                 |
 | `pow_marginal_price_by_region_hourly` | Power     | currency/MWh       | Hourly marginal price by region/node by modelling year                                     |
 | `pow_nodal_flow_hourly`               | Power     | MW                                                 | Hourly exchange flow between different regions/nodes by modelling year                       |
-| `pow_opex_by_type_yearly`             | Power     | million currency   | OPEX in the power sector by technology (e.g., `CCGT`) by modelling year                      |
+| `pow_opex_by_type_yearly`             | Power     | million currency   | OPEX in the power sector by technology (e.g., `CCGT`) by modelling year, including ramp costs (if activated) |
 | `pow_overnight_inv_by_type_yearly`    | Power     | million currency   | Overnight investment cost in the power sector by technology (e.g., `CCGT`) by modelling year                      |
+| `pow_ramp_cost_by_type_yearly`        | Power     | million currency   | Ramp costs in the power sector by technology (e.g., `CCGT`) by modelling year (only if `ramp_costs` is activated) |
 | `pow_reserve_by_type_hourly`          | Power     | TWh                                                | Reserve by technology (e.g., onshore wind) by modelling year                                |
 | `tran_capex_by_type_yearly`                | Transport | million currency   | CAPEX in the transport sector by technology by modelling year                              |
 | `tran_charger_capacity_by_region_yearly`   | Transport | GW                 | Capacity of the chargers in the transport sector by region by modelling year                              |
