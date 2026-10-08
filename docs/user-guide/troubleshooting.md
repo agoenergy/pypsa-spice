@@ -34,7 +34,7 @@ Once this file is set up, you can easily run any Python file in the `scripts` fo
 If your model is **infeasible** or **unbounded**, it often means that your input settings are leading to a situation where PyPSA can’t solve one or more objective functions. Common causes are:
 
 - Insufficient generator capacity at a bus to meet the load across all snapshots.
-- Must-run generators (`p_min_pu`) produce more power than the load at certain snapshots, causing excess power (i.e., power dumping).
+- Must-run generators (`p_min_pu`) produce more power than the load at certain snapshots, causing excess power (i.e., power dumping). PyPSA-SPICE adds load dumping generators (`DUMPLOAD - <bus>`) to all buses except CO~2~ buses, which absorb the excess power at a high penalty cost. When the summary tables are generated (`make_summary` rule), the buses with load shedding or load dumping are printed with the energy and the timesteps involved.
 - Negative values assigned to capacity parameters.
 - Maximum capacity (`p_nom_max`) is smaller than minimum capacity (`p_nom_min`).
 - Storage units has inflow and cyclic charging (`cyclic_state_of_charge = True`) but no discharging capability.
@@ -45,7 +45,7 @@ Try the following steps to identify and fix the issue:
 
 - Run `pypsa.network.consistency_check()` to check if any warnings appear.
 - Temporarily disable custom features or user extensions to isolate the cause.
-- Ensure load-shedding generators are added to _every_ bus.
+- Ensure load-shedding (`LOSTLOAD - <bus>`) and load dumping (`DUMPLOAD - <bus>`) generators are added to _every_ bus. Note that networks built before load dumping was introduced need to be rebuilt.
 - Check `pypsa.network.generators.p_min_pu` to identify any must-run generators. Then verify if their generation exceeds the corresponding load in `pypsa.network.loads_t.p_set`.
 - Compare the `p_nom_max` and `p_nom_min` values for each component to ensure they make sense (i.e., max ≥ min).
 - Try disabling cyclic charging for storage units: `pypsa.network.storage_units.cyclic_state_of_charge = False`.
