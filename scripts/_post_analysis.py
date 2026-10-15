@@ -25,6 +25,55 @@ from pypsa.descriptors import get_switchable_as_dense as get_as_dense
 # geo               --> [tot, nat, zone]
 # time_resolution   --> [y, m, d, h]
 #
+# ====================================== FUNCTIONS =====================================
+
+
+def get_load_shedding_or_dumping_by_bus(
+    n: pypsa.Network, carrier: str, threshold: float = 1e-3
+) -> pd.DataFrame:
+    """Summarise per bus when and how much load shedding or load dumping is used.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Solved PyPSA network.
+    carrier : str
+        "ENS" for load shedding or "EXS" for load dumping.
+    threshold : float, optional
+        Minimum dispatch (MW) for a timestep to count as used, by default 1e-3.
+
+    Returns
+    -------
+    pd.DataFrame
+        One row per bus where the generators are used, with the energy (GWh,
+        weighted by the objective snapshot weightings), the number of timesteps
+        and the first and last timestep. Empty if the generators are not used.
+    """
+    generators = n.generators.index[n.generators.carrier == carrier]
+    dispatch = n.generators_t.p.reindex(columns=generators, fill_value=0)
+    is_used = dispatch > threshold
+
+    used_generators = dispatch.columns[is_used.any()]
+    rows = []
+    for gen in used_generators:
+        used_timesteps = dispatch.index[is_used[gen]]
+        rows.append(
+            {
+                "bus": n.generators.at[gen, "bus"],
+                "energy_gwh": round(
+                    dispatch[gen].mul(n.snapshot_weightings.objective).sum() / 1e3, 2
+                ),
+                "timesteps": len(used_timesteps),
+                "first_timestep": used_timesteps[0],
+                "last_timestep": used_timesteps[-1],
+            }
+        )
+    return pd.DataFrame(
+        rows,
+        columns=["bus", "energy_gwh", "timesteps", "first_timestep", "last_timestep"],
+    ).set_index("bus")
+
+
 # ======================================= CLASSES ======================================
 
 
@@ -308,7 +357,7 @@ class OutputTables(Plots):
         for year in self.network_dict:
             n = self.network_dict[year]
             # Filter out the rows where the index contains specific substrings
-            excluded_substrings = ["_SUPPLY", "LSLO", "_STORE"]
+            excluded_substrings = ["_SUPPLY", "LSLO", "LDMP", "_STORE"]
             capex_val = (
                 n.statistics.capex(
                     cost_attribute="fom_cost", groupby=["type", "carrier", "country"]
@@ -358,7 +407,7 @@ class OutputTables(Plots):
         for year in self.network_dict:
             n = self.network_dict[year]
             # Filter out the rows where the index contains specific substrings
-            excluded_substrings = ["_SUPPLY", "LSLO", "_STORE"]
+            excluded_substrings = ["_SUPPLY", "LSLO", "LDMP", "_STORE"]
             capex_val = (
                 n.statistics.capex(groupby=["type", "carrier", "country"])
                 .sub(
@@ -414,7 +463,7 @@ class OutputTables(Plots):
         for year in self.network_dict:
             n = self.network_dict[year]
             # Filter out the rows where the index contains specific substrings
-            excluded_substrings = ["LSLO", "_STORE"]
+            excluded_substrings = ["LSLO", "LDMP", "_STORE"]
             opex_val = (
                 n.statistics.opex(groupby=["type", "carrier", "country"])
                 .add(
@@ -879,7 +928,9 @@ class OutputTables(Plots):
         final_df.index.names = ["country", "technology"]
         final_df = final_df.fillna(0)
         final_df = final_df[
-            ~final_df.index.get_level_values("technology").isin(["ITCN", "LSLO"])
+            ~final_df.index.get_level_values("technology").isin(
+                ["ITCN", "LSLO", "LDMP"]
+            )
         ]
         final_df = scaling_conversion(
             input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
@@ -956,6 +1007,7 @@ class OutputTables(Plots):
                 [
                     "ITCN",
                     "LSLO",
+                    "LDMP",
                     "EVST_PRV",
                     "EVST_PUB",
                     "BATS_DISCHARGE",
@@ -1064,7 +1116,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "technology"]
         final_df = final_df.loc[
-            ~final_df.index.get_level_values("technology").isin(["LSLO"])
+            ~final_df.index.get_level_values("technology").isin(["LSLO", "LDMP"])
         ].reset_index()
         final_df["country"] = final_df["country"].str[:2]
         final_df = scaling_conversion(
@@ -1125,7 +1177,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "technology"]
         final_df = final_df.loc[
-            ~final_df.index.get_level_values("technology").isin(["LSLO"])
+            ~final_df.index.get_level_values("technology").isin(["LSLO", "LDMP"])
         ]
         final_df = scaling_conversion(
             input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
@@ -1222,7 +1274,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "technology"]
         final_df = final_df.loc[
-            ~final_df.index.get_level_values("technology").isin(["LSLO"])
+            ~final_df.index.get_level_values("technology").isin(["LSLO", "LDMP"])
         ]
         final_df = scaling_conversion(
             input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
@@ -1636,7 +1688,7 @@ class OutputTables(Plots):
                         | (df[bus_name].str.contains("LVELEC"))
                     )
                     & ~(
-                        (df.type == "LSLO")
+                        df.type.isin(["LSLO", "LDMP"])
                         | (df.type == "ITCN")
                         | (df.type.str.contains("SUPPLY"))
                     )  # removes the non-capacity items
@@ -1801,7 +1853,7 @@ class OutputTables(Plots):
             all_generators_indices = network.generators[
                 (network.generators.country == country)
                 & (network.generators.bus.map(network.buses.carrier) == "Electricity")
-                & (network.generators.carrier != "ENS")
+                & ~network.generators.carrier.isin(["ENS", "EXS"])
             ].index
             vre_reserve = (
                 network.generators.p_nom[all_generators_indices]
@@ -2323,7 +2375,7 @@ class OutputTables(Plots):
                         | (df[bus_name].str.contains("LVELEC"))
                     )
                     & ~(
-                        (df.type == "LSLO")
+                        df.type.isin(["LSLO", "LDMP"])
                         | (df.type == "ITCN")
                         | (df.type.str.contains("SUPPLY"))
                     )  # removes the non-capacity items
@@ -2540,7 +2592,7 @@ class OutputTables(Plots):
         final_df.index.names = ["country", "technology", "carrier", "heat_type"]
         final_df = final_df[
             ~final_df.index.get_level_values("technology").str.contains(
-                "LSLO|DISCHARGE|STORE"
+                "LSLO|LDMP|DISCHARGE|STORE"
             )
         ]  # remove store and discharge, since we only consider generation
         final_df = scaling_conversion(
@@ -2572,11 +2624,11 @@ class OutputTables(Plots):
                 ind_supply = df[
                     (df[bus_name].str.contains("IND"))
                     & ~(
-                        (df.type == "LSLO")
+                        df.type.isin(["LSLO", "LDMP"])
                         | (df.type == "ITCN")
                         | (df.type.str.contains("SUPPLY"))
                     )
-                    & ~(df.carrier == "ENS")
+                    & ~df.carrier.isin(["ENS", "EXS"])
                 ]
                 if c.name == "Link":
 
@@ -2647,7 +2699,7 @@ class OutputTables(Plots):
                 ind_supply = c.df[
                     (c.df[bus_name].str.contains("IND"))
                     & ~(
-                        (c.df.type == "LSLO")
+                        c.df.type.isin(["LSLO", "LDMP"])
                         | (c.df.type == "ITCN")
                         | (c.df.type.str.contains("SUPPLY"))
                         | (
@@ -2791,7 +2843,9 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "technology", "carrier", "heat_type"]
         final_df = final_df[
-            ~final_df.index.get_level_values("technology").str.contains("ITCN|LSLO")
+            ~final_df.index.get_level_values("technology").str.contains(
+                "ITCN|LSLO|LDMP"
+            )
         ]
         final_df = scaling_conversion(
             input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
@@ -3705,27 +3759,23 @@ class OutputTables(Plots):
         return df_all
 
     # =================================== TEST/OTHERS ==================================
-    def test_energy_not_served_warning(self):
-        """Check if there is any energy not served (ENS) in the model."""
-        for year in self.network_dict:
-            n = self.network_dict[year]
-            lslo = (
-                n.generators_t.p[n.generators[n.generators.carrier == "ENS"].index]
-                .sum()
-                .sum()
-            )
-            if lslo < 100:
-                pass
-                print("No energy not served observed")
-            else:
-                print("WARNING: Loss of load observed")
-                gen_loss_of_load = n.generators_t.p[
-                    n.generators[n.generators.carrier == "ENS"].index
-                ].sum()
-                print(
-                    "Generators with loss of load (Unit: GWh)",
-                    gen_loss_of_load[gen_loss_of_load > 10].div(1e3).round(),
-                )
+    def report_load_shedding_and_dumping(self):
+        """Report the buses with load shedding or load dumping in each modelled year.
+
+        Load shedding (carrier ENS) and load dumping (carrier EXS) are last-resort
+        generators. If they are used, the model could not balance supply and demand at
+        these buses otherwise, which usually points to an issue in the input data.
+        """
+        for year, n in self.network_dict.items():
+            for name, carrier in [("load shedding", "ENS"), ("load dumping", "EXS")]:
+                by_bus = get_load_shedding_or_dumping_by_bus(n, carrier)
+                if by_bus.empty:
+                    print(f"No {name} observed in {year}")
+                else:
+                    print(
+                        f"WARNING: {name} observed at {len(by_bus)} bus(es) in {year}"
+                    )
+                    print(by_bus.to_string())
 
     def ene_gen_by_carrier_yearly(self) -> pd.DataFrame:
         """Calculate annual electricity generation by country and carrier.
@@ -3784,7 +3834,9 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
 
         # Filter out unnecessary technology
-        final_df = final_df[~final_df.index.get_level_values("carrier").isin(["ENS"])]
+        final_df = final_df[
+            ~final_df.index.get_level_values("carrier").isin(["ENS", "EXS"])
+        ]
 
         final_df = final_df.loc[final_df.value != 0]
         return final_df

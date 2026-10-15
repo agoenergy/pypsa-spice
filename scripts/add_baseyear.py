@@ -114,6 +114,7 @@ class AddBaseNetwork:
             "Geothermal",
             "Gas-imp",
             "ENS",
+            "EXS",
         ]
         missing_carriers_df = pd.DataFrame(missing_carriers, columns=["carrier"])
         missing_carriers_df["emission factor"] = 0
@@ -591,18 +592,42 @@ class AddBaseNetwork:
         )
 
     def add_load_shedding(self):
-        """Add load shedding to the network to ensure successful optimisation."""
+        """Add load shedding and load dumping to ensure successful optimisation.
+
+        Load shedding generators supply demand that cannot be met. Load dumping
+        generators (sign = -1) absorb excess generation that cannot be consumed,
+        exported or stored, e.g. must-run generation above the load of a bus. Both
+        have a high penalty cost so that they are only used as a last resort. Load
+        dumping is not added to CO2 buses to avoid removing emissions from the
+        CO2 accounting.
+        """
+        buses = self.network.buses.index
         self.network.add(
             class_name="Generator",
-            name=[f"LOSTLOAD - {x}" for x in self.network.buses.index],
-            bus=self.network.buses.index,
-            country=[x.split("_")[0] for x in self.network.buses.index],
+            name=[f"LOSTLOAD - {x}" for x in buses],
+            bus=buses,
+            country=[x.split("_")[0] for x in buses],
             carrier="ENS",
             # sign=1e-3,  # Adjust sign to measure p or p_nom in kW or MW  # noqa: E800
             marginal_cost=1e5,  # Eur/MWh
             # intersect between macroeconomic and survey-based willingness to pay
             # http://journal.frontiersin.org/article/10.3389/fenrg.2015.00055/full
             type="LSLO",
+            p_nom=1e9,  # MW
+        )
+        # Filter out CO2 buses to avoid removing emissions from the CO2 accounting.
+        dump_buses = buses[
+            ~self.network.buses.carrier.isin(["CO2", "Co2stor"]).to_numpy()
+        ]
+        self.network.add(
+            class_name="Generator",
+            name=[f"DUMPLOAD - {x}" for x in dump_buses],
+            bus=dump_buses,
+            country=[x.split("_")[0] for x in dump_buses],
+            carrier="EXS",  # Excess energy
+            sign=-1,  # absorbs power from the bus while p stays positive
+            marginal_cost=1e5,  # Eur/MWh, penalty for dumping excess generation
+            type="LDMP",  # Load dumping
             p_nom=1e9,  # MW
         )
 
