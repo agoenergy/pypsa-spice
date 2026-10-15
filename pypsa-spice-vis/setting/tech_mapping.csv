@@ -37,6 +37,7 @@ INLHSTOR_STORE,Low-temperature heat Storage - charging,Industry,
 Lig,Lignite,,#5E4745
 Lng,LNG,Power,#617394
 LSLO,Lost load,,
+LDMP,Load dumping,,
 ITCN,Cross-border interconnector,,
 METH,Methanation,Industry,#48A8AE
 NUCL,Nuclear power plant,Power,#727272
