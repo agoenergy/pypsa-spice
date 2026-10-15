@@ -23,6 +23,7 @@ from _helpers import configure_logging, load_scenario_config
 from custom_constraints import (
     add_energy_independence_constraint,
     add_maximum_power_generation_constraint,
+    add_ramp_costs,
     add_reserve_margin,
     add_storage_constraints,
     capacity_factor_constraint,
@@ -40,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 
 def extra_functionality_linopt(
-    network: pypsa.Network, snapshots: pd.Series, scenario_configs: dict
+    network: pypsa.Network, _snapshots: pd.Series, scenario_configs: dict
 ):
     """Add all custom constraints to the network before solving.
 
@@ -48,8 +49,8 @@ def extra_functionality_linopt(
     ----------
     network : pypsa.Network
         PyPSA network object containing all components and functions.
-    snapshots (pd.Series):
-        hours being optimised in the model.
+    _snapshots : pd.Series
+        hours being optimised in the model (unused, required by PyPSA).
     scenario_configs : dict
         Configuration dictionary containing scenario settings.
     """
@@ -59,7 +60,6 @@ def extra_functionality_linopt(
     config = snakemake.config
     year = int(snakemake.wildcards.years)
     base_year = config["base_configs"]["years"][0]
-    country = config
     for country in config["base_configs"]["regions"].keys():
         country_emission_settings = scenario_configs["co2_management"][country]
         if country_emission_settings.get("option") == "co2_cap":
@@ -185,6 +185,17 @@ def extra_functionality_linopt(
             )
             constraint_added = True
 
+        # Ramp costs of selected technologies
+        if "ramp_costs" in country_constraints and country_constraints[
+            "ramp_costs"
+        ].get("activate", False):
+            add_ramp_costs(
+                network,
+                country=country,
+                technologies=country_constraints["ramp_costs"]["technologies"],
+            )
+            constraint_added = True
+
     if not constraint_added:
         print("No custom constraint was added to the model")
 
@@ -222,9 +233,9 @@ def solve_network(
         # remove activate key from oetc dict
         oetc_setup = {k: v for k, v in oetc.items() if k != "activate"}
 
-        ROOT_FOLDER = pathlib.Path(__file__).parent.parent
+        root_folder = pathlib.Path(__file__).parent.parent
         load_dotenv()
-        env_path = ROOT_FOLDER / "envs" / ".env"
+        env_path = root_folder / "envs" / ".env"
         load_dotenv(dotenv_path=env_path)
         oetc_setup["authentication_server_url"] = os.getenv("AUTH_SERVER")
         oetc_setup["orchestrator_server_url"] = os.getenv("ORCH_SERVER")
@@ -291,13 +302,13 @@ def solve_network(
             keep_references=True,
             extra_functionality=extra_functionality_linopt_config,
         )
-    if n.model.status != "warning":
-        print("model feasible! 🌶 ")
-        return network
-    else:
+    if network.model.status == "warning":
         print("model infeasible compute infeasibilites")
         if solver_name.lower() in ["gurobi", "cplex"]:
-            n.model.print_infeasibilities()
+            network.model.print_infeasibilities()
+        raise RuntimeError(f"Model is infeasible in year {year}")
+    print("model feasible! 🌶 ")
+    return network
 
 
 if __name__ == "__main__":
@@ -307,7 +318,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake("solve_network", sector="p-i-t", years=2025)
     configure_logging(snakemake)
-    scenario_configs = load_scenario_config(
+    sc_configs = load_scenario_config(
         "data/"
         + snakemake.config["path_configs"]["data_folder_name"]
         + "/"
@@ -324,5 +335,5 @@ if __name__ == "__main__":
             n, snakemake.input.re_technical_potential, year=y
         )
     n.export_to_netcdf(snakemake.output.pre_solved)
-    n = solve_network(n, y, scenario_configs=scenario_configs)
+    n = solve_network(n, y, scenario_configs=sc_configs)
     n.export_to_netcdf(snakemake.output.final_network)

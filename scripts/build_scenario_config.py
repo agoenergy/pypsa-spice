@@ -190,6 +190,8 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
         # 3) Setting custom constraints block (per country)
         fuels_list = CommentedSeq([])
         fuels_list.fa.set_flow_style()
+        ramp_technologies_list = CommentedSeq([])
+        ramp_technologies_list.fa.set_flow_style()
 
         custom_constraints_country = CommentedMap(
             {
@@ -255,6 +257,13 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
                         "value": CommentedMap({}),
                     }
                 ),
+                # ---- Ramp costs ----
+                "ramp_costs": CommentedMap(
+                    {
+                        "activate": False,
+                        "technologies": ramp_technologies_list,
+                    }
+                ),
             }
         )
 
@@ -314,6 +323,15 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
         custom_constraints_country.yaml_set_comment_before_after_key(
             "maximum_power_generation_constraint",
             after="maximum power generation per techology, country and year (TWh)",
+        )
+
+        # Ramp costs comments
+        ramp_costs = custom_constraints_country["ramp_costs"]
+        add_activate_comments(ramp_costs)
+        add_please_fill_here_comments_for_dict(ramp_costs, exception_list=["activate"])
+        custom_constraints_country.yaml_set_comment_before_after_key(
+            "ramp_costs",
+            after="ramp up/down costs (currency/MW) are defined in technologies.csv",
         )
 
 
@@ -376,14 +394,14 @@ def build_scenario_config_file(configurations: dict):
     )
 
     # Add comments before or after keys
-    SNAPSHOTS_COMMENT_TEXT = 'shall be should be "12-31" if base year is a leap year'
+    snapshots_comment_text = 'shall be should be "12-31" if base year is a leap year'
     scenario_data["scenario_configs"]["snapshots"].yaml_add_eol_comment(
-        SNAPSHOTS_COMMENT_TEXT, "end"
+        snapshots_comment_text, "end"
     )
     scenario_data["scenario_configs"].yaml_set_comment_before_after_key(
         "interest", after="interest rate in decimals (e.g. 0.05 represents 5%)"
     )
-    CO2_MANAGEMENT_COMMENT_TEXT = (
+    co2_management_comment_text = (
         "please indicate country/region specific CO2 management options\n"
         'options: ["co2_cap", "co2_price"]\n'
         '"co2_cap" is a cap on the total CO2 emissions in the system. '
@@ -392,13 +410,13 @@ def build_scenario_config_file(configurations: dict):
         "Values are in currency/tonne of CO2."
     )
     scenario_data.yaml_set_comment_before_after_key(
-        "co2_management", after=CO2_MANAGEMENT_COMMENT_TEXT
+        "co2_management", after=co2_management_comment_text
     )
-    CUSTOM_CONSTRAINTS_COMMENT_TEXT = (
+    custom_constraints_comment_text = (
         "please indicate country/region and their specific custom constraints"
     )
     scenario_data.yaml_set_comment_before_after_key(
-        "custom_constraints", after=CUSTOM_CONSTRAINTS_COMMENT_TEXT
+        "custom_constraints", after=custom_constraints_comment_text
     )
 
     add_country_specific_parameters(scenario_data, configurations)
