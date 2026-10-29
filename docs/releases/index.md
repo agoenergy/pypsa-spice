@@ -2,22 +2,24 @@
     The features and bugfixes listed under **Upcoming** aren't released yet but will be included in the next version. If you'd like to try them early, you can switch to the `develop` branch. Just keep in mind that it's not stable and may contain issues. All previous releases are already available on the `main` branch.
 
 ## Upcoming
-- Add a legend order control for stacked column charts in PyPSA-SPICE-Vis.
-- Add minimum curtailment support via a curtailment penalty in the optimisation objective.
+- Add legend ordering control for stacked column charts in PyPSA-SPICE-Vis.
+- Add minimum curtailment support with curtailment penalty in the optimization objective.
+- Support piecewise linear efficiency and rate curves for thermal power units.
 
 ### Fixed
-- Remove polyfill package to enhance website security. ([:material-source-pull:113](https://github.com/agoenergy/pypsa-spice/pull/113) by @RichChang963)
-- Fix correct barmode in plotly to display right stacked column charts. ([:material-source-pull:111](https://github.com/agoenergy/pypsa-spice/pull/111) by @RichChang963)
-- Change website link display. ([:material-source-pull:110](https://github.com/agoenergy/pypsa-spice/pull/110) by @RichChang963)
-- Fix error handling of missing p_max_pu for generators and links. ([:material-source-pull:107](https://github.com/agoenergy/pypsa-spice/pull/107) by @RichChang963)
+- Fix `solve_network` checking the model status of the global network instead of the solved one, and raise an error when the model is infeasible. ([:material-source-pull:124](https://github.com/agoenergy/pypsa-spice/pull/124) by @nhlong2701)
 
 ### Changed
-- Add streamlit-extra pacakge and enhance addtional features in PyPSA-SPICE-Vis. ([:material-source-pull:105](https://github.com/agoenergy/pypsa-spice/pull/105) by @RichChang963)
+- Add ramp-up and ramp-down costs for thermal power units modelled as generators or links, activated per country via the new `ramp_costs` custom constraint. Ramp costs are included in the OPEX output tables and reported separately in `pow_ramp_cost_by_type_yearly`. ([:material-source-pull:124](https://github.com/agoenergy/pypsa-spice/pull/124) by @nhlong2701).
+- Add load dumping generators to all buses (except CO~2~ buses) to avoid infeasibility when must-run generation exceeds the load, and report the buses with load shedding or load dumping in the post-analysis. ([:material-source-pull:126](https://github.com/agoenergy/pypsa-spice/pull/126) by @nhlong2701).
 
 ### Notes
 
-- **New Streamlit-extras package:** We have added a streamlit-extra `v1.5.0` and encourage users to upgrade their environments (using `conda env update -f envs/environment.yaml --prune`) to ensure full compatibility with the latest features and improvements.
+- **New ramp cost columns in `technologies.csv`:** We have added the `ramp_up_cost` and `ramp_down_cost` columns (currency/MW) to `technologies.csv`. Existing files without these columns still work, with ramp costs set to 0. To use ramp costs, add the columns to your `technologies.csv`, rebuild the networks, and activate `ramp_costs` in the `custom_constraints` section of `scenario_config.yaml`.
 
+- **Load dumping generators:** Load dumping generators (`DUMPLOAD - <bus>`, type `LDMP`, carrier `EXS`) are added to the base year network next to the load shedding generators. Please rebuild the base year network to include them. The `test_energy_not_served_warning` function in the post-analysis has been renamed to `report_load_shedding_and_dumping`.
+
+--8<-- "releases/v2.1.0.md"
 --8<-- "releases/v2.0.0.md"
 --8<-- "releases/v1.1.1.md"
 --8<-- "releases/v1.1.0.md"
