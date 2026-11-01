@@ -13,7 +13,11 @@ from pypsa_spice_web.app import CHARTS, GRAPH_CONFIG, PACKAGE_DIR, app
 
 
 class ResultsApiTests(unittest.TestCase):
+    """Exercise the results API against temporary result CSVs."""
+
     def setUp(self) -> None:
+        """Write a small set of result CSVs to a temporary data folder."""
+        # pylint: disable-next=consider-using-with
         self.temp_dir = tempfile.TemporaryDirectory()
         self.data_dir = Path(self.temp_dir.name) / "data"
         self.result_dir = (
@@ -51,13 +55,16 @@ class ResultsApiTests(unittest.TestCase):
         )
 
     def tearDown(self) -> None:
+        """Remove the temporary workspace."""
         self.temp_dir.cleanup()
 
     def test_web_uses_package_local_graph_settings(self) -> None:
+        """Chart settings are read from the web package."""
         self.assertEqual(GRAPH_CONFIG, PACKAGE_DIR / "graph_settings.yaml")
         self.assertTrue(GRAPH_CONFIG.is_file())
 
     def test_every_result_chart_declares_a_summary_mode(self) -> None:
+        """Every configured chart has a valid summary mode."""
         summary_modes = {
             chart.get("summary") for charts in CHARTS.values() for chart in charts
         }
@@ -65,6 +72,7 @@ class ResultsApiTests(unittest.TestCase):
         self.assertEqual(summary_modes, {"sum", "none"})
 
     def test_download_accepts_only_a_real_year_in_the_selected_sector(self) -> None:
+        """Downloads reject year values that escape the sector folder."""
         params = {
             "dataset": "dataset",
             "project": "project",
@@ -86,6 +94,7 @@ class ResultsApiTests(unittest.TestCase):
         self.assertEqual(escaped.json()["detail"], "Invalid result year")
 
     def test_download_rejects_unconfigured_table_names(self) -> None:
+        """Downloads reject table names that are not configured."""
         with patch("pypsa_spice_web.app.DATA_DIR", self.data_dir):
             response = TestClient(app).get(
                 "/api/download",
@@ -104,6 +113,7 @@ class ResultsApiTests(unittest.TestCase):
         self.assertEqual(response.json()["detail"], "Result table is not configured")
 
     def test_full_load_hours_chart_reads_yearly_result_table(self) -> None:
+        """The full load hours chart reads its yearly table."""
         with patch("pypsa_spice_web.app.DATA_DIR", self.data_dir):
             response = TestClient(app).get(
                 "/api/chart",
@@ -125,11 +135,13 @@ class ResultsApiTests(unittest.TestCase):
         self.assertEqual([row["value"] for row in payload["rows"]], [1450.0, 2800.0])
 
     def test_hourly_chart_preserves_exact_extents_when_rows_are_sampled(self) -> None:
+        """Sampled hourly charts still report the exact minimum and maximum."""
         hourly_path = self.result_dir / "pow_gen_by_type_hourly.csv"
         hourly_path.write_text(
             "snapshot,technology,value\n"
             + "".join(
-                f"2025-01-{index // 24 + 1:02d} {index % 24:02d}:00,solar,{999 if index == 1 else index}\n"
+                f"2025-01-{index // 24 + 1:02d} {index % 24:02d}:00,solar,"
+                f"{999 if index == 1 else index}\n"
                 for index in range(600)
             ),
             encoding="utf-8",
@@ -159,6 +171,7 @@ class ResultsApiTests(unittest.TestCase):
         self.assertLess(max(row["value"] for row in payload["rows"]), 999.0)
 
     def test_additional_yearly_charts_read_result_tables(self) -> None:
+        """Further yearly charts read their result tables."""
         cases = (
             ("pow_cap_by_region_yearly", "region", None, [30.0, 20.0]),
             ("pow_inter_cf_by_region_yearly", "from", "to", [0.75, 0.5]),

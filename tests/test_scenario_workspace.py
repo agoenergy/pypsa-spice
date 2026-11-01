@@ -13,7 +13,11 @@ from pypsa_spice_web.scenario_workspace import (
 
 
 class ScenarioWorkspaceTests(unittest.TestCase):
+    """Exercise scenario cloning against a temporary repository."""
+
     def setUp(self) -> None:
+        """Create a temporary repository with one input scenario."""
+        # pylint: disable-next=consider-using-with
         self.temporary = tempfile.TemporaryDirectory()
         self.root = Path(self.temporary.name)
         self.source = self.root / "data" / "dataset" / "project" / "input" / "reference"
@@ -26,9 +30,11 @@ class ScenarioWorkspaceTests(unittest.TestCase):
         )
 
     def tearDown(self) -> None:
+        """Remove the temporary workspace."""
         self.temporary.cleanup()
 
     def test_clone_copies_complete_scenario_without_web_metadata(self) -> None:
+        """Cloning copies all scenario files but no web metadata."""
         workspace = ScenarioWorkspace(self.root)
         created = workspace.clone(
             dataset="dataset",
@@ -48,6 +54,7 @@ class ScenarioWorkspaceTests(unittest.TestCase):
         self.assertFalse((destination / ".scenario-meta.yaml").exists())
 
     def test_clone_refuses_overwrite_and_active_web_run(self) -> None:
+        """Cloning refuses to overwrite or to run during an active model run."""
         workspace = ScenarioWorkspace(self.root)
         workspace.clone(
             dataset="dataset",

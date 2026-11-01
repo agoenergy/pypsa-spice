@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import sys
 import json
+import sys
 import tempfile
 import time
 import unittest
@@ -18,7 +18,11 @@ from pypsa_spice_web.scenario_runner import ScenarioRunManager
 
 
 class ScenarioRunManagerTests(unittest.TestCase):
+    """Exercise model runs against a temporary repository."""
+
     def setUp(self) -> None:
+        """Create a temporary repository with a base config and input scenario."""
+        # pylint: disable-next=consider-using-with
         self.temp_dir = tempfile.TemporaryDirectory()
         self.root = Path(self.temp_dir.name)
         (self.root / "Snakefile").write_text(
@@ -45,13 +49,17 @@ class ScenarioRunManagerTests(unittest.TestCase):
         )
         scenario = self.root / "data" / "dataset" / "project" / "input" / "scenario"
         scenario.mkdir(parents=True)
-        (scenario / "scenario_config.yaml").write_text("scenario_configs: {}\n", encoding="utf-8")
+        (scenario / "scenario_config.yaml").write_text(
+            "scenario_configs: {}\n", encoding="utf-8"
+        )
         self.manager = ScenarioRunManager(self.root)
 
     def tearDown(self) -> None:
+        """Remove the temporary workspace."""
         self.temp_dir.cleanup()
 
     def test_options_are_read_from_repository_base_config(self) -> None:
+        """Run options come from the repository base config."""
         options = self.manager.options()
         self.assertEqual(options["config_file"], "base_config.yaml")
         self.assertEqual(options["target"], "solve_all_networks")
@@ -59,6 +67,7 @@ class ScenarioRunManagerTests(unittest.TestCase):
         self.assertEqual(options["regions"], ["AA"])
 
     def test_run_uses_an_overridden_copy_and_preserves_source_config(self) -> None:
+        """Runs use a config copy and leave the source config untouched."""
         fake_snakemake = (
             "print('localrule build_network:', flush=True);"
             "print('1 of 2 steps (50%) done', flush=True);"
@@ -77,7 +86,10 @@ class ScenarioRunManagerTests(unittest.TestCase):
                 cores=2,
             )
             deadline = time.monotonic() + 5
-            while run["status"] in self.manager.ACTIVE_STATUSES and time.monotonic() < deadline:
+            while (
+                run["status"] in self.manager.ACTIVE_STATUSES
+                and time.monotonic() < deadline
+            ):
                 time.sleep(0.05)
                 run = self.manager.get(run["id"])
 
@@ -86,7 +98,9 @@ class ScenarioRunManagerTests(unittest.TestCase):
         self.assertEqual(run["current_rule"], "build_network")
         self.assertIn("2 of 2 steps", run["log"])
 
-        run_config = yaml.safe_load((self.root / run["config_file"]).read_text(encoding="utf-8"))
+        run_config = yaml.safe_load(
+            (self.root / run["config_file"]).read_text(encoding="utf-8")
+        )
         self.assertEqual(
             run_config["path_configs"],
             {
@@ -97,18 +111,19 @@ class ScenarioRunManagerTests(unittest.TestCase):
             },
         )
         self.assertEqual(run_config["base_configs"], self.base_config["base_configs"])
-        source = yaml.safe_load((self.root / "base_config.yaml").read_text(encoding="utf-8"))
+        source = yaml.safe_load(
+            (self.root / "base_config.yaml").read_text(encoding="utf-8")
+        )
         self.assertEqual(source, self.base_config)
         manifest = json.loads(
             (self.root / run["manifest_file"]).read_text(encoding="utf-8")
         )
         self.assertEqual(manifest["workflow"]["environment"], "hotpot")
         self.assertEqual(manifest["selection"]["input_scenario"], "scenario")
-        self.assertIn(
-            "input/scenario/scenario_config.yaml", manifest["input_sha256"]
-        )
+        self.assertIn("input/scenario/scenario_config.yaml", manifest["input_sha256"])
 
     def test_run_api_starts_and_reports_a_managed_workflow(self) -> None:
+        """The run API starts a workflow and reports its progress."""
         fake_snakemake = "print('1 of 1 steps (100%) done', flush=True)"
         with (
             patch("pypsa_spice_web.app.RUN_MANAGER", self.manager),
@@ -132,7 +147,10 @@ class ScenarioRunManagerTests(unittest.TestCase):
             self.assertEqual(response.status_code, 202)
             run = response.json()
             deadline = time.monotonic() + 5
-            while run["status"] in self.manager.ACTIVE_STATUSES and time.monotonic() < deadline:
+            while (
+                run["status"] in self.manager.ACTIVE_STATUSES
+                and time.monotonic() < deadline
+            ):
                 time.sleep(0.05)
                 run = client.get(f"/api/runs/{run['id']}").json()
 

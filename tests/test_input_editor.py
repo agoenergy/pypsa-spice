@@ -15,8 +15,8 @@ from fastapi.testclient import TestClient
 from pypsa_spice_web.app import ROOT, app
 from pypsa_spice_web.input_editor import (
     CellChange,
-    ConfigSectionUpdate,
     ConfigSectionsUpdate,
+    ConfigSectionUpdate,
     TableUpdate,
     compare_scenarios,
     read_scenario_config,
@@ -31,13 +31,17 @@ class InputEditorTests(unittest.TestCase):
     """Exercise writes only against temporary file copies."""
 
     def setUp(self) -> None:
+        """Create a temporary workspace for each test."""
+        # pylint: disable-next=consider-using-with
         self.temp_dir = tempfile.TemporaryDirectory()
         self.temp_path = Path(self.temp_dir.name)
 
     def tearDown(self) -> None:
+        """Remove the temporary workspace."""
         self.temp_dir.cleanup()
 
     def test_input_catalog_endpoint_discovers_projects(self) -> None:
+        """The input catalog lists projects with their technologies."""
         response = TestClient(app).get("/api/input/catalog")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["table_query_version"], 2)
@@ -50,7 +54,11 @@ class InputEditorTests(unittest.TestCase):
         )
 
     def test_csv_update_is_typed_atomic_and_conflict_checked(self) -> None:
-        source = ROOT / "data/example/project_01/input/scenario_01/power/power_generators.csv"
+        """CSV edits are typed, written atomically and rejected on stale revisions."""
+        source = (
+            ROOT
+            / "data/example/project_01/input/scenario_01/power/power_generators.csv"
+        )
         target = self.temp_path / source.name
         shutil.copy2(source, target)
         config = {"timeseries": False, "filter_col": "type", "with_charts": False}
@@ -80,12 +88,10 @@ class InputEditorTests(unittest.TestCase):
         self.assertEqual(context.exception.status_code, 409)
 
     def test_table_filtering_happens_before_server_pagination(self) -> None:
+        """Filters apply to the whole table before a page is cut."""
         target = self.temp_path / "power_generators.csv"
         target.write_text(
-            "country,technology,p_nom\n"
-            "DE,solar,1\n"
-            "FR,wind,2\n"
-            "FR,solar,3\n",
+            "country,technology,p_nom\nDE,solar,1\nFR,wind,2\nFR,solar,3\n",
             encoding="utf-8",
         )
         config = {
@@ -111,6 +117,7 @@ class InputEditorTests(unittest.TestCase):
         self.assertEqual(page["rows"][0]["p_nom"], 3)
 
     def test_yaml_section_update_preserves_inline_comments(self) -> None:
+        """Saving a YAML section keeps its inline comments."""
         source = ROOT / "data/example/project_01/input/scenario_01/scenario_config.yaml"
         target = self.temp_path / source.name
         shutil.copy2(source, target)
@@ -123,12 +130,15 @@ class InputEditorTests(unittest.TestCase):
             "scenario_configs",
             ConfigSectionUpdate(revision=before["revision"], value=section),
         )
-        self.assertEqual(after["sections"]["scenario_configs"]["remove_threshold"], 0.42)
+        self.assertEqual(
+            after["sections"]["scenario_configs"]["remove_threshold"], 0.42
+        )
         contents = target.read_text(encoding="utf-8")
         self.assertIn("# unit: MW", contents)
         self.assertIn("remove_threshold: 0.42", contents)
 
     def test_yaml_multi_section_update_is_atomic(self) -> None:
+        """Several YAML sections save together and stale revisions are rejected."""
         source = ROOT / "data/example/project_01/input/scenario_01/scenario_config.yaml"
         target = self.temp_path / source.name
         shutil.copy2(source, target)
@@ -171,6 +181,8 @@ class InputEditorTests(unittest.TestCase):
         self.assertEqual(context.exception.status_code, 409)
 
     def test_direct_write_endpoints_target_the_selected_project(self) -> None:
+        """Write endpoints modify files only in the selected project."""
+        # pylint: disable=too-many-locals
         data_root = self.temp_path / "data"
         input_root = data_root / "example" / "project_01" / "input"
         global_root = input_root / "global_input"
@@ -244,7 +256,9 @@ class InputEditorTests(unittest.TestCase):
                 },
             )
             self.assertEqual(saved_combined.status_code, 200)
-            self.assertIn("endpoint_test", saved_combined.json()["sections"]["co2_management"])
+            self.assertIn(
+                "endpoint_test", saved_combined.json()["sections"]["co2_management"]
+            )
             self.assertIn(
                 "endpoint_test",
                 saved_combined.json()["sections"]["custom_constraints"],
@@ -252,10 +266,13 @@ class InputEditorTests(unittest.TestCase):
 
         with csv_target.open(encoding="utf-8", newline="") as handle:
             self.assertEqual(next(csv.DictReader(handle))["efficiency"], "0.987")
-        self.assertIn("remove_threshold: 0.321", yaml_target.read_text(encoding="utf-8"))
+        self.assertIn(
+            "remove_threshold: 0.321", yaml_target.read_text(encoding="utf-8")
+        )
         self.assertIn("endpoint_test:", yaml_target.read_text(encoding="utf-8"))
 
     def test_scenario_comparison_shows_only_effective_differences(self) -> None:
+        """Scenario comparison ignores differences with no effect on the model."""
         data_root = self.temp_path / "data"
         input_root = data_root / "dataset" / "project" / "input"
         reference_root = input_root / "reference"
@@ -288,15 +305,11 @@ class InputEditorTests(unittest.TestCase):
             encoding="utf-8",
         )
         reference_root.joinpath("power/power_generators.csv").write_text(
-            "country,name,type,p_nom\n"
-            "DE,solar-a,Solar,1\n"
-            "DE,wind-a,Wind,2\n",
+            "country,name,type,p_nom\nDE,solar-a,Solar,1\nDE,wind-a,Wind,2\n",
             encoding="utf-8",
         )
         comparison_root.joinpath("power/power_generators.csv").write_text(
-            "country,name,type,p_nom\n"
-            "DE,wind-a,Wind,2.0\n"
-            "DE,solar-a,Solar,3\n",
+            "country,name,type,p_nom\nDE,wind-a,Wind,2.0\nDE,solar-a,Solar,3\n",
             encoding="utf-8",
         )
 
@@ -326,6 +339,7 @@ class InputEditorTests(unittest.TestCase):
         self.assertEqual(generator["changes"][0]["delta"], 2)
 
     def test_scenario_comparison_endpoint_rejects_same_scenario(self) -> None:
+        """Comparing a scenario with itself is rejected."""
         response = TestClient(app).get(
             "/api/input/compare",
             params={
