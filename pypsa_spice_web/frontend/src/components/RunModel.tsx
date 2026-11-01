@@ -26,6 +26,7 @@ import {
   startModelRun,
 } from "../api";
 import PageHeader from "./PageHeader";
+import SolverSettings from "./SolverSettings";
 import type {
   InputSelection,
   ModelRun,
@@ -79,6 +80,7 @@ export default function RunModel({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [solverDirty, setSolverDirty] = useState(false);
   const logRef = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
@@ -119,15 +121,6 @@ export default function RunModel({
     run.project === selection.project &&
     run.input_scenario === selection.scenario,
   );
-  const dimensions = useMemo(() => {
-    if (!options) return [];
-    return [
-      { label: "Years", value: options.years.join(", ") || "Not configured" },
-      { label: "Sector", value: options.sectors.join(", ") || "Not configured" },
-      { label: "Regions", value: options.regions.join(", ") || "Not configured" },
-      { label: "Currency", value: options.currency || "Not configured" },
-    ];
-  }, [options]);
   const scenarioSummary = useMemo(() => {
     const settings = scenarioConfig?.sections.scenario_configs || {};
     const snapshots = (settings.snapshots || {}) as Record<string, unknown>;
@@ -212,7 +205,7 @@ export default function RunModel({
           <ReviewItem label="Data folder" value={selection.dataset} />
           <ReviewItem label="Project" value={selection.project} />
           <ReviewItem label="Input scenario" value={selection.scenario} />
-          <ReviewItem label="Model year" value={scenarioSummary.modelYear} />
+          <ReviewItem label="Model base year" value={scenarioSummary.modelYear} />
           <ReviewItem label="Resolution" value={scenarioSummary.resolution} />
           <ReviewItem label="Regions" value={options?.regions.join(", ") || "Not configured"} />
           <ReviewItem label="Sectors" value={options?.sectors.join(", ") || "Not configured"} />
@@ -273,13 +266,10 @@ export default function RunModel({
           </header>
           <div className={styles["run-form"]}>
             <p className={editorPanelStyles["field-help"]}>
-              The values below replace the four <code>path_configs</code> entries in a run-local copy of{" "}
-              <code>base_config.yaml</code>. The repository file remains the source template.
+              Each run uses a run-local copy of <code>base_config.yaml</code> pointing to the scenario above. The
+              repository file remains the source template.
             </p>
             <div className={styles["run-path-grid"]}>
-              <ReadOnlyField label="Data folder" value={selection.dataset} />
-              <ReadOnlyField label="Project" value={selection.project} />
-              <ReadOnlyField label="Input scenario" value={selection.scenario} />
               <Field>
                 <span>Output scenario</span>
                 <input
@@ -290,16 +280,6 @@ export default function RunModel({
                   disabled={active}
                 />
               </Field>
-            </div>
-            <div className={styles["run-dimensions"]}>
-              {dimensions.map((item) => (
-                <div key={item.label}>
-                  <span>{item.label}</span>
-                  <b>{item.value}</b>
-                </div>
-              ))}
-            </div>
-            <div className={styles["run-advanced"]}>
               <Field>
                 <span>CPU cores</span>
                 <input
@@ -311,20 +291,29 @@ export default function RunModel({
                   disabled={active}
                 />
               </Field>
-              <div>
-                <span>Workflow target</span>
-                <code>{options?.target || "solve_all_networks"}</code>
-              </div>
             </div>
+            {scenarioConfig && (
+              <SolverSettings
+                selection={selection}
+                config={scenarioConfig}
+                disabled={active}
+                onSaved={setScenarioConfig}
+                onDirtyChange={setSolverDirty}
+              />
+            )}
           </div>
           <footer className={styles["run-actions"]}>
             <div>
-              <b>Snakemake writes results into</b>
+              <b>{solverDirty ? "Save or discard solver settings before running" : "Snakemake writes results into"}</b>
               <code>
                 data/{selection.dataset}/{selection.project}/results/{outputScenario || "…"}
               </code>
             </div>
-            <Button variant="primary" type="submit" disabled={active || submitting || !outputScenario.trim()}>
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={active || submitting || solverDirty || !outputScenario.trim()}
+            >
               <Play aria-hidden="true" />
               {submitting ? "Starting…" : active ? "Run in progress" : "Run model"}
             </Button>
@@ -439,15 +428,6 @@ function ReviewItem({ label, value }: { label: string; value: string }) {
       <span>{label}</span>
       <b>{value}</b>
     </div>
-  );
-}
-
-function ReadOnlyField({ label, value }: { label: string; value: string }) {
-  return (
-    <Field>
-      <span>{label}</span>
-      <input value={value} readOnly aria-readonly="true" />
-    </Field>
   );
 }
 

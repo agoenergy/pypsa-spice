@@ -36,7 +36,7 @@ export default function ScenarioSettings({
     <div className={scenarioConfigLayoutStyles["config-form"]}>
       <div className={scenarioConfigLayoutStyles["form-grid"]}>
         <Field>
-          <span>Model year</span>
+          <span>Model base year</span>
           <input
             type="number"
             min="2010"

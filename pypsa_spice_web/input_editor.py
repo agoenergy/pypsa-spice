@@ -23,7 +23,12 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString, ScalarString
 
-EDITABLE_CONFIG_SECTIONS = ("scenario_configs", "co2_management", "custom_constraints")
+EDITABLE_CONFIG_SECTIONS = (
+    "scenario_configs",
+    "co2_management",
+    "custom_constraints",
+    "solving",
+)
 SECTOR_LABELS = {"Power": "power", "Industry": "industry", "Transport": "transport"}
 TABLE_FILE_FALLBACKS = {
     "Power_decommission": ("decommission_capacity.csv", "decomission_capacity.csv"),
