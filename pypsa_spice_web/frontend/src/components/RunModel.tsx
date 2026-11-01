@@ -135,8 +135,8 @@ export default function RunModel({
     };
   }, [scenarioConfig]);
 
-  const start = async (event: React.FormEvent) => {
-    event.preventDefault();
+  // "Run again" forces Snakemake to re-run every rule (-F).
+  const start = async (force = false) => {
     setSubmitting(true);
     try {
       const nextRun = await startModelRun({
@@ -145,6 +145,7 @@ export default function RunModel({
         input_scenario: selection.scenario,
         output_scenario: outputScenario.trim(),
         cores,
+        force,
       });
       updateRun(nextRun);
       setError("");
@@ -256,7 +257,13 @@ export default function RunModel({
       </section>
 
       <section className={styles["run-layout"]}>
-        <form className={editorPanelStyles["editor-panel"]} onSubmit={start}>
+        <form
+          className={editorPanelStyles["editor-panel"]}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void start();
+          }}
+        >
           <header className={editorPanelStyles["editor-panel-head"]}>
             <div>
               <h2>Run configuration</h2>
@@ -392,7 +399,12 @@ export default function RunModel({
                     <Pencil aria-hidden="true" />
                     Edit configuration
                   </Button>
-                  <Button type="button" onClick={() => updateRun(null)}>
+                  <Button
+                    type="button"
+                    onClick={() => void start(true)}
+                    disabled={submitting || solverDirty || !outputScenario.trim()}
+                    title="Re-run every workflow step with snakemake -F"
+                  >
                     <RotateCcw aria-hidden="true" />
                     Run again
                   </Button>

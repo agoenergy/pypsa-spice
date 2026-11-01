@@ -273,6 +273,7 @@ export interface StartModelRunRequest {
   input_scenario: string;
   output_scenario: string;
   cores: number;
+  force?: boolean;
 }
 
 export type DashboardMode = "scenario" | "difference";

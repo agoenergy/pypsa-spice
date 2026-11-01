@@ -60,6 +60,7 @@ class ModelRunRequest(BaseModel):
     input_scenario: str = Field(min_length=1, max_length=255)
     output_scenario: str = Field(min_length=1, max_length=255)
     cores: int = Field(default=1, ge=1, le=128)
+    force: bool = False
 
 
 class ScenarioCloneRequest(BaseModel):
@@ -466,6 +467,7 @@ def start_model_run(request: ModelRunRequest) -> JSONResponse:
             input_scenario=request.input_scenario,
             output_scenario=request.output_scenario,
             cores=request.cores,
+            force=request.force,
         )
     except RunConflictError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc

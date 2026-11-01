@@ -331,8 +331,12 @@ class ScenarioRunManager:
         input_scenario: str,
         output_scenario: str,
         cores: int = 1,
+        force: bool = False,
     ) -> dict[str, Any]:
-        """Validate a model selection, create its config copy, and queue Snakemake."""
+        """Validate a model selection, create its config copy, and queue Snakemake.
+
+        With ``force`` set, Snakemake re-runs every rule (``-F``) even if outputs exist.
+        """
         dataset, project, input_scenario, output_scenario = self._validate_request(
             dataset, project, input_scenario, output_scenario
         )
@@ -384,6 +388,7 @@ class ScenarioRunManager:
                 "input_scenario": input_scenario,
                 "output_scenario": output_scenario,
                 "cores": cores,
+                "force": force,
                 "target": self.TARGET,
                 "config_file": str(config_path.relative_to(self.root)),
                 "log_file": str((run_dir / "snakemake.log").relative_to(self.root)),
@@ -425,6 +430,7 @@ class ScenarioRunManager:
                 str(self._runs[run_id]["cores"]),
                 "--printshellcmds",
                 "--rerun-incomplete",
+                *(["-F"] if self._runs[run_id].get("force") else []),
                 self.TARGET,
             ]
             environment = os.environ.copy()
