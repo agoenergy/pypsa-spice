@@ -124,7 +124,7 @@ export default function ScenarioComparison({
 
   return (
     <>
-      <PageHeader title="Scenario differences" className={styles["comparison-page-title"]}>
+      <PageHeader title="Compare inputs" className={styles["comparison-page-title"]}>
         <div
           className={styles["comparison-direction"]}
           aria-label={`${selection.scenario} compared with ${comparison}`}

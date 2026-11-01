@@ -10,15 +10,14 @@ import IconButton from "../components/IconButton";
 import { Field, ToggleField } from "../components/FormControls";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { ClipboardCheck, Code2, Plus, Settings2, Trash2 } from "lucide-react";
+import { Code2, Plus, Settings2, Trash2 } from "lucide-react";
 
 import Co2Editor from "./Co2Editor";
 import PageHeader from "../components/PageHeader";
 import ResultsToc from "../components/ResultsToc";
-import RunModel from "../components/RunModel";
 import SaveDiscardActions from "../components/SaveDiscardActions";
 import sidebarStyles from "../components/Sidebar.module.scss";
-import type { InputRow, InputSelection, ModelRunMonitor } from "../types";
+import type { InputRow, InputSelection } from "../types";
 import { confirmDiscardChanges } from "../utility";
 import { MappingTable } from "./ScenarioConfigControls";
 import {
@@ -38,19 +37,9 @@ import {
 import ScenarioSettings from "./ScenarioSettings";
 import useScenarioConfigEditor from "./useScenarioConfigEditor";
 
-const icons = { scenario_configs: Settings2, [COMBINED_SECTION]: Code2, review_run: ClipboardCheck };
+const icons = { scenario_configs: Settings2, [COMBINED_SECTION]: Code2 };
 
-export default function ScenarioConfigEditor({
-  selection,
-  country,
-  runMonitor,
-  onOpenResults,
-}: {
-  selection: InputSelection;
-  country: string;
-  runMonitor: ModelRunMonitor;
-  onOpenResults: (runName: string, dataset: string, project: string) => void;
-}) {
+export default function ScenarioConfigEditor({ selection, country }: { selection: InputSelection; country: string }) {
   const [section, setSection] = useState(() => {
     const requested = new URLSearchParams(window.location.search).get("step") || "scenario_configs";
     return normaliseSection(requested);
@@ -75,7 +64,7 @@ export default function ScenarioConfigEditor({
   const navigation =
     navigationTarget &&
     createPortal(
-      <nav className={sidebarStyles["submenu-list"]} aria-label="Configuration and run pages">
+      <nav className={sidebarStyles["submenu-list"]} aria-label="Scenario configuration pages">
         {Object.keys(SECTION_LABELS).map((name) => {
           const SectionIcon = icons[name as keyof typeof icons];
           return (
@@ -92,19 +81,6 @@ export default function ScenarioConfigEditor({
         })}
       </nav>,
       navigationTarget,
-    );
-
-  if (section === "review_run")
-    return (
-      <>
-        {navigation}
-        <RunModel
-          selection={selection}
-          onEditConfiguration={() => chooseSection("scenario_configs")}
-          runMonitor={runMonitor}
-          onOpenResults={onOpenResults}
-        />
-      </>
     );
 
   return (

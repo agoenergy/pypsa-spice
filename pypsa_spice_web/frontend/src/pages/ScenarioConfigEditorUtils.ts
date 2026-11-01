@@ -3,9 +3,8 @@ import type { InputRow, ScenarioConfigResponse } from "../types";
 export const COMBINED_SECTION = "co2_constraints";
 
 export const SECTION_LABELS: Record<string, string> = {
-  scenario_configs: "Scenario settings",
+  scenario_configs: "General settings",
   [COMBINED_SECTION]: "CO₂ & constraints",
-  review_run: "Review & run",
 };
 
 export const YEAR_FIELDS = new Set(["ei_fraction", "res_generation_share"]);

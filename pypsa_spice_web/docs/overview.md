@@ -97,7 +97,7 @@ Chart responsibilities are split across these files under `frontend/src/`:
 Difference calculations align each legend value by model year or hourly snapshot
 and calculate `comparison − primary`, treating a missing value as zero. Column
 totals exclude hidden and secondary-axis series. Legend labels and colours use
-the same helpers in Results and Dashboards.
+the same helpers in Results & analysis and the Dashboard builder.
 
 Trace builders use the development dependency `@types/plotly.js`. The shared
 `ScatterTextTrace` type extends those definitions for per-point text positions,
@@ -132,15 +132,20 @@ The workspace keeps these selections separate because they change at different t
 - **Country** belongs to each Results chart, so charts can show different countries side by side. Inputs shows it only for tables with country-specific rows. Configuration uses one shared country selection for country-specific sections.
 - **Compare with** is a persistent Results control in the top workspace bar.
 
-The main workspace pages are:
+The sidebar follows the modelling workflow:
 
-- **Inputs** groups data by technology and includes a table and file view for advanced editing.
-- **Configure & run** covers scenario settings, CO₂ management, custom constraints, and the final review and run step.
-- **Results** has one analysis page per energy-system section: Power, Industry, Transport, Emissions, and Costs. Each page plots that section and can compare two runs.
+- **Home** shows available projects, saved dashboards and the workflow steps.
+- **Inputs & configuration** groups the pages that prepare a scenario:
+  - **Input data** groups data by technology and includes a table and file view for advanced editing.
+  - **Compare inputs** shows configuration and input-data differences between two scenarios.
+  - **Scenario configuration** covers general settings, CO₂ management and custom constraints.
+- **Review & run** checks the model scope and starts a Snakemake run.
+- **Results & analysis** has one analysis page per energy-system section: Power, Industry, Transport, Emissions, and Costs. Each page plots that section and can compare two runs.
+- **Dashboard builder** combines Results charts into custom dashboards.
 
 ## Custom dashboards
 
-The **Dashboards** page collects existing Results charts in the current browser.
+The **Dashboard builder** page collects existing Results charts in the current browser.
 Each dashboard belongs to one result dataset and project. Its workspace is an
 ordered list of rows. Each row contains either an editable heading or one
 full-width chart. You can reorder or remove rows and replace a chart through its
@@ -179,7 +184,7 @@ Result files remain read-only. The app writes input and scenario configuration c
 
 ## Configure and run workflow
 
-The Configure & run page uses the repository-root `base_config.yaml` as its fixed template. The shared workspace bar supplies the project and input scenario. To create a scenario, the app atomically copies a complete existing scenario folder. It writes the copy to the normal model path and adds no web-only metadata.
+The Scenario configuration and Review & run pages use the repository-root `base_config.yaml` as its fixed template. The shared workspace bar supplies the project and input scenario. To create a scenario, the app atomically copies a complete existing scenario folder. It writes the copy to the normal model path and adds no web-only metadata.
 
 Review & run shows the scenario year and resolution, model regions, sectors, currency, output folder, core count, and workflow target. If the dataset has its own worktree, it also shows the Git branch, commit, and local changes. The app never commits, pulls, or pushes data. While a web-launched run is active, the backend rejects web edits and new scenarios. Command-line access remains unchanged.
 

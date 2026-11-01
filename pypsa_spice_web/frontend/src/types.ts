@@ -340,7 +340,7 @@ export interface DashboardStore {
   setLastOpenedId(id: string): void;
 }
 
-export type ViewMode = "home" | "outputs" | "inputs" | "configure" | "compare" | "dashboard";
+export type ViewMode = "home" | "outputs" | "inputs" | "configure" | "compare" | "run" | "dashboard";
 
 export interface WorkspaceOption {
   value: string;

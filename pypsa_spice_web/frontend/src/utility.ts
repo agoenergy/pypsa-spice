@@ -356,7 +356,16 @@ export function sectionFromLocation(): string {
 export function viewFromLocation(): ViewMode {
   const params = locationParams();
   const value = params.get("view");
-  if (value === "home" || value === "inputs" || value === "configure" || value === "compare" || value === "dashboard")
+  // Review & run used to be a step of the configuration page.
+  if (value === "configure" && params.get("step") === "review_run") return "run";
+  if (
+    value === "home" ||
+    value === "inputs" ||
+    value === "configure" ||
+    value === "compare" ||
+    value === "run" ||
+    value === "dashboard"
+  )
     return value;
   if (value === "outputs" || params.has("section") || params.has("run") || params.has("sector")) return "outputs";
   return "home";

@@ -4,6 +4,7 @@ import {
   BarChart3,
   CarFront,
   CircleDollarSign,
+  ClipboardCheck,
   Cloud,
   Factory,
   FileInput,
@@ -56,20 +57,20 @@ export default function Sidebar({
   onSelectSection,
   onToggleDarkMode,
 }: SidebarProps) {
-  const navigation = [
-    { view: "home" as const, href: "?view=home", icon: <House aria-hidden="true" />, label: "Home" },
-    { view: "inputs" as const, href: "?view=inputs", icon: <FileInput aria-hidden="true" />, label: "Inputs" },
+  // Pages that prepare a scenario before it is run.
+  const setupNavigation = [
+    { view: "inputs" as const, href: "?view=inputs", icon: <FileInput aria-hidden="true" />, label: "Input data" },
     {
       view: "compare" as const,
       href: "?view=compare",
       icon: <GitCompareArrows aria-hidden="true" />,
-      label: "Scenario differences",
+      label: "Compare inputs",
     },
     {
       view: "configure" as const,
       href: "?view=configure",
       icon: <Settings2 aria-hidden="true" />,
-      label: "Configure & run",
+      label: "Scenario configuration",
     },
   ];
 
@@ -88,37 +89,58 @@ export default function Sidebar({
         </a>
       </div>
       <div className={styles["workspace-nav"]} role="navigation" aria-label="Workflow">
-        {navigation.map((item) => (
-          <SidebarSection
-            key={item.view}
-            active={view === item.view}
-            href={item.href}
-            icon={item.icon}
-            label={item.label}
-            onSelect={() => onSelectView(item.view)}
-          >
-            {item.view === "inputs" && view === "inputs" && (
-              <div className={styles["submenu-slot"]} id="input-table-menu" />
-            )}
-            {item.view === "configure" && view === "configure" && (
-              <div className={styles["submenu-slot"]} id="config-section-tabs" />
-            )}
-          </SidebarSection>
-        ))}
-        <ResultsSidebarSection
-          active={view === "outputs"}
-          activeSectionId={activeSectionId}
-          sections={sections}
-          onSelect={() => onSelectView("outputs")}
-          onSelectSection={onSelectSection}
-        />
         <SidebarSection
-          active={view === "dashboard"}
-          href="?view=dashboard"
-          icon={<LayoutDashboard aria-hidden="true" />}
-          label="Dashboards"
-          onSelect={() => onSelectView("dashboard")}
+          active={view === "home"}
+          href="?view=home"
+          icon={<House aria-hidden="true" />}
+          label="Home"
+          onSelect={() => onSelectView("home")}
         />
+        <div className={styles["group"]} role="group" aria-labelledby="sidebar-setup-heading">
+          <span className={styles["group-label"]} id="sidebar-setup-heading">
+            Inputs & configuration
+          </span>
+          {setupNavigation.map((item) => (
+            <SidebarSection
+              key={item.view}
+              active={view === item.view}
+              href={item.href}
+              icon={item.icon}
+              label={item.label}
+              onSelect={() => onSelectView(item.view)}
+            >
+              {item.view === "inputs" && view === "inputs" && (
+                <div className={styles["submenu-slot"]} id="input-table-menu" />
+              )}
+              {item.view === "configure" && view === "configure" && (
+                <div className={styles["submenu-slot"]} id="config-section-tabs" />
+              )}
+            </SidebarSection>
+          ))}
+        </div>
+        <SidebarSection
+          active={view === "run"}
+          href="?view=run"
+          icon={<ClipboardCheck aria-hidden="true" />}
+          label="Review & run"
+          onSelect={() => onSelectView("run")}
+        />
+        <div className={styles["divided"]}>
+          <ResultsSidebarSection
+            active={view === "outputs"}
+            activeSectionId={activeSectionId}
+            sections={sections}
+            onSelect={() => onSelectView("outputs")}
+            onSelectSection={onSelectSection}
+          />
+          <SidebarSection
+            active={view === "dashboard"}
+            href="?view=dashboard"
+            icon={<LayoutDashboard aria-hidden="true" />}
+            label="Dashboard builder"
+            onSelect={() => onSelectView("dashboard")}
+          />
+        </div>
       </div>
       <SidebarFooter darkMode={darkMode} modelRunLabel={modelRunLabel} onToggleDarkMode={onToggleDarkMode} />
     </aside>
@@ -163,7 +185,7 @@ function ResultsSidebarSection({
       active={active}
       href={`?section=${activeSectionId || "power"}`}
       icon={<BarChart3 aria-hidden="true" />}
-      label="Results"
+      label="Results & analysis"
       onSelect={onSelect}
     >
       {active && activeSectionId && (

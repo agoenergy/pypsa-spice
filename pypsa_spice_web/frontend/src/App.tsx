@@ -22,6 +22,7 @@ import HomePage from "./pages/HomePage";
 import InputEditor from "./pages/InputEditor";
 import ScenarioConfigEditor from "./pages/ScenarioConfigEditor";
 import ScenarioComparison from "./pages/ScenarioComparison";
+import RunModel from "./components/RunModel";
 import {
   confirmDiscardChanges,
   countryFromLocation,
@@ -395,17 +396,20 @@ export default function App() {
     if (view === "inputs") {
       return <InputEditor key={inputRefresh} catalog={inputCatalog!} selection={inputSelection} />;
     }
-    return (
-      <ScenarioConfigEditor
-        key={inputRefresh}
-        selection={inputSelection}
-        country={country}
-        runMonitor={runMonitor}
-        onOpenResults={(runName, datasetName, projectName) => {
-          window.location.href = `/?section=power&dataset=${encodeURIComponent(datasetName)}&project=${encodeURIComponent(projectName)}&run=${encodeURIComponent(runName)}`;
-        }}
-      />
-    );
+    if (view === "run") {
+      return (
+        <RunModel
+          key={inputRefresh}
+          selection={inputSelection}
+          onEditConfiguration={() => chooseView("configure")}
+          runMonitor={runMonitor}
+          onOpenResults={(runName, datasetName, projectName) => {
+            window.location.href = `/?section=power&dataset=${encodeURIComponent(datasetName)}&project=${encodeURIComponent(projectName)}&run=${encodeURIComponent(runName)}`;
+          }}
+        />
+      );
+    }
+    return <ScenarioConfigEditor key={inputRefresh} selection={inputSelection} country={country} />;
   };
 
   return (

@@ -3,6 +3,7 @@ import workspaceFeedbackStyles from "../components/WorkspaceFeedback.module.scss
 import { useEffect, useMemo, useState } from "react";
 import {
   BarChart3,
+  ClipboardCheck,
   FilePlus2,
   FileInput,
   FolderOpen,
@@ -17,7 +18,7 @@ import WorkspaceActionCard from "../components/WorkspaceActionCard";
 import WorkspaceCard from "../components/WorkspaceCard";
 import type { Catalog, DashboardDefinition, InputCatalog, WorkspaceInventoryItem } from "../types";
 
-type HomeDestination = "inputs" | "configure" | "compare" | "outputs" | "dashboard";
+type HomeDestination = "inputs" | "configure" | "compare" | "run" | "outputs" | "dashboard";
 
 type DashboardWorkspaceSource = Pick<DashboardDefinition, "dataset" | "project" | "id" | "title">;
 
@@ -132,32 +133,38 @@ export default function HomePage({
           />
           <WorkspaceActionCard
             icon={<FileInput />}
-            title="Inputs"
+            title="Input data"
             description="Inspect technologies and edit the selected scenario's CSV inputs."
             onClick={() => onNavigate("inputs")}
           />
           <WorkspaceActionCard
             icon={<GitCompareArrows />}
-            title="Scenario differences"
-            description="Review configuration and input differences before running the model."
+            title="Compare inputs"
+            description="See how two scenarios differ in configuration and input data."
             onClick={() => onNavigate("compare")}
           />
           <WorkspaceActionCard
             icon={<Settings2 />}
-            title="Configure & run"
-            description="Set scenario parameters, review the model scope, and start Snakemake."
+            title="Scenario configuration"
+            description="Set general settings, CO₂ management, and custom constraints."
             onClick={() => onNavigate("configure")}
           />
           <WorkspaceActionCard
+            icon={<ClipboardCheck />}
+            title="Review & run"
+            description="Check the model scope and start a Snakemake run."
+            onClick={() => onNavigate("run")}
+          />
+          <WorkspaceActionCard
             icon={<BarChart3 />}
-            title="Results"
+            title="Results & analysis"
             description="Inspect Power, Industry, Transport, Emissions, and Costs."
             onClick={() => onNavigate("outputs")}
           />
           <WorkspaceActionCard
             icon={<LayoutDashboard />}
-            title="Dashboards"
-            description="Open, create, and arrange saved result dashboards."
+            title="Dashboard builder"
+            description="Create, open, and arrange custom result dashboards."
             onClick={() => onNavigate("dashboard")}
           />
         </ul>
