@@ -25,5 +25,5 @@ if command -v conda >/dev/null 2>&1 && conda run -n hotpot python -c "import fas
 fi
 
 echo "Web dependencies are missing. Install them with:" >&2
-echo "  python -m pip install -r requirements-web.txt" >&2
+echo "  conda env update -n hotpot -f envs/environment.yaml" >&2
 exit 1

@@ -35,7 +35,7 @@ elif command -v conda >/dev/null 2>&1 && conda run -n hotpot python -c "import f
   python_command=(conda run --no-capture-output -n hotpot python)
 else
   echo "Web Python dependencies are missing. Run once after checkout or dependency changes:" >&2
-  echo "  python -m pip install -r requirements-web.txt" >&2
+  echo "  conda env update -n hotpot -f envs/environment.yaml" >&2
   exit 1
 fi
 

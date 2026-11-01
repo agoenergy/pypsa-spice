@@ -21,7 +21,7 @@ Base web UI decisions on the current React frontend, this documentation, and exp
 From the repository root:
 
 ```bash
-python -m pip install -r requirements-web.txt
+conda env update -n hotpot -f envs/environment.yaml
 npm install --prefix pypsa_spice_web/frontend
 ```
 
