@@ -15,9 +15,7 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
-
-from pypsa_spice_web.input_editor import (
+from input_editor import (
     ConfigSectionsUpdate,
     ConfigSectionUpdate,
     TableUpdate,
@@ -31,12 +29,13 @@ from pypsa_spice_web.input_editor import (
     update_scenario_sections,
     update_table,
 )
-from pypsa_spice_web.scenario_runner import (
+from pydantic import BaseModel, Field
+from scenario_runner import (
     RunConflictError,
     RunValidationError,
     ScenarioRunManager,
 )
-from pypsa_spice_web.scenario_workspace import (
+from scenario_workspace import (
     ScenarioWorkspace,
     ScenarioWorkspaceError,
 )

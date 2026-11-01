@@ -86,12 +86,12 @@ For more information, please follow the guidance in this documentation website.
 ## Web workspace (beta)
 
 > [!WARNING]
-> The web workspace in [`pypsa_spice_web/`](pypsa_spice_web/) is a **beta version**. It is under active development and is not a fully released product: features, layouts, and the API may change, and some workflows are still incomplete. It saves edits directly to your input files, so keep your data under version control and check results before using them.
+> The web workspace in [`pypsa-spice-web/`](pypsa-spice-web/) is a **beta version**. It is under active development and is not a fully released product: features, layouts, and the API may change, and some workflows are still incomplete. It saves edits directly to your input files, so keep your data under version control and check results before using them.
 
 The web workspace is a browser interface to edit model inputs, configure scenarios, run the model, and explore results for a local PyPSA-SPICE project. After installing the dependencies, start it from the repository root:
 
 ```bash
-npm install --prefix pypsa_spice_web/frontend
+npm install --prefix pypsa-spice-web/frontend
 ./run-web-locally.sh
 ```
 

@@ -9,11 +9,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from app import ROOT, app
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
-
-from pypsa_spice_web.app import ROOT, app
-from pypsa_spice_web.input_editor import (
+from input_editor import (
     CellChange,
     ConfigSectionsUpdate,
     ConfigSectionUpdate,
@@ -213,7 +212,7 @@ class InputEditorTests(unittest.TestCase):
             "scenario": "scenario_01",
         }
 
-        with patch("pypsa_spice_web.app.DATA_DIR", data_root):
+        with patch("app.DATA_DIR", data_root):
             client = TestClient(app)
             table = client.get("/api/input/table", params=table_params)
             self.assertEqual(table.status_code, 200)

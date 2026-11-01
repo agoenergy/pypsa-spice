@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from pypsa_spice_web.scenario_workspace import (
+from scenario_workspace import (
     ScenarioWorkspace,
     ScenarioWorkspaceError,
 )

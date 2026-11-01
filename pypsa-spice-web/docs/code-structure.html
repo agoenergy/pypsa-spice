@@ -120,7 +120,7 @@
           <article class="card"><span class="tag">Server</span><h3>FastAPI server</h3><p>Validates query and body data, confines filesystem paths, serialises responses, and coordinates edits and model runs.</p></article>
           <article class="card"><span class="tag">Repository</span><h3>Model source of truth</h3><p>The backend updates CSV and YAML inputs atomically. It does not change result CSVs. Snakemake reads a run-local copy of <code>base_config.yaml</code>.</p></article>
         </div>
-        <div class="callout warning"><strong>Design rule.</strong> <code>pypsa_spice_web/</code> is independent of the legacy Streamlit visualisation. Consult Streamlit for data semantics only. Do not use its structure, components, styling, or interactions as web UI references.</div>
+        <div class="callout warning"><strong>Design rule.</strong> <code>pypsa-spice-web/</code> is independent of the legacy Streamlit visualisation. Consult Streamlit for data semantics only. Do not use its structure, components, styling, or interactions as web UI references.</div>
       </section>
 
       <section id="request-flow">
@@ -142,7 +142,7 @@
         <table class="file-map">
           <thead><tr><th>Path</th><th>Responsibility</th><th>Depends on</th></tr></thead>
           <tbody>
-            <tr><td><code>pypsa_spice_web/app.py</code></td><td>FastAPI construction, HTTP routes, result cataloguing, chart data, downloads, and static assets.</td><td>Input editor, scenario workspace, run manager</td></tr>
+            <tr><td><code>pypsa-spice-web/app.py</code></td><td>FastAPI construction, HTTP routes, result cataloguing, chart data, downloads, and static assets.</td><td>Input editor, scenario workspace, run manager</td></tr>
             <tr><td><code>input_editor.py</code></td><td>Input cataloguing, safe CSV/YAML paths, typed pagination, optimistic updates, and scenario differences.</td><td>Input settings YAML and model input files</td></tr>
             <tr><td><code>scenario_workspace.py</code></td><td>Scenario cloning, edit locking, data-worktree status, and reproducibility hashes.</td><td>Filesystem and read-only Git commands</td></tr>
             <tr><td><code>scenario_runner.py</code></td><td>Run validation, run-local config and manifest creation, Snakemake process lifecycle, logs, and persisted status.</td><td>Root config, Snakefile, scenario workspace helpers</td></tr>
@@ -266,19 +266,19 @@ browser localStorage
       <section id="verification">
         <h2>Verification</h2>
         <p class="intro">Run checks from the repository root. The Python suite needs the web dependencies available in the selected environment.</p>
-        <pre>npm --prefix pypsa_spice_web/frontend run format:check
-npm --prefix pypsa_spice_web/frontend run check
-npm --prefix pypsa_spice_web/frontend test
-npm --prefix pypsa_spice_web/frontend run build
+        <pre>npm --prefix pypsa-spice-web/frontend run format:check
+npm --prefix pypsa-spice-web/frontend run check
+npm --prefix pypsa-spice-web/frontend test
+npm --prefix pypsa-spice-web/frontend run build
 conda run -n hotpot python -m unittest discover -s tests -p 'test*.py' -q
-git diff --check -- pypsa_spice_web tests</pre>
+git diff --check -- pypsa-spice-web tests</pre>
         <p>Chart calculations and traces have dedicated tests in <code>shared/chartData.test.ts</code> and <code>shared/plotTraces.test.ts</code>. The 2026-09-12 refactor passed all 44 frontend tests, TypeScript, formatting, and the production build. See the <a href="ui-review-jia.md#plottsx">Jia review</a> for the three implementation commits.</p>
         <div class="grid two">
           <article class="card"><h3>For frontend changes</h3><p>Exercise the affected view, URL refresh/back navigation, empty/loading/error states, light and dark themes, and unsaved-change prompts.</p></article>
           <article class="card"><h3>For backend changes</h3><p>Test success plus invalid paths, missing files, stale revisions, active-run locks, and files that differ from the common happy-path schema.</p></article>
         </div>
       </section>
-      <footer>Maintainer reference for <code>pypsa_spice_web/</code>. Keep this guide aligned when ownership, request flow, persistence, or safety checks change.</footer>
+      <footer>Maintainer reference for <code>pypsa-spice-web/</code>. Keep this guide aligned when ownership, request flow, persistence, or safety checks change.</footer>
     </main>
   </div>
 </body>

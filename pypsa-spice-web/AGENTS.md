@@ -2,9 +2,9 @@
 
 ## PyPSA-SPICE web visualisation
 
-- Treat `pypsa_spice_web/` as an independent web application built with React,
+- Treat `pypsa-spice-web/` as an independent web application built with React,
   TypeScript, CSS, and FastAPI.
-- For work on `pypsa-spice-vis-ui` or `pypsa_spice_web/`, do not use the
+- For work on `pypsa-spice-vis-ui` or `pypsa-spice-web/`, do not use the
   Streamlit application in `pypsa-spice-vis/` as UI or UX guidance. Do not copy
   or port its page structure, layouts, controls, component choices, styling, or
   interaction patterns into the web interface.

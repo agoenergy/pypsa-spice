@@ -4,12 +4,12 @@ on:
   pull_request:
     branches: [main, develop]
     paths:
-      - "pypsa_spice_web/frontend/**"
+      - "pypsa-spice-web/frontend/**"
       - ".github/workflows/web-frontend.yml"
   push:
     branches: [main, develop]
     paths:
-      - "pypsa_spice_web/frontend/**"
+      - "pypsa-spice-web/frontend/**"
       - ".github/workflows/web-frontend.yml"
   workflow_dispatch:
 
@@ -22,12 +22,12 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: pypsa_spice_web/frontend/package-lock.json
+          cache-dependency-path: pypsa-spice-web/frontend/package-lock.json
       - run: npm ci
-        working-directory: pypsa_spice_web/frontend
+        working-directory: pypsa-spice-web/frontend
       - run: npm run format:check
-        working-directory: pypsa_spice_web/frontend
+        working-directory: pypsa-spice-web/frontend
       - run: npm test
-        working-directory: pypsa_spice_web/frontend
+        working-directory: pypsa-spice-web/frontend
       - run: npm run build
-        working-directory: pypsa_spice_web/frontend
+        working-directory: pypsa-spice-web/frontend

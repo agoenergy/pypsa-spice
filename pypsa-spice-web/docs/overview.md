@@ -12,7 +12,7 @@ The [UI and UX backlog](ui-review-backlog.md) records open interface findings wi
 
 ## Do not copy the Streamlit UI
 
-The web interface is an independent React, TypeScript, SCSS, and FastAPI application. When developing `pypsa-spice-vis-ui` or the code in `pypsa_spice_web/`, do not use the legacy Streamlit application in `pypsa-spice-vis/` as UI or UX guidance. Its layouts, controls, component choices, styles, and interaction patterns are not a design reference for the web interface.
+The web interface is an independent React, TypeScript, SCSS, and FastAPI application. When developing `pypsa-spice-vis-ui` or the code in `pypsa-spice-web/`, do not use the legacy Streamlit application in `pypsa-spice-vis/` as UI or UX guidance. Its layouts, controls, component choices, styles, and interaction patterns are not a design reference for the web interface.
 
 Base web UI decisions on the current React frontend, this documentation, and explicit product requirements. Consult the Streamlit implementation only when you need to understand data semantics, calculations, or feature behaviour. Reimplement that behaviour for the web instead of copying the Streamlit interface.
 
@@ -24,7 +24,7 @@ From the repository root:
 
 ```bash
 conda env update -n hotpot -f envs/environment.yaml
-npm install --prefix pypsa_spice_web/frontend
+npm install --prefix pypsa-spice-web/frontend
 ```
 
 This installs Python and Node dependencies for initial set-up. Rerun only if dependencies change, or if you switch/create Python or Node environments.
@@ -48,10 +48,10 @@ The app is then served at Vite's configured dev-server port. Open the app in you
 From the repository root:
 
 ```bash
-npm run format --prefix pypsa_spice_web/frontend
-npm run format:check --prefix pypsa_spice_web/frontend
-npm test --prefix pypsa_spice_web/frontend
-npm run build --prefix pypsa_spice_web/frontend
+npm run format --prefix pypsa-spice-web/frontend
+npm run format:check --prefix pypsa-spice-web/frontend
+npm test --prefix pypsa-spice-web/frontend
+npm run build --prefix pypsa-spice-web/frontend
 ```
 
 Prettier uses a 120-character print width and formats frontend source and configuration
@@ -110,8 +110,8 @@ The calculation tests live in `shared/chartData.test.ts`, and trace behaviour
 is covered by `shared/plotTraces.test.ts`. Run both from the repository root:
 
 ```bash
-npm --prefix pypsa_spice_web/frontend test -- src/shared/chartData.test.ts src/shared/plotTraces.test.ts
-npm --prefix pypsa_spice_web/frontend run check
+npm --prefix pypsa-spice-web/frontend test -- src/shared/chartData.test.ts src/shared/plotTraces.test.ts
+npm --prefix pypsa-spice-web/frontend run check
 ```
 
 ## Result layout
@@ -252,8 +252,8 @@ three fixes and their commit IDs.
 Verification commands:
 
 ```bash
-npm --prefix pypsa_spice_web/frontend run build
-npm --prefix pypsa_spice_web/frontend test
+npm --prefix pypsa-spice-web/frontend run build
+npm --prefix pypsa-spice-web/frontend test
 ```
 
 ### 2026-07-15: result paths and input-editor data flow
@@ -268,9 +268,9 @@ npm --prefix pypsa_spice_web/frontend test
 Verification commands:
 
 ```bash
-npm --prefix pypsa_spice_web/frontend run build
+npm --prefix pypsa-spice-web/frontend run build
 conda run -n hotpot python -m unittest discover -s tests -p 'test*.py' -q
-git diff --check -- pypsa_spice_web tests
+git diff --check -- pypsa-spice-web tests
 ```
 
 The app reads the checked-out `data/` tree, including deployments that sit beside a model checkout. Uploads, object storage, authentication, and hosted persistence are out of scope.

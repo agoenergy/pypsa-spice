@@ -18,8 +18,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-
-from pypsa_spice_web.scenario_workspace import (
+from scenario_workspace import (
     describe_data_repository,
     input_file_hashes,
 )

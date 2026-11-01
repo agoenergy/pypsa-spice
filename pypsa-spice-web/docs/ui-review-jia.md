@@ -172,7 +172,7 @@ useEffect(() => {
     Fix is to install node types in your environment:
 
 ```bash
-npm install --prefix pypsa_spice_web/frontend --save-dev @types/node
+npm install --prefix pypsa-spice-web/frontend --save-dev @types/node
 ```
 
 - The chain to access the Flexo font file right now is quite fragile -- it lives in `pypsa-spice-vis/design/`, and Vite forwards the `/brand` request from the browser to FastAPI to access the font. If the Streamlit directory is renamed/removed/somehow becomes inaccessible to the web app, the font will break. I'd suggest bundling whatever custom font you use with the web app itself, in `public/` or in `assets/` so the app owns it directly.

@@ -7,9 +7,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from app import CHARTS, GRAPH_CONFIG, PACKAGE_DIR, app
 from fastapi.testclient import TestClient
-
-from pypsa_spice_web.app import CHARTS, GRAPH_CONFIG, PACKAGE_DIR, app
 
 
 class ResultsApiTests(unittest.TestCase):
@@ -81,7 +80,7 @@ class ResultsApiTests(unittest.TestCase):
             "table": "pow_gen_by_type_hourly",
             "hourly": "true",
         }
-        with patch("pypsa_spice_web.app.DATA_DIR", self.data_dir):
+        with patch("app.DATA_DIR", self.data_dir):
             client = TestClient(app)
             valid = client.get("/api/download", params={**params, "year": "2025"})
             escaped = client.get(
@@ -95,7 +94,7 @@ class ResultsApiTests(unittest.TestCase):
 
     def test_download_rejects_unconfigured_table_names(self) -> None:
         """Downloads reject table names that are not configured."""
-        with patch("pypsa_spice_web.app.DATA_DIR", self.data_dir):
+        with patch("app.DATA_DIR", self.data_dir):
             response = TestClient(app).get(
                 "/api/download",
                 params={
@@ -114,7 +113,7 @@ class ResultsApiTests(unittest.TestCase):
 
     def test_full_load_hours_chart_reads_yearly_result_table(self) -> None:
         """The full load hours chart reads its yearly table."""
-        with patch("pypsa_spice_web.app.DATA_DIR", self.data_dir):
+        with patch("app.DATA_DIR", self.data_dir):
             response = TestClient(app).get(
                 "/api/chart",
                 params={
@@ -146,7 +145,7 @@ class ResultsApiTests(unittest.TestCase):
             ),
             encoding="utf-8",
         )
-        with patch("pypsa_spice_web.app.DATA_DIR", self.data_dir):
+        with patch("app.DATA_DIR", self.data_dir):
             response = TestClient(app).get(
                 "/api/chart",
                 params={
@@ -176,7 +175,7 @@ class ResultsApiTests(unittest.TestCase):
             ("pow_cap_by_region_yearly", "region", None, [30.0, 20.0]),
             ("pow_inter_cf_by_region_yearly", "from", "to", [0.75, 0.5]),
         )
-        with patch("pypsa_spice_web.app.DATA_DIR", self.data_dir):
+        with patch("app.DATA_DIR", self.data_dir):
             client = TestClient(app)
             for table, legend, filter_column, expected_values in cases:
                 with self.subTest(table=table):

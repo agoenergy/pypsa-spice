@@ -35,7 +35,7 @@ From the repository root, install the dependencies once:
 
 ```bash
 conda env update -n hotpot -f envs/environment.yaml
-npm install --prefix pypsa_spice_web/frontend
+npm install --prefix pypsa-spice-web/frontend
 ```
 
 Then start the workspace:
@@ -46,4 +46,4 @@ Then start the workspace:
 
 Open <http://127.0.0.1:5173/ui/> in your browser.
 
-Developer documentation for the web workspace is in `pypsa_spice_web/docs/overview.md`.
+Developer documentation for the web workspace is in `pypsa-spice-web/docs/overview.md`.

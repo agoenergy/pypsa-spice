@@ -5,7 +5,7 @@ BACKEND_HOST="${BACKEND_HOST:-127.0.0.1}"
 BACKEND_PORT="${BACKEND_PORT:-8000}"
 FRONTEND_HOST="${FRONTEND_HOST:-127.0.0.1}"
 FRONTEND_PORT="${FRONTEND_PORT:-5173}"
-FRONTEND_DIR="pypsa_spice_web/frontend"
+FRONTEND_DIR="pypsa-spice-web/frontend"
 
 backend_pid=""
 
@@ -40,7 +40,7 @@ else
 fi
 
 echo "Starting FastAPI backend on http://$BACKEND_HOST:$BACKEND_PORT"
-"${python_command[@]}" -m uvicorn pypsa_spice_web.app:app --host "$BACKEND_HOST" --port "$BACKEND_PORT" &
+"${python_command[@]}" -m uvicorn app:app --app-dir pypsa-spice-web --host "$BACKEND_HOST" --port "$BACKEND_PORT" &
 backend_pid="$!"
 
 echo "Starting React development server on http://$FRONTEND_HOST:$FRONTEND_PORT/ui/"

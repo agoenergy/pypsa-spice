@@ -11,10 +11,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 import yaml
+from app import app
 from fastapi.testclient import TestClient
-
-from pypsa_spice_web.app import app
-from pypsa_spice_web.scenario_runner import ScenarioRunManager
+from scenario_runner import ScenarioRunManager
 
 
 class ScenarioRunManagerTests(unittest.TestCase):
@@ -126,7 +125,7 @@ class ScenarioRunManagerTests(unittest.TestCase):
         """The run API starts a workflow and reports its progress."""
         fake_snakemake = "print('1 of 1 steps (100%) done', flush=True)"
         with (
-            patch("pypsa_spice_web.app.RUN_MANAGER", self.manager),
+            patch("app.RUN_MANAGER", self.manager),
             patch.object(
                 self.manager,
                 "_resolve_command",
