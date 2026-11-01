@@ -87,6 +87,9 @@ export default function Sidebar({
         >
           <img src="/ui/pypsa-logo.svg" alt="PyPSA-SPICE" />
         </a>
+        <span className={styles["beta-badge"]} title="Beta: under active development, not a fully released product">
+          Beta
+        </span>
       </div>
       <div className={styles["workspace-nav"]} role="navigation" aria-label="Workflow">
         <SidebarSection

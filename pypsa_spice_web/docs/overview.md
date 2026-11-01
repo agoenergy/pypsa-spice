@@ -1,5 +1,7 @@
 # PyPSA-SPICE model workspace
 
+> **Beta version.** The web workspace is under active development and is not a fully released product. Features, layouts, and the API may change, and some workflows are still incomplete. Mark user-facing text, the app version (`0.2.0-beta`), and new documentation accordingly until the first stable release. User documentation lives in [`docs/visualisation-tool/web-workspace.md`](../../docs/visualisation-tool/web-workspace.md).
+
 The model workspace is a React and FastAPI interface for a local PyPSA-SPICE project. Use it to edit inputs grouped by technology, configure scenarios, run Snakemake, and inspect results. The checked-out CSV and YAML files remain the source of truth.
 
 Results cover Power, Industry, Transport, Emissions, and Costs. Comparison mode shows two result runs beside each other for every indicator. The difference view calculates `comparison − primary` for each aligned series and timestamp or model year.

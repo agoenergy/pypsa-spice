@@ -118,6 +118,11 @@ export default function HomePage({
   return (
     <div className={styles["home-page"]}>
       <PageHeader title="Workspace overview" />
+      <div className={[workspaceFeedbackStyles["notice"], styles["home-beta-notice"]].join(" ")} role="note">
+        <b>Beta version.</b> The web workspace is under active development and is not a fully released product. Features
+        and layouts may change. Edits are saved directly to your input files, so keep your data under version control
+        and check results before using them.
+      </div>
       <section className={styles["home-guide-panel"]}>
         <header className={styles["home-panel-heading"]}>
           <div>

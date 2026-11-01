@@ -406,9 +406,12 @@ def _catalog() -> dict[str, Any]:
 
 
 app = FastAPI(
-    title="PyPSA-SPICE Web Workspace",
-    description="Explore model results and directly edit PyPSA-SPICE CSV/YAML inputs.",
-    version="0.2.0",
+    title="PyPSA-SPICE Web Workspace (beta)",
+    description=(
+        "Explore model results and directly edit PyPSA-SPICE CSV/YAML inputs. "
+        "Beta: under active development, so endpoints and behaviour may change."
+    ),
+    version="0.2.0-beta",
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
