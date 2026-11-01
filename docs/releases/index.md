@@ -12,12 +12,15 @@
 ### Changed
 - Add ramp-up and ramp-down costs for thermal power units modelled as generators or links, activated per country via the new `ramp_costs` custom constraint. Ramp costs are included in the OPEX output tables and reported separately in `pow_ramp_cost_by_type_yearly`. ([:material-source-pull:124](https://github.com/agoenergy/pypsa-spice/pull/124) by @nhlong2701).
 - Add load dumping generators to all buses (except CO~2~ buses) to avoid infeasibility when must-run generation exceeds the load, and report the buses with load shedding or load dumping in the post-analysis. ([:material-source-pull:126](https://github.com/agoenergy/pypsa-spice/pull/126) by @nhlong2701).
+- Add the PyPSA-SPICE web workspace (beta) in `pypsa-spice-web/`, a React and FastAPI interface to edit model inputs, compare scenario inputs, edit scenario configurations and solver settings, run the Snakemake workflow, and explore results and custom dashboards for a local project. ([:material-source-pull:127](https://github.com/agoenergy/pypsa-spice/pull/127) by @samarthiith and @nhlong2701).
 
 ### Notes
 
 - **New ramp cost columns in `technologies.csv`:** We have added the `ramp_up_cost` and `ramp_down_cost` columns (currency/MW) to `technologies.csv`. Existing files without these columns still work, with ramp costs set to 0. To use ramp costs, add the columns to your `technologies.csv`, rebuild the networks, and activate `ramp_costs` in the `custom_constraints` section of `scenario_config.yaml`.
 
 - **Load dumping generators:** Load dumping generators (`DUMPLOAD - <bus>`, type `LDMP`, carrier `EXS`) are added to the base year network next to the load shedding generators. Please rebuild the base year network to include them. The `test_energy_not_served_warning` function in the post-analysis has been renamed to `report_load_shedding_and_dumping`.
+
+- **Web workspace (beta):** The web workspace is under active development and is not a fully released product, so features and layouts may change. It saves edits directly to your input files, so keep your data under version control. To try it, update your environment (using `conda env update -f envs/environment.yaml --prune`), install the frontend packages with `npm install --prefix pypsa-spice-web/frontend`, and start it with `./run-web-locally.sh`. See the [web workspace documentation](../visualisation-tool/web-workspace.md) for details.
 
 --8<-- "releases/v2.1.0.md"
 --8<-- "releases/v2.0.0.md"
