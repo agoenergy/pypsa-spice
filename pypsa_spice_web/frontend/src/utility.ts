@@ -384,13 +384,50 @@ export function splitWorkspace(value: string): { dataset: string; project: strin
   return { dataset, project: project.join(WORKSPACE_SEPARATOR) };
 }
 
-export function resolveOutputSelection(data: Catalog, current: Selection, params = locationParams()): Selection {
-  const dataset =
-    data.datasets.find((item) => item.name === (params.get("dataset") || current.dataset)) || data.datasets[0];
+const SELECTION_STORAGE_KEY = "spice-selection";
+
+type RememberedSelection = Pick<InputSelection, "dataset" | "project" | "scenario">;
+
+function rememberedSelection(kind: "input" | "output"): Partial<RememberedSelection> {
+  try {
+    return JSON.parse(localStorage.getItem(SELECTION_STORAGE_KEY) || "{}")[kind] || {};
+  } catch {
+    return {};
+  }
+}
+
+/** Remember the last input or result selection, used when the URL does not name one. */
+export function rememberSelection(kind: "input" | "output", selection: RememberedSelection): void {
+  try {
+    const stored = JSON.parse(localStorage.getItem(SELECTION_STORAGE_KEY) || "{}");
+    const { dataset, project, scenario } = selection;
+    localStorage.setItem(SELECTION_STORAGE_KEY, JSON.stringify({ ...stored, [kind]: { dataset, project, scenario } }));
+  } catch {
+    // Storage can be unavailable (private mode); the URL and in-memory state still apply.
+  }
+}
+
+// Pick a selection from the URL, then the current state, then the remembered one.
+function preferredSelection(
+  kind: "input" | "output",
+  current: RememberedSelection,
+  params: URLSearchParams,
+  scenarioParam: string,
+) {
+  const remembered = rememberedSelection(kind);
+  const dataset = params.get("dataset") || current.dataset || remembered.dataset || "";
   const project =
-    dataset.projects.find((item) => item.name === (params.get("project") || current.project)) || dataset.projects[0];
-  const scenario =
-    project.scenarios.find((item) => item.name === (params.get("run") || current.scenario)) || project.scenarios[0];
+    params.get("project") || current.project || (dataset === remembered.dataset ? remembered.project : "");
+  const sameProject = dataset === remembered.dataset && project === remembered.project;
+  const scenario = params.get(scenarioParam) || current.scenario || (sameProject ? remembered.scenario : "") || "";
+  return { dataset, project, scenario };
+}
+
+export function resolveOutputSelection(data: Catalog, current: Selection, params = locationParams()): Selection {
+  const preferred = preferredSelection("output", current, params, "run");
+  const dataset = data.datasets.find((item) => item.name === preferred.dataset) || data.datasets[0];
+  const project = dataset.projects.find((item) => item.name === preferred.project) || dataset.projects[0];
+  const scenario = project.scenarios.find((item) => item.name === preferred.scenario) || project.scenarios[0];
   const sector =
     scenario.sectors.find((item) => item.name === (params.get("sector") || current.sector)) || scenario.sectors[0];
   const comparisonName = params.get("compare") || current.comparison;
@@ -411,11 +448,10 @@ export function resolveInputSelection(
   current: InputSelection,
   params = locationParams(),
 ): InputSelection {
-  const dataset =
-    data.datasets.find((item) => item.name === (params.get("dataset") || current.dataset)) || data.datasets[0];
-  const project =
-    dataset.projects.find((item) => item.name === (params.get("project") || current.project)) || dataset.projects[0];
-  const requestedScenario = params.get("scenario") || current.scenario;
+  const preferred = preferredSelection("input", current, params, "scenario");
+  const dataset = data.datasets.find((item) => item.name === preferred.dataset) || data.datasets[0];
+  const project = dataset.projects.find((item) => item.name === preferred.project) || dataset.projects[0];
+  const requestedScenario = preferred.scenario;
   return {
     dataset: dataset.name,
     project: project.name,

@@ -27,6 +27,7 @@ import {
   confirmDiscardChanges,
   countryFromLocation,
   locationParams,
+  rememberSelection,
   resolveInputSelection,
   resolveOutputSelection,
   sectionFromLocation,
@@ -107,6 +108,12 @@ export default function App() {
     void loadInputs();
   }, []);
   useEffect(() => {
+    if (inputSelection.project) rememberSelection("input", inputSelection);
+  }, [inputSelection]);
+  useEffect(() => {
+    if (selection.project) rememberSelection("output", selection);
+  }, [selection]);
+  useEffect(() => {
     document.documentElement.dataset.theme = dark ? "dark" : "light";
     localStorage.setItem("spice-theme", dark ? "dark" : "light");
   }, [dark]);
@@ -157,6 +164,9 @@ export default function App() {
   }, [inputProject, inputSelection.scenario, inputComparison]);
   useEffect(() => {
     if (!(selection.project || inputSelection.project)) return;
+    // Wait for the current page's own catalog; writing the URL earlier drops the
+    // requested dataset, project and run before they are resolved.
+    if (view !== "home" && view !== "dashboard" && !activeProjectName) return;
     const params = new URLSearchParams();
     if (view === "home") {
       params.set("view", "home");
@@ -403,8 +413,17 @@ export default function App() {
           selection={inputSelection}
           onEditConfiguration={() => chooseView("configure")}
           runMonitor={runMonitor}
-          onOpenResults={(runName, datasetName, projectName) => {
-            window.location.href = `/?section=power&dataset=${encodeURIComponent(datasetName)}&project=${encodeURIComponent(projectName)}&run=${encodeURIComponent(runName)}`;
+          onOpenResults={(run) => {
+            // Keep the run's input scenario so the input pages stay on it after the reload.
+            // Stay on the app's own path (/ui/) instead of relying on a redirect from "/".
+            const params = new URLSearchParams({
+              section: "power",
+              dataset: run.dataset,
+              project: run.project,
+              scenario: run.input_scenario,
+              run: run.output_scenario,
+            });
+            window.location.href = `${window.location.pathname}?${params.toString()}`;
           }}
         />
       );

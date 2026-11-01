@@ -69,7 +69,7 @@ export default function RunModel({
   selection: InputSelection;
   onEditConfiguration: () => void;
   runMonitor: ModelRunMonitor;
-  onOpenResults: (runName: string, dataset: string, project: string) => void;
+  onOpenResults: (run: ModelRun) => void;
 }) {
   const [options, setOptions] = useState<ModelRunOptions | null>(null);
   const [scenarioConfig, setScenarioConfig] = useState<ScenarioConfigResponse | null>(null);
@@ -409,11 +409,7 @@ export default function RunModel({
                     Run again
                   </Button>
                   {run.status === "succeeded" && (
-                    <Button
-                      variant="primary"
-                      type="button"
-                      onClick={() => onOpenResults(run.output_scenario, run.dataset, run.project)}
-                    >
+                    <Button variant="primary" type="button" onClick={() => onOpenResults(run)}>
                       <ExternalLink aria-hidden="true" />
                       Open results
                     </Button>
