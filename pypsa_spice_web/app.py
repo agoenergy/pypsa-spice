@@ -18,8 +18,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from pypsa_spice_web.input_editor import (
-    ConfigSectionUpdate,
     ConfigSectionsUpdate,
+    ConfigSectionUpdate,
     TableUpdate,
     compare_scenarios,
     input_catalog,
@@ -96,11 +96,13 @@ SECTION_META = {
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
+    """Load a YAML file as a dictionary, empty if the file is blank."""
     with path.open(encoding="utf-8") as handle:
         return yaml.safe_load(handle) or {}
 
 
 def _read_mapping(filename: str) -> dict[str, dict[str, str]]:
+    """Read a name mapping CSV into display labels and colours by name."""
     path = MAPPING_DIR / filename
     if not path.exists():
         return {}
@@ -116,6 +118,7 @@ def _read_mapping(filename: str) -> dict[str, dict[str, str]]:
 
 
 def _chart_definitions() -> dict[str, list[dict[str, Any]]]:
+    """Load the configured charts grouped by results section."""
     raw = _load_yaml(GRAPH_CONFIG)
     sections: dict[str, list[dict[str, Any]]] = {}
     for section, charts in raw.items():
@@ -137,6 +140,7 @@ MAPPINGS = {
 
 
 def _scenario_root(dataset: str, project: str, scenario: str) -> Path:
+    """Resolve the CSV results folder of a scenario inside the data dir."""
     candidate = (DATA_DIR / dataset / project / "results" / scenario / "csvs").resolve()
     try:
         candidate.relative_to(DATA_DIR.resolve())
@@ -148,6 +152,7 @@ def _scenario_root(dataset: str, project: str, scenario: str) -> Path:
 
 
 def _sector_root(dataset: str, project: str, scenario: str, sector: str) -> Path:
+    """Resolve the results folder of one sector within a scenario."""
     scenario_root = _scenario_root(dataset, project, scenario)
     root = (scenario_root / sector).resolve()
     if root.parent != scenario_root or not root.is_dir():
@@ -156,6 +161,7 @@ def _sector_root(dataset: str, project: str, scenario: str, sector: str) -> Path
 
 
 def _year_sort(value: str) -> tuple[int, str]:
+    """Sort key that orders numeric years before other folder names."""
     return (0, f"{int(value):08d}") if value.isdigit() else (1, value)
 
 
@@ -168,6 +174,7 @@ def _table_paths(
     year: str | None,
     hourly: bool,
 ) -> list[Path]:
+    """Find the result CSV files for a configured table and year."""
     sector_path = _sector_root(dataset, project, scenario, sector)
     chart = next(
         (
@@ -218,6 +225,7 @@ def _table_paths(
 
 @lru_cache(maxsize=256)
 def _read_csv_cached(path_string: str, modified_ns: int) -> tuple[dict[str, Any], ...]:
+    """Read a result CSV with typed values, cached per file version."""
     del modified_ns
     path = Path(path_string)
     rows: list[dict[str, Any]] = []
@@ -243,6 +251,7 @@ def _read_csv_cached(path_string: str, modified_ns: int) -> tuple[dict[str, Any]
 
 
 def _read_paths(paths: list[Path]) -> list[dict[str, Any]]:
+    """Read and concatenate result CSVs, dropping duplicated rows."""
     rows: list[dict[str, Any]] = []
     for path in paths:
         rows.extend(
@@ -262,6 +271,7 @@ def _read_paths(paths: list[Path]) -> list[dict[str, Any]]:
 def _sample_hourly(
     rows: list[dict[str, Any]], legend_column: str, limit: int
 ) -> tuple[list[dict[str, Any]], bool]:
+    """Downsample hourly rows evenly per series to stay within a limit."""
     if len(rows) <= limit:
         return rows, False
     groups: dict[str, list[dict[str, Any]]] = {}
@@ -337,6 +347,7 @@ def _parse_timestamp(value: str, field_name: str) -> datetime:
 
 
 def _catalog() -> dict[str, Any]:
+    """List datasets, projects and result scenarios available on disk."""
     datasets: list[dict[str, Any]] = []
     if DATA_DIR.exists():
         for dataset_path in sorted(
@@ -403,6 +414,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request) -> Response:
+    """Serve the built frontend, or a hint if it has not been built."""
     del request
     index_file = FRONTEND_DIST / "index.html"
     if index_file.exists():
@@ -416,13 +428,13 @@ def index(request: Request) -> Response:
 
 @app.get("/health")
 def health() -> dict[str, str]:
+    """Report that the service is running."""
     return {"status": "ok", "service": "pypsa-spice-web"}
 
 
 @app.get("/api/runs/options")
 def model_run_options() -> JSONResponse:
     """Describe the repository base config used for web-launched runs."""
-
     try:
         return JSONResponse(RUN_MANAGER.options())
     except RunValidationError as exc:
@@ -432,14 +444,12 @@ def model_run_options() -> JSONResponse:
 @app.get("/api/runs/latest")
 def latest_model_run() -> JSONResponse:
     """Return the latest persisted web run, including its current log tail."""
-
     return JSONResponse(RUN_MANAGER.latest())
 
 
 @app.get("/api/runs/{run_id}")
 def model_run(run_id: str) -> JSONResponse:
     """Return current state for one web-launched Snakemake run."""
-
     try:
         return JSONResponse(RUN_MANAGER.get(run_id))
     except KeyError as exc:
@@ -449,7 +459,6 @@ def model_run(run_id: str) -> JSONResponse:
 @app.post("/api/runs", status_code=202)
 def start_model_run(request: ModelRunRequest) -> JSONResponse:
     """Create a run-local base config and launch the full model workflow."""
-
     try:
         run = RUN_MANAGER.start(
             dataset=request.dataset,
@@ -468,7 +477,6 @@ def start_model_run(request: ModelRunRequest) -> JSONResponse:
 @app.delete("/api/runs/{run_id}")
 def cancel_model_run(run_id: str) -> JSONResponse:
     """Request termination of the active Snakemake process."""
-
     try:
         return JSONResponse(RUN_MANAGER.cancel(run_id))
     except KeyError as exc:
@@ -477,20 +485,19 @@ def cancel_model_run(run_id: str) -> JSONResponse:
 
 @app.get("/api/catalog")
 def catalog() -> JSONResponse:
+    """Return the catalog of available result scenarios."""
     return JSONResponse(_catalog())
 
 
 @app.get("/api/input/catalog")
 def input_data_catalog() -> JSONResponse:
     """Return projects, scenarios, and configured input-table metadata."""
-
     return JSONResponse(input_catalog(DATA_DIR, INPUT_CONFIG))
 
 
 @app.get("/api/input/workspace")
 def input_workspace_status(dataset: str) -> JSONResponse:
     """Return web-mutation lock and dataset Git status for review and run."""
-
     try:
         return JSONResponse(SCENARIO_WORKSPACE.status(dataset))
     except ScenarioWorkspaceError as exc:
@@ -500,7 +507,6 @@ def input_workspace_status(dataset: str) -> JSONResponse:
 @app.post("/api/input/scenarios", status_code=201)
 def create_input_scenario(request: ScenarioCloneRequest) -> JSONResponse:
     """Atomically clone a complete scenario inside the local data worktree."""
-
     try:
         scenario = SCENARIO_WORKSPACE.clone(
             dataset=request.dataset,
@@ -532,7 +538,6 @@ def input_table_data(
     limit: int = Query(default=100, ge=1, le=500),
 ) -> JSONResponse:
     """Read a configured model-input CSV with typed editing metadata."""
-
     path, config = table_path(
         DATA_DIR,
         INPUT_CONFIG,
@@ -577,7 +582,6 @@ def save_input_table(
     limit: int = Query(default=100, ge=1, le=500),
 ) -> JSONResponse:
     """Directly and atomically apply validated changes to an input CSV."""
-
     try:
         SCENARIO_WORKSPACE.ensure_mutable()
     except ScenarioWorkspaceError as exc:
@@ -613,7 +617,6 @@ def save_input_table(
 @app.get("/api/input/scenario-config")
 def scenario_configuration(dataset: str, project: str, scenario: str) -> JSONResponse:
     """Read the editable sections of a scenario configuration."""
-
     path = scenario_config_path(DATA_DIR, dataset, project, scenario)
     return JSONResponse(read_scenario_config(path))
 
@@ -626,7 +629,6 @@ def compare_scenario_inputs(
     comparison: str = Query(min_length=1),
 ) -> JSONResponse:
     """Show only configuration and scenario-input differences."""
-
     return JSONResponse(
         compare_scenarios(
             DATA_DIR,
@@ -647,7 +649,6 @@ def save_scenario_configuration_sections(
     scenario: str,
 ) -> JSONResponse:
     """Directly save multiple scenario-config sections in one atomic write."""
-
     try:
         SCENARIO_WORKSPACE.ensure_mutable()
     except ScenarioWorkspaceError as exc:
@@ -666,7 +667,6 @@ def save_scenario_configuration_section(
     scenario: str,
 ) -> JSONResponse:
     """Directly save one scenario-config section with YAML comments retained."""
-
     try:
         SCENARIO_WORKSPACE.ensure_mutable()
     except ScenarioWorkspaceError as exc:
@@ -693,6 +693,7 @@ def chart_data(
     hourly: bool = False,
     limit: int = Query(default=24000, ge=500, le=100000),
 ) -> JSONResponse:
+    """Return filtered chart rows and filter options for a result table."""
     paths = _table_paths(dataset, project, scenario, sector, table, year, hourly)
     if not paths:
         raise HTTPException(status_code=404, detail=f"No data found for {table}")
@@ -788,6 +789,7 @@ def download_data(
     year: str | None = None,
     hourly: bool = False,
 ) -> Response:
+    """Download a result table as CSV."""
     paths = _table_paths(dataset, project, scenario, sector, table, year, hourly)
     if not paths:
         raise HTTPException(status_code=404, detail=f"No data found for {table}")
@@ -813,6 +815,7 @@ def download_data(
 
 @app.get("/vendor/plotly.min.js", include_in_schema=False)
 def plotly_javascript() -> Response:
+    """Serve the bundled Plotly JavaScript library."""
     from plotly.offline import get_plotlyjs
 
     return Response(get_plotlyjs(), media_type="application/javascript")
@@ -820,11 +823,13 @@ def plotly_javascript() -> Response:
 
 @app.get("/brand/pypsa-logo.svg", include_in_schema=False)
 def pypsa_logo() -> FileResponse:
+    """Serve the PyPSA logo."""
     return FileResponse(ROOT / "pypsa-spice-vis" / "design" / "pypsa-logo_rgb.svg")
 
 
 @app.get("/brand/flexo.woff2", include_in_schema=False)
 def flexo_font() -> FileResponse:
+    """Serve the Flexo web font."""
     return FileResponse(
         ROOT / "pypsa-spice-vis" / "design" / "fonts" / "Flexo-Medium.woff2"
     )

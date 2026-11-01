@@ -12,8 +12,9 @@ import os
 import shutil
 import subprocess
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 
 class ScenarioWorkspaceError(ValueError):
@@ -21,6 +22,7 @@ class ScenarioWorkspaceError(ValueError):
 
 
 def _safe_segment(value: str, label: str) -> str:
+    """Validate a single path segment, rejecting traversal and hidden names."""
     cleaned = value.strip()
     if (
         not cleaned
@@ -35,6 +37,7 @@ def _safe_segment(value: str, label: str) -> str:
 
 
 def _confined(candidate: Path, parent: Path) -> Path:
+    """Resolve a path and check that it stays inside the parent folder."""
     resolved_parent = parent.resolve()
     resolved = candidate.resolve()
     try:
@@ -45,8 +48,9 @@ def _confined(candidate: Path, parent: Path) -> Path:
 
 
 def _git_value(repo: Path, *arguments: str) -> str:
+    """Run a git command in a repository, empty on failure."""
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603, S607
             ["git", "-C", str(repo), *arguments],
             check=False,
             capture_output=True,
@@ -60,7 +64,6 @@ def _git_value(repo: Path, *arguments: str) -> str:
 
 def describe_data_repository(data_dir: Path, dataset: str) -> dict[str, Any]:
     """Describe a dataset-level Git worktree without changing it."""
-
     dataset_name = _safe_segment(dataset, "data folder")
     dataset_root = _confined(data_dir / dataset_name, data_dir)
     git_marker = dataset_root / ".git"
@@ -75,7 +78,11 @@ def describe_data_repository(data_dir: Path, dataset: str) -> dict[str, Any]:
             "changes": [],
         }
 
-    changes = [line for line in _git_value(dataset_root, "status", "--short").splitlines() if line]
+    changes = [
+        line
+        for line in _git_value(dataset_root, "status", "--short").splitlines()
+        if line
+    ]
     return {
         "available": True,
         "root": str(dataset_root.relative_to(data_dir.parent)),
@@ -91,7 +98,6 @@ def input_file_hashes(
     data_dir: Path, dataset: str, project: str, scenario: str
 ) -> dict[str, str]:
     """Hash the selected scenario and shared global inputs for run provenance."""
-
     dataset_name = _safe_segment(dataset, "data folder")
     project_name = _safe_segment(project, "project")
     scenario_name = _safe_segment(scenario, "scenario")
@@ -120,30 +126,37 @@ class ScenarioWorkspace:
         *,
         active_run: Callable[[], dict[str, Any] | None] | None = None,
     ) -> None:
+        """Set up the workspace for the repository root."""
         self.root = root.resolve()
         self.data_dir = self.root / "data"
         self._active_run = active_run or (lambda: None)
 
     def active_run(self) -> dict[str, Any] | None:
+        """Return the active model run, if any."""
         return self._active_run()
 
     def ensure_mutable(self) -> None:
+        """Raise if scenario files are locked by an active run."""
         active = self.active_run()
         if active:
             raise ScenarioWorkspaceError(
-                f"Scenario files are locked while run {active['id']} is {active['status']}"
+                f"Scenario files are locked while run {active['id']} "
+                f"is {active['status']}"
             )
 
     def status(self, dataset: str) -> dict[str, Any]:
+        """Return workspace lock and git status for a dataset."""
         active = self.active_run()
         return {
             "mutation_locked": bool(active),
-            "active_run": {
-                "id": active["id"],
-                "status": active["status"],
-            }
-            if active
-            else None,
+            "active_run": (
+                {
+                    "id": active["id"],
+                    "status": active["status"],
+                }
+                if active
+                else None
+            ),
             "repository": describe_data_repository(self.data_dir, dataset),
         }
 
@@ -156,7 +169,6 @@ class ScenarioWorkspace:
         new_scenario: str,
     ) -> dict[str, Any]:
         """Atomically duplicate a complete existing scenario folder."""
-
         self.ensure_mutable()
         dataset_name = _safe_segment(dataset, "data folder")
         project_name = _safe_segment(project, "project")

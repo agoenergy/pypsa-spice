@@ -84,6 +84,7 @@ class ConfigSectionsUpdate(BaseModel):
 
 
 def _load_yaml(path: Path, *, round_trip: bool = False) -> Any:
+    """Load a YAML file, keeping comments and quotes when round-tripping."""
     yaml = YAML() if round_trip else YAML(typ="safe", pure=True)
     # Quote style is recorded at load time, so it must be enabled on the loader.
     yaml.preserve_quotes = round_trip
@@ -93,7 +94,6 @@ def _load_yaml(path: Path, *, round_trip: bool = False) -> Any:
 
 def _confine(candidate: Path, parent: Path, *, must_exist: bool = True) -> Path:
     """Resolve a user-selected path and guarantee it stays below ``parent``."""
-
     resolved_parent = parent.resolve()
     resolved = candidate.resolve()
     try:
@@ -106,6 +106,7 @@ def _confine(candidate: Path, parent: Path, *, must_exist: bool = True) -> Path:
 
 
 def _input_root(data_dir: Path, dataset: str, project: str) -> Path:
+    """Resolve the input folder of a project inside the data dir."""
     project_root = _confine(data_dir / dataset / project, data_dir)
     input_root = _confine(project_root / "input", project_root)
     if not input_root.is_dir():
@@ -114,18 +115,19 @@ def _input_root(data_dir: Path, dataset: str, project: str) -> Path:
 
 
 def _revision(path: Path) -> str:
+    """Return a file revision token from its modification time and size."""
     stat = path.stat()
     return f"{stat.st_mtime_ns}:{stat.st_size}"
 
 
 def _pretty_label(value: str) -> str:
+    """Turn a snake_case name into a capitalised label."""
     words = value.replace("_", " ").strip().split()
     return " ".join(word if word.isupper() else word.capitalize() for word in words)
 
 
 def _comparison_value(value: Any) -> Any:
     """Normalise scalar input values without hiding meaningful differences."""
-
     if value is None:
         return None
     if isinstance(value, bool):
@@ -150,6 +152,7 @@ def _comparison_value(value: Any) -> Any:
 
 
 def _display_delta(reference: Any, comparison: Any) -> int | float | None:
+    """Return the numeric difference between two values, if both are numbers."""
     left = _comparison_value(reference)
     right = _comparison_value(comparison)
     if not isinstance(left, Decimal) or not isinstance(right, Decimal):
@@ -167,6 +170,7 @@ def _change(
     reference: Any,
     comparison: Any,
 ) -> dict[str, Any]:
+    """Build one change record for the scenario comparison."""
     return {
         "status": status,
         "item": item or "General",
@@ -180,7 +184,6 @@ def _change(
 
 def _technology_sector_mapping(settings_path: Path) -> dict[str, str]:
     """Return the Streamlit technology-to-sector mapping in web-friendly form."""
-
     mapping_path = settings_path.with_name("tech_mapping.csv")
     if not mapping_path.is_file():
         return {}
@@ -199,7 +202,6 @@ def _technology_catalog(
     path: Path, sector_mapping: dict[str, str]
 ) -> list[dict[str, Any]]:
     """Summarise selectable technologies from a project's source table."""
-
     if not path.is_file():
         return []
     technologies: dict[str, dict[str, Any]] = {}
@@ -237,7 +239,6 @@ def _technology_catalog(
 
 def input_catalog(data_dir: Path, settings_path: Path) -> dict[str, Any]:
     """Discover projects with model inputs and expose configured editable tables."""
-
     settings = _load_yaml(settings_path)
     datasets: list[dict[str, Any]] = []
     sector_mapping = _technology_sector_mapping(settings_path)
@@ -324,6 +325,7 @@ def _table_config(
     sector: str,
     table: str,
 ) -> dict[str, Any]:
+    """Look up the input settings of a configured table."""
     settings = _load_yaml(settings_path)
     if scope == "global":
         config = (settings.get("Global_input", {}) or {}).get(table)
@@ -350,7 +352,6 @@ def table_path(
     table: str,
 ) -> tuple[Path, dict[str, Any]]:
     """Resolve a configured CSV table within the selected input project."""
-
     input_root = _input_root(data_dir, dataset, project)
     config = _table_config(settings_path, scope, sector, table)
     if scope == "global":
@@ -378,6 +379,7 @@ def table_path(
 
 
 def _parse_number(raw: str) -> int | float | str:
+    """Parse a CSV number, keeping integers as int and inf as text."""
     stripped = raw.strip()
     if stripped.lower() in {"inf", "+inf", "-inf"}:
         return stripped.lower().replace("+", "")
@@ -390,6 +392,7 @@ def _parse_number(raw: str) -> int | float | str:
 
 
 def _column_kind(values: list[str]) -> Literal["boolean", "number", "string"]:
+    """Infer whether a CSV column holds booleans, numbers or strings."""
     populated = [value.strip() for value in values if value.strip()]
     if populated and all(value.lower() in {"true", "false"} for value in populated):
         return "boolean"
@@ -404,6 +407,7 @@ def _column_kind(values: list[str]) -> Literal["boolean", "number", "string"]:
 
 
 def _typed_value(raw: str, kind: str) -> Any:
+    """Convert a raw CSV cell to the column's value type."""
     if raw == "":
         return ""
     if kind == "boolean":
@@ -421,7 +425,6 @@ def _technology_matches(
     technology_carriers: tuple[str, ...],
 ) -> bool:
     """Match one source row to a technology using model-data semantics."""
-
     if table == "Direct_air_capture":
         return technology == "DAC"
     filter_column = str(config.get("filter_col") or "")
@@ -453,7 +456,6 @@ def read_table(
     limit: int = 100,
 ) -> dict[str, Any]:
     """Read a CSV with typed cells and legacy-compatible editability metadata."""
-
     with path.open(encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
         fieldnames = reader.fieldnames or []
@@ -569,7 +571,6 @@ def _comparison_table_path(
     config: dict[str, Any],
 ) -> Path | None:
     """Resolve a scenario CSV for comparison while allowing a missing side."""
-
     scenario_root = _confine(input_root / scenario, input_root)
     table_sector = "power" if table == "Interconnectors" else sector
     sector_root = _confine(
@@ -599,6 +600,7 @@ def _comparison_table_path(
 
 
 def _raw_csv(path: Path | None) -> tuple[list[str], list[dict[str, str]]]:
+    """Read a CSV as field names and string rows, empty if no path."""
     if path is None:
         return [], []
     with path.open(encoding="utf-8-sig", newline="") as handle:
@@ -607,6 +609,7 @@ def _raw_csv(path: Path | None) -> tuple[list[str], list[dict[str, str]]]:
 
 
 def _row_key(row: dict[str, str], table: str, fieldnames: list[str]) -> tuple[str, ...]:
+    """Return the identifying key of a CSV row."""
     return tuple(
         (row.get(column) or "").strip()
         for column in _row_key_columns(table, fieldnames)
@@ -615,7 +618,6 @@ def _row_key(row: dict[str, str], table: str, fieldnames: list[str]) -> tuple[st
 
 def _row_key_columns(table: str, fieldnames: list[str]) -> tuple[str, ...]:
     """Choose the stable CSV columns that identify a comparison row."""
-
     requested = TABLE_COMPARE_KEYS.get(table, ())
     columns = tuple(column for column in requested if column in fieldnames)
     if columns and columns != ("country",):
@@ -627,6 +629,7 @@ def _row_key_columns(table: str, fieldnames: list[str]) -> tuple[str, ...]:
 def _index_rows(
     rows: list[dict[str, str]], table: str, fieldnames: list[str]
 ) -> tuple[dict[tuple[str, ...], dict[str, str]], set[tuple[str, ...]]]:
+    """Index CSV rows by key and report keys that occur more than once."""
     indexed: dict[tuple[str, ...], dict[str, str]] = {}
     duplicates: set[tuple[str, ...]] = set()
     for row in rows:
@@ -640,6 +643,7 @@ def _index_rows(
 def _row_item(
     key: tuple[str, ...], table: str, fieldnames: list[str]
 ) -> tuple[str, str]:
+    """Split a row key into a display label and its country."""
     values = dict(zip(_row_key_columns(table, fieldnames), key))
     country = values.pop("country", "")
     item = " · ".join(value for value in values.values() if value)
@@ -654,6 +658,7 @@ def _compare_csv_table(
     reference_path: Path | None,
     comparison_path: Path | None,
 ) -> dict[str, Any] | None:
+    """Compare two versions of an input CSV, or None if they match."""
     reference_fields, reference_rows = _raw_csv(reference_path)
     comparison_fields, comparison_rows = _raw_csv(comparison_path)
     fieldnames = list(dict.fromkeys([*reference_fields, *comparison_fields]))
@@ -723,6 +728,7 @@ def _compare_csv_table(
 def _flatten_config(
     value: Any, prefix: tuple[str, ...] = ()
 ) -> dict[tuple[str, ...], Any]:
+    """Flatten nested config dictionaries into key paths."""
     if isinstance(value, dict):
         flattened: dict[tuple[str, ...], Any] = {}
         for key, child in value.items():
@@ -737,6 +743,7 @@ def _compare_flat_values(
     *,
     item_prefix: str = "",
 ) -> list[dict[str, Any]]:
+    """List added, removed and changed values between two configs."""
     left = _flatten_config(reference)
     right = _flatten_config(comparison)
     changes: list[dict[str, Any]] = []
@@ -770,6 +777,7 @@ def _compare_flat_values(
 
 
 def _effective_constraint(value: Any) -> dict[str, Any]:
+    """Return a constraint config, reduced to inactive if not activated."""
     constraint = value if isinstance(value, dict) else {}
     if constraint.get("activate") is not True:
         return {"activate": False}
@@ -779,6 +787,7 @@ def _effective_constraint(value: Any) -> dict[str, Any]:
 def _config_comparison_sections(
     reference: dict[str, Any], comparison: dict[str, Any]
 ) -> list[dict[str, Any]]:
+    """Build comparison sections for scenario config differences."""
     sections: list[dict[str, Any]] = []
     settings_changes = _compare_flat_values(
         reference.get("scenario_configs", {}),
@@ -859,7 +868,6 @@ def compare_scenarios(
     comparison: str,
 ) -> dict[str, Any]:
     """Return only effective model-input differences between two scenarios."""
-
     if reference == comparison:
         raise HTTPException(status_code=400, detail="Choose two different scenarios")
     input_root = _input_root(data_dir, dataset, project)
@@ -922,6 +930,7 @@ def compare_scenarios(
 
 
 def _serialise_cell(value: Any, kind: str) -> str:
+    """Validate an edited cell value and convert it to CSV text."""
     if value is None or value == "":
         return ""
     if kind == "boolean":
@@ -956,6 +965,7 @@ def _serialise_cell(value: Any, kind: str) -> str:
 def _atomic_csv_write(
     path: Path, fieldnames: list[str], rows: list[dict[str, str]]
 ) -> None:
+    """Write CSV rows to a temporary file, then replace the target."""
     descriptor, temp_name = tempfile.mkstemp(
         prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
     )
@@ -989,7 +999,6 @@ def update_table(
     limit: int = 100,
 ) -> dict[str, Any]:
     """Validate and atomically apply cell changes to a CSV."""
-
     if config.get("timeseries"):
         raise HTTPException(
             status_code=403, detail="Timeseries inputs are read-only in the web editor"
@@ -1049,6 +1058,7 @@ def update_table(
 def scenario_config_path(
     data_dir: Path, dataset: str, project: str, scenario: str
 ) -> Path:
+    """Resolve the scenario_config.yaml of an input scenario."""
     input_root = _input_root(data_dir, dataset, project)
     scenario_root = _confine(input_root / scenario, input_root)
     path = _confine(scenario_root / "scenario_config.yaml", scenario_root)
@@ -1058,6 +1068,7 @@ def scenario_config_path(
 
 
 def _to_json(value: Any) -> Any:
+    """Convert config values to JSON-compatible types with string keys."""
     if isinstance(value, dict):
         return {str(key): _to_json(child) for key, child in value.items()}
     if isinstance(value, list):
@@ -1066,6 +1077,7 @@ def _to_json(value: Any) -> Any:
 
 
 def read_scenario_config(path: Path) -> dict[str, Any]:
+    """Read the editable sections and revision of a scenario config."""
     config = _load_yaml(path)
     return {
         "path": str(path),
@@ -1078,12 +1090,12 @@ def read_scenario_config(path: Path) -> dict[str, Any]:
 
 
 def _normalise_yaml_key(key: Any) -> Any:
+    """Convert numeric string keys such as years back to int."""
     return int(key) if isinstance(key, str) and key.isdigit() else key
 
 
 def _merge_yaml(existing: Any, incoming: Any) -> Any:
     """Update a round-trip YAML node while retaining comments on surviving keys."""
-
     if isinstance(incoming, dict):
         target = existing if isinstance(existing, CommentedMap) else CommentedMap()
         incoming_keys = {_normalise_yaml_key(key) for key in incoming}
@@ -1119,6 +1131,7 @@ def _merge_yaml(existing: Any, incoming: Any) -> Any:
 
 
 def _atomic_yaml_write(path: Path, document: Any) -> None:
+    """Write a YAML document to a temporary file, then replace the target."""
     descriptor, temp_name = tempfile.mkstemp(
         prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
     )
@@ -1143,7 +1156,6 @@ def update_scenario_section(
     path: Path, section: str, update: ConfigSectionUpdate
 ) -> dict[str, Any]:
     """Atomically replace one editable YAML section while preserving comments."""
-
     if section not in EDITABLE_CONFIG_SECTIONS:
         raise HTTPException(status_code=404, detail="Scenario section is not editable")
     return update_scenario_sections(
@@ -1158,7 +1170,6 @@ def update_scenario_sections(
     path: Path, update: ConfigSectionsUpdate
 ) -> dict[str, Any]:
     """Atomically replace multiple editable YAML sections while preserving comments."""
-
     if not update.sections:
         raise HTTPException(
             status_code=422, detail="At least one scenario section is required"

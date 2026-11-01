@@ -46,6 +46,7 @@ class ScenarioRunManager:
     RULE_PATTERN = re.compile(r"^(?:localrule|rule)\s+([^:]+):", re.MULTILINE)
 
     def __init__(self, root: Path) -> None:
+        """Set up run storage paths and reload previous runs."""
         self.root = root.resolve()
         self.base_config_path = self.root / "base_config.yaml"
         self.snakefile_path = self.root / "Snakefile"
@@ -58,10 +59,12 @@ class ScenarioRunManager:
 
     @staticmethod
     def _now() -> str:
+        """Return the current UTC time in ISO format."""
         return datetime.now(timezone.utc).isoformat()
 
     @staticmethod
     def _safe_segment(value: str, label: str) -> str:
+        """Validate a single path segment, rejecting traversal."""
         cleaned = value.strip()
         if (
             not cleaned
@@ -74,8 +77,11 @@ class ScenarioRunManager:
         return cleaned
 
     def _load_base_config(self) -> dict[str, Any]:
+        """Load and validate the repository base_config.yaml."""
         if not self.base_config_path.is_file():
-            raise RunValidationError("base_config.yaml was not found at the repository root")
+            raise RunValidationError(
+                "base_config.yaml was not found at the repository root"
+            )
         with self.base_config_path.open(encoding="utf-8") as handle:
             config = yaml.safe_load(handle) or {}
         if not isinstance(config.get("path_configs"), dict) or not isinstance(
@@ -109,6 +115,7 @@ class ScenarioRunManager:
 
     @staticmethod
     def _hotpot_active() -> bool:
+        """Check whether the hotpot Conda environment is active."""
         conda_environment = os.environ.get("CONDA_DEFAULT_ENV", "").strip()
         conda_prefix = Path(os.environ.get("CONDA_PREFIX", "")).name
         return conda_environment == "hotpot" or conda_prefix == "hotpot"
@@ -120,6 +127,7 @@ class ScenarioRunManager:
         input_scenario: str,
         output_scenario: str,
     ) -> tuple[str, str, str, str]:
+        """Validate run inputs and check the input scenario exists."""
         values = (
             self._safe_segment(dataset, "data folder"),
             self._safe_segment(project, "project"),
@@ -145,6 +153,7 @@ class ScenarioRunManager:
         input_scenario: str,
         output_scenario: str,
     ) -> Path:
+        """Write a run-specific base config pointing to the chosen scenario."""
         config = self._load_base_config()
         config["path_configs"].update(
             {
@@ -160,6 +169,7 @@ class ScenarioRunManager:
         return path
 
     def _resolve_command(self) -> list[str]:
+        """Return the Snakemake command to run, honouring overrides."""
         override = os.environ.get("SNAKEMAKE_COMMAND", "").strip()
         if override:
             command = shlex.split(override)
@@ -168,7 +178,14 @@ class ScenarioRunManager:
         if not self._hotpot_active():
             conda = shutil.which("conda")
             if conda:
-                return [conda, "run", "--no-capture-output", "-n", "hotpot", "snakemake"]
+                return [
+                    conda,
+                    "run",
+                    "--no-capture-output",
+                    "-n",
+                    "hotpot",
+                    "snakemake",
+                ]
             raise RunValidationError(
                 "Activate the hotpot Conda environment before running the model"
             )
@@ -183,7 +200,6 @@ class ScenarioRunManager:
 
     def active(self) -> dict[str, Any] | None:
         """Return a copy of the active web run without affecting CLI processes."""
-
         with self._lock:
             record = self._active_record()
             return dict(record) if record else None
@@ -201,7 +217,6 @@ class ScenarioRunManager:
         config_path: Path,
     ) -> Path:
         """Record reproducible input and Git provenance beside the run log."""
-
         manifest = {
             "schema_version": 1,
             "run_id": run_id,
@@ -220,9 +235,7 @@ class ScenarioRunManager:
                 "source_config": str(self.base_config_path.relative_to(self.root)),
                 "run_config": str(config_path.relative_to(self.root)),
             },
-            "data_repository": describe_data_repository(
-                self.root / "data", dataset
-            ),
+            "data_repository": describe_data_repository(self.root / "data", dataset),
             "input_sha256": input_file_hashes(
                 self.root / "data", dataset, project, input_scenario
             ),
@@ -252,7 +265,10 @@ class ScenarioRunManager:
             process.terminate()
 
     def _force_kill_later(self, run_id: str, process: subprocess.Popen[Any]) -> None:
+        """Kill the process if it is still running after 10 seconds."""
+
         def force_kill() -> None:
+            """Send SIGKILL if the process is still the active one."""
             with self._lock:
                 if self._processes.get(run_id) is process and process.poll() is None:
                     self._signal_process(process, signal.SIGKILL)
@@ -262,9 +278,11 @@ class ScenarioRunManager:
         timer.start()
 
     def _state_path(self, run_id: str) -> Path:
+        """Return the path of a run's state file."""
         return self.runs_root / run_id / "state.json"
 
     def _persist(self, record: dict[str, Any]) -> None:
+        """Atomically save a run record to its state file."""
         path = self._state_path(record["id"])
         path.parent.mkdir(parents=True, exist_ok=True)
         temporary = path.with_suffix(".tmp")
@@ -274,6 +292,7 @@ class ScenarioRunManager:
         temporary.replace(path)
 
     def _load_existing_runs(self) -> None:
+        """Reload saved runs, marking interrupted ones as failed."""
         if not self.runs_root.is_dir():
             return
         for path in self.runs_root.glob("*/state.json"):
@@ -295,6 +314,7 @@ class ScenarioRunManager:
             self._runs[str(record["id"])] = record
 
     def _active_record(self) -> dict[str, Any] | None:
+        """Return the active run record, clearing it once finished."""
         if not self._active_run_id:
             return None
         record = self._runs.get(self._active_run_id)
@@ -325,7 +345,10 @@ class ScenarioRunManager:
                 raise RunConflictError(
                     f"Run {active['id']} is already {active['status']}"
                 )
-            run_id = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:8]
+            run_id = (
+                datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-")
+                + uuid.uuid4().hex[:8]
+            )
             run_dir = self.runs_root / run_id
             run_dir.mkdir(parents=True, exist_ok=False)
             try:
@@ -378,6 +401,7 @@ class ScenarioRunManager:
             return self.get(run_id)
 
     def _execute(self, run_id: str, config_path: Path) -> None:
+        """Run Snakemake for a run and record its final status."""
         log_path = self.runs_root / run_id / "snakemake.log"
         try:
             with self._lock:
@@ -408,7 +432,7 @@ class ScenarioRunManager:
             Path(environment["TMPDIR"]).mkdir(parents=True, exist_ok=True)
             with log_path.open("a", encoding="utf-8", buffering=1) as log:
                 log.write(f"$ {shlex.join(command)}\n\n")
-                process = subprocess.Popen(
+                process = subprocess.Popen(  # noqa: S603
                     command,
                     cwd=self.root,
                     env=environment,
@@ -449,19 +473,25 @@ class ScenarioRunManager:
                 canceled = record.get("status") == "canceling"
                 record.update(
                     {
-                        "status": "canceled"
-                        if canceled
-                        else "succeeded"
-                        if exit_code == 0
-                        else "failed",
-                        "progress": 100
-                        if exit_code == 0 and not canceled
-                        else record.get("progress", 0),
-                        "message": "Run canceled"
-                        if canceled
-                        else "Model run completed"
-                        if exit_code == 0
-                        else f"Snakemake exited with code {exit_code}",
+                        "status": (
+                            "canceled"
+                            if canceled
+                            else "succeeded" if exit_code == 0 else "failed"
+                        ),
+                        "progress": (
+                            100
+                            if exit_code == 0 and not canceled
+                            else record.get("progress", 0)
+                        ),
+                        "message": (
+                            "Run canceled"
+                            if canceled
+                            else (
+                                "Model run completed"
+                                if exit_code == 0
+                                else f"Snakemake exited with code {exit_code}"
+                            )
+                        ),
                         "ended_at": self._now(),
                         "exit_code": exit_code,
                     }
@@ -492,6 +522,7 @@ class ScenarioRunManager:
 
     @staticmethod
     def _tail_text(path: Path, max_bytes: int = 96_000) -> str:
+        """Read the last bytes of a text file."""
         if not path.is_file():
             return ""
         with path.open("rb") as handle:
@@ -502,6 +533,7 @@ class ScenarioRunManager:
         return data.decode("utf-8", errors="replace")
 
     def _refresh_progress(self, record: dict[str, Any]) -> str:
+        """Update run progress from the Snakemake log and return the log."""
         log = self._tail_text(self.root / record["log_file"])
         matches = list(self.STEP_PATTERN.finditer(log))
         if matches:
@@ -518,6 +550,7 @@ class ScenarioRunManager:
         return log
 
     def get(self, run_id: str) -> dict[str, Any]:
+        """Return a run record with its current log."""
         with self._lock:
             record = self._runs.get(run_id)
             if record is None:
@@ -532,6 +565,7 @@ class ScenarioRunManager:
             return response
 
     def latest(self) -> dict[str, Any] | None:
+        """Return the most recently created run, if any."""
         with self._lock:
             if not self._runs:
                 return None
@@ -541,6 +575,7 @@ class ScenarioRunManager:
             return self.get(str(record["id"]))
 
     def cancel(self, run_id: str) -> dict[str, Any]:
+        """Request cancellation of an active run."""
         with self._lock:
             record = self._runs.get(run_id)
             if record is None:
