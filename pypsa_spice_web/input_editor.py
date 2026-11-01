@@ -21,6 +21,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, Field
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
+from ruamel.yaml.scalarstring import DoubleQuotedScalarString, ScalarString
 
 EDITABLE_CONFIG_SECTIONS = ("scenario_configs", "co2_management", "custom_constraints")
 SECTOR_LABELS = {"Power": "power", "Industry": "industry", "Transport": "transport"}
@@ -84,6 +85,8 @@ class ConfigSectionsUpdate(BaseModel):
 
 def _load_yaml(path: Path, *, round_trip: bool = False) -> Any:
     yaml = YAML() if round_trip else YAML(typ="safe", pure=True)
+    # Quote style is recorded at load time, so it must be enabled on the loader.
+    yaml.preserve_quotes = round_trip
     with path.open(encoding="utf-8") as handle:
         return yaml.load(handle) or {}
 
@@ -183,9 +186,10 @@ def _technology_sector_mapping(settings_path: Path) -> dict[str, str]:
         return {}
     with mapping_path.open(encoding="utf-8-sig", newline="") as handle:
         return {
-            (row.get("original_names") or "").strip(): (
-                row.get("sector") or ""
-            ).strip().lower()
+            (row.get("original_names") or "")
+            .strip(): (row.get("sector") or "")
+            .strip()
+            .lower()
             for row in csv.DictReader(handle)
             if (row.get("original_names") or "").strip()
         }
@@ -238,9 +242,13 @@ def input_catalog(data_dir: Path, settings_path: Path) -> dict[str, Any]:
     datasets: list[dict[str, Any]] = []
     sector_mapping = _technology_sector_mapping(settings_path)
     if data_dir.is_dir():
-        for dataset_path in sorted(path for path in data_dir.iterdir() if path.is_dir()):
+        for dataset_path in sorted(
+            path for path in data_dir.iterdir() if path.is_dir()
+        ):
             projects: list[dict[str, Any]] = []
-            for project_path in sorted(path for path in dataset_path.iterdir() if path.is_dir()):
+            for project_path in sorted(
+                path for path in dataset_path.iterdir() if path.is_dir()
+            ):
                 input_root = project_path / "input"
                 if not input_root.is_dir():
                     continue
@@ -322,7 +330,9 @@ def _table_config(
     elif table == "Interconnectors" and sector == "power":
         config = (settings.get("Grids", {}) or {}).get("Interconnectors")
     else:
-        label = next((name for name, slug in SECTOR_LABELS.items() if slug == sector), None)
+        label = next(
+            (name for name, slug in SECTOR_LABELS.items() if slug == sector), None
+        )
         config = (settings.get(label, {}) or {}).get(table) if label else None
     if not config:
         raise HTTPException(status_code=404, detail="Input table is not configured")
@@ -372,7 +382,11 @@ def _parse_number(raw: str) -> int | float | str:
     if stripped.lower() in {"inf", "+inf", "-inf"}:
         return stripped.lower().replace("+", "")
     number = float(stripped)
-    return int(number) if number.is_integer() and not any(char in stripped.lower() for char in ".e") else number
+    return (
+        int(number)
+        if number.is_integer() and not any(char in stripped.lower() for char in ".e")
+        else number
+    )
 
 
 def _column_kind(values: list[str]) -> Literal["boolean", "number", "string"]:
@@ -455,7 +469,10 @@ def read_table(
             "label": _pretty_label(column),
             "kind": kinds[column],
             "editable": editable_table
-            and (kinds[column] in {"number", "boolean"} or column == "max_supply [MWh/year]"),
+            and (
+                kinds[column] in {"number", "boolean"}
+                or column == "max_supply [MWh/year]"
+            ),
         }
         for column in fieldnames
     ]
@@ -528,7 +545,11 @@ def read_table(
         for index, row in page_rows
     ]
     return {
-        "path": str(path.relative_to(path.parents[4])) if len(path.parents) > 4 else str(path),
+        "path": (
+            str(path.relative_to(path.parents[4]))
+            if len(path.parents) > 4
+            else str(path)
+        ),
         "revision": _revision(path),
         "columns": columns,
         "rows": rows,
@@ -560,16 +581,18 @@ def _comparison_table_path(
         )
         if direct_path.is_file():
             return direct_path
-    candidate = _confine(
-        sector_root / config["csv_name"], input_root, must_exist=False
-    )
+    candidate = _confine(sector_root / config["csv_name"], input_root, must_exist=False)
     if candidate.is_file():
         return candidate
     return next(
         (
             fallback
             for filename in TABLE_FILE_FALLBACKS.get(table, ())
-            if (fallback := _confine(sector_root / filename, input_root, must_exist=False)).is_file()
+            if (
+                fallback := _confine(
+                    sector_root / filename, input_root, must_exist=False
+                )
+            ).is_file()
         ),
         None,
     )
@@ -583,9 +606,7 @@ def _raw_csv(path: Path | None) -> tuple[list[str], list[dict[str, str]]]:
         return reader.fieldnames or [], list(reader)
 
 
-def _row_key(
-    row: dict[str, str], table: str, fieldnames: list[str]
-) -> tuple[str, ...]:
+def _row_key(row: dict[str, str], table: str, fieldnames: list[str]) -> tuple[str, ...]:
     return tuple(
         (row.get(column) or "").strip()
         for column in _row_key_columns(table, fieldnames)
@@ -667,9 +688,12 @@ def _compare_csv_table(
                 continue
             reference_value = left.get(column, "") if left is not None else None
             comparison_value = right.get(column, "") if right is not None else None
-            if left is not None and right is not None and _comparison_value(
-                reference_value
-            ) == _comparison_value(comparison_value):
+            if (
+                left is not None
+                and right is not None
+                and _comparison_value(reference_value)
+                == _comparison_value(comparison_value)
+            ):
                 continue
             if left is None and comparison_value in (None, ""):
                 continue
@@ -721,7 +745,11 @@ def _compare_flat_values(
         comparison_value = right.get(path)
         if _comparison_value(reference_value) == _comparison_value(comparison_value):
             continue
-        status = "added" if path not in left else "removed" if path not in right else "changed"
+        status = (
+            "added"
+            if path not in left
+            else "removed" if path not in right else "changed"
+        )
         country = path[0] if item_prefix == "country" and path else ""
         parameter_path = path[1:] if country else path
         if item_prefix == "settings" and len(path) > 1 and path[0] == "interest":
@@ -791,8 +819,8 @@ def _config_comparison_sections(
         {
             name
             for country in countries
-            for name in set((left_constraints.get(country) or {}))
-            | set((right_constraints.get(country) or {}))
+            for name in set(left_constraints.get(country) or {})
+            | set(right_constraints.get(country) or {})
         }
     )
     for constraint_name in constraint_names:
@@ -901,24 +929,36 @@ def _serialise_cell(value: Any, kind: str) -> str:
             return "TRUE" if value else "FALSE"
         if isinstance(value, str) and value.lower() in {"true", "false"}:
             return value.upper()
-        raise HTTPException(status_code=422, detail="Boolean cells accept only true or false")
+        raise HTTPException(
+            status_code=422, detail="Boolean cells accept only true or false"
+        )
     if kind == "number":
         if isinstance(value, bool):
-            raise HTTPException(status_code=422, detail="Numeric cells do not accept booleans")
+            raise HTTPException(
+                status_code=422, detail="Numeric cells do not accept booleans"
+            )
         if isinstance(value, str) and value.strip().lower() in {"inf", "+inf", "-inf"}:
             return value.strip().lower().replace("+", "")
         try:
             number = float(value)
         except (TypeError, ValueError) as exc:
-            raise HTTPException(status_code=422, detail="Numeric cells accept only numbers or inf") from exc
+            raise HTTPException(
+                status_code=422, detail="Numeric cells accept only numbers or inf"
+            ) from exc
         if not math.isfinite(number):
-            raise HTTPException(status_code=422, detail="Use inf or -inf for infinite values")
+            raise HTTPException(
+                status_code=422, detail="Use inf or -inf for infinite values"
+            )
         return str(value)
     return str(value)
 
 
-def _atomic_csv_write(path: Path, fieldnames: list[str], rows: list[dict[str, str]]) -> None:
-    descriptor, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+def _atomic_csv_write(
+    path: Path, fieldnames: list[str], rows: list[dict[str, str]]
+) -> None:
+    descriptor, temp_name = tempfile.mkstemp(
+        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
+    )
     try:
         with os.fdopen(descriptor, "w", encoding="utf-8", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=fieldnames)
@@ -951,31 +991,46 @@ def update_table(
     """Validate and atomically apply cell changes to a CSV."""
 
     if config.get("timeseries"):
-        raise HTTPException(status_code=403, detail="Timeseries inputs are read-only in the web editor")
+        raise HTTPException(
+            status_code=403, detail="Timeseries inputs are read-only in the web editor"
+        )
     with _WRITE_LOCK:
         if _revision(path) != update.revision:
-            raise HTTPException(status_code=409, detail="This file changed on disk. Reload it before saving.")
+            raise HTTPException(
+                status_code=409,
+                detail="This file changed on disk. Reload it before saving.",
+            )
         with path.open(encoding="utf-8-sig", newline="") as handle:
             reader = csv.DictReader(handle)
             fieldnames = reader.fieldnames or []
             rows = list(reader)
-        kinds = {column: _column_kind([row.get(column, "") or "" for row in rows]) for column in fieldnames}
+        kinds = {
+            column: _column_kind([row.get(column, "") or "" for row in rows])
+            for column in fieldnames
+        }
         editable = {
             column
             for column in fieldnames
-            if kinds[column] in {"number", "boolean"} or column == "max_supply [MWh/year]"
+            if kinds[column] in {"number", "boolean"}
+            or column == "max_supply [MWh/year]"
         }
         seen: set[tuple[int, str]] = set()
         for change in update.changes:
             marker = (change.row, change.column)
             if marker in seen:
-                raise HTTPException(status_code=422, detail="A cell may only be changed once per save")
+                raise HTTPException(
+                    status_code=422, detail="A cell may only be changed once per save"
+                )
             seen.add(marker)
             if change.row >= len(rows):
                 raise HTTPException(status_code=422, detail="CSV row is out of range")
             if change.column not in editable:
-                raise HTTPException(status_code=422, detail=f"Column '{change.column}' is read-only")
-            rows[change.row][change.column] = _serialise_cell(change.value, kinds[change.column])
+                raise HTTPException(
+                    status_code=422, detail=f"Column '{change.column}' is read-only"
+                )
+            rows[change.row][change.column] = _serialise_cell(
+                change.value, kinds[change.column]
+            )
         _atomic_csv_write(path, fieldnames, rows)
     return read_table(
         path,
@@ -991,7 +1046,9 @@ def update_table(
     )
 
 
-def scenario_config_path(data_dir: Path, dataset: str, project: str, scenario: str) -> Path:
+def scenario_config_path(
+    data_dir: Path, dataset: str, project: str, scenario: str
+) -> Path:
     input_root = _input_root(data_dir, dataset, project)
     scenario_root = _confine(input_root / scenario, input_root)
     path = _confine(scenario_root / "scenario_config.yaml", scenario_root)
@@ -1013,7 +1070,10 @@ def read_scenario_config(path: Path) -> dict[str, Any]:
     return {
         "path": str(path),
         "revision": _revision(path),
-        "sections": {name: _to_json(config.get(name, {}) or {}) for name in EDITABLE_CONFIG_SECTIONS},
+        "sections": {
+            name: _to_json(config.get(name, {}) or {})
+            for name in EDITABLE_CONFIG_SECTIONS
+        },
     }
 
 
@@ -1036,14 +1096,32 @@ def _merge_yaml(existing: Any, incoming: Any) -> Any:
         return target
     if isinstance(incoming, list):
         target = existing if isinstance(existing, CommentedSeq) else CommentedSeq()
+        # Use old items (or the last one) as style references so quoting survives.
+        old_items = list(target)
         target.clear()
-        target.extend(_merge_yaml(None, child) for child in incoming)
+        target.extend(
+            _merge_yaml(
+                old_items[min(index, len(old_items) - 1)] if old_items else None, child
+            )
+            for index, child in enumerate(incoming)
+        )
         return target
+    # Unchanged scalars keep their original node (quotes, "0.10", "1.e-5", ...).
+    same_kind = isinstance(existing, bool) == isinstance(incoming, bool)
+    if existing is not None and same_kind and existing == incoming:
+        return existing
+    if isinstance(incoming, str):
+        # Keep an existing quote style; otherwise edited strings are double-quoted.
+        if isinstance(existing, ScalarString):
+            return type(existing)(incoming)
+        return DoubleQuotedScalarString(incoming)
     return incoming
 
 
 def _atomic_yaml_write(path: Path, document: Any) -> None:
-    descriptor, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    descriptor, temp_name = tempfile.mkstemp(
+        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
+    )
     try:
         yaml = YAML()
         yaml.preserve_quotes = True
@@ -1061,30 +1139,43 @@ def _atomic_yaml_write(path: Path, document: Any) -> None:
         raise
 
 
-def update_scenario_section(path: Path, section: str, update: ConfigSectionUpdate) -> dict[str, Any]:
+def update_scenario_section(
+    path: Path, section: str, update: ConfigSectionUpdate
+) -> dict[str, Any]:
     """Atomically replace one editable YAML section while preserving comments."""
 
     if section not in EDITABLE_CONFIG_SECTIONS:
         raise HTTPException(status_code=404, detail="Scenario section is not editable")
     return update_scenario_sections(
         path,
-        ConfigSectionsUpdate(revision=update.revision, sections={section: update.value}),
+        ConfigSectionsUpdate(
+            revision=update.revision, sections={section: update.value}
+        ),
     )
 
 
-def update_scenario_sections(path: Path, update: ConfigSectionsUpdate) -> dict[str, Any]:
+def update_scenario_sections(
+    path: Path, update: ConfigSectionsUpdate
+) -> dict[str, Any]:
     """Atomically replace multiple editable YAML sections while preserving comments."""
 
     if not update.sections:
-        raise HTTPException(status_code=422, detail="At least one scenario section is required")
+        raise HTTPException(
+            status_code=422, detail="At least one scenario section is required"
+        )
     if any(section not in EDITABLE_CONFIG_SECTIONS for section in update.sections):
         raise HTTPException(status_code=404, detail="Scenario section is not editable")
     with _WRITE_LOCK:
         if _revision(path) != update.revision:
-            raise HTTPException(status_code=409, detail="This config changed on disk. Reload it before saving.")
+            raise HTTPException(
+                status_code=409,
+                detail="This config changed on disk. Reload it before saving.",
+            )
         document = _load_yaml(path, round_trip=True)
         if not isinstance(document, CommentedMap):
-            raise HTTPException(status_code=422, detail="Scenario config must be a YAML mapping")
+            raise HTTPException(
+                status_code=422, detail="Scenario config must be a YAML mapping"
+            )
         for section, value in update.sections.items():
             document[section] = _merge_yaml(document.get(section), value)
         _atomic_yaml_write(path, document)
