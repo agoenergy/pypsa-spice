@@ -195,7 +195,7 @@ The app does not change the checked-in `base_config.yaml`. Each run also writes 
 Model runs always use the `hotpot` Conda environment. If the web server already runs in `hotpot`, the runner uses its Snakemake installation. Otherwise, it launches `conda run --no-capture-output -n hotpot snakemake`. Set `SNAKEMAKE_COMMAND` to override this command locally.
 
 ```bash
-SNAKEMAKE_COMMAND="conda run -n hotpot snakemake" ./run_web.sh
+SNAKEMAKE_COMMAND="conda run -n hotpot snakemake" ./run-web-locally.sh
 ```
 
 ## Result-file access

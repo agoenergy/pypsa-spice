@@ -93,7 +93,7 @@ export async function getInputCatalog(): Promise<InputCatalog> {
     "The input catalog could not be read.",
   );
   if (catalog.table_query_version !== 2) {
-    throw new Error("The local backend is out of date. Restart the app with ./run_web.sh.");
+    throw new Error("The local backend is out of date. Restart the app with ./run-web-locally.sh.");
   }
   return catalog;
 }
