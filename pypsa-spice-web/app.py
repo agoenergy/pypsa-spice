@@ -250,22 +250,26 @@ def _read_csv_cached(path_string: str, modified_ns: int) -> tuple[dict[str, Any]
     return tuple(rows)
 
 
-def _read_paths(paths: list[Path]) -> list[dict[str, Any]]:
-    """Read and concatenate result CSVs, dropping duplicated rows."""
-    rows: list[dict[str, Any]] = []
-    for path in paths:
-        rows.extend(
-            dict(row) for row in _read_csv_cached(str(path), path.stat().st_mtime_ns)
-        )
-    # Some exporters repeat the full yearly table in each year folder.
+@lru_cache(maxsize=32)
+def _read_paths_cached(
+    versions: tuple[tuple[str, int], ...],
+) -> tuple[dict[str, Any], ...]:
+    """Concatenate result CSVs and drop duplicated rows, cached per file versions."""
     seen: set[tuple[Any, ...]] = set()
     unique_rows: list[dict[str, Any]] = []
-    for row in rows:
-        marker = tuple(row.items())
-        if marker not in seen:
-            seen.add(marker)
-            unique_rows.append(row)
-    return unique_rows
+    for path_string, modified_ns in versions:
+        for row in _read_csv_cached(path_string, modified_ns):
+            # Some exporters repeat the full yearly table in each year folder.
+            marker = tuple(row.values())
+            if marker not in seen:
+                seen.add(marker)
+                unique_rows.append(row)
+    return tuple(unique_rows)
+
+
+def _read_paths(paths: list[Path]) -> tuple[dict[str, Any], ...]:
+    """Read result CSVs; returned rows are shared and must not be mutated."""
+    return _read_paths_cached(tuple((str(p), p.stat().st_mtime_ns) for p in paths))
 
 
 def _sample_hourly(

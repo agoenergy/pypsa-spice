@@ -70,7 +70,7 @@ function traces(
       trace.fill = comparison ? "none" : "tonexty";
       trace.stackgroup = comparison ? undefined : "one";
     } else if (chart.hourly && !isBar) {
-      trace.type = "scatter";
+      trace.type = "scattergl";
       trace.mode = "lines";
     } else trace.type = "bar";
     return trace;
@@ -89,7 +89,7 @@ function differenceTraces(
     const color = getLegendColour(legend, legendValues.indexOf(legend), mappings);
     const isBar = chart.type.includes("bar") || !chart.hourly;
     return {
-      type: isBar ? "bar" : "scatter",
+      type: isBar ? "bar" : "scattergl",
       mode: isBar ? undefined : "lines",
       name: formatLegendLabel(legend, mappings),
       x: points.map((point) => point.x),

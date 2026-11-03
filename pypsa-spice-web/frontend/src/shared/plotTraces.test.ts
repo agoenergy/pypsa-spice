@@ -132,11 +132,11 @@ describe("buildPlotTraces", () => {
     expect(areas.data[1]).toMatchObject({ type: "scatter", fill: "none", stackgroup: undefined });
     const difference = buildPlotTraces({ ...options, difference: true });
     expect(difference.data).toHaveLength(1);
-    expect(difference.data[0]).toMatchObject({ type: "scatter", mode: "lines", x: ["2030-01-01 00:00"], y: [3] });
+    expect(difference.data[0]).toMatchObject({ type: "scattergl", mode: "lines", x: ["2030-01-01 00:00"], y: [3] });
     expect(difference.data[0]).not.toHaveProperty("stackgroup");
     expect(difference.data[0]).not.toHaveProperty("fill");
     const lines = buildPlotTraces({ ...options, chart: { ...options.chart, type: "hourly_line" } });
-    expect(lines.data[0]).toMatchObject({ type: "scatter", mode: "lines" });
+    expect(lines.data[0]).toMatchObject({ type: "scattergl", mode: "lines" });
     expect(lines.data[0]).not.toHaveProperty("fill");
   });
 
