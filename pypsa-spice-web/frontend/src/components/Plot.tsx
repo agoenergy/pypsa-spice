@@ -98,6 +98,8 @@ export default function Plot({
           tickfont: { size: chartFont.body },
           unifiedhovertitle: { text: chart.hourly ? "%{x|%d %b · %H:%M}" : "%{x}" },
           range: xAxisRange,
+          // Categorical axis shows only the years present, evenly spaced
+          ...(chart.hourly ? {} : { type: "category", categoryorder: "category ascending" }),
         },
         yaxis: {
           title: {
