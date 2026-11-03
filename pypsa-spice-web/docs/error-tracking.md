@@ -1,4 +1,13 @@
-# UI and UX backlog
+# PyPSA-SPICE web workspace error tracking
+
+This file tracks open UI, UX, and correctness findings and gaps in test coverage.
+Completed work is recorded in the [development history](development-history.md), and
+the [overview](overview.md) describes the application itself.
+
+- [UI and UX backlog](#ui-and-ux-backlog)
+- [Frontend test proposal](#frontend-test-proposal)
+
+## UI and UX backlog
 
 Findings from a review of the web workspace on 2026-08-20, taken by walking Home,
 Inputs, Configure & run, Results, comparison mode and Dashboards at 1680x1050 in
@@ -11,11 +20,11 @@ to SCSS modules.
 
 The 2026-09-12 Plot refactor moved calculations, trace construction, and the shared
 legend into separate files. The [chart code guide](overview.md#chart-code) maps their
-current owners, and the [Jia review](ui-review-jia.md#plottsx) links the commits.
+current owners, and the [code review responses](development-history.md#plottsx) link the commits.
 The comparison-axis issue in item 2 is now closed. The loading and toolbar findings
 remain open.
 
-## Closed
+### Closed
 
 **Type scale.** 97% of text-bearing elements on the Power results page rendered
 below 12px (328 at 9px, 371 at 10px, 56 at 11px) while the page title sat at 52px.
@@ -25,11 +34,11 @@ declarations across 13 stylesheets map onto them, and `shared/chartPresentation.
 Measured after the change: no element renders below 12px on any page, in either
 theme.
 
-## Correctness
+### Correctness
 
 These two change what the user concludes from the screen, so they come first.
 
-### 1. Deep links drop the result run and the comparison
+#### 1. Deep links drop the result run and the comparison
 
 Opening `?run=scenario_03_run` lands on `scenario_01-1_run`. Adding
 `&compare=scenario_03_run` drops the comparison entirely. Reproduced twice.
@@ -45,7 +54,7 @@ Read `locationParams()` once at mount into a ref and resolve from that, or hold 
 URL writer until both catalogs have resolved. Until this is fixed nobody can share
 or bookmark a comparison, which is the workspace's main analytical output.
 
-### 2. Side-by-side comparison plots autoscale independently, closed 2026-09-12
+#### 2. Side-by-side comparison plots autoscale independently, closed 2026-09-12
 
 Each plot in comparison mode computes its own axis range. Observed on one page:
 
@@ -66,9 +75,9 @@ time spans, clamped to the selected time range. The calculations live in
 tests cover stacked values, hidden series, the secondary axis, different hourly
 extents, selected time ranges, and unchanged yearly x-axis behaviour.
 
-## Layout and density
+### Layout and density
 
-### 3. The two-column chart grid is dead code
+#### 3. The two-column chart grid is dead code
 
 `.chart-grid` sets `repeat(2, minmax(0, 1fr))` at `ChartCard.css:80` and a later rule
 at `ChartCard.css:230` overrides it to a single column. The
@@ -78,12 +87,12 @@ page runs about 8,000px tall for 16 charts. Restore the two-up grid outside
 comparison mode, keep full width when comparing, and raise `.chart-body` above 340px
 (`ChartCard.css:189`) so plots sit nearer 4:3.
 
-### 4. All 16 charts fetch on page load
+#### 4. All 16 charts fetch on page load
 
 Every `ChartCard` fires its request on mount. Wrap in an `IntersectionObserver` so
 off-screen cards hold a placeholder until they are scrolled near.
 
-### 5. Two competing toolbars per chart
+#### 5. Two competing toolbars per chart
 
 The card's own actions (view data, download CSV, expand) sit about 25px above
 Plotly's modebar (download PNG, zoom, pan, autoscale, reset). Comparison mode draws
@@ -91,24 +100,24 @@ two modebars per card, 32 on the page. Trim the modebar to `['resetScale2d']` an
 fold PNG export into the card's action row, or drop the modebar and expose zoom and
 reset as card actions.
 
-### 6. Empty charts cost a full card
+#### 6. Empty charts cost a full card
 
 "Battery's E/P ratio" draws a full-height card, a country picker and a Difference
 toggle around the words "No values in this result table". Collapse charts with no
 data to one compact row, or group them under a "No data in this run (2)" disclosure.
 
-### 7. Per-chart controls have no page-level default
+#### 7. Per-chart controls have no page-level default
 
 16 identical "All countries" selects. Per-chart scope is a deliberate choice and a
 good one, but add a page-level default that seeds every card, with per-card override.
 
-### 8. Result runs are unidentifiable
+#### 8. Result runs are unidentifiable
 
 The picker offers `scenario_01_tag1`, `scenario_01_tag1 copy`, `scenario_03-98_ru2`
 and `scenario_03-25_2` with nothing to tell them apart. Add each run's mtime and
 modelled-year span to the option label and sort newest first.
 
-### 9. Page identity repeats three and four times
+#### 9. Page identity repeats three and four times
 
 Home shows "Workspace overview" in the top bar and again as the h1. Configure stacks
 sidebar "Configure & run", sub-item "Scenario settings", h1 "Configure scenario_01"
@@ -116,7 +125,7 @@ and panel h2 "Scenario settings". Keep the h1, drop the top-bar copy and the pan
 that repeats the active sub-nav item. This got more visible once the h1 shrank to
 28px.
 
-### 10. Home spends the fold on documentation
+#### 10. Home spends the fold on documentation
 
 "How to use the workspace" takes six cards and about 250px on every visit, and its
 first card is a disabled "Build input data skeleton / NOT IMPLEMENTED", so the
@@ -124,9 +133,9 @@ workflow opens on a dead end. Make the panel collapsible and remember the state.
 Either drop the unimplemented step or move it last. Below it, "Result runs" spans two
 grid columns and is usually empty.
 
-## Forms
+### Forms
 
-### 11. Configure & run keeps a disabled save bar on screen, closed 2026-09-12
+#### 11. Configure & run keeps a disabled save bar on screen, closed 2026-09-12
 
 The floating Save and Discard pair is always mounted with both buttons disabled, and
 the pink Save at 42% opacity reads as an enabled primary action at a glance. Show the
@@ -138,7 +147,7 @@ pages. The floating controls appear only for unsaved changes or an active save a
 disappear after saving or discarding. Save confirmation remains inline in the page.
 Removed the floating button height override so controls use the shared 44px height.
 
-### 12. Inputs has no global save, closed 2026-09-12
+#### 12. Inputs has no global save, closed 2026-09-12
 
 Each table panel carries its own Save and Discard pair, three or more on a technology
 page, so editing across tables means saving each one separately with no running total
@@ -152,75 +161,75 @@ entry animation. Follow-up fix on 2026-09-12 moves both portals outside the keye
 controller, preserving navigation while retaining the editor reset and shared save
 behaviour.
 
-### 13. Number fields mix decimal conventions
+#### 13. Number fields mix decimal conventions
 
 `type="number"` fields render `0,05` and `0,1` from the OS locale directly under help
 text that reads "0.05 means 5%". Switch to `type="text"` with
 `inputMode="decimal"` and explicit parsing and formatting so the field and the
 documentation agree.
 
-### 14. The config form validates nothing
+#### 14. The config form validates nothing
 
 `data/example/project_01/input/scenario_01/scenario_config.yaml` holds
 `start: 20266-01-01`, which is bad source data rather than a UI bug, and the form
 shows year 20266 with no warning. Add range checks and an inline error, since this
 form writes to disk.
 
-### 15. Absolute paths leak on Configure
+#### 15. Absolute paths leak on Configure
 
 Configure prints `/Users/<name>/Desktop/.../scenario_config.yaml` while Inputs prints
 the relative `example/project_01/input/...`. Use relative paths everywhere and put
 the absolute path in a `title` attribute.
 
-### 16. Pagination shows when there is one page
+#### 16. Pagination shows when there is one page
 
 The footer still reads "Page 1 of 1" with a row count and both arrows disabled.
 Hide the control when `pageCount === 1`.
 
-### 17. Field widths ignore content
+#### 17. Field widths ignore content
 
 "Model year" gets a 622px input for four digits. Size numeric fields to their content
 and let text fields expand.
 
-## Dashboards
+### Dashboards
 
-### 18. Delete sits in a row of unlabelled icons
+#### 18. Delete sits in a row of unlabelled icons
 
 New, Duplicate, Import, Export and Delete are five 40px icon buttons, with the red
 trash 44px from Export. `window.confirm` catches the mistake, but move Delete into an
 overflow menu or separate it with a divider.
 
-### 19. The header is spatially disconnected
+#### 19. The header is spatially disconnected
 
 Selects end near x=714, the action cluster starts near x=1333, refresh sits at
 x=1588. Two large gaps. Group the actions beside the selects or right-align them with
 refresh.
 
-### 20. Two titles compete
+#### 20. Two titles compete
 
 The h1 "Custom dashboards" sits above the editable "Untitled dashboard". The editable
 one is the real title, so make it the visual h1 and drop the generic heading.
 
-### 21. The description textarea is one clipped line
+#### 21. The description textarea is one clipped line
 
 18px tall at 850px wide with a visible resize handle. Give it three rows and
 `resize: vertical`.
 
-### 22. Rows are full width only
+#### 22. Rows are full width only
 
 Documented as deliberate, but it means heavy scrolling and no at-a-glance comparison.
 A two-up option per row would make dashboards far more useful. This is a product
 question, not a defect.
 
-## Accessibility
+### Accessibility
 
-### 23. The expanded chart is a modal that is not one
+#### 23. The expanded chart is a modal that is not one
 
 `.chart-card.expanded` (`ChartCard.css:94`) is `position: fixed; inset: 18px;
 z-index: 100` with no `role="dialog"`, no `aria-modal`, no Escape handler, no focus
 trap, and the page behind still scrolls. Escape to close is the reflex here.
 
-### 24. Dialog behaviour is inconsistent
+#### 24. Dialog behaviour is inconsistent
 
 `DataDialog` and `NewScenarioDialog` do this well, with `role="dialog"`,
 `aria-modal` and Escape. The Dashboards add-chart and import dialogs
@@ -228,23 +237,23 @@ trap, and the page behind still scrolls. Escape to close is the reflex here.
 focus or locks body scroll. Extract one `Modal` that owns Escape, focus trap,
 focus restore and scroll lock, then use it for all five.
 
-### 25. Icon-only buttons carry no visible label
+#### 25. Icon-only buttons carry no visible label
 
 Refresh and the five dashboard actions rely on `title` and `aria-label`. The
 `aria-label`s are present and correct throughout, which is genuinely well done, but a
 first-time user hovers five icons to find Export.
 
-## CSS structure
+### CSS structure
 
-### 26. Page chrome lives in a component stylesheet, closed 2026-09-12
+#### 26. Page chrome lives in a component stylesheet, closed 2026-09-12
 
 The SCSS module migration moved the application shell into `App.module.scss`,
 component styles into their own modules, and shared patterns into explicit shared
 modules. `global.scss` contains only application-wide foundations. The original
-`components/ChartCard.css` no longer exists. See [Jia General 1 and 2](ui-review-jia.md#general)
+`components/ChartCard.css` no longer exists. See [code review General 1 and 2](development-history.md#general)
 and commit [0c41834](https://github.com/agoenergy/pypsa-spice/commit/0c41834477e09641c837e067b092f15467792126).
 
-### 27. Corrections pile up instead of edits
+#### 27. Corrections pile up instead of edits
 
 `global.scss` ends in several blocks that undo earlier declarations. One zeroes
 `border-left` on `.notice` and `.editor-warning` under the comment "Left-edge accent
@@ -259,7 +268,7 @@ Five `font-size` declarations stayed hardcoded during the type-scale work:
 `.sidebar-foot button`. They size glyphs on elements that now hold only SVGs with
 explicit width and height, so they render nothing. Clean them up here.
 
-## Suggested order
+### Suggested order
 
 1. Shared axis ranges in comparison mode, item 2. Correctness, small diff.
 2. Restore the two-up chart grid and delete the dead override, item 3.
@@ -269,3 +278,128 @@ explicit width and height, so they render nothing. Clean them up here.
    to 13.
 6. Shared `Modal` and Escape on the expanded chart, items 23 and 24.
 7. Recheck the remaining CSS cleanup in item 27 after the module migration.
+
+## Frontend test proposal
+
+Written 2026-09-12, for discussion. Nothing here is implemented yet.
+
+This picks up [code review General 5](development-history.md#general), which settled on tests grouped
+by behaviour, alongside the code that owns that behaviour, plus dedicated component
+tests where a component has meaningful interactions. The reply there also noted that
+broader behaviour coverage remains open. This is a concrete first slice of it.
+
+### What prompted it
+
+The simplify pass on 2026-09-12 removed the responsive stylesheets and the mobile
+navigation they drove, untangled the `ChartSurface` override tail, and pulled four
+shared modules out of duplicated code:
+
+| Module | Replaces |
+| --- | --- |
+| `src/useDismiss.ts` | The Escape handler written out five times |
+| `src/useNearViewport.ts` | New. Gates chart requests behind an `IntersectionObserver` |
+| `src/components/ResultsToc.tsx` | Three copies of the same jump-to popover |
+| `src/components/ChartFeedback.tsx` | Loading, error, and heading blocks duplicated across both chart cards |
+
+Three of them own behaviour that fails without throwing, which is the case for
+dedicated tests. None of them has a test today.
+
+### Why nothing covers them now
+
+The suite is eleven `.ts` files and 44 tests, all pure logic. There is no jsdom, no
+`@testing-library/react`, and no `environment` setting in `vite.config.ts`. React hooks
+are not reachable from that setup, so the gap is structural rather than an oversight.
+
+### Proposed tests
+
+Four files, roughly 18 tests, each beside the code it covers.
+
+| File | Covers | Tests |
+| --- | --- | --- |
+| `src/useNearViewport.test.ts` | Lazy chart loading gate | 5 |
+| `src/useDismiss.test.ts` | Escape and outside-click dismissal | 5 |
+| `src/components/ChartFeedback.test.ts` | `useDelayedFlag` spinner timing | 4 |
+| `src/components/ResultsToc.test.tsx` | Popover open, close, and empty guard | 4 |
+
+#### `useNearViewport`
+
+The highest-priority file. Starts false, latches true on first intersection, stays true
+after the element scrolls away, disconnects the observer on unmount, and falls back to
+true when `IntersectionObserver` is missing.
+
+Both failure modes are silent. Stuck false means charts never load. Stuck true means the
+Power page quietly returns to firing all 16 requests on mount, which is what this module
+exists to prevent. Neither throws, and neither shows up in a diff review.
+
+#### `useDismiss`
+
+Four call sites depend on it, and one gates on state: `NewScenarioDialog` ignores Escape
+while a submit is in flight. Escape fires while active, does nothing while inactive, the
+listener detaches on unmount, an outside pointerdown dismisses, an inside one does not.
+
+`DataDialog` keeps its own handler, because Escape there closes open table menus first
+and only then the dialog. That stays out of the shared hook and out of these tests.
+
+#### `useDelayedFlag`
+
+The guarantee is that a spinner does not flash on fast responses. That is pure timing:
+false before the delay, true after it, back to false when loading clears, and no late
+flip if loading clears before the timer fires. Fake timers, so no real waiting.
+
+#### `ResultsToc`
+
+The debatable one, and worth arguing about. It sits close to the visual wrapper category
+that General 5 judged not worth a test file.
+
+The case for covering it: one component now serves Results, Scenario differences, and
+Configure, so a regression hits three pages at once. It also carries real logic. It
+returns null when `entries` is empty, `aria-expanded` tracks panel state, and selecting
+an entry closes the panel. Tests would cover those four things and nothing else.
+
+Drop this file if reviewers read it as a wrapper.
+
+### Out of scope
+
+`ChartLoadingState`, `ChartErrorState`, `ChartRefreshOverlay`, and `ChartContextHeading`
+in `ChartFeedback.tsx`. They are markup with no branching. Testing them would assert that
+JSX renders JSX, which is the maintenance-without-value case from General 5.
+
+### Cost
+
+Two development dependencies, `jsdom` and `@testing-library/react` v16 or later, which is
+the first version supporting React 19. The project is on React 19.2.7.
+
+The existing suite does not have to move. Vitest 4.1.10 supports a per-file
+`// @vitest-environment jsdom` docblock, verified in the installed package, so the eleven
+current files keep running in the node environment at their current speed and only the new
+files pay for a DOM.
+
+### The decision underneath
+
+These four files matter less than the precedent they set. Approving them means the project
+accepts a DOM test environment and component-level tests as a normal pattern. That opens
+coverage for behaviour that is untestable today and has actually broken before: dirty-state
+save and discard, run polling, the deep-link race that drops `run` and `compare`, and
+shared axis ranges in comparison mode.
+
+That is the question worth the discussion. The four files are a small first instance of it.
+
+### Recommendation
+
+Take it, `ResultsToc` included. The hooks encode invariants that are invisible in review
+and silent when they break, and the marginal cost after the first jsdom file is close to
+zero.
+
+If the answer is no DOM at all, then the honest outcome is that these four modules stay
+untested. Reshaping them into pure functions to fit the current setup would produce tests
+that pass while the lifecycle behaviour, which is where the risk actually sits, goes
+unchecked. No test is preferable to that one.
+
+### Open questions
+
+1. Is `ResultsToc` worth a test file, or does it fall under the visual wrapper exclusion?
+2. Per-file `@vitest-environment` docblocks, or one global jsdom environment for the whole
+   suite? Per-file keeps the current tests fast; global is less to remember.
+3. Does `@testing-library/react` fit, or is there a lighter approach preferred for
+   hook lifecycle tests?
+4. If this pattern is accepted, which of the untested behaviours above comes next?

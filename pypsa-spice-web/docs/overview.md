@@ -8,7 +8,7 @@ Results cover Power, Industry, Transport, Emissions, and Costs. Comparison mode 
 
 The [web application code structure and logic guide](code-structure.html) maps the modules, request flow, stored data, and safety checks.
 
-The [UI and UX backlog](ui-review-backlog.md) records open interface findings with file references and a suggested order of work.
+The [development history](development-history.md) records completed work and code review responses. [Error tracking](error-tracking.md) lists open UI and UX findings and test coverage gaps.
 
 ## Do not copy the Streamlit UI
 
@@ -229,48 +229,5 @@ FastAPI filters input tables before pagination. The table endpoint accepts techn
 The React table editor requests 100 rows per page. FastAPI matches technologies against the complete source table instead of limiting the search to rows already loaded in the browser. The editor keeps unsaved changes while the user moves between pages. After the user confirms a project or scenario change, the remounted editor clears them. A table loading error stays visible instead of appearing as an empty technology match.
 
 Each React effect owns the `AbortController` for its input or scenario configuration request. Changing context or unmounting the editor aborts the active request. An older response therefore cannot overwrite a newly selected table, project, or scenario.
-
-## Implementation record
-
-### 2026-09-12: Plot responsibilities and types
-
-Extracted chart data helpers, the shared legend and its styles, and trace
-construction from `Plot.tsx` in separate commits. Added Plotly types and six
-trace regression tests. TypeScript, all 44 frontend tests, formatting, and the
-production build passed. The [Jia review](ui-review-jia.md#plottsx) records the
-three fixes and their commit IDs.
-
-### 2026-08-20: type scale
-
-- Added seven size tokens to `global.scss` with a 12px floor and mapped all 158 size declarations across 13 stylesheets onto them.
-- Dropped the page title from `clamp(34px, 4vw, 52px)` to 28px and retuned its leading and tracking for the smaller size.
-- Added a `chartFont` constant mirroring the tokens, because Plotly draws its own SVG text. Originally in `Plot.tsx`, it now lives in `shared/chartPresentation.ts`. Axis ticks moved from 9px to 12px and plot margins grew to fit the larger labels.
-- Widened the chart legend columns, the Home project picker and the count badges, which had started truncating.
-- Aligned the sidebar brand border with the workspace bar border, previously 1px out.
-- Recorded the open findings from the same review in the [UI and UX backlog](ui-review-backlog.md).
-
-Verification commands:
-
-```bash
-npm --prefix pypsa-spice-web/frontend run build
-npm --prefix pypsa-spice-web/frontend test
-```
-
-### 2026-07-15: result paths and input-editor data flow
-
-- Confined result chart/download paths to configured tables, valid modes, existing years, and the selected sector directory.
-- Corrected React request cleanup in the CSV and scenario-configuration editors.
-- Moved technology, country, configured-value, and text filtering to the backend before pagination.
-- Replaced the misleading fixed-row-limit message with matching-row and page counts.
-- Added an input-table API version marker so a stale backend produces an explicit restart message instead of breaking the Inputs page.
-- Added regression coverage for result-path confinement and filtering-before-pagination.
-
-Verification commands:
-
-```bash
-npm --prefix pypsa-spice-web/frontend run build
-conda run -n hotpot python -m unittest discover -s tests -p 'test*.py' -q
-git diff --check -- pypsa-spice-web tests
-```
 
 The app reads the checked-out `data/` tree, including deployments that sit beside a model checkout. Uploads, object storage, authentication, and hosted persistence are out of scope.

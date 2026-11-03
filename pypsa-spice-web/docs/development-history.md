@@ -1,3 +1,59 @@
+# PyPSA-SPICE web workspace development history
+
+This file records completed implementation work and responses to code review.
+Open defects and proposals are tracked in [error tracking](error-tracking.md), and the
+[overview](overview.md) describes the application itself.
+
+- [Implementation record](#implementation-record)
+- [Code review responses](#code-review-responses)
+
+## Implementation record
+
+### 2026-09-12: Plot responsibilities and types
+
+Extracted chart data helpers, the shared legend and its styles, and trace
+construction from `Plot.tsx` in separate commits. Added Plotly types and six
+trace regression tests. TypeScript, all 44 frontend tests, formatting, and the
+production build passed. The [code review responses](#plottsx) record the
+three fixes and their commit IDs.
+
+### 2026-08-20: type scale
+
+- Added seven size tokens to `global.scss` with a 12px floor and mapped all 158 size declarations across 13 stylesheets onto them.
+- Dropped the page title from `clamp(34px, 4vw, 52px)` to 28px and retuned its leading and tracking for the smaller size.
+- Added a `chartFont` constant mirroring the tokens, because Plotly draws its own SVG text. Originally in `Plot.tsx`, it now lives in `shared/chartPresentation.ts`. Axis ticks moved from 9px to 12px and plot margins grew to fit the larger labels.
+- Widened the chart legend columns, the Home project picker and the count badges, which had started truncating.
+- Aligned the sidebar brand border with the workspace bar border, previously 1px out.
+- Recorded the open findings from the same review in the [UI and UX backlog](error-tracking.md#ui-and-ux-backlog).
+
+Verification commands:
+
+```bash
+npm --prefix pypsa-spice-web/frontend run build
+npm --prefix pypsa-spice-web/frontend test
+```
+
+### 2026-07-15: result paths and input-editor data flow
+
+- Confined result chart/download paths to configured tables, valid modes, existing years, and the selected sector directory.
+- Corrected React request cleanup in the CSV and scenario-configuration editors.
+- Moved technology, country, configured-value, and text filtering to the backend before pagination.
+- Replaced the misleading fixed-row-limit message with matching-row and page counts.
+- Added an input-table API version marker so a stale backend produces an explicit restart message instead of breaking the Inputs page.
+- Added regression coverage for result-path confinement and filtering-before-pagination.
+
+Verification commands:
+
+```bash
+npm --prefix pypsa-spice-web/frontend run build
+conda run -n hotpot python -m unittest discover -s tests -p 'test*.py' -q
+git diff --check -- pypsa-spice-web tests
+```
+
+## Code review responses
+
+Responses to the external frontend code review. Each item quotes the review
+suggestion, followed by the implementation status and addressing commits.
 
 ### Suggestions batch 2
 
@@ -38,7 +94,7 @@ Commit references below distinguish implemented fixes from partial progress and 
     > Commit: [7eac4fc](https://github.com/agoenergy/pypsa-spice/commit/7eac4fc3bee383cdf63b0846d7d00ac2005cc61b).
 
 5. Testing is minimal and a bit random at the moment. The tests that are there are fairly sensible, but I'm not sure why there are only tests for a couple of components. If tests are desired, I'd suggest to actually have a test file per component (or conceptual 'group of behaviour'), living alongside the component, as is more conventional. However, tests are normally run separately in the development process anyway, and at specific points e.g., after fixing a bug, before pushing/building/deploying etc., and the dev needs to know when to run them. For purposes of this repo (assuming it's going to be run by non-devs), it might not make sense to include tests since they would not be so meaningful for people looking at the codebase and they would not know how to interpret them
-    > Reply: SKu: I think having tests would be good so agents can also run tests to check changes. I am not sure which approach of grouping test files is better.
+    > Reply: I think having tests would be good so agents can also run tests to check changes. I am not sure which approach of grouping test files is better.
 
     > Follow-up: I agree with keeping tests so developers and agents can catch regressions; non-dev users do not need to run or interpret them, and CI already runs them automatically. I'd favour tests grouped by behaviour, such as run polling, configuration save/discard, or chart calculations, alongside the code that owns that behaviour. Add dedicated component tests where a component has meaningful interactions; a test file for every visual wrapper would add maintenance without much value.
     >
@@ -47,10 +103,9 @@ Commit references below distinguish implemented fixes from partial progress and 
     > Open for discussion, 2026-09-12: the simplify pass extracted four shared modules
     > (`useDismiss`, `useNearViewport`, `ResultsToc`, `ChartFeedback`) and none of them has a
     > test, because the suite has no DOM environment and React hooks are not reachable from it.
-    > The [frontend test proposal](test-proposal.md) sets out four test files, what each covers,
-    > the two development dependencies it needs, and four questions for you. The one I would
-    > most like your read on is whether `ResultsToc` counts as a visual wrapper under your
-    > exclusion, or earns a test file because it now serves three pages. Nothing is implemented
+    > The [frontend test proposal](error-tracking.md#frontend-test-proposal) sets out four test files, what each covers,
+    > the two development dependencies it needs, and four open questions. The main one is whether `ResultsToc` counts as a visual
+    > wrapper under the exclusion in General 5, or earns a test file because it now serves three pages. Nothing is implemented
     > pending that discussion.
 
 #### `Plot.tsx`
@@ -137,7 +192,7 @@ useEffect(() => {
     > Open. No addressing commit yet; `dimensions` and `scenarioSummary` still use `useMemo`.
 
 
-### Changes made:
+### Changes made by the reviewer
 
 - Added missing Vite Typescript declaration file (vite-env.d.ts). Without this, Typescript tooling sometimes does not know that side-effect imports like `import "./ScenarioConfigEditor.css"` are valid and you get these `Cannot find module or type declarations for side-effect import of ...` errors.
 
@@ -153,7 +208,7 @@ useEffect(() => {
     >
     > Commit: [6341e59](https://github.com/agoenergy/pypsa-spice/commit/6341e595c3eebac3fecc581da0bb28e970ee0684).
 
-### Further comments/suggestions for improvement:
+### Further review comments
 
 - Your frontend seems to be polling your backend every 2 seconds (can be seen when you run `run-web-locally.sh`, and you see the GET request logged every 2s). This comes from line 83 in `App.tsx`, which calls `refreshRunStatus` every 2000 ms). I'm not sure if this is a deliberate design choice, but if it's not a technical requirement to actually keep the model-run status fresh, I would suggest just fetching the latest run once, then keep polling only when a run is queued/running/cancelling. Alternatively maybe poll less often like every 10-20s or so. Every 2s is a lot of background activity.
 
