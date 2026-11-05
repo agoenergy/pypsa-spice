@@ -10,6 +10,7 @@
 *.dll 
 .snakemake*
 .history
+.DS_Store
 
 # Untracked folders (and files within)
 /logs
