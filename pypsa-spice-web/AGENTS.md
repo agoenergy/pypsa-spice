@@ -23,5 +23,4 @@ SPDX-License-Identifier: GPL-2.0-or-later
 - The web application does not need mobile optimization. Prioritize desktop
   layouts and interactions; mobile-specific responsive work is not required
   unless the user explicitly requests it.
-- Dont apply agora design skill, instead focus on app to have consistent internal design. 
--
+- Don't apply the Agora design skill. Instead, keep the app's own design consistent.

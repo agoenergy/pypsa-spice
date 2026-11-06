@@ -20,7 +20,7 @@
 
 - **Load dumping generators:** Load dumping generators (`DUMPLOAD - <bus>`, type `LDMP`, carrier `EXS`) are added to the base year network next to the load shedding generators. Please rebuild the base year network to include them. The `test_energy_not_served_warning` function in the post-analysis has been renamed to `report_load_shedding_and_dumping`.
 
-- **Web workspace (beta):** The web workspace is under active development and is not a fully released product, so features and layouts may change. It saves edits directly to your input files, so keep your data under version control. To try it, update your environment (using `conda env update -f envs/environment.yaml --prune`), install the frontend packages with `npm install --prefix pypsa-spice-web/frontend`, and start it with `./run-web-locally.sh`. See the [web workspace documentation](../visualisation-tool/web-workspace.md) for details.
+- **Web workspace (beta):** The web workspace is under active development and is not a fully released product, so features and layouts may change. It saves edits directly to your input files, so keep your data under version control. To try it, install [Node.js](https://nodejs.org/), update your environment (using `conda env update -f envs/environment.yaml --prune`), and start it with `python pypsa-spice-web/app.py` from the activated environment. See the [web workspace documentation](../visualisation-tool/web-workspace.md) for details.
 
 --8<-- "releases/v2.1.0.md"
 --8<-- "releases/v2.0.0.md"

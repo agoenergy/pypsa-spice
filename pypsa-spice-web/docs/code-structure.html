@@ -276,7 +276,7 @@ npm --prefix pypsa-spice-web/frontend test
 npm --prefix pypsa-spice-web/frontend run build
 conda run -n hotpot python -m unittest discover -s tests -p 'test*.py' -q
 git diff --check -- pypsa-spice-web tests</pre>
-        <p>Chart calculations and traces have dedicated tests in <code>shared/chartData.test.ts</code> and <code>shared/plotTraces.test.ts</code>. The 2026-09-12 refactor passed all 44 frontend tests, TypeScript, formatting, and the production build. See the <a href="development-history.md#plottsx">code review responses</a> for the three implementation commits.</p>
+        <p>Chart calculations and traces have dedicated tests in <code>shared/chartData.test.ts</code> and <code>shared/plotTraces.test.ts</code>.</p>
         <div class="grid two">
           <article class="card"><h3>For frontend changes</h3><p>Exercise the affected view, URL refresh/back navigation, empty/loading/error states, light and dark themes, and unsaved-change prompts.</p></article>
           <article class="card"><h3>For backend changes</h3><p>Test success plus invalid paths, missing files, stale revisions, active-run locks, and files that differ from the common happy-path schema.</p></article>

@@ -31,19 +31,22 @@ The existing [PyPSA-SPICE-Vis](pypsa-spice-vis.md) Streamlit tool remains availa
 ## How to start it
 
 The web workspace needs the `hotpot` Conda environment and [Node.js](https://nodejs.org/) with `npm`.
-From the repository root, install the dependencies once:
+From the repository root, update the environment once:
 
 ```bash
 conda env update -n hotpot -f envs/environment.yaml
-npm install --prefix pypsa-spice-web/frontend
 ```
 
 Then start the workspace:
 
 ```bash
-./run-web-locally.sh
+conda activate hotpot
+python pypsa-spice-web/app.py
 ```
 
-Open <http://127.0.0.1:5173/ui/> in your browser.
+Open <http://127.0.0.1:8000/ui/> in your browser. Press `Ctrl+C` in the terminal to stop it.
+
+The first start installs the frontend packages and builds the interface, which takes a minute.
+Later starts rebuild the interface only when it has changed, for example after `git pull`.
 
 Developer documentation for the web workspace is in `pypsa-spice-web/docs/overview.md`.

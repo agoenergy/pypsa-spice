@@ -13,8 +13,6 @@ Results cover Power, Industry, Transport, Emissions, and Costs. Comparison mode 
 
 The [web application code structure and logic guide](code-structure.html) maps the modules, request flow, stored data, and safety checks.
 
-The [development history](development-history.md) records completed work and code review responses. [Error tracking](error-tracking.md) lists open UI and UX findings and test coverage gaps.
-
 ## Do not copy the Streamlit UI
 
 The web interface is an independent React, TypeScript, SCSS, and FastAPI application. When developing `pypsa-spice-vis-ui` or the code in `pypsa-spice-web/`, do not use the legacy Streamlit application in `pypsa-spice-vis/` as UI or UX guidance. Its layouts, controls, component choices, styles, and interaction patterns are not a design reference for the web interface.
@@ -25,28 +23,32 @@ Base web UI decisions on the current React frontend, this documentation, and exp
 
 ### 1. Install dependencies
 
-From the repository root:
+Install [Node.js](https://nodejs.org/) with `npm`, then from the repository root:
 
 ```bash
-conda env update -n hotpot -f envs/environment.yaml
-npm install --prefix pypsa-spice-web/frontend
+conda env update -n hotpot -f envs/environment.yaml --prune
 ```
 
-This installs Python and Node dependencies for initial set-up. Rerun only if dependencies change, or if you switch/create Python or Node environments.
+Rerun it when the Python dependencies change. `app.py` installs the frontend packages itself when
+`frontend/node_modules/` is missing. When the frontend dependencies change, `app.py` will update them automatically.
 
 ### 2. Run app locally
 
-For convenience, a `run-web-locally.sh` script can be used to run the react app locally. 
-
-From the repository root:
+From the repository root, first activate the `hotpot` environment and then use one of the following commands:
 
 ```bash
-./run-web-locally.sh
+python pypsa-spice-web/app.py        # use the app
+python pypsa-spice-web/app.py --dev  # develop the app
 ```
 
-This starts FastAPI at http://127.0.0.1:8000, using the active Python environment if it contains the web dependencies, otherwise, it uses the existing `hotpot` Conda environment when available.
+Without `--dev`, FastAPI serves the API and the built frontend at <http://127.0.0.1:8000/ui/>.
+Before starting, `app.py` builds the frontend into `frontend/dist/` when a file in `frontend/` is newer than the last build.
 
-The app is then served at Vite's configured dev-server port. Open the app in your browser at http://127.0.0.1:5173/ui/.
+With `--dev`, Vite serves the frontend at <http://127.0.0.1:5173/ui/> and reloads the page on every frontend change, and FastAPI restarts when backend code changes. Vite forwards `/api` and `/vendor`
+requests to FastAPI on port 8000.
+
+`Ctrl+C` stops FastAPI and, with `--dev`, Vite. If port 8000 is already in use, for example by another copy of the app, FastAPI stops with "address already in use". The host and ports are the `HOST`, `PORT`, and `VITE_PORT` constants in `app.py`; the Vite proxy in
+`frontend/vite.config.ts` repeats port 8000.
 
 ### 3. Format and check frontend changes
 
@@ -127,7 +129,7 @@ The app expects this structure:
 data/<dataset>/<project>/results/<scenario>/csvs/<sector>/<year>/<table>.csv
 ```
 
-Yearly visualisations combine the tables in each modelled-year folder. Hourly visualisations use the selected year. The server samples large hourly results for display. CSV downloads always return the full source file.
+Yearly visualisations read the combined table in `csvs/<sector>/all_years/<table>.csv`, written by the `combine_summaries` rule. If that file is missing, they combine the tables in each modelled-year folder instead. Hourly visualisations use the selected year. The server samples large hourly results for display. CSV downloads return the source file unchanged; when the table comes from several year folders, the download stacks those files as written.
 
 ## Workspace structure
 
@@ -207,7 +209,7 @@ The app does not change the checked-in `base_config.yaml`. Each run also writes 
 Model runs always use the `hotpot` Conda environment. If the web server already runs in `hotpot`, the runner uses its Snakemake installation. Otherwise, it launches `conda run --no-capture-output -n hotpot snakemake`. Set `SNAKEMAKE_COMMAND` to override this command locally.
 
 ```bash
-SNAKEMAKE_COMMAND="conda run -n hotpot snakemake" ./run-web-locally.sh
+SNAKEMAKE_COMMAND="conda run -n hotpot snakemake" python pypsa-spice-web/app.py
 ```
 
 ## Result-file access
