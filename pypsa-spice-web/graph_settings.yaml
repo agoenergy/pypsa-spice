@@ -1,0 +1,274 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# Web-only Results chart registry. This file is intentionally independent from
+# pypsa-spice-vis/setting/graph_settings.yaml.
+
+power:
+  p1:
+    name: Capacity by type
+    units: GW
+    summary: sum
+    table_name: pow_cap_by_type_yearly
+    leg_col: technology
+    type: bar
+
+  p2:
+    name: Capacity by region
+    units: GW
+    summary: sum
+    table_name: pow_cap_by_type_by_region_yearly
+    leg_col: technology
+    type: filtered_bar
+    fil_col: region
+
+  p17:
+    name: Total capacity by region
+    units: GW
+    summary: sum
+    table_name: pow_cap_by_region_yearly
+    leg_col: region
+    type: bar
+
+  p3:
+    name: Generation by type
+    units: TWh
+    summary: sum
+    table_name: pow_gen_by_type_yearly
+    leg_col: technology
+    type: bar
+
+  p15:
+    name: Full load hours by type
+    units: hours
+    summary: none
+    table_name: pow_flh_by_type_yearly
+    leg_col: technology
+    type: grouped_bar
+
+  p4:
+    name: Share category
+    units: '%'
+    summary: none
+    table_name: pow_gen_by_category_share_yearly
+    leg_col: technology
+    type: area_share
+
+  p6:
+    name: Transmission capacity between regions
+    units: GW
+    summary: sum
+    table_name: pow_intercap_by_region_yearly
+    leg_col: from
+    type: filtered_bar
+    fil_col: to
+
+  p18:
+    name: Interconnector capacity factor
+    units: p.u.
+    summary: none
+    table_name: pow_inter_cf_by_region_yearly
+    leg_col: from
+    type: grouped_bar
+    fil_col: to
+
+  p7:
+    name: Hourly generation
+    units: MW
+    summary: none
+    table_name: pow_gen_by_type_hourly
+    leg_col: technology
+    type: hourly_bar
+
+  p8:
+    name: Regional hourly generation
+    units: MW
+    summary: none
+    table_name: pow_gen_by_type_region_hourly
+    leg_col: type_and_flow
+    type: filtered_hourly_bar
+    fil_col: region
+
+  p9:
+    name: Energy demand by carrier
+    units: TWh
+    summary: sum
+    table_name: ene_dmd_by_carrier_yearly
+    leg_col: carrier
+    type: bar
+
+  p10:
+    name: Hourly demand
+    units: MW
+    summary: none
+    table_name: pow_elec_load_by_sector_hourly
+    leg_col: sector
+    type: hourly_bar
+
+  p11:
+    name: Hourly elec price
+    units: USD/MWh
+    summary: none
+    table_name: pow_marginal_price_by_region_hourly
+    leg_col: region
+    type: hourly_line
+
+  p12:
+    name: Nodal flow between regions
+    units: MW
+    summary: none
+    table_name: pow_nodal_flow_hourly
+    leg_col: flow
+    type: hourly_line
+
+  p13:
+    name: Battery's E/P ratio
+    summary: none
+    table_name: pow_bats_ep_ratio
+    leg_col: bus
+    type: bar
+
+  p14:
+    name: Battery's charging profile
+    units: MW
+    summary: none
+    table_name: pow_bats_charging_hourly
+    leg_col: status
+    type: hourly_dual
+    secondary_y_lab: [stateOfCharge]
+
+industry:
+  i1:
+    name: Capacity by carrier
+    units: GW
+    summary: sum
+    table_name: ind_cap_by_type_by_carrier_yearly
+    leg_col: carrier
+    type: bar
+
+  i2:
+    name: Capacity by region
+    units: GW
+    summary: sum
+    table_name: ind_cap_by_carrier_by_region_yearly
+    leg_col: carrier
+    type: filtered_bar
+    fil_col: region
+
+  i3:
+    name: Generation by region
+    units: TWh
+    summary: sum
+    table_name: ind_gen_by_carrier_by_region_yearly
+    leg_col: carrier
+    type: filtered_bar
+    fil_col: region
+
+  i4:
+    name: Generation by type
+    units: TWh
+    summary: sum
+    table_name: ind_gen_by_type_by_carrier_by_heatgroup_yearly
+    leg_col: technology
+    type: bar
+
+transport:
+  t1:
+    name: EV load profile
+    units: MW
+    summary: none
+    table_name: tran_load_charging_all_hourly
+    leg_col: status
+    type: hourly_dual
+    secondary_y_lab: [stateOfCharge]
+
+emissions:
+  e1:
+    name: Emission (Power sector)
+    units: MtCO₂
+    summary: sum
+    table_name: pow_emi_by_carrier_yearly
+    leg_col: carrier
+    type: bar
+
+  e2:
+    name: Emission (Industry sector)
+    units: MtCO₂
+    summary: sum
+    table_name: ind_emi_by_carrier_yearly
+    leg_col: carrier
+    type: bar
+
+  e3:
+    name: Emission (All sectors)
+    units: MtCO₂
+    summary: sum
+    table_name: ene_emi_by_carrier_by_sector_yearly
+    leg_col: carrier
+    type: bar
+
+costs:
+  c1:
+    name: CAPEX by type (Power sector)
+    units: mUSD
+    summary: sum
+    table_name: pow_capex_by_type_yearly
+    leg_col: technology
+    type: bar
+
+  c2:
+    name: OPEX by type (Power sector)
+    units: mUSD
+    summary: sum
+    table_name: pow_opex_by_type_yearly
+    leg_col: technology
+    type: bar
+
+  c3:
+    name: Overnight investment by type (Power sector)
+    units: mUSD
+    summary: sum
+    table_name: pow_overnight_inv_by_type_yearly
+    leg_col: technology
+    type: bar
+
+  c4:
+    name: CAPEX by type (Industry sector)
+    units: mUSD
+    summary: sum
+    table_name: ind_capex_by_type_by_carrier_yearly
+    leg_col: technology
+    type: bar
+
+  c5:
+    name: CAPEX by type (Transport sector)
+    units: mUSD
+    summary: sum
+    table_name: tran_capex_by_type_yearly
+    leg_col: technology
+    type: bar
+
+  c6:
+    name: CAPEX by Type (All sectors)
+    units: mUSD
+    summary: sum
+    table_name: ene_capex_by_type_by_carrier_yearly
+    leg_col: technology
+    type: bar
+
+  c7:
+    name: CAPEX and OPEX (All sectors)
+    units: mUSD
+    summary: sum
+    table_name: ene_costs_opex_capex_yearly
+    leg_col: finance
+    type: bar
+
+  c8:
+    name: Average fuel costs (All sectors)
+    units: USD/MWh_th
+    summary: none
+    table_name: ene_avg_fuel_costs_fuel_yearly
+    leg_col: carrier
+    type: bar

@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+name: Web frontend
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "pypsa-spice-web/frontend/**"
+      - ".github/workflows/web-frontend.yml"
+  push:
+    branches: [main, develop]
+    paths:
+      - "pypsa-spice-web/frontend/**"
+      - ".github/workflows/web-frontend.yml"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: pypsa-spice-web/frontend/package-lock.json
+      - run: npm ci
+        working-directory: pypsa-spice-web/frontend
+      - run: npm run format:check
+        working-directory: pypsa-spice-web/frontend
+      - run: npm test
+        working-directory: pypsa-spice-web/frontend
+      - run: npm run build
+        working-directory: pypsa-spice-web/frontend

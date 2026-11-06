@@ -1,0 +1,120 @@
+/*
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
+SPDX-License-Identifier: GPL-2.0-or-later
+*/
+
+@value spinner from "../components/WorkspaceFeedback.module.scss";
+
+.home-page {
+  min-width: 0;
+}
+.home-beta-notice {
+  margin: 0 0 16px;
+  line-height: 1.55;
+}
+.home-primary {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.home-workspaces,
+.home-guide-panel {
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.home-guide-panel {
+  margin-bottom: 12px;
+}
+.home-panel-heading {
+  min-height: 68px;
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.home-panel-heading h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 500;
+}
+.home-project-picker {
+  width: min(340px, 45%);
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.home-project-picker > span {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.home-project-picker select {
+  width: 100%;
+  height: 38px;
+  padding: 0 30px 0 10px;
+  border: 1px solid var(--strong);
+  border-radius: 4px;
+  background: var(--surface);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.home-project-picker select:hover {
+  border-color: var(--pink);
+}
+.home-loading,
+.home-empty {
+  min-height: 250px;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--muted);
+  font-size: var(--text-base);
+  text-align: center;
+}
+.home-loading .spinner {
+  margin: 0 0 4px;
+}
+.home-empty > svg {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 4px;
+  stroke-width: 1.4;
+}
+.home-empty b {
+  color: var(--ink);
+  font-size: var(--text-md);
+}
+.home-empty span {
+  max-width: 520px;
+}
+.home-workflow {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  list-style: none;
+}
+.home-source-note {
+  margin: 0;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.home-source-note b {
+  color: var(--ink);
+}

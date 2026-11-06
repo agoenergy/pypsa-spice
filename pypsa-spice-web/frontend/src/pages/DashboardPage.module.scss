@@ -1,0 +1,291 @@
+/*
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
+SPDX-License-Identifier: GPL-2.0-or-later
+*/
+
+@value notice from "../components/WorkspaceFeedback.module.scss";
+@value dashboard-chart-toolbar from "../components/DashboardChartCard.module.scss";
+
+.dashboard-boot {
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--muted);
+}
+.dashboard-save-state {
+  min-height: 34px;
+  padding: 0 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.dashboard-save-state i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 13%, transparent);
+}
+.dashboard-save-state[data-status="saving"] i {
+  background: var(--orange);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--orange) 13%, transparent);
+}
+.dashboard-save-state[data-status="error"] i {
+  background: #c92b38;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #c92b38 13%, transparent);
+}
+.dashboard-topbar-controls {
+  min-width: 0;
+  flex: 1;
+}
+.dashboard-topbar-content {
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.dashboard-topbar-content .dashboard-selector {
+  min-width: 190px;
+  max-width: 260px;
+}
+.dashboard-topbar-content .dashboard-project {
+  min-width: 165px;
+  max-width: 220px;
+}
+.dashboard-topbar-actions {
+  --icon-control-width: 40px;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+.dashboard-heading {
+  margin-bottom: 10px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.dashboard-heading label {
+  display: block;
+}
+.dashboard-title-input {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.dashboard-title-input:focus {
+  box-shadow: none !important;
+}
+.dashboard-heading textarea {
+  width: 100%;
+  max-width: 850px;
+  margin-top: 2px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  resize: vertical;
+}
+.dashboard-heading textarea:focus {
+  box-shadow: none !important;
+}
+.dashboard-empty-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.dashboard-builder-row {
+  margin: 9px 0;
+}
+.dashboard-heading-row {
+  min-height: 58px;
+  padding: 7px 9px 7px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--pink);
+  background: var(--surface);
+}
+.dashboard-chart-row {
+  background: transparent;
+}
+.dashboard-row-content {
+  min-width: 0;
+}
+.dashboard-builder-footer {
+  min-height: 60px;
+  margin: 12px 0;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  border: 1px dashed var(--strong);
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
+}
+.dashboard-builder-footer > span {
+  margin-right: auto;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.dashboard-empty-actions {
+  margin-top: 8px;
+}
+.dashboard-source-repair {
+  display: block;
+}
+.dashboard-heading-row-field {
+  min-width: 0;
+  flex: 1;
+}
+.dashboard-heading-row-field textarea {
+  field-sizing: content;
+  width: 100%;
+  min-height: 32px;
+  max-height: 4.9em;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  overflow-y: auto;
+  resize: none;
+}
+.dashboard-heading-row-field textarea:focus {
+  box-shadow: none !important;
+}
+.dashboard-heading-row-field textarea::placeholder {
+  color: var(--muted);
+  font-weight: 400;
+}
+.dashboard-row-actions {
+  --icon-control-disabled-opacity: 0.3;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.dashboard-dialog {
+  width: min(780px, 100%);
+}
+.dashboard-dialog > header,
+.dashboard-import-dialog > header {
+  min-height: 80px;
+}
+.dashboard-dialog-body {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  overflow: auto;
+}
+.dashboard-dialog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.dashboard-difference-preview {
+  min-height: 60px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-2);
+}
+.dashboard-difference-preview span {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.dashboard-difference-preview b {
+  font-size: var(--text-sm);
+}
+.dashboard-difference-preview [data-control="button"] {
+  min-height: 38px;
+}
+.dashboard-dialog > footer {
+  gap: 8px;
+}
+.dashboard-dialog > footer > span {
+  margin-right: auto;
+}
+.dashboard-dialog > footer button {
+  margin-left: 0;
+}
+.dashboard-import-dialog {
+  width: min(620px, 100%);
+}
+.dashboard-import-summary {
+  padding: 22px;
+  overflow: auto;
+}
+.dashboard-import-summary dl {
+  margin: 0 0 18px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  border: 1px solid var(--line);
+}
+.dashboard-import-summary dl > div {
+  min-width: 0;
+  padding: 12px;
+  border-right: 1px solid var(--line);
+}
+.dashboard-import-summary dl > div:last-child {
+  border-right: 0;
+}
+.dashboard-import-summary dt {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.dashboard-import-summary dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+}
+.dashboard-import-summary .notice {
+  margin: 0 0 12px;
+}
+.dashboard-import-summary > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.dashboard-import-dialog > footer {
+  justify-content: flex-end;
+  gap: 8px;
+}
+.dashboard-import-dialog > footer button {
+  margin-left: 0;
+}
+.dashboard-chart-toolbar .dashboard-row-actions {
+  --icon-control-disabled-opacity: 0.28;
+  width: auto;
+  padding-left: 5px;
+  border-left: 1px solid var(--line);
+}
