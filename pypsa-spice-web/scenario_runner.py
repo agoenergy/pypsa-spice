@@ -25,6 +25,7 @@ import yaml
 from scenario_workspace import (
     describe_data_repository,
     input_file_hashes,
+    safe_segment,
 )
 
 
@@ -64,20 +65,6 @@ class ScenarioRunManager:
     def _now() -> str:
         """Return the current UTC time in ISO format."""
         return datetime.now(timezone.utc).isoformat()
-
-    @staticmethod
-    def _safe_segment(value: str, label: str) -> str:
-        """Validate a single path segment, rejecting traversal."""
-        cleaned = value.strip()
-        if (
-            not cleaned
-            or cleaned in {".", ".."}
-            or "/" in cleaned
-            or "\\" in cleaned
-            or "\x00" in cleaned
-        ):
-            raise RunValidationError(f"Invalid {label}")
-        return cleaned
 
     def _load_base_config(self) -> dict[str, Any]:
         """Load and validate the repository base_config.yaml."""
@@ -132,10 +119,10 @@ class ScenarioRunManager:
     ) -> tuple[str, str, str, str]:
         """Validate run inputs and check the input scenario exists."""
         values = (
-            self._safe_segment(dataset, "data folder"),
-            self._safe_segment(project, "project"),
-            self._safe_segment(input_scenario, "input scenario"),
-            self._safe_segment(output_scenario, "output scenario"),
+            safe_segment(dataset, "data folder", RunValidationError),
+            safe_segment(project, "project", RunValidationError),
+            safe_segment(input_scenario, "input scenario", RunValidationError),
+            safe_segment(output_scenario, "output scenario", RunValidationError),
         )
         input_path = self.root / "data" / values[0] / values[1] / "input" / values[2]
         if not input_path.is_dir():

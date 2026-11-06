@@ -19,7 +19,6 @@ from pathlib import Path
 from typing import Any, Literal
 
 import uvicorn
-import yaml
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
@@ -30,6 +29,7 @@ from input_editor import (
     TableUpdate,
     compare_scenarios,
     input_catalog,
+    load_yaml,
     read_scenario_config,
     read_table,
     scenario_config_path,
@@ -109,12 +109,6 @@ SECTION_META = {
 }
 
 
-def _load_yaml(path: Path) -> dict[str, Any]:
-    """Load a YAML file as a dictionary, empty if the file is blank."""
-    with path.open(encoding="utf-8") as handle:
-        return yaml.safe_load(handle) or {}
-
-
 def _read_mapping(filename: str) -> dict[str, dict[str, str]]:
     """Read a name mapping CSV into display labels and colours by name."""
     path = MAPPING_DIR / filename
@@ -133,7 +127,7 @@ def _read_mapping(filename: str) -> dict[str, dict[str, str]]:
 
 def _chart_definitions() -> dict[str, list[dict[str, Any]]]:
     """Load the configured charts grouped by results section."""
-    raw = _load_yaml(GRAPH_CONFIG)
+    raw = load_yaml(GRAPH_CONFIG)
     sections: dict[str, list[dict[str, Any]]] = {}
     for section, charts in raw.items():
         if section not in SECTION_META:

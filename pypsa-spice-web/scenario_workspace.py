@@ -25,8 +25,13 @@ class ScenarioWorkspaceError(ValueError):
     """Raised when a local scenario workspace operation is invalid."""
 
 
-def _safe_segment(value: str, label: str) -> str:
-    """Validate a single path segment, rejecting traversal and hidden names."""
+def safe_segment(
+    value: str, label: str, error: type[ValueError] = ScenarioWorkspaceError
+) -> str:
+    """Validate a folder name chosen by the user, rejecting traversal and hidden names.
+
+    Raises ``error`` so each caller reports problems with its own exception type.
+    """
     cleaned = value.strip()
     if (
         not cleaned
@@ -36,7 +41,7 @@ def _safe_segment(value: str, label: str) -> str:
         or "\x00" in cleaned
         or cleaned.startswith(".")
     ):
-        raise ScenarioWorkspaceError(f"Invalid {label}")
+        raise error(f"Invalid {label}")
     return cleaned
 
 
@@ -68,7 +73,7 @@ def _git_value(repo: Path, *arguments: str) -> str:
 
 def describe_data_repository(data_dir: Path, dataset: str) -> dict[str, Any]:
     """Describe a dataset-level Git worktree without changing it."""
-    dataset_name = _safe_segment(dataset, "data folder")
+    dataset_name = safe_segment(dataset, "data folder")
     dataset_root = _confined(data_dir / dataset_name, data_dir)
     git_marker = dataset_root / ".git"
     if not git_marker.exists():
@@ -102,9 +107,9 @@ def input_file_hashes(
     data_dir: Path, dataset: str, project: str, scenario: str
 ) -> dict[str, str]:
     """Hash the selected scenario and shared global inputs for run provenance."""
-    dataset_name = _safe_segment(dataset, "data folder")
-    project_name = _safe_segment(project, "project")
-    scenario_name = _safe_segment(scenario, "scenario")
+    dataset_name = safe_segment(dataset, "data folder")
+    project_name = safe_segment(project, "project")
+    scenario_name = safe_segment(scenario, "scenario")
     project_root = _confined(data_dir / dataset_name / project_name, data_dir)
     input_root = _confined(project_root / "input", project_root)
     hashes: dict[str, str] = {}
@@ -174,10 +179,10 @@ class ScenarioWorkspace:
     ) -> dict[str, Any]:
         """Atomically duplicate a complete existing scenario folder."""
         self.ensure_mutable()
-        dataset_name = _safe_segment(dataset, "data folder")
-        project_name = _safe_segment(project, "project")
-        source_name = _safe_segment(source_scenario, "source scenario")
-        destination_name = _safe_segment(new_scenario, "new scenario")
+        dataset_name = safe_segment(dataset, "data folder")
+        project_name = safe_segment(project, "project")
+        source_name = safe_segment(source_scenario, "source scenario")
+        destination_name = safe_segment(new_scenario, "new scenario")
         project_root = _confined(
             self.data_dir / dataset_name / project_name, self.data_dir
         )

@@ -17,9 +17,10 @@ import os
 import shutil
 import tempfile
 import threading
+from collections.abc import Callable
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, TextIO
 
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
@@ -92,7 +93,7 @@ class ConfigSectionsUpdate(BaseModel):
     sections: dict[str, dict[str, Any]]
 
 
-def _load_yaml(path: Path, *, round_trip: bool = False) -> Any:
+def load_yaml(path: Path, *, round_trip: bool = False) -> Any:
     """Load a YAML file, keeping comments and quotes when round-tripping."""
     yaml = YAML() if round_trip else YAML(typ="safe", pure=True)
     # Quote style is recorded at load time, so it must be enabled on the loader.
@@ -248,7 +249,7 @@ def _technology_catalog(
 
 def input_catalog(data_dir: Path, settings_path: Path) -> dict[str, Any]:
     """Discover projects with model inputs and expose configured editable tables."""
-    settings = _load_yaml(settings_path)
+    settings = load_yaml(settings_path)
     datasets: list[dict[str, Any]] = []
     sector_mapping = _technology_sector_mapping(settings_path)
     if data_dir.is_dir():
@@ -335,7 +336,7 @@ def _table_config(
     table: str,
 ) -> dict[str, Any]:
     """Look up the input settings of a configured table."""
-    settings = _load_yaml(settings_path)
+    settings = load_yaml(settings_path)
     if scope == "global":
         config = (settings.get("Global_input", {}) or {}).get(table)
     elif table == "Interconnectors" and sector == "power":
@@ -893,7 +894,7 @@ def compare_scenarios(
     )["sections"]
     sections = _config_comparison_sections(reference_config, comparison_config)
 
-    settings = _load_yaml(settings_path)
+    settings = load_yaml(settings_path)
     for sector_label, sector in SECTOR_LABELS.items():
         table_configs = dict(settings.get(sector_label, {}) or {})
         if sector == "power":
@@ -971,18 +972,19 @@ def _serialise_cell(value: Any, kind: str) -> str:
     return str(value)
 
 
-def _atomic_csv_write(
-    path: Path, fieldnames: list[str], rows: list[dict[str, str]]
+def _atomic_write(
+    path: Path, write: Callable[[TextIO], object], newline: str | None = None
 ) -> None:
-    """Write CSV rows to a temporary file, then replace the target."""
+    """Write a file with ``write`` into a temporary file, then replace the target.
+
+    The target is never left half-written: either the old or the new file exists.
+    """
     descriptor, temp_name = tempfile.mkstemp(
         prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
     )
     try:
-        with os.fdopen(descriptor, "w", encoding="utf-8", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(rows)
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline=newline) as handle:
+            write(handle)
             handle.flush()
             os.fsync(handle.fileno())
         shutil.copymode(path, temp_name)
@@ -991,6 +993,19 @@ def _atomic_csv_write(
         if os.path.exists(temp_name):
             os.unlink(temp_name)
         raise
+
+
+def _atomic_csv_write(
+    path: Path, fieldnames: list[str], rows: list[dict[str, str]]
+) -> None:
+    """Safely replace a CSV file with the given rows."""
+
+    def write_rows(handle: TextIO) -> None:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    _atomic_write(path, write_rows, newline="")
 
 
 def update_table(
@@ -1087,7 +1102,7 @@ def _to_json(value: Any) -> Any:
 
 def read_scenario_config(path: Path) -> dict[str, Any]:
     """Read the editable sections and revision of a scenario config."""
-    config = _load_yaml(path)
+    config = load_yaml(path)
     return {
         "path": str(path),
         "revision": _revision(path),
@@ -1140,25 +1155,12 @@ def _merge_yaml(existing: Any, incoming: Any) -> Any:
 
 
 def _atomic_yaml_write(path: Path, document: Any) -> None:
-    """Write a YAML document to a temporary file, then replace the target."""
-    descriptor, temp_name = tempfile.mkstemp(
-        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
-    )
-    try:
-        yaml = YAML()
-        yaml.preserve_quotes = True
-        yaml.default_flow_style = False
-        yaml.width = 4096
-        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
-            yaml.dump(document, handle)
-            handle.flush()
-            os.fsync(handle.fileno())
-        shutil.copymode(path, temp_name)
-        os.replace(temp_name, path)
-    except Exception:
-        if os.path.exists(temp_name):
-            os.unlink(temp_name)
-        raise
+    """Safely replace a YAML file, keeping comments and quotes."""
+    yaml = YAML()
+    yaml.preserve_quotes = True
+    yaml.default_flow_style = False
+    yaml.width = 4096
+    _atomic_write(path, lambda handle: yaml.dump(document, handle))
 
 
 def update_scenario_section(
@@ -1191,7 +1193,7 @@ def update_scenario_sections(
                 status_code=409,
                 detail="This config changed on disk. Reload it before saving.",
             )
-        document = _load_yaml(path, round_trip=True)
+        document = load_yaml(path, round_trip=True)
         if not isinstance(document, CommentedMap):
             raise HTTPException(
                 status_code=422, detail="Scenario config must be a YAML mapping"
