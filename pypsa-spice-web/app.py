@@ -276,6 +276,24 @@ def _read_paths(paths: list[Path]) -> tuple[dict[str, Any], ...]:
     return _read_paths_cached(tuple((str(p), p.stat().st_mtime_ns) for p in paths))
 
 
+def _combine_csv_files(paths: list[Path]) -> str:
+    """Stack result CSVs into one CSV, keeping every row and value as written."""
+    columns: list[str] = []
+    rows: list[dict[str, str]] = []
+    for path in paths:
+        with path.open(encoding="utf-8-sig", newline="") as handle:
+            reader = csv.DictReader(handle)
+            # Year files can differ in columns; keep them all, in order of appearance.
+            columns += [name for name in reader.fieldnames or [] if name not in columns]
+            rows += reader
+    buffer = io.StringIO()
+    # A column missing from a year file is left empty for that year's rows.
+    writer = csv.DictWriter(buffer, fieldnames=columns, restval="")
+    writer.writeheader()
+    writer.writerows(rows)
+    return buffer.getvalue()
+
+
 def _sample_hourly(
     rows: list[dict[str, Any]], legend_column: str, limit: int
 ) -> tuple[list[dict[str, Any]], bool]:
@@ -809,15 +827,8 @@ def download_data(
         return FileResponse(
             paths[0], media_type="text/csv", filename=f"{scenario}_{table}.csv"
         )
-    rows = _read_paths(paths)
-    if not rows:
-        raise HTTPException(status_code=404, detail="The result table is empty")
-    buffer = io.StringIO()
-    writer = csv.DictWriter(buffer, fieldnames=list(rows[0]))
-    writer.writeheader()
-    writer.writerows(rows)
     return Response(
-        buffer.getvalue(),
+        _combine_csv_files(paths),
         media_type="text/csv",
         headers={
             "Content-Disposition": f'attachment; filename="{scenario}_{table}.csv"'

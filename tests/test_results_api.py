@@ -115,6 +115,49 @@ class ResultsApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()["detail"], "Result table is not configured")
 
+    def _download_yearly(self, table: str, year_files: dict[str, str]) -> str:
+        """Write per-year tables without an all_years file and download them."""
+        sector_dir = self.result_dir.parent
+        for year, text in year_files.items():
+            (sector_dir / year).mkdir(exist_ok=True)
+            (sector_dir / year / f"{table}.csv").write_text(text, encoding="utf-8")
+        with patch("app.DATA_DIR", self.data_dir):
+            response = TestClient(app).get(
+                "/api/download",
+                params={
+                    "dataset": "dataset",
+                    "project": "project",
+                    "scenario": "run",
+                    "sector": "p-i-t",
+                    "table": table,
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        return response.text
+
+    def test_download_combining_year_folders_keeps_every_row_as_written(self) -> None:
+        """Combined downloads keep empty values, repeated rows and number format."""
+        text = self._download_yearly(
+            "pow_bats_ep_ratio",
+            {
+                "2025": "country,bus,bus0,year,value,unit\n"
+                "XY,XY_CE_BATSN,,2025,,Dimensionless\n"
+                "XY,XY_CE_BATSN,,2025,,Dimensionless\n",
+                "2030": "country,bus,year,value,unit\n"
+                "XY,XY_CE_BATSN,2030,4,Dimensionless\n",
+            },
+        )
+
+        self.assertEqual(
+            text.splitlines(),
+            [
+                "country,bus,bus0,year,value,unit",
+                "XY,XY_CE_BATSN,,2025,,Dimensionless",
+                "XY,XY_CE_BATSN,,2025,,Dimensionless",
+                "XY,XY_CE_BATSN,,2030,4,Dimensionless",
+            ],
+        )
+
     def test_full_load_hours_chart_reads_yearly_result_table(self) -> None:
         """The full load hours chart reads its yearly table."""
         with patch("app.DATA_DIR", self.data_dir):
