@@ -14,6 +14,7 @@ from __future__ import annotations
 import csv
 import math
 import os
+import re
 import shutil
 import tempfile
 import threading
@@ -130,10 +131,36 @@ def _revision(path: Path) -> str:
     return f"{stat.st_mtime_ns}:{stat.st_size}"
 
 
+# Mapping of common abbreviations to human-readable labels, used in table headers.
+WORD_REPLACEMENTS = {
+    "cap": "Capex",
+    "fom": "FOM",
+    "vom": "VOM",
+    "usd": "USD",
+    "mw": "MW",
+    "mwh": "MWh",
+    "mwa": "MWa",
+}
+
+
+# PyPSA parameter names shown exactly as written, e.g. p_nom, p_nom_max_2030, p_min_pu
+KEEP_AS_WRITTEN = re.compile(r"_nom(_|$)|^p_(min|max)_pu$")
+
+
 def _pretty_label(value: str) -> str:
-    """Turn a snake_case name into a capitalised label."""
-    words = value.replace("_", " ").strip().split()
-    return " ".join(word if word.isupper() else word.capitalize() for word in words)
+    """Turn a snake_case name into a label, e.g. cap__usd_mw -> Capex [USD/MW]."""
+    if KEEP_AS_WRITTEN.search(value):
+        return value
+    name, _, unit = value.partition("__")
+    words = name.replace("_", " ").strip().split()
+    label = " ".join(
+        WORD_REPLACEMENTS.get(word, word if word.isupper() else word.capitalize())
+        for word in words
+    )
+    if not unit:
+        return label
+    unit_parts = [WORD_REPLACEMENTS.get(part, part) for part in unit.split("_")]
+    return f"{label} [{'/'.join(unit_parts)}]"
 
 
 def _comparison_value(value: Any) -> Any:

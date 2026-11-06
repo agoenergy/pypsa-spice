@@ -42,6 +42,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 }
 .editable-table th {
   z-index: 2;
+  text-transform: none;
   min-width: 120px;
   padding: 9px 10px;
   vertical-align: bottom;

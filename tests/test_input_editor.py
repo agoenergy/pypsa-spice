@@ -338,7 +338,7 @@ class InputEditorTests(unittest.TestCase):
             if section["id"] == "input:power:Power_generators"
         )
         self.assertEqual(generator["changes"][0]["item"], "solar-a")
-        self.assertEqual(generator["changes"][0]["parameter"], "P Nom")
+        self.assertEqual(generator["changes"][0]["parameter"], "p_nom")
         self.assertEqual(generator["changes"][0]["delta"], 2)
 
     def test_scenario_comparison_endpoint_rejects_same_scenario(self) -> None:
