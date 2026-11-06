@@ -14,12 +14,14 @@ import { inputNumber } from "./ScenarioConfigEditorUtils";
 export function MappingTable({
   label,
   value,
+  unit,
   yearKeys = false,
   allowAdd = true,
   onChange,
 }: {
   label: string;
   value: Record<string, unknown>;
+  unit?: string;
   yearKeys?: boolean;
   allowAdd?: boolean;
   onChange: (value: Record<string, unknown>) => void;
@@ -46,7 +48,7 @@ export function MappingTable({
           <thead>
             <tr>
               <th>{label}</th>
-              <th>Value</th>
+              <th>Value {unit && <span className={styles["unit"]}>[{unit}]</span>}</th>
               <th>
                 <span className={workspaceUtilitiesStyles["sr-only"]}>Actions</span>
               </th>

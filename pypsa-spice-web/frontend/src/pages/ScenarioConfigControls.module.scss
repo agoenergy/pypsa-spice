@@ -42,6 +42,9 @@ SPDX-License-Identifier: GPL-2.0-or-later
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
+.config-entry-table thead .unit {
+  text-transform: none;
+}
 .config-entry-table tr:last-child th,
 .config-entry-table tr:last-child td {
   border-bottom: 0;

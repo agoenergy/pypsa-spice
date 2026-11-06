@@ -41,6 +41,7 @@ export default function Co2Editor({
             <MappingTable
               label="Year"
               value={(config.value || {}) as Record<string, unknown>}
+              unit={config.option === "co2_price" ? "USD/tCO₂" : "MtCO₂"}
               yearKeys
               allowAdd={false}
               onChange={(next) => updateCountry(name, { ...config, value: next })}
