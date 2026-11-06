@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import styles from "./TechnologyEditor.module.scss";
 import PageHeader from "../components/PageHeader";
 import type { InputCatalog, InputSelection, InputTechnology } from "../types";

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import styles from "./ScenarioConfigControls.module.scss";
 import dataTableStyles from "../components/DataTable.module.scss";
 import workspaceUtilitiesStyles from "../components/WorkspaceUtilities.module.scss";

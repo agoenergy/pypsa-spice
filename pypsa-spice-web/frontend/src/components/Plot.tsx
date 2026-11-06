@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import styles from "./Plot.module.scss";
 import chartSurfaceStyles from "./ChartSurface.module.scss";
 import { useEffect, useMemo, useRef, useState } from "react";

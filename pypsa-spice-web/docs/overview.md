@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
+SPDX-License-Identifier: GPL-2.0-or-later
+-->
+
 # PyPSA-SPICE model workspace
 
 > **Beta version.** The web workspace is under active development and is not a fully released product. Features, layouts, and the API may change, and some workflows are still incomplete. Mark user-facing text, the app version (`0.2.0-beta`), and new documentation accordingly until the first stable release. User documentation lives in [`docs/visualisation-tool/web-workspace.md`](../../docs/visualisation-tool/web-workspace.md).

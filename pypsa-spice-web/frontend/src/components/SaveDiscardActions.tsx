@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import styles from "./SaveDiscardActions.module.scss";
 import Button from "./Button";
 import { Check, RotateCcw, Save } from "lucide-react";

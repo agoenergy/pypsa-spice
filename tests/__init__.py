@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 """Tests for the PyPSA-SPICE web workspace."""
 
 import sys

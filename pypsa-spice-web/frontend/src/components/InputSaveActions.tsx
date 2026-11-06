@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
 import SaveDiscardActions from "./SaveDiscardActions";
 

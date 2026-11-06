@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import styles from "./DashboardChartCard.module.scss";
 import chartSurfaceStyles from "./ChartSurface.module.scss";
 import dashboardPageStyles from "../pages/DashboardPage.module.scss";

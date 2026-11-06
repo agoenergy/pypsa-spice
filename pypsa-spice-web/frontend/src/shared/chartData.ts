@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import type { ChartDefinition, ChartResponse, ResultRow } from "../types";
 import type { AxisRange, SharedYAxisRanges, TimeAxisRange } from "./types";
 

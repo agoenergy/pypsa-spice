@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 """Input-file discovery and direct editing for the web application.
 
 The web editor intentionally uses the same files as the model.  All resolved paths are

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import type { PlotData } from "plotly.js";
 import type { PlotTrace, ScatterTextTrace } from "./types";
 import type { Catalog, ChartDefinition, ChartResponse } from "../types";

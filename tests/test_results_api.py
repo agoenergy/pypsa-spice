@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 """Regression tests for result-table path handling."""
 
 from __future__ import annotations

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import type { InputRow, ScenarioConfigResponse } from "../types";
 
 export const COMBINED_SECTION = "co2_constraints";

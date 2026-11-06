@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import dialogSurfaceStyles from "./DialogSurface.module.scss";
 import dataTableStyles from "./DataTable.module.scss";
 import styles from "./DataDialog.module.scss";

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import styles from "./ScenarioConfigEditor.module.scss";
 import editorPanelStyles from "../components/EditorPanel.module.scss";
 import workspaceFeedbackStyles from "../components/WorkspaceFeedback.module.scss";

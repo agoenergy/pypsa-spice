@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import { useCallback, useRef, useState } from "react";
 import { List, X } from "lucide-react";
 

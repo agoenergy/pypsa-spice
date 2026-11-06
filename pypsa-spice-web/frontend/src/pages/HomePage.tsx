@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import styles from "./HomePage.module.scss";
 import workspaceFeedbackStyles from "../components/WorkspaceFeedback.module.scss";
 import { useEffect, useMemo, useState } from "react";

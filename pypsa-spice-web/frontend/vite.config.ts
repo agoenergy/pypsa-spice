@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { relative, resolve } from "node:path";

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import type { ReactNode } from "react";
 import { ArrowRight, BarChart3, FileInput, FolderOpen, LayoutDashboard } from "lucide-react";
 import type { DashboardDefinition, WorkspaceInventoryItem } from "../types";

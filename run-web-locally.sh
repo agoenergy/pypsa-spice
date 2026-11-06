@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 set -euo pipefail
 
 BACKEND_HOST="${BACKEND_HOST:-127.0.0.1}"

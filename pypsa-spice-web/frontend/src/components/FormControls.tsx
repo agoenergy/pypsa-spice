@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import type { ChangeEvent, LabelHTMLAttributes } from "react";
 import { Search } from "lucide-react";
 import styles from "./FormControls.module.scss";

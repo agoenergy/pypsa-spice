@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import pageHeaderStyles from "./components/PageHeader.module.scss";
 import styles from "./App.module.scss";
 import workspaceFeedbackStyles from "./components/WorkspaceFeedback.module.scss";

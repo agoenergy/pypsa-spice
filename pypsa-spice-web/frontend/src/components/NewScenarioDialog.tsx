@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import dialogSurfaceStyles from "./DialogSurface.module.scss";
 import styles from "./NewScenarioDialog.module.scss";
 import workspaceFeedbackStyles from "./WorkspaceFeedback.module.scss";

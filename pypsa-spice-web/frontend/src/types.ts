@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 export type ResultRow = Record<string, string | number | null>;
 
 export interface ChartDefinition {

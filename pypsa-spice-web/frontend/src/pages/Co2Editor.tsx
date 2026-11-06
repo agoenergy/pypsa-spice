@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import scenarioConfigLayoutStyles from "./ScenarioConfigLayout.module.scss";
 import editorPanelStyles from "../components/EditorPanel.module.scss";
 import { SelectField } from "../components/FormControls";

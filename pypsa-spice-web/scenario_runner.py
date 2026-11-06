@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 """Run the repository Snakemake workflow from the web workspace."""
 
 from __future__ import annotations

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import styles from "./ChartLegend.module.scss";
 import type { Catalog } from "../types";
 import { formatLegendLabel, getLegendColour } from "../shared/chartPresentation";

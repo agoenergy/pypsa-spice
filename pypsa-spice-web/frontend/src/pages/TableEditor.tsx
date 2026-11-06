@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import technologyEditorStyles from "./TechnologyEditor.module.scss";
 import editorPanelStyles from "../components/EditorPanel.module.scss";
 import styles from "./TableEditor.module.scss";

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: PyPSA-SPICE Developers
+
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 """Local scenario workspace operations for the React/FastAPI application.
 
 The model still reads its normal ``data/<dataset>/<project>/input`` tree.  This

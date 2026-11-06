@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import styles from "./WorkspaceActionCard.module.scss";

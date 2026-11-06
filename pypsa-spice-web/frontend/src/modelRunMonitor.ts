@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import { getLatestModelRun, getModelRun } from "./api";
 import type { ModelRun, ModelRunMonitorState } from "./types";
 

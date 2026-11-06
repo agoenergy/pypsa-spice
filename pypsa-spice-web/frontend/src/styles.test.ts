@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import ts from "typescript";
