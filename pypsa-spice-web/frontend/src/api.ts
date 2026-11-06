@@ -96,7 +96,9 @@ export async function getInputCatalog(): Promise<InputCatalog> {
     "The input catalog could not be read.",
   );
   if (catalog.table_query_version !== 2) {
-    throw new Error("The local backend is out of date. Restart the app with ./run-web-locally.sh.");
+    throw new Error(
+      "The local backend is out of date. Stop the app and start it again with python pypsa-spice-web/app.py.",
+    );
   }
   return catalog;
 }

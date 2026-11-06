@@ -6,14 +6,19 @@
 
 from __future__ import annotations
 
+import argparse
 import csv
 import io
 import math
+import shutil
+import subprocess
+import sys
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
+import uvicorn
 import yaml
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.gzip import GZipMiddleware
@@ -44,9 +49,14 @@ from scenario_workspace import (
     ScenarioWorkspaceError,
 )
 
+HOST = "127.0.0.1"
+PORT = 8000
+VITE_PORT = 5173  # frontend dev server, used only with --dev
+
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_DIR = Path(__file__).resolve().parent
-FRONTEND_DIST = PACKAGE_DIR / "frontend" / "dist"
+FRONTEND_DIR = PACKAGE_DIR / "frontend"
+FRONTEND_DIST = FRONTEND_DIR / "dist"
 DATA_DIR = ROOT / "data"
 GRAPH_CONFIG = PACKAGE_DIR / "graph_settings.yaml"
 MAPPING_DIR = ROOT / "pypsa-spice-vis" / "setting"
@@ -449,8 +459,8 @@ def index(request: Request) -> Response:
     if index_file.exists():
         return FileResponse(index_file)
     return HTMLResponse(
-        "<h1>Frontend not built</h1><p>Run <code>npm run web:build</code> "
-        "and restart the server.</p>",
+        "<h1>Frontend not built</h1><p>Start the app with "
+        "<code>python pypsa-spice-web/app.py</code>, which builds it.</p>",
         status_code=503,
     )
 
@@ -860,6 +870,96 @@ def flexo_font() -> FileResponse:
 
 app.mount(
     "/ui",
-    StaticFiles(directory=FRONTEND_DIST, check_dir=False),
+    StaticFiles(directory=FRONTEND_DIST, html=True, check_dir=False),
     name="frontend",
 )
+
+
+def _find_program(program: str) -> str:
+    """Return the path of node or npm, or stop with install instructions."""
+    path = shutil.which(program)
+    if path is None:
+        sys.exit(
+            f"'{program}' was not found. The web workspace needs Node.js for its "
+            "frontend: install it from https://nodejs.org, then start the app again."
+        )
+    return path
+
+
+def _run_npm(*npm_args: str) -> None:
+    """Run an npm command in the frontend folder; stop the app if it fails."""
+    npm_command = [_find_program("npm"), "--prefix", str(FRONTEND_DIR), *npm_args]
+    if subprocess.run(npm_command, check=False).returncode != 0:  # noqa: S603
+        sys.exit(f"'npm {' '.join(npm_args)}' failed, see the messages above.")
+
+
+def _frontend_needs_build() -> bool:
+    """Return whether the frontend was never built or changed since its last build."""
+    build_file = FRONTEND_DIST / "index.html"
+    if not build_file.exists():
+        return True
+    source_files = [
+        *(FRONTEND_DIR / "src").rglob("*"),
+        *(FRONTEND_DIR / "public").rglob("*"),
+        *FRONTEND_DIR.glob("*.*"),
+    ]
+    last_edit_time = max(
+        path.stat().st_mtime for path in source_files if path.is_file()
+    )
+    return last_edit_time > build_file.stat().st_mtime
+
+
+def main() -> None:
+    """Start the web workspace: ``python pypsa-spice-web/app.py [--dev]``."""
+    parser = argparse.ArgumentParser(description="PyPSA-SPICE web workspace.")
+
+    # The --dev option is for development only, not for production deployment.
+    # It runs the frontend with `Vite` and the backend with `auto-reload`, so that
+    # changes show up immediately without restarting the app.
+    parser.add_argument(
+        "--dev",
+        action="store_true",
+        help="for development: serve the frontend with Vite and restart the backend, "
+        "so frontend and backend changes show up right away!",
+    )
+    args = parser.parse_args()
+
+    if not (FRONTEND_DIR / "node_modules").is_dir():
+        _run_npm("install")
+
+    # By default, the frontend is built once and served as static files.
+    # In development mode, the frontend is served by Vite, which supports hot reloading.
+    vite_server = None
+    if args.dev:
+        vite_command = [_find_program("node"), "node_modules/vite/bin/vite.js"]
+        vite_command += ["--host", HOST, "--port", str(VITE_PORT), "--strictPort"]
+        # pylint: disable-next=consider-using-with
+        vite_server = subprocess.Popen(vite_command, cwd=FRONTEND_DIR)  # noqa: S603
+        app_url = f"http://{HOST}:{VITE_PORT}/ui/"
+    else:
+        if _frontend_needs_build():
+            print("Frontend changed, building it (takes a few seconds)...", flush=True)
+            _run_npm("run", "build")
+        app_url = f"http://{HOST}:{PORT}/ui/"
+
+    print(71 * "-")
+    print("Starting PyPSA-SPICE web workspace...\n")
+    print(f"Open {app_url} in your browser. Press 'Ctrl+C' to stop.", flush=True)
+    print(71 * "-")
+    try:
+        uvicorn.run(
+            "app:app",
+            app_dir=str(PACKAGE_DIR),
+            host=HOST,
+            port=PORT,
+            reload=args.dev,
+            reload_dirs=[str(PACKAGE_DIR)] if args.dev else None,
+        )
+    finally:
+        if vite_server is not None:
+            vite_server.terminate()
+            vite_server.wait()
+
+
+if __name__ == "__main__":
+    main()
