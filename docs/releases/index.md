@@ -7,6 +7,7 @@
 - Support piecewise linear efficiency and rate curves for thermal power units.
 
 ### Fixed
+- Fix `build_skeleton` creating the global cost files (`power_plant_costs.csv` and `storage_costs.csv`) with the template years and USD columns instead of the years and currency from `base_config.yaml`. ([:material-source-pull:129](https://github.com/agoenergy/pypsa-spice/pull/PR_NUMBER) by @sasa821)
 - Fix `solve_network` checking the model status of the global network instead of the solved one, and raise an error when the model is infeasible. ([:material-source-pull:124](https://github.com/agoenergy/pypsa-spice/pull/124) by @nhlong2701)
 
 ### Changed
