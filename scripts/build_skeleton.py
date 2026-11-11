@@ -1483,7 +1483,27 @@ def update_demand_profiles(
     final_demand_df.to_csv(save_path, index=False)
 
 
-def update_power_plant_costs(save_path: FilePath, countries: list, currency: str):
+def add_modelled_years(
+    template_df: pd.DataFrame, type_column: str, years: list
+) -> pd.DataFrame:
+    """Return one row per technology and modelled year.
+
+    Example: technologies [BATS, CCGT] and years [2025, 2030] give the rows
+    BATS 2025, BATS 2030, CCGT 2025, CCGT 2030.
+    """
+    # 1. One row per technology, without its year
+    technologies_df = template_df.drop_duplicates(type_column).drop(columns="year")
+    # 2. The modelled years from base_config.yaml
+    years_df = pd.DataFrame({"year": years})
+    # 3. Every technology combined with every year
+    result_df = technologies_df.merge(years_df, how="cross")
+    # 4. Same column order as the template
+    return result_df[template_df.columns]
+
+
+def update_power_plant_costs(
+    save_path: FilePath, countries: list, years: list, currency: str
+):
     """Add countries into the power_plant_costs csv.
 
     Parameters
@@ -1492,10 +1512,14 @@ def update_power_plant_costs(save_path: FilePath, countries: list, currency: str
         Root directory to check or create.
     countries : list
         List of country names
+    years : list
+        List of modelled years
     currency : str
         Currency for costs (e.g., "EUR", "USD").
     """
-    power_plant_df = pd.read_csv(save_path)
+    power_plant_df = add_modelled_years(
+        pd.read_csv(save_path), "powerplant_type", years
+    )
     final_power_plant_df = pd.DataFrame()
     currency = str(currency).lower()
     for country in countries:
@@ -1546,7 +1570,9 @@ def update_technical_potentials(
     potentials_df.to_csv(save_path, index=False)
 
 
-def update_storage_costs(save_path: FilePath, countries: list, currency: str):
+def update_storage_costs(
+    save_path: FilePath, countries: list, years: list, currency: str
+):
     """Add countries into the storage_costs csv.
 
     Parameters
@@ -1555,10 +1581,12 @@ def update_storage_costs(save_path: FilePath, countries: list, currency: str):
         Root directory to check or create.
     countries : list
         List of country names
+    years : list
+        List of modelled years
     currency : str
         Currency for costs (e.g., "EUR", "USD").
     """
-    storage_cost_df = pd.read_csv(save_path)
+    storage_cost_df = add_modelled_years(pd.read_csv(save_path), "storage_type", years)
     final_storage_cost_df = pd.DataFrame()
     currency = str(currency).lower()
     for country in countries:
@@ -1753,6 +1781,7 @@ if __name__ == "__main__":
         )
         update_power_plant_costs(
             save_path=path_power_plant_cost,
+            years=cfg_years,
             countries=cfg_countries,
             currency=cfg_currency,
         )
@@ -1762,6 +1791,7 @@ if __name__ == "__main__":
         )
         update_storage_costs(
             save_path=path_storage_costs,
+            years=cfg_years,
             countries=cfg_countries,
             currency=cfg_currency,
         )
