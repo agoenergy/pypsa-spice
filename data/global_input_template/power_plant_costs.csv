@@ -1,4 +1,4 @@
-powerplant_type,cap__usd_mw,fom__usd_mwa,vom__usd_mwh,life__years,country,year,source
+powerplant_type,cap__currency_mw,fom__currency_mwa,vom__currency_mwh,life__years,country,year,source
 BATS,Please fill here,Please fill here,Please fill here,Please fill here,,,Please fill here
 BIOT,Please fill here,Please fill here,Please fill here,Please fill here,,,Please fill here
 CCGT,Please fill here,Please fill here,Please fill here,Please fill here,,,Please fill here

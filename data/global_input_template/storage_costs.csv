@@ -1,4 +1,4 @@
-storage_type,cap__usd_mwh,fom__usd_mwh,vom__usd_mwh,life__years,country,year,source
+storage_type,cap__currency_mwh,fom__currency_mwh,vom__currency_mwh,life__years,country,year,source
 BATS,Please fill here,Please fill here,Please fill here,Please fill here,,,Please fill here
 CO2STOR,Please fill here,Please fill here,Please fill here,Please fill here,,,Please fill here
 HHBS,Please fill here,Please fill here,Please fill here,Please fill here,,,Please fill here

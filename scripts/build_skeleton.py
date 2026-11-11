@@ -1483,7 +1483,7 @@ def update_demand_profiles(
     final_demand_df.to_csv(save_path, index=False)
 
 
-def add_modelled_years(
+def add_all_modelled_years(
     template_df: pd.DataFrame, type_column: str, years: list
 ) -> pd.DataFrame:
     """Return one row per technology and modelled year.
@@ -1517,18 +1517,18 @@ def update_power_plant_costs(
     currency : str
         Currency for costs (e.g., "EUR", "USD").
     """
-    power_plant_df = add_modelled_years(
+    power_plant_df = add_all_modelled_years(
         pd.read_csv(save_path), "powerplant_type", years
     )
+    # Replace the "currency" placeholder in column names with the currency
+    # from base_config.yaml, e.g. cap__currency_mw -> cap__eur_mw
+    power_plant_df.columns = power_plant_df.columns.str.replace(
+        "__currency_", f"__{str(currency).lower()}_"
+    )
     final_power_plant_df = pd.DataFrame()
-    currency = str(currency).lower()
     for country in countries:
         country_power_plant_df = power_plant_df.copy()
         country_power_plant_df["country"] = country
-        country_power_plant_df[f"cap__{currency}_mw"] = "Please fill here"
-        country_power_plant_df[f"fom__{currency}_mwa"] = "Please fill here"
-        country_power_plant_df[f"vom__{currency}_mwh"] = "Please fill here"
-        country_power_plant_df["life__years"] = "Please fill here"
         final_power_plant_df = pd.concat(
             [final_power_plant_df, country_power_plant_df], axis=0
         )
@@ -1586,16 +1586,18 @@ def update_storage_costs(
     currency : str
         Currency for costs (e.g., "EUR", "USD").
     """
-    storage_cost_df = add_modelled_years(pd.read_csv(save_path), "storage_type", years)
+    storage_cost_df = add_all_modelled_years(
+        pd.read_csv(save_path), "storage_type", years
+    )
+    # Replace the "currency" placeholder in column names with the currency
+    # from base_config.yaml, e.g. cap__currency_mwh -> cap__eur_mwh
+    storage_cost_df.columns = storage_cost_df.columns.str.replace(
+        "__currency_", f"__{str(currency).lower()}_"
+    )
     final_storage_cost_df = pd.DataFrame()
-    currency = str(currency).lower()
     for country in countries:
         country_storage_cost_df = storage_cost_df.copy()
         country_storage_cost_df["country"] = country
-        country_storage_cost_df[f"cap__{currency}_mwh"] = "Please fill here"
-        country_storage_cost_df[f"fom__{currency}_mwh"] = "Please fill here"
-        country_storage_cost_df[f"vom__{currency}_mwh"] = "Please fill here"
-        country_storage_cost_df["life__years"] = "Please fill here"
         final_storage_cost_df = pd.concat(
             [final_storage_cost_df, country_storage_cost_df], axis=0
         )
