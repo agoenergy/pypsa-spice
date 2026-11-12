@@ -10,6 +10,7 @@
 *.dll 
 .snakemake*
 .history
+.DS_Store
 
 # Untracked folders (and files within)
 /logs
@@ -35,6 +36,10 @@ gurobi.log
 node_modules/
 package-lock.json
 package.json
+pypsa-spice-web/frontend/dist/
+
+!pypsa-spice-web/frontend/package.json
+!pypsa-spice-web/frontend/package-lock.json
 
 # Exceptions: Files under the following folders will not be ignored  
 # and will remain under Git version control.
