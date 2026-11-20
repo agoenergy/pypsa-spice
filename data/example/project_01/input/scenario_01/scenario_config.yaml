@@ -104,7 +104,7 @@ custom_constraints:
       activate: true
       technologies: ["SubC", "SupC"] # technology types to which ramp costs apply
   YZ:
-    production_constraint_fuels: 
+    production_constraint_fuels:
       activate: true
       fuels: ["Bio", "Bit", "Gas", "Oil"]
     res_generation:
@@ -122,7 +122,7 @@ custom_constraints:
         "SubC": 0.6
         "SupC": 0.6
         "HDAM": 0.4
-        
+
 #####Solver settings#####
 solving:
   solver:

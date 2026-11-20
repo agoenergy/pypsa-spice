@@ -1,0 +1,478 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+import chartSurfaceStyles from "./ChartSurface.module.scss";
+import workspaceFeedbackStyles from "./WorkspaceFeedback.module.scss";
+import IconButton from "./IconButton";
+import { IconLink } from "./IconButton";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Download, Expand, Minimize2, RotateCcw, Table2 } from "lucide-react";
+
+import { downloadUrl, getChart } from "../api";
+import Plot from "./Plot";
+import { ChartLegend } from "./ChartLegend";
+import { buildDifferenceRows, getLegendValues, getSharedXAxisRange, getSharedYAxisRanges } from "../shared/chartData";
+import {
+  ChartContextHeading,
+  ChartErrorState,
+  ChartLoadingState,
+  ChartRefreshOverlay,
+  useDelayedFlag,
+} from "./ChartFeedback";
+import { useDismissOnEscape } from "../useDismiss";
+import useNearViewport from "../useNearViewport";
+import type { Catalog, ChartDefinition, ChartResponse, ResultRow, Selection } from "../types";
+
+interface Props {
+  chart: ChartDefinition;
+  selection: Selection;
+  years: string[];
+  mappings: Catalog["mappings"];
+  darkMode: boolean;
+  onInspect: (chart: ChartDefinition, rows: ResultRow[], sourceCount: number) => void;
+}
+
+const HOUR_MS = 60 * 60 * 1000;
+function timestampToMs(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const timestamp = new Date(value.replace(" ", "T")).getTime();
+  return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+function msToTimestamp(value: number): string {
+  const date = new Date(value);
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function readableTimestamp(value: number): string {
+  const date = new Date(value);
+  const day = date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  const time = date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false });
+  return `${day} · ${time}`;
+}
+
+export default function ChartCard({ chart, selection, years, mappings, darkMode, onInspect }: Props) {
+  const [primary, setPrimary] = useState<ChartResponse | null>(null);
+  const [comparison, setComparison] = useState<ChartResponse | null>(null);
+  const [country, setCountry] = useState("ALL");
+  const [year, setYear] = useState(years[0] || "");
+  const [filterValue, setFilterValue] = useState("ALL");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const card = useRef<HTMLElement>(null);
+  const nearViewport = useNearViewport(card);
+  const [showDifference, setShowDifference] = useState(false);
+  const [hiddenLegendValues, setHiddenLegendValues] = useState<Set<string>>(() => new Set());
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const countries = useMemo(
+    () => [...new Set([...(primary?.dimensions.country || []), ...(comparison?.dimensions.country || [])])],
+    [primary, comparison],
+  );
+
+  useEffect(() => {
+    setPrimary(null);
+    setComparison(null);
+    setFilterValue("ALL");
+    setStartTime("");
+    setEndTime("");
+    setHiddenLegendValues(new Set());
+  }, [selection.dataset, selection.project, selection.scenario, selection.sector]);
+  useEffect(() => {
+    setCountry("ALL");
+  }, [selection.dataset, selection.project]);
+  useEffect(() => {
+    if (country !== "ALL" && !countries.includes(country)) setCountry("ALL");
+  }, [countries, country]);
+  useEffect(() => {
+    if (!years.includes(year)) setYear(years[0] || "");
+  }, [years, year]);
+  useEffect(() => {
+    setComparison(null);
+    setShowDifference(false);
+  }, [selection.comparison]);
+
+  useEffect(() => {
+    if (!nearViewport) return;
+    const controller = new AbortController();
+    setLoading(true);
+    setError("");
+    Promise.all([
+      getChart(
+        chart,
+        { ...selection, year },
+        selection.scenario,
+        country,
+        filterValue,
+        startTime,
+        endTime,
+        controller.signal,
+      ),
+      selection.comparison
+        ? getChart(
+            chart,
+            { ...selection, year },
+            selection.comparison,
+            country,
+            filterValue,
+            startTime,
+            endTime,
+            controller.signal,
+          )
+        : Promise.resolve(null),
+    ])
+      .then(([first, second]) => {
+        setPrimary(first);
+        setComparison(second);
+      })
+      .catch((reason) => {
+        if (reason.name !== "AbortError") setError(reason.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [
+    nearViewport,
+    chart,
+    selection.dataset,
+    selection.project,
+    selection.scenario,
+    selection.comparison,
+    selection.sector,
+    chart.hourly ? year : "",
+    country,
+    filterValue,
+    startTime,
+    endTime,
+  ]);
+
+  const showLoadingIndicator = useDelayedFlag(loading);
+
+  const rows = useMemo(
+    () => [
+      ...(primary?.rows.map((row) => ({ ...row, scenario: selection.scenario })) || []),
+      ...(comparison?.rows.map((row) => ({ ...row, scenario: selection.comparison })) || []),
+    ],
+    [primary, comparison, selection],
+  );
+  const differenceRows = useMemo(
+    () =>
+      primary && comparison
+        ? buildDifferenceRows(primary, comparison, chart, selection.scenario, selection.comparison)
+        : [],
+    [primary, comparison, chart, selection.scenario, selection.comparison],
+  );
+  const sourceCount = (primary?.meta.source_rows || 0) + (comparison?.meta.source_rows || 0);
+  const filters = chart.fil_col ? primary?.dimensions[chart.fil_col] || [] : [];
+  const filterLabel = chart.fil_col === "to" ? "destinations" : `${chart.fil_col}s`;
+
+  const comparing = Boolean(selection.comparison && comparison);
+  const comparisonLegendValues = useMemo(
+    () => getLegendValues(chart, primary, comparison),
+    [chart, primary, comparison],
+  );
+  const sharedYAxisRanges = useMemo(
+    () => (primary && comparison ? getSharedYAxisRanges([primary, comparison], chart, hiddenLegendValues) : undefined),
+    [primary, comparison, chart, hiddenLegendValues],
+  );
+  const sharedXAxisRange = useMemo(
+    () => (primary && comparison ? getSharedXAxisRange([primary, comparison], chart, startTime, endTime) : undefined),
+    [primary, comparison, chart, startTime, endTime],
+  );
+  const toggleLegendValue = (value: string) => {
+    setHiddenLegendValues((current) => {
+      const next = new Set(current);
+      if (next.has(value)) next.delete(value);
+      else next.add(value);
+      return next;
+    });
+  };
+  const availableStart = timestampToMs(primary?.meta.available_start);
+  const availableEnd = timestampToMs(primary?.meta.available_end);
+  const selectedStart = timestampToMs(startTime) ?? availableStart;
+  const selectedEnd = timestampToMs(endTime) ?? availableEnd;
+  const hasTimeRange = Boolean(startTime || endTime);
+  const rangeSpan = availableStart !== null && availableEnd !== null ? Math.max(1, availableEnd - availableStart) : 1;
+  const minimumRange = Math.min(HOUR_MS, rangeSpan);
+  const startPercent =
+    availableStart !== null && selectedStart !== null ? ((selectedStart - availableStart) / rangeSpan) * 100 : 0;
+  const endPercent =
+    availableStart !== null && selectedEnd !== null ? ((selectedEnd - availableStart) / rangeSpan) * 100 : 100;
+
+  const changeStart = (value: number) => {
+    if (selectedEnd === null) return;
+    setStartTime(msToTimestamp(Math.min(value, selectedEnd - minimumRange)));
+  };
+  const changeEnd = (value: number) => {
+    if (selectedStart === null) return;
+    setEndTime(msToTimestamp(Math.max(value, selectedStart + minimumRange)));
+  };
+  const changeYear = (year: string) => {
+    setStartTime("");
+    setEndTime("");
+    setYear(year);
+  };
+
+  useDismissOnEscape(expanded, () => setExpanded(false));
+
+  return (
+    <article
+      ref={card}
+      id={`figure-${chart.id}`}
+      className={[
+        chartSurfaceStyles["chart-card"],
+        expanded ? chartSurfaceStyles["expanded"] : "",
+        comparing ? chartSurfaceStyles["comparing"] : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      role={expanded ? "dialog" : undefined}
+      aria-modal={expanded || undefined}
+      aria-label={expanded ? chart.name : undefined}
+    >
+      <header className={chartSurfaceStyles["chart-head"]}>
+        <div className={chartSurfaceStyles["chart-title"]}>
+          <h3>{chart.name}</h3>
+        </div>
+        <div className={chartSurfaceStyles["chart-toolbar"]}>
+          <div className={chartSurfaceStyles["chart-controls"]}>
+            <select
+              aria-label={`Country for ${chart.name}`}
+              value={country}
+              onChange={(event) => setCountry(event.target.value)}
+            >
+              <option value="ALL">All countries</option>
+              {countries.map((item) => (
+                <option key={item}>{item}</option>
+              ))}
+            </select>
+            {chart.fil_col && filters.length > 0 && (
+              <select
+                aria-label={`${chart.fil_col} for ${chart.name}`}
+                value={filterValue}
+                onChange={(event) => setFilterValue(event.target.value)}
+              >
+                <option value="ALL">All {filterLabel}</option>
+                {filters.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            )}
+            {chart.hourly && years.length > 0 && (
+              <select
+                aria-label={`Hourly year for ${chart.name}`}
+                value={year}
+                onChange={(event) => changeYear(event.target.value)}
+              >
+                {years.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            )}
+            {selection.comparison && (
+              <label
+                className={chartSurfaceStyles["chart-difference-toggle"]}
+                title={`${selection.comparison} − ${selection.scenario}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={showDifference}
+                  onChange={(event) => setShowDifference(event.target.checked)}
+                />
+                <i aria-hidden="true" />
+                <span>Difference</span>
+              </label>
+            )}
+          </div>
+          <div className={chartSurfaceStyles["chart-actions"]}>
+            <IconButton
+              variant="toolbar"
+              title={showDifference ? "View difference data" : "View source data"}
+              aria-label={`View ${chart.name} ${showDifference ? "difference" : "source"} data`}
+              onClick={() =>
+                onInspect(
+                  showDifference ? { ...chart, name: `${chart.name} — Difference` } : chart,
+                  showDifference ? differenceRows : rows,
+                  sourceCount,
+                )
+              }
+            >
+              <Table2 aria-hidden="true" />
+            </IconButton>
+            <IconLink
+              variant="toolbar"
+              title="Download complete CSV"
+              aria-label={`Download ${chart.name} CSV`}
+              href={downloadUrl(chart, { ...selection, year })}
+              download
+            >
+              <Download aria-hidden="true" />
+            </IconLink>
+            <IconButton
+              variant="toolbar"
+              title={expanded ? "Close expanded chart" : "Expand chart"}
+              aria-label={`${expanded ? "Close" : "Expand"} ${chart.name}`}
+              onClick={() => setExpanded(!expanded)}
+            >
+              {expanded ? <Minimize2 aria-hidden="true" /> : <Expand aria-hidden="true" />}
+            </IconButton>
+          </div>
+        </div>
+      </header>
+      {chart.hourly &&
+        availableStart !== null &&
+        availableEnd !== null &&
+        selectedStart !== null &&
+        selectedEnd !== null && (
+          <div className={chartSurfaceStyles["time-range-controls"]} aria-label={`Time range for ${chart.name}`}>
+            <div className={chartSurfaceStyles["time-range-head"]}>
+              <span>Time range</span>
+              {hasTimeRange && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStartTime("");
+                    setEndTime("");
+                  }}
+                >
+                  <RotateCcw aria-hidden="true" />
+                  Reset
+                </button>
+              )}
+            </div>
+            <div className={chartSurfaceStyles["time-range-values"]} aria-live="polite">
+              <output>{readableTimestamp(selectedStart)}</output>
+              <output>{readableTimestamp(selectedEnd)}</output>
+            </div>
+            <div className={chartSurfaceStyles["dual-range"]}>
+              <div className={chartSurfaceStyles["range-track"]} aria-hidden="true">
+                <i style={{ left: `${startPercent}%`, right: `${100 - endPercent}%` }} />
+              </div>
+              <input
+                type="range"
+                aria-label={`Start time for ${chart.name}`}
+                min={availableStart}
+                max={availableEnd}
+                step={HOUR_MS}
+                value={selectedStart}
+                onInput={(event) => changeStart(Number(event.currentTarget.value))}
+                style={{ zIndex: startPercent > 50 ? 4 : 2 }}
+              />
+              <input
+                type="range"
+                aria-label={`End time for ${chart.name}`}
+                min={availableStart}
+                max={availableEnd}
+                step={HOUR_MS}
+                value={selectedEnd}
+                onInput={(event) => changeEnd(Number(event.currentTarget.value))}
+              />
+            </div>
+          </div>
+        )}
+      <div
+        className={[
+          chartSurfaceStyles["chart-body"],
+          primary && primary.rows.length > 0 ? chartSurfaceStyles["with-plot"] : "",
+          comparing && !showDifference ? chartSurfaceStyles["comparison-layout"] : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        aria-busy={loading}
+      >
+        {showLoadingIndicator && !primary && <ChartLoadingState message="Reading result table…" />}
+        {!loading && error && <ChartErrorState message={error} />}
+        {!loading && !error && primary && primary.rows.length === 0 && (
+          <div className={[workspaceFeedbackStyles["state"], workspaceFeedbackStyles["empty"]].join(" ")}>
+            <b>No values in this result table</b>
+            <span>The chart will appear when the selected run contains data.</span>
+          </div>
+        )}
+        {!error && primary && primary.rows.length > 0 && !comparing && (
+          <Plot
+            chart={chart}
+            primary={primary}
+            comparison={null}
+            primaryName={selection.scenario}
+            comparisonName=""
+            mappings={mappings}
+            darkMode={darkMode}
+            expanded={expanded}
+            hiddenLegendValues={hiddenLegendValues}
+            onLegendToggle={toggleLegendValue}
+          />
+        )}
+        {!error && primary && primary.rows.length > 0 && comparing && !showDifference && (
+          <>
+            <div className={chartSurfaceStyles["scenario-plot"]}>
+              <ChartContextHeading label="Primary scenario" title={selection.scenario} />
+              <Plot
+                chart={chart}
+                primary={primary}
+                comparison={null}
+                primaryName={selection.scenario}
+                comparisonName=""
+                mappings={mappings}
+                darkMode={darkMode}
+                expanded={expanded}
+                legendValues={comparisonLegendValues}
+                showLegend={false}
+                xAxisRange={sharedXAxisRange}
+                yAxisRanges={sharedYAxisRanges}
+                hiddenLegendValues={hiddenLegendValues}
+                onLegendToggle={toggleLegendValue}
+              />
+            </div>
+            <div className={chartSurfaceStyles["scenario-plot"]}>
+              <ChartContextHeading label="Comparison scenario" title={selection.comparison} />
+              <Plot
+                chart={chart}
+                primary={comparison!}
+                comparison={null}
+                primaryName={selection.comparison}
+                comparisonName=""
+                mappings={mappings}
+                darkMode={darkMode}
+                expanded={expanded}
+                legendValues={comparisonLegendValues}
+                showLegend={false}
+                xAxisRange={sharedXAxisRange}
+                yAxisRanges={sharedYAxisRanges}
+                hiddenLegendValues={hiddenLegendValues}
+                onLegendToggle={toggleLegendValue}
+              />
+            </div>
+            <ChartLegend
+              values={comparisonLegendValues}
+              mappings={mappings}
+              hiddenValues={hiddenLegendValues}
+              onToggle={toggleLegendValue}
+            />
+          </>
+        )}
+        {!error && primary && primary.rows.length > 0 && comparing && showDifference && (
+          <div className={chartSurfaceStyles["difference-plot"]}>
+            <ChartContextHeading label="Difference" title={`${selection.comparison} − ${selection.scenario}`} />
+            <Plot
+              chart={chart}
+              primary={primary}
+              comparison={comparison}
+              primaryName={selection.scenario}
+              comparisonName={selection.comparison}
+              mappings={mappings}
+              darkMode={darkMode}
+              expanded={expanded}
+              difference
+              hiddenLegendValues={hiddenLegendValues}
+              onLegendToggle={toggleLegendValue}
+            />
+          </div>
+        )}
+        {chart.hourly && showLoadingIndicator && primary && <ChartRefreshOverlay />}
+      </div>
+    </article>
+  );
+}

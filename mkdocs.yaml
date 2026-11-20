@@ -106,6 +106,7 @@ nav:
 
   - 📊 Visualisation tool: 
     - PyPSA-SPICE-Vis: visualisation-tool/pypsa-spice-vis.md
+    - Web workspace (beta): visualisation-tool/web-workspace.md
     - List of charts and sections: visualisation-tool/vis-sections-and-charts.md
     - Deployment: visualisation-tool/deployment.md
 
