@@ -329,7 +329,7 @@ demand_side_management:
 6. Cost of shedding 1 MWh (currency/MWh).
 7. `shift`: the model can move load earlier or later within a fixed window. The energy balances to zero in each window.
 8. Maximum shift power (both up and down) as a share of the peak of the load on each bus.
-9. Length of the shifting window in hours. Windows start at the first snapshot of the year. If 8,760 is not a multiple of `window_hours`, the last window is shorter.
+9. Length of the shifting window in hours. Windows start at the first snapshot of the year and are counted in modelled hours (snapshot weightings). If 8,760 is not a multiple of `window_hours`, the last window is shorter.
 10. Optional. Energy capacity of the shift potential, in hours of shift power. The default and maximum is `window_hours`. Larger values are clipped to `window_hours` with a warning, because they cannot be used within one window.
 11. Cost of shifting 1 MWh (currency/MWh). It is charged once per MWh, when the shifted load is reduced (discharge).
 

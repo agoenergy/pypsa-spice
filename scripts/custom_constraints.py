@@ -1145,8 +1145,11 @@ def add_dsm_shed_energy_constraint(n: pypsa.Network, country: str):
 def add_dsm_shift_window_constraint(n: pypsa.Network, country: str):
     """Fix the state of charge of DSM shift storage units at every window boundary.
 
-    Windows start at the first snapshot and close every ``window_hours`` snapshots.
-    At the last snapshot of every window (the last window may be shorter), the state
+    Windows start at the first snapshot and are counted in modelled hours (the
+    cumulative snapshot weightings), so a window closes at the snapshot where the
+    cumulative hours reach a multiple of ``window_hours``. With hourly resolution this
+    is every ``window_hours`` snapshots. At the last snapshot of every window (the last
+    window may be shorter), the state
     of charge equals half of the energy capacity, which is also the initial state of
     charge. Load can therefore move earlier or later, and the energy balances to zero
     in each window.
@@ -1166,9 +1169,13 @@ def add_dsm_shift_window_constraint(n: pypsa.Network, country: str):
         return
     n_snapshots = len(n.snapshots)
     soc = n.model["StorageUnit-state_of_charge"]
+    # modelled hours at the end of each snapshot (state of charge uses store weights)
+    cum_hours = n.snapshot_weightings["stores"].cumsum().to_numpy()
     for window, group in shift.groupby("dsm_window_hours"):
         window = int(window)
-        ends = list(range(window - 1, n_snapshots, window))
+        # index of the window each snapshot ends in; a window closes where it changes
+        window_idx = np.floor(cum_hours / window + 1e-9)
+        ends = list(np.flatnonzero(np.diff(window_idx, prepend=0) > 0))
         if not ends or ends[-1] != n_snapshots - 1:
             ends.append(n_snapshots - 1)
         end_snapshots = n.snapshots[ends]

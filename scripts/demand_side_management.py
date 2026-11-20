@@ -24,6 +24,7 @@ The components are added here. The constraints are in ``custom_constraints.py``.
 
 import logging
 import numbers
+import os
 
 import numpy as np
 import pandas as pd
@@ -32,6 +33,9 @@ import pypsa
 logger = logging.getLogger(__name__)
 
 DSM_SECTION = "demand_side_management"
+# Developer-only escape hatch for fast test runs: setting this environment variable to
+# 1 applies DSM with any resolution. Results of such runs are not valid.
+DSM_TEST_OVERRIDE_ENV = "PYPSA_SPICE_DSM_ANY_RESOLUTION"
 DSM_TYPES = {
     "shed": {"carrier": "DSM_SHED", "type": "DSMD"},
     "shift": {"carrier": "DSM_SHIFT", "type": "DSMF"},
@@ -156,12 +160,28 @@ def _validate_load_cfg(prefix: str, load_cfg, years: list) -> list:
 
 
 def dsm_resolution_supported(scenario_configs: dict) -> bool:
-    """Return True if the temporal resolution supports DSM (hourly ``nth_hour``)."""
+    """Return True if the temporal resolution supports DSM (hourly ``nth_hour``).
+
+    For developers only: if the environment variable ``PYPSA_SPICE_DSM_ANY_RESOLUTION``
+    is set to ``1``, DSM is applied with any resolution so that the code can be tested
+    on fast, coarse runs. A warning is logged, and the results of such runs are not
+    valid.
+    """
     resolution = scenario_configs["scenario_configs"]["resolution"]
-    return (
+    hourly = (
         str(resolution.get("method", "")).lower() == "nth_hour"
         and resolution.get("stepsize") == 1
     )
+    if not hourly and os.environ.get(DSM_TEST_OVERRIDE_ENV) == "1":
+        logger.warning(
+            "%s=1: DSM is applied with resolution method=%s, stepsize=%s for "
+            "testing only. DSM results of this run are not valid.",
+            DSM_TEST_OVERRIDE_ENV,
+            resolution.get("method"),
+            resolution.get("stepsize"),
+        )
+        return True
+    return hourly
 
 
 def get_active_dsm_countries(
