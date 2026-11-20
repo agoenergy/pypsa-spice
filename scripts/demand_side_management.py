@@ -23,6 +23,7 @@ The components are added here. The constraints are in ``custom_constraints.py``.
 """
 
 import logging
+import math
 import numbers
 import os
 
@@ -51,7 +52,12 @@ YEAR_KEYS = ["max_peak_share", "max_energy_share", "marginal_cost", "max_hours"]
 
 
 def _is_number(value) -> bool:
-    return isinstance(value, numbers.Number) and not isinstance(value, bool)
+    """Return True for finite real numbers (not bool, NaN or inf)."""
+    return (
+        isinstance(value, numbers.Real)
+        and not isinstance(value, bool)
+        and math.isfinite(value)
+    )
 
 
 def value_for_year(value, year: int) -> float:
@@ -143,7 +149,7 @@ def _validate_load_cfg(prefix: str, load_cfg, years: list) -> list:
         for year, v in values.items():
             label = f"{prefix}.{key}" + (f"[{year}]" if year is not None else "")
             if not _is_number(v):
-                errors.append(f"{label}: must be a number, got {v!r}.")
+                errors.append(f"{label}: must be a finite number, got {v!r}.")
             elif key in ("max_peak_share", "max_energy_share") and not 0 <= v <= 1:
                 errors.append(f"{label}: must be between 0 and 1, got {v}.")
             elif key == "marginal_cost" and v < 0:
@@ -282,6 +288,17 @@ def add_dsm_components(
             buses = p_nom.index
             carrier = DSM_TYPES[dsm_type]["carrier"]
             names = [f"{carrier} - {profile_type} - {bus}" for bus in buses]
+            # Shed power and shift discharge (load reduction) cannot exceed the load
+            # of this type on the bus in each snapshot, so DSM never supplies energy
+            # to other loads.
+            demand = (
+                n.loads_t.p_set.reindex(columns=sel.index, fill_value=0.0)
+                .T.groupby(sel["bus"])
+                .sum()
+                .T.reindex(columns=buses, fill_value=0.0)
+            )
+            p_max_pu = demand.div(p_nom).clip(lower=0.0, upper=1.0)
+            p_max_pu.columns = names
             common = dict(
                 bus=buses,
                 country=country,
@@ -292,6 +309,7 @@ def add_dsm_components(
                 marginal_cost=value_for_year(cfg["marginal_cost"], year),
                 build_year=year,
                 lifetime=np.inf,
+                p_max_pu=p_max_pu,
                 dsm_profile_type=profile_type,
             )
             if dsm_type == "shed":

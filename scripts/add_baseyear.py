@@ -386,7 +386,8 @@ class AddBaseNetwork:
         final_load = get_time_series_demands(load_df, self.dmd_profile_path, self.year)
         final_load.reset_index(["country", "bus", "carrier", "node"], inplace=True)
         profile_type = (
-            load_df.drop_duplicates("name")
+            load_df[load_df["year"] == self.year]
+            .drop_duplicates("name")
             .set_index("name")["profile_type"]
             .reindex(final_load.index)
         )

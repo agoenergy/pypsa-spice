@@ -676,7 +676,8 @@ class AddFutureAssets:
         )
         p_set.columns.name = "Load"
         profile_type = (
-            load_df.drop_duplicates("name")
+            load_df[load_df["year"] == self.year]
+            .drop_duplicates("name")
             .set_index("name")["profile_type"]
             .reindex(final_load.index)
         )

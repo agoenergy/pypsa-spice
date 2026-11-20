@@ -3418,6 +3418,11 @@ class OutputTables(Plots):
                     fuel_cost.loc[targeted_type] = 0
                     # add fuel cost to opex
                     ind_cost = ind_cost.add(fuel_cost)
+                # DSM costs are reported separately in dsm_cost_by_bus_yearly
+                if not ind_cost.empty:
+                    ind_cost = ind_cost[
+                        ~ind_cost.index.get_level_values("type").isin(["DSMD", "DSMF"])
+                    ]
                 if not ind_cost.empty:
                     list_of_bus = (
                         ind_cost.index.get_level_values(bus_name).unique().tolist()
