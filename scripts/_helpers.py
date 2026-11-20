@@ -97,6 +97,8 @@ ag_cp = {
     "WST": "#0BDA51",
     "LSLO": "#0BDA51",
     "LDMP": "#0BDA51",
+    "DSMD": "#C77CFF",
+    "DSMF": "#7B5BA6",
     "NUCL": "#5F605C",
     "SWHT": "#FFD744",
     "fossils": "#9ABBCA",

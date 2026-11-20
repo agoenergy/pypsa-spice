@@ -1101,3 +1101,93 @@ def __get_asset_indices(df: pd.DataFrame) -> pd.Index:
     ext_i = df.query("p_nom_extendable").index
     fix_i = df.index.difference(ext_i)
     return ext_i, fix_i
+
+
+def add_dsm_shed_energy_constraint(n: pypsa.Network, country: str):
+    """Cap the weighted energy shed by DSM per bus.
+
+    For every DSM shed generator g on bus b for load type k:
+    sum_t w_t * p_g,t <= max_energy_share_g * sum_t w_t * sum_(l on b of type k) d_l,t
+
+    The annual demand on the right hand side is the weighted load of the network, so
+    both sides use the same snapshot weightings.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network with DSM shed generators (type DSMD).
+    country : str
+        Country for which the constraint is applied.
+    """
+    gens = n.generators
+    if gens.empty or "type" not in gens:
+        return
+    shed = gens[(gens["type"] == "DSMD") & (gens["country"] == country)]
+    if shed.empty:
+        return
+    weights = n.snapshot_weightings["generators"]
+    loads = n.loads
+    demand = n.loads_t.p_set.mul(weights, axis=0).sum()
+    rhs = pd.Series(0.0, index=shed.index)
+    for gen, row in shed.iterrows():
+        mask = (loads["bus"] == row["bus"]) & (
+            loads["profile_type"] == row["dsm_profile_type"]
+        )
+        rhs[gen] = row["dsm_max_energy_share"] * demand.reindex(loads.index[mask]).sum()
+    weight_da = xr.DataArray(weights, dims="snapshot", coords={"snapshot": n.snapshots})
+    p_shed = n.model["Generator-p"].loc[:, shed.index]
+    lhs = (p_shed * weight_da).sum("snapshot")
+    rhs_da = xr.DataArray(rhs.to_numpy(), dims="name", coords={"name": shed.index})
+    print(f"....adding DSM shed energy constraint for {len(shed)} bus(es) in {country}")
+    n.model.add_constraints(lhs <= rhs_da, name=f"dsm_shed_energy_{country}")
+
+
+def add_dsm_shift_window_constraint(n: pypsa.Network, country: str):
+    """Fix the state of charge of DSM shift storage units at every window boundary.
+
+    Windows start at the first snapshot and are counted in modelled hours (the
+    cumulative snapshot weightings), so a window closes at the snapshot where the
+    cumulative hours reach a multiple of ``window_hours``. With hourly resolution this
+    is every ``window_hours`` snapshots. At the last snapshot of every window (the last
+    window may be shorter), the state
+    of charge equals half of the energy capacity, which is also the initial state of
+    charge. Load can therefore move earlier or later, and the energy balances to zero
+    in each window.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network with DSM shift storage units (type DSMF).
+    country : str
+        Country for which the constraint is applied.
+    """
+    sus = n.storage_units
+    if sus.empty or "type" not in sus:
+        return
+    shift = sus[(sus["type"] == "DSMF") & (sus["country"] == country)]
+    if shift.empty:
+        return
+    n_snapshots = len(n.snapshots)
+    soc = n.model["StorageUnit-state_of_charge"]
+    # modelled hours at the end of each snapshot (state of charge uses store weights)
+    cum_hours = n.snapshot_weightings["stores"].cumsum().to_numpy()
+    for window, group in shift.groupby("dsm_window_hours"):
+        window = int(window)
+        # index of the window each snapshot ends in; a window closes where it changes
+        window_idx = np.floor(cum_hours / window + 1e-9)
+        ends = list(np.flatnonzero(np.diff(window_idx, prepend=0) > 0))
+        if not ends or ends[-1] != n_snapshots - 1:
+            ends.append(n_snapshots - 1)
+        end_snapshots = n.snapshots[ends]
+        half_energy = group["p_nom"] * group["max_hours"] / 2
+        rhs = xr.DataArray(
+            half_energy.to_numpy(), dims="name", coords={"name": group.index}
+        )
+        lhs = soc.loc[end_snapshots, group.index]
+        print(
+            f"....adding DSM shift window constraint ({window} h, {len(ends)} "
+            f"windows) for {len(group)} bus(es) in {country}"
+        )
+        n.model.add_constraints(
+            lhs == rhs, name=f"dsm_shift_window_{window}h_{country}"
+        )
