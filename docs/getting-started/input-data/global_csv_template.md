@@ -53,9 +53,9 @@ To add new load profiles (e.g., for a new project or country), insert a new row.
 
 `power_plant_costs.csv` defines cost data for all technologies in each country. It includes:
 
-- Capital expenditure (CAPEX) in USD/MW (currency based on input data)
-- Fixed operation and maintenance cost (FOM) in USD/MW (currency based on input data)
-- Variable operation and maintenance cost (VOM) in USD/MWh (currency based on input data)
+- Capital expenditure (CAPEX) in the configured currency based on input data (e.g. USD/MW)
+- Fixed operation and maintenance cost (FOM) in the configured currency based on input data (e.g. USD/MW)
+- Variable operation and maintenance cost (VOM) in the configured currency based on input data (e.g. USD/MWh)
 
 Note: Currencies may vary depending on the source data.
 
@@ -71,9 +71,9 @@ The model builder does not allow higher expansion than what are specified in thi
 
 `storage_costs.csv` covers the cost structure for all storage tanks (storage volume or energy capacity) in each country. It includes:
 
-- Capital expenditure (CAPEX) in USD/MW (currency based on input data)
-- Fixed operation and maintenance cost (FOM) in USD/MW (currency based on input data)
-- Variable operation and maintenance cost (VOM) in USD/MWh (currency based on input data)
+- Capital expenditure (CAPEX) in the configured currency based on input data (e.g. USD/MW)
+- Fixed operation and maintenance cost (FOM) in the configured currency based on input data (e.g. USD/MW)
+- Variable operation and maintenance cost (VOM) in the configured currency based on input data (e.g. USD/MWh)
 
 Note: Currencies may vary depending on the source data.
 
