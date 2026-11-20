@@ -135,6 +135,28 @@ custom_constraints:
     ramp_costs:
       activate: false
         
+demand_side_management:
+  # Optional demand side management (DSM) per country and load type (profile_type).
+  # Only applied with hourly resolution (method "nth_hour" with stepsize 1). With any
+  # other resolution, a warning is logged and DSM is skipped.
+  # Every value is a number or a dict with a value for every modelled year.
+  XY:
+    activate: false # change this to true to activate DSM for this country
+    loads:
+      HV_LOAD:
+        type: shed # load can be left unserved at a marginal cost
+        max_peak_share: {2025: 0.02, 2030: 0.02, 2035: 0.03, 2040: 0.04, 2045: 0.05, 2050: 0.05} # shed power <= share x peak of the load on each bus
+        max_energy_share: {2025: 0.001, 2030: 0.001, 2035: 0.001, 2040: 0.002, 2045: 0.002, 2050: 0.002} # weighted shed energy <= share x annual demand
+        marginal_cost: 500 # currency/MWh shed
+      LV_LOAD:
+        type: shift # load can move earlier or later within a window
+        max_peak_share: {2025: 0.05, 2030: 0.05, 2035: 0.07, 2040: 0.10, 2045: 0.10, 2050: 0.10} # shift power (up and down) <= share x peak
+        window_hours: 24 # energy balances to zero in each window of this many hours
+        max_hours: 24 # optional, energy capacity in hours of shift power (default and maximum: window_hours)
+        marginal_cost: 1 # currency/MWh shifted, charged once on discharge
+  YZ:
+    activate: false
+
 #####Solver settings#####
 solving:
   solver:

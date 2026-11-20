@@ -49,6 +49,8 @@ co2_management:
 
 custom_constraints:
 
+demand_side_management:
+
 #####Solver settings#####
 solving:
   solver:
@@ -269,6 +271,13 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
 
         input_scenario_data["custom_constraints"][country] = custom_constraints_country
 
+        # 4) Setting demand side management block (per country, off by default)
+        dsm_country = CommentedMap({"activate": False, "loads": CommentedMap()})
+        dsm_country.yaml_add_eol_comment(
+            "Change this to true for activating demand side management", "activate"
+        )
+        input_scenario_data["demand_side_management"][country] = dsm_country
+
         # Fill in year-indexed placeholders inside custom constraints
         energy_independence = custom_constraints_country["energy_independence"]
         res_generation = custom_constraints_country["res_generation"]
@@ -383,6 +392,9 @@ def build_scenario_config_file(configurations: dict):
     if scenario_data.get("custom_constraints") is None:
         scenario_data["custom_constraints"] = CommentedMap()
 
+    if scenario_data.get("demand_side_management") is None:
+        scenario_data["demand_side_management"] = CommentedMap()
+
     start_year = configurations["base_configs"]["years"][0]
     end_year = start_year + 1
     scenario_data["scenario_configs"]["snapshots"] = CommentedMap(
@@ -417,6 +429,20 @@ def build_scenario_config_file(configurations: dict):
     )
     scenario_data.yaml_set_comment_before_after_key(
         "custom_constraints", after=custom_constraints_comment_text
+    )
+
+    dsm_comment_text = (
+        "optional demand side management (DSM) per country and load type "
+        "(profile_type), only applied with hourly resolution (nth_hour, stepsize 1).\n"
+        "example per load type under 'loads':\n"
+        "  LV_LOAD: {type: shift, max_peak_share: 0.05, window_hours: 24, "
+        "marginal_cost: 1}\n"
+        "  HV_LOAD: {type: shed, max_peak_share: 0.02, max_energy_share: 0.001, "
+        "marginal_cost: 500}\n"
+        "see the model builder configuration docs for all options"
+    )
+    scenario_data.yaml_set_comment_before_after_key(
+        "demand_side_management", after=dsm_comment_text
     )
 
     add_country_specific_parameters(scenario_data, configurations)
