@@ -299,7 +299,7 @@ Where
 
 ## scenario_config.yaml - demand side management
 
-Demand side management (DSM) is optional. By default, all demand is inflexible and the only way not to serve load is the last-resort load shedding generator (`LOSTLOAD`, 10^5^/MWh). With DSM, part of the demand can be shed at a marginal cost or shifted in time. DSM is set per country and per load type (`profile_type` in `loads.csv`) and applies to all buses of that load type in the country.
+Demand side management (DSM) is optional. Without it, demand is fixed and can only go unserved through the last-resort `LOSTLOAD` generator (10^5^/MWh). With DSM, part of the demand can be shed or shifted in time, at a cost. DSM is set per country and load type (`profile_type` in `loads.csv`) and applies to all buses with that load type.
 
 ```yaml title="Demand side management"
 demand_side_management:
@@ -321,22 +321,22 @@ demand_side_management:
     activate: false
 ```
 
-1. Activates DSM for the country. DSM applies in every modelled year, including the base year. To exclude a year, set its values to 0.
-2. Load type (`profile_type` in `loads.csv`, for example `HV_LOAD`, `LV_LOAD`, `IND_LOAD`, `LPV_LOAD`). Each load type has exactly one DSM `type`.
-3. `shed`: the model can leave part of the load unserved at a marginal cost. The energy is lost.
-4. Maximum shed power as a share of the peak of the load on each bus. In each snapshot, the shed power is also limited to the load of this type on the bus.
-5. Maximum shed energy in a year as a share of the annual demand of the load on each bus.
-6. Cost of shedding 1 MWh (currency/MWh).
-7. `shift`: the model can move load earlier or later within a fixed window. The energy balances to zero in each window.
-8. Maximum shift power (both up and down) as a share of the peak of the load on each bus. In each snapshot, the load reduction (down) is also limited to the load of this type on the bus.
-9. Length of the shifting window in hours. Windows start at the first snapshot of the year and are counted in modelled hours (snapshot weightings). If 8,760 is not a multiple of `window_hours`, the last window is shorter.
-10. Optional. Energy capacity of the shift potential, in hours of shift power. The default and maximum is `window_hours`. Larger values are clipped to `window_hours` with a warning, because they cannot be used within one window.
-11. Cost of shifting 1 MWh (currency/MWh). It is charged once per MWh, when the shifted load is reduced (discharge).
+1. Set to `true` to use DSM in this country. DSM applies to every modelled year, including the base year. To leave out a year, set its values to 0.
+2. Load type (`profile_type` in `loads.csv`), for example `HV_LOAD`, `LV_LOAD`, `IND_LOAD` or `LPV_LOAD`. Each load type has one DSM `type`.
+3. `shed`: part of the load can go unserved, at a cost. The energy is lost.
+4. Max shed power, as a share of the peak load on each bus. Shed power can never be more than the load at that hour.
+5. Max shed energy per year, as a share of the annual demand on each bus.
+6. Cost per MWh shed (currency/MWh).
+7. `shift`: part of the load can move to earlier or later hours. Over each window, the total load stays the same.
+8. Max shifted power (up or down), as a share of the peak load on each bus. Load can never be reduced by more than the load at that hour.
+9. Window length in hours. Shifted load must be made up within the same window. Windows start at the first hour of the year. If 8,760 is not a multiple of `window_hours`, the last window is shorter.
+10. Optional. Max hours the load can stay shifted at full shift power. For example, with 100 MW shift power and `max_hours: 4`, at most 400 MWh can be shifted at once. The default and maximum is `window_hours`. Larger values are lowered to `window_hours` with a warning.
+11. Cost per MWh shifted (currency/MWh). It is charged once, when the load is reduced.
 
-Every parameter (except `type` and `window_hours`) is either a number for all years or a dict with a value for **every** modelled year. A dict with missing years fails validation. The `demand_side_management` section is always validated, also when DSM is not active.
+Every parameter except `type` and `window_hours` is either a single number for all years or a `{year: value}` dict covering **every** modelled year. A dict with missing years fails validation, even when DSM is not active.
 
 !!! Note
-    DSM is only applied with hourly resolution (`method: "nth_hour"` with `stepsize: 1`). With any other resolution, a warning is logged for every country and year and DSM is skipped. The rest of the model runs as usual.
+    DSM only works with hourly resolution (`method: "nth_hour"` with `stepsize: 1`). With any other resolution, DSM is skipped with a warning and the rest of the model runs as usual.
 
 DSM components use their own carriers (`DSM_SHED`, `DSM_SHIFT`) and types (`DSMD`, `DSMF`), so the results keep them apart from `LOSTLOAD` and `DUMPLOAD`. They are excluded from the capacity, generation and cost output tables of the power and industry sectors, and reported in `dsm_dmd_by_bus_yearly` (TWh) and `dsm_cost_by_bus_yearly` (million currency).
 
