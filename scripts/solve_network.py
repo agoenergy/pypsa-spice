@@ -31,11 +31,11 @@ from custom_constraints import (
     capacity_factor_constraint,
     co2_cap_constraint,
     fuel_supply_constraint,
+    get_active_dsm_countries,
     re_pow_generation_constraint,
     renewable_potential_constraint,
     thermal_must_run_constraint,
 )
-from demand_side_management import get_active_dsm_countries
 from dotenv import load_dotenv
 from linopy.remote.oetc import OetcCredentials, OetcHandler, OetcSettings
 

@@ -33,7 +33,7 @@ from _helpers import (
     update_storage_costs,
     update_tech_fact_table,
 )
-from demand_side_management import (
+from custom_constraints import (
     DSM_CARRIERS,
     add_dsm_components,
     get_active_dsm_countries,
