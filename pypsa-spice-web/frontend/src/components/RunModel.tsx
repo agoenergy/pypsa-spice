@@ -1,0 +1,483 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+import editorPanelStyles from "./EditorPanel.module.scss";
+import workspaceFeedbackStyles from "./WorkspaceFeedback.module.scss";
+import styles from "./RunModel.module.scss";
+import Button from "./Button";
+import { Field } from "./FormControls";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  CircleStop,
+  Clock3,
+  ExternalLink,
+  FileCode2,
+  GitBranch,
+  Pencil,
+  Play,
+  RotateCcw,
+  SquareTerminal,
+} from "lucide-react";
+
+import {
+  cancelModelRun,
+  getModelRunOptions,
+  getScenarioConfig,
+  getScenarioWorkspaceStatus,
+  startModelRun,
+} from "../api";
+import PageHeader from "./PageHeader";
+import SolverSettings from "./SolverSettings";
+import type {
+  InputSelection,
+  ModelRun,
+  ModelRunOptions,
+  ModelRunMonitor,
+  ScenarioConfigResponse,
+  ScenarioWorkspaceStatus,
+} from "../types";
+
+import { isActiveModelRun } from "../modelRunMonitor";
+const CHILLI_COUNT = 12;
+
+function readableTime(value: string | null): string {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "medium",
+  }).format(new Date(value));
+}
+
+function readableDuration(start: string | null, end: string | null): string {
+  if (!start || !end) return "—";
+  const seconds = Math.max(0, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 1000));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainder = seconds % 60;
+  return [hours ? `${hours}h` : "", minutes ? `${minutes}m` : "", `${remainder}s`].filter(Boolean).join(" ");
+}
+
+function statusLabel(status: ModelRun["status"]): string {
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+export default function RunModel({
+  selection,
+  onEditConfiguration,
+  runMonitor,
+  onOpenResults,
+}: {
+  selection: InputSelection;
+  onEditConfiguration: () => void;
+  runMonitor: ModelRunMonitor;
+  onOpenResults: (run: ModelRun) => void;
+}) {
+  const [options, setOptions] = useState<ModelRunOptions | null>(null);
+  const [scenarioConfig, setScenarioConfig] = useState<ScenarioConfigResponse | null>(null);
+  const [workspace, setWorkspace] = useState<ScenarioWorkspaceStatus | null>(null);
+  const { run, updateRun } = runMonitor;
+  const [outputScenario, setOutputScenario] = useState("");
+  const [cores, setCores] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [solverDirty, setSolverDirty] = useState(false);
+  const logRef = useRef<HTMLPreElement>(null);
+
+  useEffect(() => {
+    let current = true;
+    setLoading(true);
+    Promise.all([getModelRunOptions(), getScenarioConfig(selection), getScenarioWorkspaceStatus(selection.dataset)])
+      .then(([nextOptions, nextConfig, nextWorkspace]) => {
+        if (!current) return;
+        setOptions(nextOptions);
+        setScenarioConfig(nextConfig);
+        setWorkspace(nextWorkspace);
+        const defaultsMatch =
+          nextOptions.defaults.dataset === selection.dataset &&
+          nextOptions.defaults.project === selection.project &&
+          nextOptions.defaults.input_scenario === selection.scenario;
+        setOutputScenario(defaultsMatch ? nextOptions.defaults.output_scenario : `${selection.scenario}_run`);
+        setError("");
+      })
+      .catch((reason) => {
+        if (current) setError(reason instanceof Error ? reason.message : "Could not load the run workspace.");
+      })
+      .finally(() => {
+        if (current) setLoading(false);
+      });
+    return () => {
+      current = false;
+    };
+  }, [selection.dataset, selection.project, selection.scenario]);
+
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [run?.log]);
+
+  const active = isActiveModelRun(run);
+  const runMatchesSelection = Boolean(
+    run &&
+    run.dataset === selection.dataset &&
+    run.project === selection.project &&
+    run.input_scenario === selection.scenario,
+  );
+  const scenarioSummary = useMemo(() => {
+    const settings = scenarioConfig?.sections.scenario_configs || {};
+    const snapshots = (settings.snapshots || {}) as Record<string, unknown>;
+    const resolution = (settings.resolution || {}) as Record<string, unknown>;
+    const resolutionValue =
+      resolution.method === "clustered"
+        ? `${resolution.number_of_days || "—"} representative days`
+        : `Every ${resolution.stepsize || "—"} hour${Number(resolution.stepsize) === 1 ? "" : "s"}`;
+    return {
+      modelYear: String(snapshots.start || "").slice(0, 4) || "Not configured",
+      resolution: resolutionValue,
+    };
+  }, [scenarioConfig]);
+
+  // "Run again" forces Snakemake to re-run every rule (-F).
+  const start = async (force = false) => {
+    setSubmitting(true);
+    try {
+      const nextRun = await startModelRun({
+        dataset: selection.dataset,
+        project: selection.project,
+        input_scenario: selection.scenario,
+        output_scenario: outputScenario.trim(),
+        cores,
+        force,
+      });
+      updateRun(nextRun);
+      setError("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not start the model run.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const cancel = async () => {
+    if (!run) return;
+    try {
+      updateRun(await cancelModelRun(run.id));
+      setError("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not stop the model run.");
+    }
+  };
+
+  if (loading || runMonitor.loading)
+    return (
+      <div className={editorPanelStyles["editor-loading"]}>
+        <span className={workspaceFeedbackStyles["spinner"]} />
+        Reading base_config.yaml…
+      </div>
+    );
+
+  return (
+    <>
+      <PageHeader title={`Review & run ${selection.scenario}`} className={styles["run-page-title"]} />
+
+      {runMonitor.error && (
+        <div className={[workspaceFeedbackStyles["notice"], styles["run-notice"]].join(" ")} role="status">
+          {runMonitor.error}
+        </div>
+      )}
+      {error && (
+        <div
+          className={[workspaceFeedbackStyles["notice"], workspaceFeedbackStyles["error"], styles["run-notice"]].join(
+            " ",
+          )}
+        >
+          <AlertTriangle aria-hidden="true" />
+          {error}
+        </div>
+      )}
+
+      <section className={[styles["run-review"], editorPanelStyles["editor-panel"]].join(" ")}>
+        <header className={editorPanelStyles["editor-panel-head"]}>
+          <div>
+            <h2>Run summary</h2>
+            <code>{scenarioConfig?.path || "scenario_config.yaml"}</code>
+          </div>
+          <CheckCircle2 aria-hidden="true" />
+        </header>
+        <div className={styles["run-review-grid"]}>
+          <ReviewItem label="Data folder" value={selection.dataset} />
+          <ReviewItem label="Project" value={selection.project} />
+          <ReviewItem label="Input scenario" value={selection.scenario} />
+          <ReviewItem label="Model base year" value={scenarioSummary.modelYear} />
+          <ReviewItem label="Resolution" value={scenarioSummary.resolution} />
+          <ReviewItem label="Regions" value={options?.regions.join(", ") || "Not configured"} />
+          <ReviewItem label="Sectors" value={options?.sectors.join(", ") || "Not configured"} />
+          <ReviewItem label="Currency" value={options?.currency || "Not configured"} />
+        </div>
+        <div className={styles["repository-review"]}>
+          <GitBranch aria-hidden="true" />
+          {workspace?.repository.available ? (
+            <>
+              <div>
+                <span>Data repository</span>
+                <b>
+                  {workspace.repository.branch || "detached"} · {workspace.repository.commit || "unknown commit"}
+                </b>
+                <small>{workspace.repository.remote || workspace.repository.root}</small>
+              </div>
+              <strong className={workspace.repository.dirty ? styles["dirty"] : styles["clean"]}>
+                {workspace.repository.dirty
+                  ? `${workspace.repository.changes.length} local change${workspace.repository.changes.length === 1 ? "" : "s"}`
+                  : "Clean worktree"}
+              </strong>
+            </>
+          ) : (
+            <>
+              <div>
+                <span>Data repository</span>
+                <b>Local files only</b>
+                <small>No dataset-level Git repository was found.</small>
+              </div>
+              <strong>Not connected</strong>
+            </>
+          )}
+        </div>
+        <div className={styles["run-requirements"]}>
+          <span>
+            <CheckCircle2 aria-hidden="true" />
+            <b>{options?.environment || "hotpot"}</b> Conda environment required
+          </span>
+          <span>
+            <FileCode2 aria-hidden="true" />
+            <b>{options?.config_file || "base_config.yaml"}</b> copied per run
+          </span>
+          <span>
+            <SquareTerminal aria-hidden="true" />
+            <b>{options?.target || "solve_all_networks"}</b> target
+          </span>
+        </div>
+      </section>
+
+      <section className={styles["run-layout"]}>
+        <form
+          className={editorPanelStyles["editor-panel"]}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void start();
+          }}
+        >
+          <header className={editorPanelStyles["editor-panel-head"]}>
+            <div>
+              <h2>Run configuration</h2>
+              <code>{options?.config_file || "base_config.yaml"}</code>
+            </div>
+            <FileCode2 aria-hidden="true" />
+          </header>
+          <div className={styles["run-form"]}>
+            <p className={editorPanelStyles["field-help"]}>
+              Each run uses a run-local copy of <code>base_config.yaml</code> pointing to the scenario above. The
+              repository file remains the source template.
+            </p>
+            <div className={styles["run-path-grid"]}>
+              <Field>
+                <span>Output scenario</span>
+                <input
+                  value={outputScenario}
+                  onChange={(event) => setOutputScenario(event.target.value)}
+                  required
+                  maxLength={255}
+                  disabled={active}
+                />
+              </Field>
+              <Field>
+                <span>CPU cores</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={128}
+                  value={cores}
+                  onChange={(event) => setCores(Number(event.target.value))}
+                  disabled={active}
+                />
+              </Field>
+            </div>
+            {scenarioConfig && (
+              <SolverSettings
+                selection={selection}
+                config={scenarioConfig}
+                disabled={active}
+                onSaved={setScenarioConfig}
+                onDirtyChange={setSolverDirty}
+              />
+            )}
+          </div>
+          <footer className={styles["run-actions"]}>
+            <div>
+              <b>{solverDirty ? "Save or discard solver settings before running" : "Snakemake writes results into"}</b>
+              <code>
+                data/{selection.dataset}/{selection.project}/results/{outputScenario || "…"}
+              </code>
+            </div>
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={active || submitting || solverDirty || !outputScenario.trim()}
+            >
+              <Play aria-hidden="true" />
+              {submitting ? "Starting…" : active ? "Run in progress" : "Run model"}
+            </Button>
+          </footer>
+        </form>
+
+        <section className={[styles["run-monitor"], editorPanelStyles["editor-panel"]].join(" ")} aria-live="polite">
+          <header className={editorPanelStyles["editor-panel-head"]}>
+            <div>
+              <h2>{run ? statusLabel(run.status) : "Ready to run"}</h2>
+              {run && <code>{run.id}</code>}
+            </div>
+            <StatusIcon run={run} />
+          </header>
+          {run ? (
+            <>
+              <div className={styles["run-progress-block"]}>
+                {!runMatchesSelection && (
+                  <div className={styles["run-selection-warning"]}>
+                    <AlertTriangle aria-hidden="true" />
+                    This status belongs to {run.project} / {run.input_scenario}.
+                  </div>
+                )}
+                <div className={styles["run-progress-label"]}>
+                  <span>{run.message}</span>
+                  <b>{Math.round(run.progress)}%</b>
+                </div>
+                <ChilliProgress value={run.progress} />
+                <dl className={styles["run-meta"]}>
+                  <div>
+                    <dt>Current rule</dt>
+                    <dd>{run.current_rule || "Waiting for Snakemake"}</dd>
+                  </div>
+                  <div>
+                    <dt>Started</dt>
+                    <dd>{readableTime(run.started_at || run.created_at)}</dd>
+                  </div>
+                  {run.ended_at && (
+                    <div>
+                      <dt>Run time</dt>
+                      <dd>{readableDuration(run.started_at || run.created_at, run.ended_at)}</dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt>Output</dt>
+                    <dd>{run.output_scenario}</dd>
+                  </div>
+                  <div>
+                    <dt>Log file</dt>
+                    <dd>{run.log_file}</dd>
+                  </div>
+                  <div>
+                    <dt>Manifest</dt>
+                    <dd>{run.manifest_file || "Not recorded"}</dd>
+                  </div>
+                </dl>
+              </div>
+              <div className={styles["run-log-head"]}>
+                <span>
+                  <SquareTerminal aria-hidden="true" />
+                  Snakemake log
+                </span>
+                {active && (
+                  <Button type="button" onClick={cancel} disabled={run.status === "canceling"}>
+                    <CircleStop aria-hidden="true" />
+                    {run.status === "canceling" ? "Stopping…" : "Stop run"}
+                  </Button>
+                )}
+              </div>
+              <pre className={styles["run-log"]} ref={logRef}>
+                {run.log || "Waiting for Snakemake output…"}
+              </pre>
+              {!active && (
+                <div className={styles["run-complete-actions"]}>
+                  <Button type="button" onClick={onEditConfiguration}>
+                    <Pencil aria-hidden="true" />
+                    Edit configuration
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => void start(true)}
+                    disabled={submitting || solverDirty || !outputScenario.trim()}
+                    title="Re-run every workflow step with snakemake -F"
+                  >
+                    <RotateCcw aria-hidden="true" />
+                    Run again
+                  </Button>
+                  {run.status === "succeeded" && (
+                    <Button variant="primary" type="button" onClick={() => onOpenResults(run)}>
+                      <ExternalLink aria-hidden="true" />
+                      Open results
+                    </Button>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className={styles["run-empty"]}>
+              <SquareTerminal aria-hidden="true" />
+              <b>No web run yet</b>
+              <span>Confirm the output scenario and start the model to see progress and logs here.</span>
+            </div>
+          )}
+        </section>
+      </section>
+    </>
+  );
+}
+
+function ReviewItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <span>{label}</span>
+      <b>{value}</b>
+    </div>
+  );
+}
+
+function ChilliProgress({ value }: { value: number }) {
+  const progress = Math.max(0, Math.min(100, value));
+  return (
+    <div
+      className={styles["chilli-progress"]}
+      role="progressbar"
+      aria-label="Model run progress"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(progress)}
+      aria-valuetext={`${Math.round(progress)} percent complete`}
+    >
+      {Array.from({ length: CHILLI_COUNT }, (_, index) => {
+        const fill = Math.max(0, Math.min(1, (progress / 100) * CHILLI_COUNT - index));
+        return (
+          <span className={styles["chilli-step"]} aria-hidden="true" key={index}>
+            <img className={styles["chilli-outline"]} src="/ui/favicon.svg" alt="" />
+            <span className={styles["chilli-fill"]} style={{ clipPath: `inset(0 ${100 - fill * 100}% 0 0)` }}>
+              <img src="/ui/favicon.svg" alt="" />
+            </span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function StatusIcon({ run }: { run: ModelRun | null }) {
+  if (!run || run.status === "queued" || run.status === "running" || run.status === "canceling")
+    return (
+      <Clock3
+        className={run ? [styles["run-status-icon"], styles["running"]].join(" ") : styles["run-status-icon"]}
+        aria-hidden="true"
+      />
+    );
+  if (run.status === "succeeded")
+    return <CheckCircle2 className={[styles["run-status-icon"], styles["succeeded"]].join(" ")} aria-hidden="true" />;
+  return <AlertTriangle className={[styles["run-status-icon"], styles["failed"]].join(" ")} aria-hidden="true" />;
+}

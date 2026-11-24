@@ -49,6 +49,8 @@ co2_management:
 
 custom_constraints:
 
+demand_side_management:
+
 #####Solver settings#####
 solving:
   solver:
@@ -190,6 +192,8 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
         # 3) Setting custom constraints block (per country)
         fuels_list = CommentedSeq([])
         fuels_list.fa.set_flow_style()
+        ramp_technologies_list = CommentedSeq([])
+        ramp_technologies_list.fa.set_flow_style()
 
         custom_constraints_country = CommentedMap(
             {
@@ -255,10 +259,24 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
                         "value": CommentedMap({}),
                     }
                 ),
+                # ---- Ramp costs ----
+                "ramp_costs": CommentedMap(
+                    {
+                        "activate": False,
+                        "technologies": ramp_technologies_list,
+                    }
+                ),
             }
         )
 
         input_scenario_data["custom_constraints"][country] = custom_constraints_country
+
+        # 4) Setting demand side management block (per country, off by default)
+        dsm_country = CommentedMap({"activate": False, "loads": CommentedMap()})
+        dsm_country.yaml_add_eol_comment(
+            "Change this to true for activating demand side management", "activate"
+        )
+        input_scenario_data["demand_side_management"][country] = dsm_country
 
         # Fill in year-indexed placeholders inside custom constraints
         energy_independence = custom_constraints_country["energy_independence"]
@@ -316,6 +334,15 @@ def add_country_specific_parameters(input_scenario_data: YAML, config_dict: dict
             after="maximum power generation per techology, country and year (TWh)",
         )
 
+        # Ramp costs comments
+        ramp_costs = custom_constraints_country["ramp_costs"]
+        add_activate_comments(ramp_costs)
+        add_please_fill_here_comments_for_dict(ramp_costs, exception_list=["activate"])
+        custom_constraints_country.yaml_set_comment_before_after_key(
+            "ramp_costs",
+            after="ramp up/down costs (currency/MW) are defined in technologies.csv",
+        )
+
 
 def build_scenario_config_file(configurations: dict):
     """Combine all the functions of building scenario configuration file.
@@ -365,6 +392,9 @@ def build_scenario_config_file(configurations: dict):
     if scenario_data.get("custom_constraints") is None:
         scenario_data["custom_constraints"] = CommentedMap()
 
+    if scenario_data.get("demand_side_management") is None:
+        scenario_data["demand_side_management"] = CommentedMap()
+
     start_year = configurations["base_configs"]["years"][0]
     end_year = start_year + 1
     scenario_data["scenario_configs"]["snapshots"] = CommentedMap(
@@ -376,14 +406,14 @@ def build_scenario_config_file(configurations: dict):
     )
 
     # Add comments before or after keys
-    SNAPSHOTS_COMMENT_TEXT = 'shall be should be "12-31" if base year is a leap year'
+    snapshots_comment_text = 'shall be should be "12-31" if base year is a leap year'
     scenario_data["scenario_configs"]["snapshots"].yaml_add_eol_comment(
-        SNAPSHOTS_COMMENT_TEXT, "end"
+        snapshots_comment_text, "end"
     )
     scenario_data["scenario_configs"].yaml_set_comment_before_after_key(
         "interest", after="interest rate in decimals (e.g. 0.05 represents 5%)"
     )
-    CO2_MANAGEMENT_COMMENT_TEXT = (
+    co2_management_comment_text = (
         "please indicate country/region specific CO2 management options\n"
         'options: ["co2_cap", "co2_price"]\n'
         '"co2_cap" is a cap on the total CO2 emissions in the system. '
@@ -392,13 +422,27 @@ def build_scenario_config_file(configurations: dict):
         "Values are in currency/tonne of CO2."
     )
     scenario_data.yaml_set_comment_before_after_key(
-        "co2_management", after=CO2_MANAGEMENT_COMMENT_TEXT
+        "co2_management", after=co2_management_comment_text
     )
-    CUSTOM_CONSTRAINTS_COMMENT_TEXT = (
+    custom_constraints_comment_text = (
         "please indicate country/region and their specific custom constraints"
     )
     scenario_data.yaml_set_comment_before_after_key(
-        "custom_constraints", after=CUSTOM_CONSTRAINTS_COMMENT_TEXT
+        "custom_constraints", after=custom_constraints_comment_text
+    )
+
+    dsm_comment_text = (
+        "optional demand side management (DSM) per country and load type "
+        "(profile_type), only applied with hourly resolution (nth_hour, stepsize 1).\n"
+        "example per load type under 'loads':\n"
+        "  LV_LOAD: {type: shift, max_peak_share: 0.05, window_hours: 24, "
+        "marginal_cost: 1}\n"
+        "  HV_LOAD: {type: shed, max_peak_share: 0.02, max_energy_share: 0.001, "
+        "marginal_cost: 500}\n"
+        "see the model builder configuration docs for all options"
+    )
+    scenario_data.yaml_set_comment_before_after_key(
+        "demand_side_management", after=dsm_comment_text
     )
 
     add_country_specific_parameters(scenario_data, configurations)

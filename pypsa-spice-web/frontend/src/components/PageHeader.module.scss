@@ -1,0 +1,43 @@
+/*
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
+SPDX-License-Identifier: GPL-2.0-or-later
+*/
+
+.page-title {
+  margin: 0 0 24px;
+}
+.page-title h1 {
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.page-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.page-title [data-control="search"] {
+  flex: 0 1 300px;
+}
+.page-title > h1 {
+  min-width: 0;
+}
+.page-controls {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.page-controls [data-control="context"] {
+  min-width: 180px;
+}
+.page-controls [data-control="search"] {
+  flex: 0 1 300px;
+}
+.page-controls [data-control="search"] input {
+  min-width: 190px;
+}

@@ -53,9 +53,9 @@ To add new load profiles (e.g., for a new project or country), insert a new row.
 
 `power_plant_costs.csv` defines cost data for all technologies in each country. It includes:
 
-- Capital expenditure (CAPEX) in USD/MW (currency based on input data)
-- Fixed operation and maintenance cost (FOM) in USD/MW (currency based on input data)
-- Variable operation and maintenance cost (VOM) in USD/MWh (currency based on input data)
+- Capital expenditure (CAPEX) in the configured currency based on input data (e.g. USD/MW)
+- Fixed operation and maintenance cost (FOM) in the configured currency based on input data (e.g. USD/MW)
+- Variable operation and maintenance cost (VOM) in the configured currency based on input data (e.g. USD/MWh)
 
 Note: Currencies may vary depending on the source data.
 
@@ -71,9 +71,9 @@ The model builder does not allow higher expansion than what are specified in thi
 
 `storage_costs.csv` covers the cost structure for all storage tanks (storage volume or energy capacity) in each country. It includes:
 
-- Capital expenditure (CAPEX) in USD/MW (currency based on input data)
-- Fixed operation and maintenance cost (FOM) in USD/MW (currency based on input data)
-- Variable operation and maintenance cost (VOM) in USD/MWh (currency based on input data)
+- Capital expenditure (CAPEX) in the configured currency based on input data (e.g. USD/MW)
+- Fixed operation and maintenance cost (FOM) in the configured currency based on input data (e.g. USD/MW)
+- Variable operation and maintenance cost (VOM) in the configured currency based on input data (e.g. USD/MWh)
 
 Note: Currencies may vary depending on the source data.
 
@@ -107,5 +107,7 @@ Description of all technical parameters:
 | `p_min_pu`                | The minimum availability per snapshot per unit of `p_nom`                                                                                                                          |
 | `ramp_limit_down`         | Maximum active power decrease from one snapshot to the next (per unit)                                                                                                             |
 | `ramp_limit_up`           | Maximum active power increase from one snapshot to the next (per unit)                                                                                                             |
+| `ramp_up_cost`            | Cost of increasing power output by 1 MW from one snapshot to the next (currency/MW). Used only if `ramp_costs` is activated in the scenario config                                 |
+| `ramp_down_cost`          | Cost of decreasing power output by 1 MW from one snapshot to the next (currency/MW). Used only if `ramp_costs` is activated in the scenario config                                 |
 | `standing_loss`           | Hourly energy loss from storage                                                                                                                                                    |
 | `r_rating`                | Contribution of reserve rating (if used)                                                                                                                                           |

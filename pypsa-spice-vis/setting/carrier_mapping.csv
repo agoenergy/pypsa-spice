@@ -3,6 +3,9 @@ Bio,Biomass,#408B2E
 Bit,Bituminous coal,#a6572e
 Electricity,Electricity,#f19ac1
 ENS,Energy not served,
+EXS,Excess energy,
+DSM_SHED,Demand side management - shed,#C77CFF
+DSM_SHIFT,Demand side management - shift,#7B5BA6
 Oil,Oil,#006057
 Gas,Domestic natural gas,#9ABBCA
 Geothermal,Geothermal,#AB2E70

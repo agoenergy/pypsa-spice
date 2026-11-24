@@ -1,0 +1,381 @@
+/*
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
+SPDX-License-Identifier: GPL-2.0-or-later
+*/
+
+@value spinner from "./WorkspaceFeedback.module.scss";
+
+.chart-card {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  min-width: 0;
+}
+.chart-card:hover {
+  box-shadow: var(--shadow);
+}
+.chart-card.expanded {
+  position: fixed;
+  inset: 18px;
+  z-index: 100;
+  background: var(--surface);
+  box-shadow: 0 20px 80px rgb(0 0 0/0.4);
+  display: flex;
+  flex-direction: column;
+}
+.chart-card.expanded .chart-body {
+  height: calc(100vh - 150px);
+}
+.chart-card.expanded .chart-body.with-plot {
+  height: calc(100vh - 150px);
+  overflow: auto;
+}
+.chart-head {
+  min-height: 76px;
+  padding: 12px 14px 12px 18px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.chart-title {
+  min-width: 130px;
+  flex: 1 1 auto;
+}
+.chart-title small {
+  display: block;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.chart-title h3 {
+  margin: 0;
+  font-weight: 500;
+  font-size: var(--text-lg);
+  line-height: 1.2;
+}
+.chart-toolbar {
+  margin-left: auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 4px;
+  background: var(--surface-2);
+}
+.chart-controls,
+.chart-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.chart-controls select {
+  height: 44px;
+  max-width: 150px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--surface);
+  font-size: var(--text-sm);
+  padding: 0 30px 0 11px;
+  cursor: pointer;
+}
+.chart-actions {
+  margin-left: 4px;
+  padding-left: 8px;
+  position: relative;
+}
+.chart-actions:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: var(--strong);
+}
+.chart-body {
+  height: 340px;
+  padding: 4px;
+  position: relative;
+}
+/* A card holding a plot grows to its content; the fixed heights above only
+   size the empty and loading states. */
+.chart-body.with-plot {
+  height: auto;
+  overflow: visible;
+}
+.plot {
+  width: 100%;
+  height: 100%;
+}
+.chart-difference-toggle {
+  position: relative;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 11px;
+  border-radius: 3px;
+  background: var(--surface);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+.chart-difference-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.chart-difference-toggle > i {
+  position: relative;
+  width: 36px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--strong);
+  flex: 0 0 auto;
+  transition: background 0.2s;
+}
+.chart-difference-toggle > i:after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 3px;
+  top: 3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(0 0 0/0.25);
+  transition: transform 0.2s;
+}
+.chart-difference-toggle input:checked + i {
+  background: var(--pink);
+}
+.chart-difference-toggle input:checked + i:after {
+  transform: translateX(14px);
+}
+.chart-difference-toggle:focus-within {
+  box-shadow: inset 0 0 0 2px var(--pink);
+}
+.chart-card.comparing .chart-body {
+  height: 390px;
+  overflow: hidden;
+}
+.chart-card.comparing .chart-body.with-plot {
+  height: auto;
+  padding: 0;
+  overflow: visible;
+}
+.chart-card.comparing .comparison-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1px;
+  background: var(--line);
+  padding: 0;
+}
+.scenario-plot,
+.difference-plot {
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: visible;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+}
+.scenario-plot .plot,
+.difference-plot .plot {
+  height: 0;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.scenario-label {
+  height: 46px;
+  flex: 0 0 46px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  overflow: hidden;
+}
+.scenario-label small {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.chart-card.expanded.comparing .chart-body {
+  height: calc(100vh - 150px);
+}
+.time-range-controls {
+  min-height: 82px;
+  padding: 9px 14px 11px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  font-size: var(--text-sm);
+}
+.time-range-head,
+.time-range-values {
+  display: flex;
+  align-items: center;
+}
+.time-range-head > span {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+.time-range-head button {
+  margin-left: auto;
+  min-width: 44px;
+  min-height: 28px;
+  border: 0;
+  background: transparent;
+  color: var(--pink);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.time-range-head button:hover {
+  background: var(--surface);
+}
+.time-range-values {
+  justify-content: space-between;
+  gap: 8px;
+  margin: 1px 0 5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.time-range-values output {
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+.dual-range {
+  position: relative;
+  height: 24px;
+}
+.range-track {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 10px;
+  height: 4px;
+  background: var(--strong);
+  pointer-events: none;
+}
+.range-track i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--pink);
+}
+.dual-range input[type="range"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: none;
+}
+.dual-range input[type="range"]:focus-visible {
+  box-shadow: none !important;
+}
+.dual-range input[type="range"]:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--pink);
+}
+.dual-range input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: transparent;
+}
+.dual-range input[type="range"]::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border: 2px solid var(--pink);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgb(0 0 0/0.22);
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: auto;
+  cursor: grab;
+}
+.dual-range input[type="range"]::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  background: var(--pink);
+}
+.dual-range input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: transparent;
+}
+.dual-range input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--pink);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgb(0 0 0/0.22);
+  pointer-events: auto;
+  cursor: grab;
+}
+.scenario-label h4 {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hourly-loading-overlay {
+  position: absolute;
+  inset: 4px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: color-mix(in srgb, var(--surface) 74%, transparent);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  pointer-events: none;
+}
+.hourly-loading-overlay .spinner {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  background: var(--surface);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hourly-loading-overlay .spinner {
+    animation: none;
+  }
+}
+html[data-theme="dark"] .scenario-plot,
+html[data-theme="dark"] .difference-plot {
+  background: transparent;
+}
+.time-range-head button svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
+}
+.chart-card {
+  scroll-margin-top: 96px;
+}

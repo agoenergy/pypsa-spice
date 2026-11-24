@@ -1,0 +1,92 @@
+/*
+SPDX-FileCopyrightText: PyPSA-SPICE Developers
+SPDX-License-Identifier: GPL-2.0-or-later
+*/
+
+@font-face {
+  font-family: Flexo;
+  src: url("/fonts/Flexo-Medium.woff2") format("woff2");
+  font-display: swap;
+  font-weight: 500;
+}
+:root {
+  --pink: #e6007e;
+  --pink-dark: #b90065;
+  --blue: #005ca9;
+  --green: #60a917;
+  --orange: #ec6608;
+  --danger: #b6202e;
+  --danger-hover: #c92b38;
+  --ink: #17212b;
+  --muted: #65717d;
+  --paper: #f4f6f4;
+  --surface: #fff;
+  --surface-2: #f0f2f1;
+  --line: #d9dedc;
+  --strong: #b9c1be;
+  --shadow: 0 8px 30px rgb(23 33 43/0.09);
+  --sidebar: 276px;
+  --workspace-bar-height: 84px;
+  /* Type scale. Every text size in the app comes from these seven steps.
+     12px is the floor: nothing readable should be smaller. */
+  --text-xs: 12px; /* uppercase eyebrows, badges, counts, monospace paths */
+  --text-sm: 13px; /* controls, table cells, dense metadata */
+  --text-base: 15px; /* body copy, help text, empty-state descriptions */
+  --text-md: 17px; /* card and entity titles */
+  --text-lg: 20px; /* chart titles, sub-section headings */
+  --text-xl: 24px; /* panel and dialog headings */
+  --text-2xl: 28px; /* page title */
+}
+html[data-theme="dark"] {
+  --ink: #eff4f2;
+  --muted: #a9b5b1;
+  --paper: #111715;
+  --surface: #19211f;
+  --surface-2: #222b28;
+  --line: #34403c;
+  --strong: #4a5853;
+  --shadow: 0 8px 30px rgb(0 0 0/0.3);
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font:
+    var(--text-base)/1.45 Flexo,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+button,
+a,
+select,
+input,
+textarea {
+  outline: none;
+}
+*:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--pink) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

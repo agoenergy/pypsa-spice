@@ -9,6 +9,7 @@ channels:
   - Gurobi
 dependencies:
   - black==25.1.0
+  - fastapi==0.141.1
   - flake8==7.3.0
   - glib==2.84.3 
   - gurobi==12.0.3
@@ -26,13 +27,20 @@ dependencies:
   - pycountry==24.6.1
   - pymdown-extensions==10.16.1
   - pypsa==1.0.6
+  - pyyaml==6.0.3
   - python==3.12.11
   - python-dotenv==1.0.1
   - snakemake-minimal==9.9.0
   - streamlit==1.55.0
   - tsam==2.3.9
+  - uvicorn-standard==0.54.0
   - weasyprint==65.1 
   - xarray==2025.8.0
   - yaml==0.2.5
   - pip:
-      - -r requirements.txt
+      - markdown-katex==202406.1035
+      - mkdocs-awesome-pages-plugin==2.10.0
+      - mkdocs-to-pdf==0.10.1     
+      - streamlit-extras==1.5.0
+      - streamlit-js-eval==0.1.7
+      - ruamel-yaml==0.18.17

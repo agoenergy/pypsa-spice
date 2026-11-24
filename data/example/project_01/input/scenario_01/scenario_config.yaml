@@ -100,8 +100,11 @@ custom_constraints:
           2030: 18 # unit in TWh
         "SubC":
           2025: 40 # unit in TWh
+    ramp_costs: # ramp up/down costs (currency/MW) are defined in technologies.csv
+      activate: true
+      technologies: ["SubC", "SupC"] # technology types to which ramp costs apply
   YZ:
-    production_constraint_fuels: 
+    production_constraint_fuels:
       activate: true
       fuels: ["Bio", "Bit", "Gas", "Oil"]
     res_generation:
@@ -119,7 +122,28 @@ custom_constraints:
         "SubC": 0.6
         "SupC": 0.6
         "HDAM": 0.4
-        
+
+demand_side_management:
+  # Demand side management (DSM) per country and load type.
+  # Hourly resolution only (nth_hour, stepsize 1), otherwise skipped.
+  # Values are a number or a {year: value} dict covering all modelled years.
+  XY:
+    activate: false # set to true to use DSM in this country
+    loads:
+      HV_LOAD:
+        type: shed # part of the load can go unserved, at a cost
+        max_peak_share: {2025: 0.02, 2030: 0.02, 2035: 0.03, 2040: 0.04, 2045: 0.05, 2050: 0.05} # max shed power, as share of peak load
+        max_energy_share: {2025: 0.001, 2030: 0.001, 2035: 0.001, 2040: 0.002, 2045: 0.002, 2050: 0.002} # max shed energy, as share of annual demand
+        marginal_cost: 500 # cost per MWh shed
+      LV_LOAD:
+        type: shift # part of the load can move to earlier or later hours
+        max_peak_share: {2025: 0.05, 2030: 0.05, 2035: 0.07, 2040: 0.10, 2045: 0.10, 2050: 0.10} # max shifted power, as share of peak load
+        window_hours: 24 # shifted load must be made up within this many hours
+        max_hours: 24 # optional, max hours the load can stay shifted at full shift power (default and max: window_hours)
+        marginal_cost: 1 # cost per MWh shifted
+  YZ:
+    activate: false
+
 #####Solver settings#####
 solving:
   solver:

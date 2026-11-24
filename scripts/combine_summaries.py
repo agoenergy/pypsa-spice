@@ -59,6 +59,10 @@ if __name__ == "__main__":
                 )
                 else 0
             )
+            # Some tables are only written for some years, e.g. DSM tables when
+            # DSM adds no components in a year
+            if not os.path.exists(f"{path}{table}"):
+                continue
             df = pd.read_csv(f"{path}{table}", index_col=index_cols)
             try:
                 combined_df = pd.concat([combined_df, df])

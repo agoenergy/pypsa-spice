@@ -41,6 +41,12 @@ from _helpers import (
     update_storage_costs,
     update_tech_fact_table,
 )
+from custom_constraints import (
+    add_dsm_components,
+    get_active_dsm_countries,
+    remove_dsm_components,
+    validate_dsm_config,
+)
 
 idx = pd.IndexSlice
 
@@ -366,6 +372,8 @@ class AddFutureAssets:
         self.currency = snakemake.params.currency
         self.scenario_configs = scenario_configs
         self.interest = self.scenario_configs["scenario_configs"]["interest"]
+        # loads with full 8760 h profiles, used to size DSM potentials
+        self.full_loads = []
 
     # ========================== ADDING future interconnectors =========================
 
@@ -680,6 +688,12 @@ class AddFutureAssets:
             .set_index(self.network.snapshots)
         )
         p_set.columns.name = "Load"
+        profile_type = (
+            load_df[load_df["year"] == self.year]
+            .drop_duplicates("name")
+            .set_index("name")["profile_type"]
+            .reindex(final_load.index)
+        )
 
         self.network.add(
             class_name="Load",
@@ -689,7 +703,26 @@ class AddFutureAssets:
             p_set=p_set,
             sign=final_load["sign"],
             country=final_load["country"],
+            profile_type=profile_type,
         )
+        self.full_loads.append(final_load.assign(profile_type=profile_type))
+
+    # ========================= ADDING demand side management =========================
+
+    def add_demand_side_management(self):
+        """Replace last year's DSM components with this year's DSM components.
+
+        DSM potentials depend on the peak of each year's load and on the year's
+        shares, so DSM components are not carried over but added again every year.
+        """
+        remove_dsm_components(self.network)
+        dsm_settings = get_active_dsm_countries(
+            self.scenario_configs, list(self.country_region.keys()), self.year
+        )
+        if dsm_settings and self.full_loads:
+            add_dsm_components(
+                self.network, pd.concat(self.full_loads), dsm_settings, self.year
+            )
 
     # ================================ ADDING generators ===============================
 
@@ -744,6 +777,8 @@ class AddFutureAssets:
                 p_min_pu=clean_gen["p_min_pu"],
                 ramp_limit_up=clean_gen["ramp_limit_up"],
                 ramp_limit_down=clean_gen["ramp_limit_down"],
+                ramp_up_cost=clean_gen["ramp_up_cost"],
+                ramp_down_cost=clean_gen["ramp_down_cost"],
                 efficiency=clean_gen["efficiency"],
                 capital_cost=clean_gen["capital_cost"],
                 marginal_cost=clean_gen["marginal_cost"],
@@ -830,6 +865,8 @@ class AddFutureAssets:
             p_nom_min=links_df["p_nom_min"],
             ramp_limit_up=links_df["ramp_limit_up"],
             ramp_limit_down=links_df["ramp_limit_down"],
+            ramp_up_cost=links_df["ramp_up_cost"],
+            ramp_down_cost=links_df["ramp_down_cost"],
             p_nom_extendable=True,
             build_year=self.year,
             lifetime=links_df["lifetime"],
@@ -998,6 +1035,11 @@ if __name__ == "__main__":
         + "/input/"
         + snakemake.config["path_configs"]["input_scenario_name"]
     )
+    validate_dsm_config(
+        scenario_configs,
+        years=snakemake.params.years,
+        countries=list(snakemake.params.country_region.keys()),
+    )
     sm_threshold = scenario_configs["scenario_configs"]["remove_threshold"]
     sm_currency = snakemake.params.currency
     sm_year = int(snakemake.wildcards.years)
@@ -1072,6 +1114,7 @@ if __name__ == "__main__":
         sm_c.add_ev_chargers()
         sm_c.add_ev_storage()
         print(f"Finish adding {sm_year} assets for EV sector")
+    sm_c.add_demand_side_management()
     sm_c.add_co2_option()
     sm_c.add_contracted_hydro_imports()
     sm_c.network.export_to_netcdf(path=snakemake.output.brownfield_network)

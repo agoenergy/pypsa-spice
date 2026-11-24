@@ -1,0 +1,130 @@
+// SPDX-FileCopyrightText: PyPSA-SPICE Developers
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+import dialogSurfaceStyles from "./DialogSurface.module.scss";
+import styles from "./NewScenarioDialog.module.scss";
+import workspaceFeedbackStyles from "./WorkspaceFeedback.module.scss";
+import Button from "./Button";
+import IconButton from "./IconButton";
+import { Field } from "./FormControls";
+import { useState } from "react";
+import { Copy, X } from "lucide-react";
+
+import { createScenario } from "../api";
+import { useDismissOnEscape } from "../useDismiss";
+import type { CreatedScenario, InputSelection } from "../types";
+
+export default function NewScenarioDialog({
+  selection,
+  scenarios,
+  onClose,
+  onCreated,
+}: {
+  selection: InputSelection;
+  scenarios: string[];
+  onClose: () => void;
+  onCreated: (scenario: CreatedScenario) => void;
+}) {
+  const [name, setName] = useState("");
+  const [source, setSource] = useState(selection.scenario);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const trimmedName = name.trim();
+  const valid = Boolean(
+    trimmedName && !trimmedName.startsWith(".") && !/[\\/\0]/.test(trimmedName) && trimmedName !== "global_input",
+  );
+
+  useDismissOnEscape(!submitting, onClose);
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!valid) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      onCreated(
+        await createScenario({
+          dataset: selection.dataset,
+          project: selection.project,
+          source_scenario: source,
+          new_scenario: trimmedName,
+        }),
+      );
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not create the scenario.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div
+      className={dialogSurfaceStyles["dialog-backdrop"]}
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !submitting) onClose();
+      }}
+    >
+      <section
+        className={[dialogSurfaceStyles["dialog"], styles["scenario-dialog"]].join(" ")}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-scenario-title"
+      >
+        <header>
+          <h2 id="new-scenario-title">Create new scenario</h2>
+          <IconButton alignEnd onClick={onClose} disabled={submitting} aria-label="Close">
+            <X aria-hidden="true" />
+          </IconButton>
+        </header>
+        <form onSubmit={submit}>
+          <div className={styles["scenario-dialog-body"]}>
+            <p>
+              Duplicate a complete scenario as a new local starting point. Shared <code>global_input</code> files stay
+              shared.
+            </p>
+            {error && (
+              <div className={[workspaceFeedbackStyles["notice"], workspaceFeedbackStyles["error"]].join(" ")}>
+                {error}
+              </div>
+            )}
+            <Field>
+              <span>New scenario name</span>
+              <input
+                autoFocus
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                maxLength={255}
+                placeholder="for example: policy_high"
+                aria-invalid={Boolean(name && !valid)}
+              />
+            </Field>
+            <Field>
+              <span>Source scenario</span>
+              <select value={source} onChange={(event) => setSource(event.target.value)}>
+                {scenarios.map((scenario) => (
+                  <option key={scenario}>{scenario}</option>
+                ))}
+              </select>
+            </Field>
+            <div className={styles["scenario-path-preview"]}>
+              <span>Local destination</span>
+              <code>
+                data/{selection.dataset}/{selection.project}/input/{trimmedName || "new_scenario"}
+              </code>
+            </div>
+          </div>
+          <footer>
+            <Button type="button" onClick={onClose} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit" disabled={!valid || submitting}>
+              <Copy aria-hidden="true" />
+              {submitting ? "Creating…" : "Create scenario"}
+            </Button>
+          </footer>
+        </form>
+      </section>
+    </div>
+  );
+}
