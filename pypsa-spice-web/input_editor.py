@@ -12,6 +12,7 @@ an interrupted request cannot leave a partially-written CSV or YAML file behind.
 from __future__ import annotations
 
 import csv
+import fnmatch
 import math
 import os
 import re
@@ -61,6 +62,41 @@ TABLE_COMPARE_KEYS = {
     "Interconnectors": ("country", "link"),
     "Transport_chargers": ("country", "link"),
     "Transport_storages": ("country", "name"),
+}
+# Text that build_skeleton writes into cells the user still has to fill in
+PLACEHOLDER = "Please fill here"
+# Columns that build_skeleton fills with PLACEHOLDER, as fnmatch patterns because
+# names include the modelled years and the currency (e.g. p_nom_max_2030, cap__eur_mw).
+# Only these columns are editable, in fresh skeletons and in filled CSVs alike.
+_CAPACITY_FILL_COLUMNS = ("p_nom", "p_nom_extendable", "p_nom_max_*", "p_nom_min_*")
+_COST_FILL_COLUMNS = ("cap__*", "fom__*", "vom__*", "life__years", "source")
+_STORE_FILL_COLUMNS = ("standing_loss", "e_nom_extendable", "e_nom", "max_store_*")
+TABLE_FILL_COLUMNS = {
+    "Power_plant_costs": _COST_FILL_COLUMNS,
+    "Storage_costs": _COST_FILL_COLUMNS,
+    "Renewables_technical_potentials": ("technical_potential__mw",),
+    "Fuel_costs": ("max_supply__mwh_year", "fuel_cost__*"),
+    "Power_loads": ("total_load__mwh",),
+    "Heat_loads": ("total_load__mwh",),
+    "Transport_loads": ("total_load__mwh",),
+    "Power_generators": _CAPACITY_FILL_COLUMNS,
+    "Heat_generators": _CAPACITY_FILL_COLUMNS,
+    "Power_links": _CAPACITY_FILL_COLUMNS,
+    "Heat_links": _CAPACITY_FILL_COLUMNS,
+    "Fuel_conversion": _CAPACITY_FILL_COLUMNS,
+    "Direct_air_capture": _CAPACITY_FILL_COLUMNS,
+    "Storage_units": _CAPACITY_FILL_COLUMNS,
+    "Industry_storage_units": _CAPACITY_FILL_COLUMNS,
+    "Stores": _STORE_FILL_COLUMNS,
+    "Industry_stores": _STORE_FILL_COLUMNS,
+    "Interconnectors": (
+        *_CAPACITY_FILL_COLUMNS,
+        "cap__*",
+        "fom__*",
+        "marginal_cost",
+    ),
+    "Transport_chargers": ("num_ch_*",),
+    "Transport_storages": ("num_ev_*",),
 }
 _WRITE_LOCK = threading.Lock()
 
@@ -430,7 +466,12 @@ def _parse_number(raw: str) -> int | float | str:
 
 def _column_kind(values: list[str]) -> Literal["boolean", "number", "string"]:
     """Infer whether a CSV column holds booleans, numbers or strings."""
-    populated = [value.strip() for value in values if value.strip()]
+    # Placeholders count as empty so they don't turn a value column into text
+    populated = [
+        value.strip()
+        for value in values
+        if value.strip() and value.strip() != PLACEHOLDER
+    ]
     if populated and all(value.lower() in {"true", "false"} for value in populated):
         return "boolean"
     if populated:
@@ -445,13 +486,60 @@ def _column_kind(values: list[str]) -> Literal["boolean", "number", "string"]:
 
 def _typed_value(raw: str, kind: str) -> Any:
     """Convert a raw CSV cell to the column's value type."""
-    if raw == "":
-        return ""
+    if raw == "" or raw.strip() == PLACEHOLDER:
+        return raw
     if kind == "boolean":
         return raw.strip().lower() == "true"
     if kind == "number":
         return _parse_number(raw)
     return raw
+
+
+def _editable_columns(
+    table: str,
+    config: dict[str, Any],
+    fieldnames: list[str],
+    kinds: dict[str, str],
+) -> set[str]:
+    """Return the columns the web editor may change.
+
+    For tables built by ``build_skeleton``, only the columns it fills with
+    ``Please fill here`` are editable (see ``TABLE_FILL_COLUMNS``). Tables without
+    placeholders (e.g. technologies, EV parameters) keep their numeric and boolean
+    columns editable, except the columns that identify a row. Timeseries tables
+    are read-only.
+
+    Parameters
+    ----------
+    table : str
+        Input table name, e.g. ``"Power_generators"``.
+    config : dict[str, Any]
+        Table settings from ``input_settings.yaml``.
+    fieldnames : list[str]
+        CSV column names.
+    kinds : dict[str, str]
+        Inferred kind of each column (``"boolean"``, ``"number"`` or ``"string"``).
+
+    Returns
+    -------
+    set[str]
+        Names of the editable columns.
+    """
+    if config.get("timeseries"):
+        return set()
+    if table in TABLE_FILL_COLUMNS:
+        patterns = TABLE_FILL_COLUMNS[table]
+        return {
+            column
+            for column in fieldnames
+            if any(fnmatch.fnmatchcase(column, pattern) for pattern in patterns)
+        }
+    locked = {*_row_key_columns(table, fieldnames), config.get("filter_col")}
+    return {
+        column
+        for column in fieldnames
+        if column not in locked and kinds[column] in {"number", "boolean"}
+    }
 
 
 def _technology_matches(
@@ -501,17 +589,13 @@ def read_table(
         column: _column_kind([row.get(column, "") or "" for row in raw_rows])
         for column in fieldnames
     }
-    editable_table = not bool(config.get("timeseries"))
+    editable = _editable_columns(table, config, fieldnames, kinds)
     columns = [
         {
             "name": column,
             "label": _pretty_label(column),
             "kind": kinds[column],
-            "editable": editable_table
-            and (
-                kinds[column] in {"number", "boolean"}
-                or column == "max_supply [MWh/year]"
-            ),
+            "editable": column in editable,
         }
         for column in fieldnames
     ]
@@ -1068,12 +1152,7 @@ def update_table(
             column: _column_kind([row.get(column, "") or "" for row in rows])
             for column in fieldnames
         }
-        editable = {
-            column
-            for column in fieldnames
-            if kinds[column] in {"number", "boolean"}
-            or column == "max_supply [MWh/year]"
-        }
+        editable = _editable_columns(table, config, fieldnames, kinds)
         seen: set[tuple[int, str]] = set()
         for change in update.changes:
             marker = (change.row, change.column)
