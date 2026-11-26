@@ -414,7 +414,6 @@ def create_storage_energy(
 
 
 def create_storage_capacity(
-    nodes: list,
     years: list,
     sector: str,
     file_path: FilePath,
@@ -433,9 +432,7 @@ def create_storage_capacity(
 
     Parameters
     ----------
-    node_list : list
-        List of node names with this format: "country_region"
-    year_list : list
+    years : list
         List of years (e.g., [2020, 2030, 2040, 2050])
     sector : str
         Either "power" or "industry".
@@ -468,7 +465,6 @@ def create_storage_capacity(
         hydro_df = pd.DataFrame(
             {
                 "type": ["HDAM"] * len(hv_buses),
-                "node": nodes,
                 "carrier": ["Water"] * len(hv_buses),
                 "bus": hv_buses,
             }
@@ -482,7 +478,6 @@ def create_storage_capacity(
                 pd.DataFrame(
                     {
                         "type": [stype] * len(hv_buses),
-                        "node": nodes,
                         "carrier": ["Electricity"] * len(hv_buses),
                         "bus": hv_buses,
                     }
@@ -494,16 +489,13 @@ def create_storage_capacity(
         hhbs_df = pd.DataFrame(
             {
                 "type": ["HHBS"] * len(lv_buses),
-                "node": nodes,
                 "carrier": ["Electricity"] * len(lv_buses),
                 "bus": lv_buses,
             }
         )
 
         # Combine all power sector storage
-        storage_capacity_df = pd.concat([hydro_df, storage_df, hhbs_df], axis=0)[
-            ["type", "node", "carrier", "bus"]
-        ]
+        storage_capacity_df = pd.concat([hydro_df, storage_df, hhbs_df], axis=0)
 
     elif sector.lower() == "industry":
         # Low-heat industry storage (INLHSTOR) on low-heat industry buses
@@ -511,14 +503,18 @@ def create_storage_capacity(
         storage_capacity_df = pd.DataFrame(
             {
                 "type": ["INLHSTOR"] * len(lh_buses),
-                "node": nodes,
                 "carrier": ["Low_Heat"] * len(lh_buses),
                 "bus": lh_buses,
             }
-        )[["type", "node", "carrier", "bus"]]
+        )
 
     else:
         raise ValueError("Sector must be 'power' or 'industry'.")
+
+    # Take the node from the bus: its first two parts (XY_CE_HVELEC -> XY_CE)
+    storage_capacity_df["node"] = (
+        storage_capacity_df["bus"].str.split("_").str[:2].str.join("_")
+    )
 
     # Add name and country columns
     storage_capacity_df["name"] = (
@@ -1885,7 +1881,6 @@ if __name__ == "__main__":
         file_path=path_p_storage_energy,
     )
     create_storage_capacity(
-        nodes=cfg_nodes,
         years=cfg_years,
         sector="Power",
         file_path=path_p_storage_capacity,
@@ -1933,7 +1928,6 @@ if __name__ == "__main__":
         file_path=path_i_storage_energy,
     )
     create_storage_capacity(
-        nodes=cfg_nodes,
         years=cfg_years,
         sector="industry",
         file_path=path_i_storage_capacity,
