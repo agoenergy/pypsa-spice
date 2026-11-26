@@ -7,7 +7,7 @@
 - Support piecewise linear efficiency and rate curves for thermal power units.
 
 ### Fixed
-- Fix the web input editor locking value columns that still hold `Please fill here` (e.g. costs in a fresh skeleton) while leaving row key columns such as `year` editable. ([:material-source-pull:XXX](https://github.com/agoenergy/pypsa-spice/pull/XXX) by @nhlong2701)
+- Fix the web input editor locking value columns that still hold `Please fill here` (e.g. costs in a fresh skeleton) while leaving row key columns such as `year` editable. Only the columns that `build_skeleton` asks users to fill are now editable, in fresh and filled CSVs alike. ([:material-source-pull:XXX](https://github.com/agoenergy/pypsa-spice/pull/XXX) by @nhlong2701)
 - Fix `build_skeleton` creating `storage_capacity.csv` files with a `node` that doesn't match the `bus` when the regions in `base_config.yaml` aren't in alphabetical order. ([:material-source-pull:139](https://github.com/agoenergy/pypsa-spice/pull/139) by @sasa821)
 - Fix `build_skeleton` creating the global cost files (`power_plant_costs.csv` and `storage_costs.csv`) with the template years and USD columns instead of the years and currency from `base_config.yaml`. ([:material-source-pull:129](https://github.com/agoenergy/pypsa-spice/pull/129) by @sasa821)
 - Fix `solve_network` checking the model status of the global network instead of the solved one, and raise an error when the model is infeasible. ([:material-source-pull:124](https://github.com/agoenergy/pypsa-spice/pull/124) by @nhlong2701)

@@ -134,6 +134,37 @@ class InputEditorTests(unittest.TestCase):
             )
         self.assertEqual(context.exception.status_code, 422)
 
+    def test_filled_csv_keeps_only_skeleton_fill_columns_editable(self) -> None:
+        """Filled CSVs allow editing the same columns as their fresh skeleton."""
+        source = (
+            ROOT
+            / "data/example/project_01/input/scenario_01/power/power_generators.csv"
+        )
+        config = {"timeseries": False, "filter_col": "type"}
+        table = read_table(source, config, table="Power_generators", limit=1)
+
+        editable = {column["name"] for column in table["columns"] if column["editable"]}
+        self.assertIn("p_nom", editable)
+        self.assertIn("p_nom_extendable", editable)
+        self.assertIn("p_nom_max_2030", editable)
+        self.assertIn("p_nom_min_2050", editable)
+        self.assertFalse(
+            editable & {"country", "node", "type", "carrier", "bus", "name"}
+        )
+
+    def test_tables_without_placeholders_keep_numeric_columns_editable(self) -> None:
+        """Technologies keeps numeric columns editable and identifiers locked."""
+        target = self.temp_path / "technologies.csv"
+        target.write_text(
+            "country,technology,carrier,efficiency,p_max_pu\n" "XY,PHOT,Solar,1,0.9\n",
+            encoding="utf-8",
+        )
+        config = {"timeseries": False, "filter_col": "technology"}
+        table = read_table(target, config, table="Technologies")
+
+        editable = {column["name"] for column in table["columns"] if column["editable"]}
+        self.assertEqual(editable, {"efficiency", "p_max_pu"})
+
     def test_table_filtering_happens_before_server_pagination(self) -> None:
         """Filters apply to the whole table before a page is cut."""
         target = self.temp_path / "power_generators.csv"
