@@ -673,7 +673,9 @@ class AddBaseNetwork:
         """
         if (method).lower() == "clustered":
             solve_name = (self.scenario_configs["solving"]["solver"]["name"]).lower()
-            num_days = self.scenario_configs["resolution"]["number_of_days"]
+            num_days = self.scenario_configs["scenario_configs"]["resolution"][
+                "number_of_days"
+            ]
             period_length = 24
             # Get all time-dependent data
             dfs = [

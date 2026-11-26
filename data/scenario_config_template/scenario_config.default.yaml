@@ -126,7 +126,7 @@ custom_constraints:
       activate: false
     capacity_factor_constraint:
       activate: true
-      values:
+      value:
         "SubC": 0.6
         "SupC": 0.6
         "HDAM": 0.4
