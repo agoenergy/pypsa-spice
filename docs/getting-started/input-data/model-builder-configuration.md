@@ -297,6 +297,82 @@ Where
 !!! Note
     Ramping is calculated between consecutive modelled snapshots. With a reduced temporal resolution (`nth_hour` or `clustered`), ramps therefore reflect changes between the modelled snapshots rather than hourly ramps.
 
+## scenario_config.yaml - demand side management
+
+Demand side management (DSM) is optional. Without it, demand is fixed and can only go unserved through the last-resort `LOSTLOAD` generator (10^5^/MWh). With DSM, part of the demand can be shed or shifted in time, at a cost. DSM is set per country and load type (`profile_type` in `loads.csv`) and applies to all buses with that load type.
+
+```yaml title="Demand side management"
+demand_side_management:
+  XY:
+    activate: true # (1)!
+    loads:
+      HV_LOAD: # (2)!
+        type: shed # (3)!
+        max_peak_share: {2025: 0.02, 2030: 0.05} # (4)!
+        max_energy_share: {2025: 0.001, 2030: 0.002} # (5)!
+        marginal_cost: 500 # (6)!
+      LV_LOAD:
+        type: shift # (7)!
+        max_peak_share: {2025: 0.05, 2030: 0.10} # (8)!
+        window_hours: 24 # (9)!
+        max_hours: 24 # (10)!
+        marginal_cost: 1 # (11)!
+  YZ:
+    activate: false
+```
+
+1. Set to `true` to use DSM in this country. DSM applies to every modelled year, including the base year. To leave out a year, set its values to 0.
+2. Load type (`profile_type` in `loads.csv`), for example `HV_LOAD`, `LV_LOAD`, `IND_LOAD` or `LPV_LOAD`. Each load type has one DSM `type`.
+3. `shed`: part of the load can go unserved, at a cost. The energy is lost.
+4. Max shed power, as a share of the peak load on each bus. Shed power can never be more than the load at that hour.
+5. Max shed energy per year, as a share of the annual demand on each bus.
+6. Cost per MWh shed (currency/MWh).
+7. `shift`: part of the load can move to earlier or later hours. Over each window, the total load stays the same.
+8. Max shifted power (up or down), as a share of the peak load on each bus. Load can never be reduced by more than the load at that hour.
+9. Window length in hours. Shifted load must be made up within the same window. Windows start at the first hour of the year. If 8,760 is not a multiple of `window_hours`, the last window is shorter.
+10. Optional. Max hours the load can stay shifted at full shift power. For example, with 100 MW shift power and `max_hours: 4`, at most 400 MWh can be shifted at once. The default and maximum is `window_hours`. Larger values are lowered to `window_hours` with a warning.
+11. Cost per MWh shifted (currency/MWh). It is charged once, when the load is reduced.
+
+Every parameter except `type` and `window_hours` is either a single number for all years or a `{year: value}` dict covering **every** modelled year. A dict with missing years fails validation, even when DSM is not active.
+
+!!! Note
+    DSM only works with hourly resolution (`method: "nth_hour"` with `stepsize: 1`). With any other resolution, DSM is skipped with a warning and the rest of the model runs as usual.
+
+DSM components use their own carriers (`DSM_SHED`, `DSM_SHIFT`) and types (`DSMD`, `DSMF`), so the results keep them apart from `LOSTLOAD` and `DUMPLOAD`. They are excluded from the capacity, generation and cost output tables of the power and industry sectors, and reported in `dsm_dmd_by_bus_yearly` (TWh) and `dsm_cost_by_bus_yearly` (million currency).
+
+### Demand side management: mathematical formulation
+
+The peak $`\hat d_{b,k}`$ of the load of type $`k`$ on bus $`b`$ is taken from the full 8,760 h profile of the modelled year, before temporal aggregation.
+
+**Shed.** Each bus gets one generator with carrier `DSM_SHED` and fixed capacity $`P^{shed}_{b,k} = s^{peak}_{k,y} \cdot \hat d_{b,k}`$. Its dispatch $`p_{b,k,t}`$ has the marginal cost $`c_{k,y}`$ and the weighted shed energy is capped:
+
+```math
+0 \le p_{b,k,t} \le \min\Big(P^{shed}_{b,k}, \sum_{l \in L_{b,k}} d_{l,t}\Big) \qquad \forall t, \qquad \sum_{t} w_t \cdot p_{b,k,t} \le s^{energy}_{k,y} \cdot \sum_{t} w_t \cdot \sum_{l \in L_{b,k}} d_{l,t}
+```
+
+**Shift.** Each bus gets one lossless storage unit with carrier `DSM_SHIFT`, power capacity $`P^{shift}_{b,k} = s^{peak}_{k,y} \cdot \hat d_{b,k}`$ and energy capacity $`E_{b,k} = h_{k,y} \cdot P^{shift}_{b,k}`$. Charging ($`p^{up}`$) means consuming earlier, discharging ($`p^{down}`$) means consuming less. The state of charge starts at half of the energy capacity and is fixed there at the end of every window $`W`$:
+
+```math
+e_{b,k,t} = e_{b,k,t-1} + p^{up}_{b,k,t} - p^{down}_{b,k,t}, \qquad 0 \le p^{up}_{b,k,t} \le P^{shift}_{b,k}, \qquad 0 \le p^{down}_{b,k,t} \le \min\Big(P^{shift}_{b,k}, \sum_{l \in L_{b,k}} d_{l,t}\Big), \qquad 0 \le e_{b,k,t} \le E_{b,k}, \qquad e_{b,k,t} = \tfrac{1}{2} E_{b,k} \quad \forall t \in \{\text{last snapshot of each window}\}
+```
+
+Because the state of charge is fixed at $`E/2`$, the load can move both earlier and later, and the shifted energy adds up to zero in each window. The marginal cost $`c_{k,y}`$ applies to $`p^{down}`$ only, so every shifted MWh is charged once.
+
+Where
+
+| parameter               | description                                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------------- |
+| $`s^{peak}_{k,y}`$      | `max_peak_share` of load type `k` in year `y`                                                     |
+| $`s^{energy}_{k,y}`$    | `max_energy_share` of load type `k` in year `y`                                                   |
+| $`h_{k,y}`$             | `max_hours` of load type `k` in year `y` (default `window_hours`)                                 |
+| $`c_{k,y}`$             | `marginal_cost` of load type `k` in year `y`                                                      |
+| $`L_{b,k}`$             | Loads of type `k` on bus `b`                                                                      |
+| $`d_{l,t}`$             | Demand of load `l` at snapshot `t`                                                                |
+| $`w_t`$                 | Snapshot weighting of snapshot `t`                                                                |
+
+!!! Note
+    DSM potentials are sized from each year's peak, so DSM components are rebuilt every year and are not carried over as brownfield capacity. The `reserve_margin` and `thermal_must_run` constraints still use the original demand, not the demand after DSM. This is conservative.
+
 ## scenario_config.yaml - solver settings
 
 Solving the optimisation model builder requires a good solver to boost the performance. PyPSA-SPICE supports solvers such as `gurobi`, `cplex`, and `highs`. A comparison of solver performance is available in [solver benchmarking results](https://openenergybenchmark.org/dashboard/main-results){:target="_blank"}.

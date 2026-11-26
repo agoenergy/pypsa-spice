@@ -21,6 +21,8 @@ import pandas as pd
 import pypsa
 from _helpers import configure_logging, load_scenario_config
 from custom_constraints import (
+    add_dsm_shed_energy_constraint,
+    add_dsm_shift_window_constraint,
     add_energy_independence_constraint,
     add_maximum_power_generation_constraint,
     add_ramp_costs,
@@ -29,6 +31,7 @@ from custom_constraints import (
     capacity_factor_constraint,
     co2_cap_constraint,
     fuel_supply_constraint,
+    get_active_dsm_countries,
     re_pow_generation_constraint,
     renewable_potential_constraint,
     thermal_must_run_constraint,
@@ -60,6 +63,15 @@ def extra_functionality_linopt(
     config = snakemake.config
     year = int(snakemake.wildcards.years)
     base_year = config["base_configs"]["years"][0]
+    # Demand side management (warns and skips if the resolution is not hourly)
+    dsm_settings = get_active_dsm_countries(
+        scenario_configs, list(config["base_configs"]["regions"].keys()), year
+    )
+    for country in dsm_settings:
+        add_dsm_shed_energy_constraint(network, country=country)
+        add_dsm_shift_window_constraint(network, country=country)
+        constraint_added = True
+
     for country in config["base_configs"]["regions"].keys():
         country_emission_settings = scenario_configs["co2_management"][country]
         if country_emission_settings.get("option") == "co2_cap":

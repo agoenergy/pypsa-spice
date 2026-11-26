@@ -33,6 +33,12 @@ from _helpers import (
     update_storage_costs,
     update_tech_fact_table,
 )
+from custom_constraints import (
+    DSM_CARRIERS,
+    add_dsm_components,
+    get_active_dsm_countries,
+    validate_dsm_config,
+)
 
 idx = pd.IndexSlice
 
@@ -58,6 +64,8 @@ class AddBaseNetwork:
         self.currency = snakemake.params.currency
         self.scenario_configs = scenario_configs
         self.interest = self.scenario_configs["scenario_configs"]["interest"]
+        # loads with full 8760 h profiles, used to size DSM potentials
+        self.full_loads = []
 
     # ================================== ADDING buses ==================================
     def add_buses(self, bus_dir: FilePath):
@@ -115,6 +123,7 @@ class AddBaseNetwork:
             "Gas-imp",
             "ENS",
             "EXS",
+            *DSM_CARRIERS,
         ]
         missing_carriers_df = pd.DataFrame(missing_carriers, columns=["carrier"])
         missing_carriers_df["emission factor"] = 0
@@ -376,6 +385,12 @@ class AddBaseNetwork:
         )
         final_load = get_time_series_demands(load_df, self.dmd_profile_path, self.year)
         final_load.reset_index(["country", "bus", "carrier", "node"], inplace=True)
+        profile_type = (
+            load_df[load_df["year"] == self.year]
+            .drop_duplicates("name")
+            .set_index("name")["profile_type"]
+            .reindex(final_load.index)
+        )
         self.network.add(
             class_name="Load",
             name=final_load.index,
@@ -387,7 +402,20 @@ class AddBaseNetwork:
             .astype(float)
             .set_index(self.network.snapshots),
             country=final_load["country"],
+            profile_type=profile_type,
         )
+        self.full_loads.append(final_load.assign(profile_type=profile_type))
+
+    # ========================= ADDING demand side management =========================
+    def add_demand_side_management(self):
+        """Add DSM shed generators and shift storage units for the base year."""
+        dsm_settings = get_active_dsm_countries(
+            self.scenario_configs, self.country, self.year
+        )
+        if dsm_settings and self.full_loads:
+            add_dsm_components(
+                self.network, pd.concat(self.full_loads), dsm_settings, self.year
+            )
 
     # ================================ ADDING generators ===============================
     def add_generators(self, plant_dir: FilePath):
@@ -831,6 +859,11 @@ if __name__ == "__main__":
 
     with open(scenario_configs_path) as f:
         scenario_configs = yaml.safe_load(f)
+    validate_dsm_config(
+        scenario_configs,
+        years=snakemake.config["base_configs"]["years"],
+        countries=list(snakemake.params.country_region.keys()),
+    )
 
     snapshots = scenario_configs["scenario_configs"]["snapshots"]
     resolution = pd.date_range(
@@ -872,6 +905,7 @@ if __name__ == "__main__":
         c.add_ev_storage()
         print("Finish adding transport sector for base year")
     c.add_load_shedding()
+    c.add_demand_side_management()
     # c.add_noisy_cost() # noqa: E800
     c.remove_abundant_components()
     c.add_temporal_aggregation(

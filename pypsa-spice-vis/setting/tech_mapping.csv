@@ -38,6 +38,8 @@ Lig,Lignite,,#5E4745
 Lng,LNG,Power,#617394
 LSLO,Lost load,,
 LDMP,Load dumping,,
+DSMD,Demand side management - shed,Power,#C77CFF
+DSMF,Demand side management - shift,Power,#7B5BA6
 ITCN,Cross-border interconnector,,
 METH,Methanation,Industry,#48A8AE
 NUCL,Nuclear power plant,Power,#727272

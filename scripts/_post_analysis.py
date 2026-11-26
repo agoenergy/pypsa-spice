@@ -74,6 +74,105 @@ def get_load_shedding_or_dumping_by_bus(
     ).set_index("bus")
 
 
+def get_dsm_by_bus(n: pypsa.Network) -> pd.DataFrame:
+    """Summarise demand side management (DSM) per bus for one solved network.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Solved PyPSA network.
+
+    Returns
+    -------
+    pd.DataFrame
+        One row per DSM component and metric with columns country, bus, profile_type,
+        dsm_type, metric, energy_mwh and cost (currency). Metrics are ``shed`` (load
+        not served), ``shift_down`` (load reduced, discharge) and ``shift_up`` (load
+        added, charge). Energy is weighted by the objective snapshot weightings.
+        Empty if the network has no DSM components.
+    """
+    weights = n.snapshot_weightings.objective
+    rows = []
+    for comp, dsm_type, series in [
+        ("Generator", "shed", [("shed", "p")]),
+        (
+            "StorageUnit",
+            "shift",
+            [("shift_down", "p_dispatch"), ("shift_up", "p_store")],
+        ),
+    ]:
+        static = n.components[comp].static
+        if static.empty or "type" not in static:
+            continue
+        dsm = static[static["type"] == ("DSMD" if dsm_type == "shed" else "DSMF")]
+        for name, row in dsm.iterrows():
+            for metric, attr in series:
+                dispatch = n.components[comp].dynamic[attr].get(name)
+                energy = 0.0 if dispatch is None else float(dispatch.mul(weights).sum())
+                # marginal cost applies to shed and to shift discharge only
+                cost = energy * row["marginal_cost"] if metric != "shift_up" else 0.0
+                rows.append(
+                    {
+                        "country": row["country"],
+                        "bus": row["bus"],
+                        "profile_type": row.get("dsm_profile_type"),
+                        "dsm_type": dsm_type,
+                        "metric": metric,
+                        "energy_mwh": energy,
+                        "cost": cost,
+                    }
+                )
+    return pd.DataFrame(
+        rows,
+        columns=[
+            "country",
+            "bus",
+            "profile_type",
+            "dsm_type",
+            "metric",
+            "energy_mwh",
+            "cost",
+        ],
+    )
+
+
+def get_dsm_by_bus_yearly(
+    network_dict: dict, value_column: str, scale: float
+) -> pd.DataFrame | None:
+    """Collect the DSM results of all years in one table (see get_dsm_by_bus).
+
+    Parameters
+    ----------
+    network_dict : dict
+        Solved networks keyed by year.
+    value_column : str
+        "energy_mwh" or "cost".
+    scale : float
+        Divisor applied to the value column, e.g. 1e6 for TWh or million currency.
+
+    Returns
+    -------
+    pd.DataFrame | None
+        Multi-index (country, bus, profile_type, dsm_type, metric) and columns
+        (value, year). None if no network has DSM components.
+    """
+    dfs = []
+    for year, n in network_dict.items():
+        df = get_dsm_by_bus(n)
+        if df.empty:
+            continue
+        df["value"] = df[value_column] / scale
+        df["year"] = year
+        dfs.append(df)
+    if not dfs:
+        return None
+    return (
+        pd.concat(dfs)
+        .drop(columns=["energy_mwh", "cost"])
+        .set_index(["country", "bus", "profile_type", "dsm_type", "metric"])
+    )
+
+
 def get_ramp_cost_technologies(scenario_configs: dict) -> dict:
     """Get technologies with activated ramp costs per country from scenario configs.
 
@@ -437,7 +536,7 @@ class OutputTables(Plots):
         for year in self.network_dict:
             n = self.network_dict[year]
             # Filter out the rows where the index contains specific substrings
-            excluded_substrings = ["_SUPPLY", "LSLO", "LDMP", "_STORE"]
+            excluded_substrings = ["_SUPPLY", "LSLO", "LDMP", "DSMD", "DSMF", "_STORE"]
             capex_val = (
                 n.statistics.capex(
                     cost_attribute="fom_cost", groupby=["type", "carrier", "country"]
@@ -487,7 +586,7 @@ class OutputTables(Plots):
         for year in self.network_dict:
             n = self.network_dict[year]
             # Filter out the rows where the index contains specific substrings
-            excluded_substrings = ["_SUPPLY", "LSLO", "LDMP", "_STORE"]
+            excluded_substrings = ["_SUPPLY", "LSLO", "LDMP", "DSMD", "DSMF", "_STORE"]
             capex_val = (
                 n.statistics.capex(groupby=["type", "carrier", "country"])
                 .sub(
@@ -545,7 +644,7 @@ class OutputTables(Plots):
         for year in self.network_dict:
             n = self.network_dict[year]
             # Filter out the rows where the index contains specific substrings
-            excluded_substrings = ["LSLO", "LDMP", "_STORE"]
+            excluded_substrings = ["LSLO", "LDMP", "DSMD", "DSMF", "_STORE"]
             groupby = ["type", "carrier", "country"]
             # OPEX includes variable costs, fixed O&M costs and ramp costs
             ramp_costs = [
@@ -1022,7 +1121,7 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df = final_df[
             ~final_df.index.get_level_values("technology").isin(
-                ["ITCN", "LSLO", "LDMP"]
+                ["ITCN", "LSLO", "LDMP", "DSMD", "DSMF"]
             )
         ]
         final_df = scaling_conversion(
@@ -1101,6 +1200,8 @@ class OutputTables(Plots):
                     "ITCN",
                     "LSLO",
                     "LDMP",
+                    "DSMD",
+                    "DSMF",
                     "EVST_PRV",
                     "EVST_PUB",
                     "BATS_DISCHARGE",
@@ -1209,7 +1310,9 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "technology"]
         final_df = final_df.loc[
-            ~final_df.index.get_level_values("technology").isin(["LSLO", "LDMP"])
+            ~final_df.index.get_level_values("technology").isin(
+                ["LSLO", "LDMP", "DSMD", "DSMF"]
+            )
         ].reset_index()
         final_df["country"] = final_df["country"].str[:2]
         final_df = scaling_conversion(
@@ -1270,7 +1373,9 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "technology"]
         final_df = final_df.loc[
-            ~final_df.index.get_level_values("technology").isin(["LSLO", "LDMP"])
+            ~final_df.index.get_level_values("technology").isin(
+                ["LSLO", "LDMP", "DSMD", "DSMF"]
+            )
         ]
         final_df = scaling_conversion(
             input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
@@ -1376,7 +1481,9 @@ class OutputTables(Plots):
         final_df = final_df.fillna(0)
         final_df.index.names = ["country", "technology"]
         final_df = final_df.loc[
-            ~final_df.index.get_level_values("technology").isin(["LSLO", "LDMP"])
+            ~final_df.index.get_level_values("technology").isin(
+                ["LSLO", "LDMP", "DSMD", "DSMF"]
+            )
         ]
         final_df = scaling_conversion(
             input_df=final_df.loc[~(final_df == 0).all(axis=1), :],
@@ -1838,7 +1945,7 @@ class OutputTables(Plots):
                         | (df[bus_name].str.contains("LVELEC"))
                     )
                     & ~(
-                        df.type.isin(["LSLO", "LDMP"])
+                        df.type.isin(["LSLO", "LDMP", "DSMD", "DSMF"])
                         | (df.type == "ITCN")
                         | (df.type.str.contains("SUPPLY"))
                     )  # removes the non-capacity items
@@ -2003,7 +2110,9 @@ class OutputTables(Plots):
             all_generators_indices = network.generators[
                 (network.generators.country == country)
                 & (network.generators.bus.map(network.buses.carrier) == "Electricity")
-                & ~network.generators.carrier.isin(["ENS", "EXS"])
+                & ~network.generators.carrier.isin(
+                    ["ENS", "EXS", "DSM_SHED", "DSM_SHIFT"]
+                )
             ].index
             vre_reserve = (
                 network.generators.p_nom[all_generators_indices]
@@ -2525,7 +2634,7 @@ class OutputTables(Plots):
                         | (df[bus_name].str.contains("LVELEC"))
                     )
                     & ~(
-                        df.type.isin(["LSLO", "LDMP"])
+                        df.type.isin(["LSLO", "LDMP", "DSMD", "DSMF"])
                         | (df.type == "ITCN")
                         | (df.type.str.contains("SUPPLY"))
                     )  # removes the non-capacity items
@@ -2742,7 +2851,7 @@ class OutputTables(Plots):
         final_df.index.names = ["country", "technology", "carrier", "heat_type"]
         final_df = final_df[
             ~final_df.index.get_level_values("technology").str.contains(
-                "LSLO|LDMP|DISCHARGE|STORE"
+                "LSLO|LDMP|DSMD|DSMF|DISCHARGE|STORE"
             )
         ]  # remove store and discharge, since we only consider generation
         final_df = scaling_conversion(
@@ -2774,11 +2883,11 @@ class OutputTables(Plots):
                 ind_supply = df[
                     (df[bus_name].str.contains("IND"))
                     & ~(
-                        df.type.isin(["LSLO", "LDMP"])
+                        df.type.isin(["LSLO", "LDMP", "DSMD", "DSMF"])
                         | (df.type == "ITCN")
                         | (df.type.str.contains("SUPPLY"))
                     )
-                    & ~df.carrier.isin(["ENS", "EXS"])
+                    & ~df.carrier.isin(["ENS", "EXS", "DSM_SHED", "DSM_SHIFT"])
                 ]
                 if c.name == "Link":
 
@@ -2849,7 +2958,7 @@ class OutputTables(Plots):
                 ind_supply = c.df[
                     (c.df[bus_name].str.contains("IND"))
                     & ~(
-                        c.df.type.isin(["LSLO", "LDMP"])
+                        c.df.type.isin(["LSLO", "LDMP", "DSMD", "DSMF"])
                         | (c.df.type == "ITCN")
                         | (c.df.type.str.contains("SUPPLY"))
                         | (
@@ -2994,7 +3103,7 @@ class OutputTables(Plots):
         final_df.index.names = ["country", "technology", "carrier", "heat_type"]
         final_df = final_df[
             ~final_df.index.get_level_values("technology").str.contains(
-                "ITCN|LSLO|LDMP"
+                "ITCN|LSLO|LDMP|DSMD|DSMF"
             )
         ]
         final_df = scaling_conversion(
@@ -3309,6 +3418,11 @@ class OutputTables(Plots):
                     fuel_cost.loc[targeted_type] = 0
                     # add fuel cost to opex
                     ind_cost = ind_cost.add(fuel_cost)
+                # DSM costs are reported separately in dsm_cost_by_bus_yearly
+                if not ind_cost.empty:
+                    ind_cost = ind_cost[
+                        ~ind_cost.index.get_level_values("type").isin(["DSMD", "DSMF"])
+                    ]
                 if not ind_cost.empty:
                     list_of_bus = (
                         ind_cost.index.get_level_values(bus_name).unique().tolist()
@@ -3927,6 +4041,38 @@ class OutputTables(Plots):
                     )
                     print(by_bus.to_string())
 
+    def dsm_dmd_by_bus_yearly(self) -> pd.DataFrame:
+        """Calculate annual demand shed and shifted by DSM per bus.
+
+        << Unit: TWh >>
+
+        Kept separate from load shedding (LOSTLOAD) and load dumping (DUMPLOAD).
+
+        Returns
+        -------
+        pd.DataFrame
+            Multi-index (country, bus, profile_type, dsm_type, metric) and columns
+            (value, year). Metric is shed, shift_down (load reduced) or shift_up
+            (load added). None if no DSM components exist.
+        """
+        return get_dsm_by_bus_yearly(self.network_dict, "energy_mwh", 1e6)
+
+    def dsm_cost_by_bus_yearly(self) -> pd.DataFrame:
+        """Calculate annual DSM cost (marginal cost x energy) per bus.
+
+        << Unit: Million currency >>
+
+        The marginal cost applies to shed energy and to shift discharge, so the
+        shift_up rows are always 0.
+
+        Returns
+        -------
+        pd.DataFrame
+            Multi-index (country, bus, profile_type, dsm_type, metric) and columns
+            (value, year). None if no DSM components exist.
+        """
+        return get_dsm_by_bus_yearly(self.network_dict, "cost", 1e6)
+
     def ene_gen_by_carrier_yearly(self) -> pd.DataFrame:
         """Calculate annual electricity generation by country and carrier.
 
@@ -3985,7 +4131,9 @@ class OutputTables(Plots):
 
         # Filter out unnecessary technology
         final_df = final_df[
-            ~final_df.index.get_level_values("carrier").isin(["ENS", "EXS"])
+            ~final_df.index.get_level_values("carrier").isin(
+                ["ENS", "EXS", "DSM_SHED", "DSM_SHIFT"]
+            )
         ]
 
         final_df = final_df.loc[final_df.value != 0]
