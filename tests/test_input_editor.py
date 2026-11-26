@@ -90,6 +90,50 @@ class InputEditorTests(unittest.TestCase):
             )
         self.assertEqual(context.exception.status_code, 409)
 
+    def test_placeholder_columns_are_editable_and_key_columns_locked(self) -> None:
+        """Fresh skeleton value columns are editable, row identifiers are not."""
+        target = self.temp_path / "power_plant_costs.csv"
+        target.write_text(
+            "powerplant_type,cap__usd_mw,country,year,source\n"
+            "BIOT,Please fill here,XY,2025,Please fill here\n"
+            "BIOT,Please fill here,XY,2030,Please fill here\n",
+            encoding="utf-8",
+        )
+        config = {"timeseries": False, "filter_col": "powerplant_type"}
+        before = read_table(target, config, table="Power_plant_costs")
+
+        editable = {
+            column["name"] for column in before["columns"] if column["editable"]
+        }
+        self.assertEqual(editable, {"cap__usd_mw", "source"})
+        self.assertEqual(before["rows"][0]["cap__usd_mw"], "Please fill here")
+
+        after = update_table(
+            target,
+            config,
+            TableUpdate(
+                revision=before["revision"],
+                changes=[CellChange(row=0, column="cap__usd_mw", value="1500")],
+            ),
+            table="Power_plant_costs",
+        )
+        kinds = {column["name"]: column["kind"] for column in after["columns"]}
+        self.assertEqual(kinds["cap__usd_mw"], "number")
+        self.assertEqual(after["rows"][0]["cap__usd_mw"], 1500)
+        self.assertEqual(after["rows"][1]["cap__usd_mw"], "Please fill here")
+
+        with self.assertRaises(HTTPException) as context:
+            update_table(
+                target,
+                config,
+                TableUpdate(
+                    revision=after["revision"],
+                    changes=[CellChange(row=0, column="year", value=2040)],
+                ),
+                table="Power_plant_costs",
+            )
+        self.assertEqual(context.exception.status_code, 422)
+
     def test_table_filtering_happens_before_server_pagination(self) -> None:
         """Filters apply to the whole table before a page is cut."""
         target = self.temp_path / "power_generators.csv"

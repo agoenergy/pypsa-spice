@@ -62,6 +62,8 @@ TABLE_COMPARE_KEYS = {
     "Transport_chargers": ("country", "link"),
     "Transport_storages": ("country", "name"),
 }
+# Text that build_skeleton writes into cells the user still has to fill in
+PLACEHOLDER = "Please fill here"
 _WRITE_LOCK = threading.Lock()
 
 
@@ -430,7 +432,12 @@ def _parse_number(raw: str) -> int | float | str:
 
 def _column_kind(values: list[str]) -> Literal["boolean", "number", "string"]:
     """Infer whether a CSV column holds booleans, numbers or strings."""
-    populated = [value.strip() for value in values if value.strip()]
+    # Placeholders count as empty so they don't turn a value column into text
+    populated = [
+        value.strip()
+        for value in values
+        if value.strip() and value.strip() != PLACEHOLDER
+    ]
     if populated and all(value.lower() in {"true", "false"} for value in populated):
         return "boolean"
     if populated:
@@ -445,13 +452,41 @@ def _column_kind(values: list[str]) -> Literal["boolean", "number", "string"]:
 
 def _typed_value(raw: str, kind: str) -> Any:
     """Convert a raw CSV cell to the column's value type."""
-    if raw == "":
-        return ""
+    if raw == "" or raw.strip() == PLACEHOLDER:
+        return raw
     if kind == "boolean":
         return raw.strip().lower() == "true"
     if kind == "number":
         return _parse_number(raw)
     return raw
+
+
+def _editable_columns(
+    table: str, config: dict[str, Any], fieldnames: list[str]
+) -> set[str]:
+    """Return the columns the web editor may change.
+
+    Columns that identify a row (the row key and the technology filter column)
+    are read-only. All other columns are editable, except in timeseries tables.
+
+    Parameters
+    ----------
+    table : str
+        Input table name, e.g. ``"Power_generators"``.
+    config : dict[str, Any]
+        Table settings from ``input_settings.yaml``.
+    fieldnames : list[str]
+        CSV column names.
+
+    Returns
+    -------
+    set[str]
+        Names of the editable columns.
+    """
+    if config.get("timeseries"):
+        return set()
+    locked = {*_row_key_columns(table, fieldnames), config.get("filter_col")}
+    return {column for column in fieldnames if column not in locked}
 
 
 def _technology_matches(
@@ -501,17 +536,13 @@ def read_table(
         column: _column_kind([row.get(column, "") or "" for row in raw_rows])
         for column in fieldnames
     }
-    editable_table = not bool(config.get("timeseries"))
+    editable = _editable_columns(table, config, fieldnames)
     columns = [
         {
             "name": column,
             "label": _pretty_label(column),
             "kind": kinds[column],
-            "editable": editable_table
-            and (
-                kinds[column] in {"number", "boolean"}
-                or column == "max_supply [MWh/year]"
-            ),
+            "editable": column in editable,
         }
         for column in fieldnames
     ]
@@ -1068,12 +1099,7 @@ def update_table(
             column: _column_kind([row.get(column, "") or "" for row in rows])
             for column in fieldnames
         }
-        editable = {
-            column
-            for column in fieldnames
-            if kinds[column] in {"number", "boolean"}
-            or column == "max_supply [MWh/year]"
-        }
+        editable = _editable_columns(table, config, fieldnames)
         seen: set[tuple[int, str]] = set()
         for change in update.changes:
             marker = (change.row, change.column)
